@@ -27,7 +27,7 @@ Set Variable [ $payload_b64; Value: ]
 Loop
 Set Variable [ $$EasyDeploy_Status; Value:Pulling segment   $segment   ... ]
 Refresh Window
-Perform Script on Server [ “Return Requested Deployment Segment” from file: “Hosted_Database”; Parameter: $start  ¶  $segment_size ][ Wait for completion ]
+Perform Script on Server [ unknown from file: “Hosted_Database” (file not open); Parameter: $start  ¶  $segment_size ][ Wait for completion ]
 Set Variable [ $LastError; Value:Get ( LastError ) ]
 If [ $LastError ]
 Close File [ “Hosted_Database” ]
@@ -317,7 +317,7 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “Return Requested Deployment Segment” from file: “Hosted_Database”; Parameter: $start  ¶  $segment_size ]
+        Perform Script on Server [ unknown from file: “Hosted_Database” (file not open); Parameter: $start  ¶  $segment_size ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
@@ -330,7 +330,6 @@ Script:
         Chunk: $start  ¶  $segment_size
       Script:
         id: '26'
-        name: Return Requested Deployment Segment
     - enable: 'True'
       id: '141'
       name: Set Variable

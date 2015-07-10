@@ -1,4 +1,11 @@
-#Sync With Server:Manages the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	Ping process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the deletion phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to Sync Check, code to clean up deleted record UUIDs, etc.	Also reflects move to a single EasySync_Payloads layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.2014-05-15		Tim Dietrich (timdietrich@me.com)	The last pull UTC is now captured prior to the pull itself, and only gets set if the pull	is successful. This prevents records that are in play on the servr while the payload is 	being processed on the mobile device from being excluded from future pulls.
+#Sync With Server:Manages the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	Ping process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the deletion phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to Sync Check, code to clean up deleted record UUIDs, etc.	Also reflects move to a single EasySync_Payloads layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.2014-05-15		Tim Dietrich (timdietrich@me.com)	The last pull UTC is now captured prior to the pull itself, and only gets set if the pull	is successful. This prevents records that are in play on the servr while the payload is 	being processed on the mobile device from being excluded from future pulls.2014-10-19	Tim Dietrich (timdietrich@me.com)	Added configuration check. If no ES tables are setup, then the sync process is aborted.
+#
+#Check to see if there are ES tables configured for syncing.
+Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ); /col; ¶ ) ]
+If [ IsEmpty ( $sync_tables ) ]
+Show Custom Dialog [ Title: Configuration Error; Message: There are no \ES\ tables configured for syncing.; Default Button: “OK”, Commit: “Yes” ]
+Halt Script
+End If
 #
 #Note the start time - both as a timestamp and UTC time.
 Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
@@ -165,7 +172,9 @@ Script:
         Dietrich (timdietrich@me.com)\n\tThe last pull UTC is now captured prior to
         the pull itself, and only gets set if the pull\n\tis successful. This prevents
         records that are in play on the servr while the payload is \n\tbeing processed
-        on the mobile device from being excluded from future pulls."
+        on the mobile device from being excluded from future pulls.\n\n2014-10-19\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded configuration check. If no ES tables
+        are setup, then the sync process is aborted."
       Text: "Sync With Server:\nManages the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tReflects move to UTC time.\n\tPing process
@@ -178,7 +187,75 @@ Script:
         Dietrich (timdietrich@me.com)\n\tThe last pull UTC is now captured prior to
         the pull itself, and only gets set if the pull\n\tis successful. This prevents
         records that are in play on the servr while the payload is \n\tbeing processed
-        on the mobile device from being excluded from future pulls."
+        on the mobile device from being excluded from future pulls.\n\n2014-10-19\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded configuration check. If no ES tables
+        are setup, then the sync process is aborted."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Check to see if there are ES tables configured for syncing.'
+      Text: Check to see if there are ES tables configured for syncing.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables
+        WHERE ( TableName LIKE ES\_% ); /col; ¶ ) ]
+      Value:
+        Calculation: ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName
+          LIKE 'ES\_%' )"; "</col>"; ¶ )
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - ' ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ); /col;
+            ¶ )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_tables
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $sync_tables ) ]
+      Calculation: IsEmpty ( $sync_tables )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $sync_tables )'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Configuration Error; Message: There are
+        no \ES\ tables configured for syncing.; Default Button: “OK”, Commit: “Yes”
+        ]'
+      Title:
+        Calculation: '"Configuration Error"'
+        DisplayCalculation:
+          Chunk: Configuration Error
+      Message:
+        Calculation: '"There are no \"ES\" tables configured for syncing."'
+        DisplayCalculation:
+          Chunk: There are no \ES\ tables configured for syncing.
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '90'
+      name: Halt Script
+      StepText: Halt Script
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1288,7 +1365,7 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
     - enable: 'True'
       id: '89'
       name: Comment

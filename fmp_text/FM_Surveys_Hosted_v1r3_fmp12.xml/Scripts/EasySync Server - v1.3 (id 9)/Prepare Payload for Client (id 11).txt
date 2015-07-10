@@ -1,28 +1,45 @@
-#Push Payload:Handles the push phase of the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Added timezone offset to the settings portion of the payload.2014-04-19	Tim Dietrich (timdietrich@me.com)	Reflects shift to UTC timestamps.2014-04-21	Tim Dietrich (timdietrich@me.com)	Resolves issues with non-SQL compliant table names.2014-04-21	Tim Dietrich (timdietrich@me.com)	Added support for passing in a param of ES_Record_UUIDs so that a partial push	can be processed. See the sample partial push script for an example of how to put	the param together and how to handle the partial push in general.2014-04-23	Tim Dietrich (timdietrich@me.com)	Get ( SystemIPAddress ) is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.2014-04-22	Tim Dietrich (timdietrich@me.com)	Begrudgingly added support for repeating fields.	Yeah, I know. Dont get me started.2014-04-30	Tim Dietrich (timdietrich@me.com)	Added support for the new deletions portion of the payload.	Now omitting global fields from the payload.2014-05-02	Tim Dietrich (timdietrich@me.com)	Modified the SELECT statement that gets the list of tables to be synced, so that the underscore	escaped. Thanks to Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for	reporting this bug.2014-05-04	Tim Dietrich (timdietrich@me.com)	Addess support for Push/Pull-only tables.
+#Prepare Payload for Client:Processes a pull request from the client by building a pull package.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-16			Tim Dietrich (timdietrich@me.com)	The push and pull timestamps are now being pushed by the client in a	SQL-friendly format, to avoid potential differences in timestamp formats	between the client and server.	2014-04-20	Tim Dietrich (timdietrich@me.com)	Mods to resolve simultaneous sync issues.2014-04-21	Tim Dietrich (timdietrich@me.com)	Resolves issues with non-SQL compliant table names.2014-04-22	Tim Dietrich (timdietrich@me.com)	Modified the code that determines what records to pull. Previously we tried to	prevent round-tripping the data that had just been pulled. That failed miserably,	especially for users syncing from multiple devices. It also caused sync issues	in cases were record changes were rejected due to the conflict resolution being	used. See the release notes for more info.2014-04-23	Tim Dietrich (timdietrich@me.com)	Added code to support the initial sync function of the EasySync demo database.	See  Heres the SELECT statement that is used to select the data for the payload 	comment / code for details.	2014-04-22	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	When selecting records for inclusing, we now look at the ID of the device that last	updated the record so that we dont round trip the data that was just pushed.2014-04-28	Tim Dietrich (timdietrich@me.com)	Minor change to account for a user who has wiped / reset their mobile database.	Allows them to pull records that they last touched via that device.2014-05-02	Tim Dietrich (timdietrich@me.com)	Modified the SELECT statement that gets the list of tables to be synced, so that the underscore	escaped. Thanks to Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for	reporting this bug.2014-05-04	Tim Dietrich (timdietrich@me.com)	Addess support for Push/Pull-only tables.
 #
-#Note the push start time.
+#Load settings.
+Perform Script [ “EasySync Settings” ]
+#
+#Log the start time.
 Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
 #
-#Create the last pull portion of the payload.
-Set Variable [ $last_sync_info; Value:last_pull¶ Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time )  ¶  /last_pull ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: Last Sync Info; Message: $last_sync_info; Default Button: “OK”, Commit: “Yes” ]
+#Prevent the user from aborting, and well handle errors, so suppress those...
+Allow User Abort [ Off ]
+Set Error Capture [ On ]
+#
+#Get the parameters passed by the client.
+Set Variable [ $last_pull_utc; Value:GetValue ( Get ( ScriptParameter ); 1 ) ]
+Set Variable [ $last_push_utc; Value:GetValue ( Get ( ScriptParameter ); 2 ) ]
+Set Variable [ $client_persistent_id; Value:GetValue ( Get ( ScriptParameter ); 3 ) ]
+Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter ); 4 ) ]
+Set Variable [ $client_ip_address; Value:GetValue ( Get ( ScriptParameter ); 5 ) ]
+Set Variable [ $client_nic_address; Value:GetValue ( Get ( ScriptParameter ); 6 ) ]
+Set Variable [ $client_platform; Value:GetValue ( Get ( ScriptParameter ); 7 ) ]
+Set Variable [ $client_system_version; Value:GetValue ( Get ( ScriptParameter ); 8 ) ]
+Set Variable [ $client_device; Value:GetValue ( Get ( ScriptParameter ); 9 ) ]
+Set Variable [ $client_network_protocol; Value:GetValue ( Get ( ScriptParameter ); 10 ) ]
+Set Variable [ $client_network_type; Value:GetValue ( Get ( ScriptParameter ); 11 ) ]
+Set Variable [ $additional_settings; Value:GetValue ( Get ( ScriptParameter ); 12 ) ]
+If [ $$debug_pull ]
+Show Custom Dialog [ Title: Pull Params; Message: Get ( ScriptParameter ); Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 #Create the settings portion of the payload.
-Set Variable [ $settings_info; Value:settings¶ $$field_delimiter  /setting  $$record_delimiter  /setting  Get ( PersistentID )  /setting  $$client_version  /setting  Substitute ( Get ( SystemIPAddress ); ¶; ,  )  /setting  Substitute ( Get ( SystemNICAddress ); ¶; ,  )  /setting  Get ( SystemPlatform )  /setting  Get ( SystemVersion )  /setting  Get ( Device )  /setting  Get ( NetworkProtocol )  /setting  Get ( NetworkType )  /setting  $$additional_push_info  ¶/settings ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: Settings Info; Message: $settings_info; Default Button: “OK”, Commit: “Yes” ]
-End If
+Set Variable [ $settings_info; Value:settings¶ $$field_delimiter  /setting  $$record_delimiter  /setting  $$sync_method  ¶  /settings ]
 #
 #Get all of the tables that are to be synced.
-Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ) AND ( TableName NOT LIKE ES\_PULL\_% ); /col; ¶ ) ]
+Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ) AND ( TableName NOT LIKE ES\_PUSH\_% ); /col; ¶ ) ]
 If [ IsEmpty ( $sync_tables ) ]
-Exit Script [ Result: 0  ¶  Sync Error  ¶  There are no tables configured for syncing. ]
+Show Custom Dialog [ Title: Sync Error; Message: There are no tables configured for syncing.; Default Button: “OK”, Commit: “Yes” ]
+Exit Script [  ]
 End If
-If [ $$debug_push ]
+If [ $$debug_pull ]
 Show Custom Dialog [ Title: Sync Tables; Message: $sync_tables; Default Button: “OK”, Commit: “Yes” ]
 End If
+Show Custom Dialog [ Title: Sync Tables; Message: $sync_tables; Default Button: “OK”, Commit: “Yes” ]
 #
 #Initalize table info portion of the payload.
 Set Variable [ $table_info; Value: ]
@@ -38,10 +55,10 @@ Loop
 Set Variable [ $sync_table; Value:Let ( [$t = GetValue ( $sync_tables ; $i );$t = Substitute ( $t; /col; ¶ )];GetValue ( $t; 1 )) ]
 #
 #Get the names (and # of reps) of the fields in this table.
-#Note: Fields with an EXCL_ prefix are excluded from the payload.
-#Note: We also exclude calculated fields and those stored as globals.
+#Note that fields prefixed with EXCL_ are excluded from the payload.
+#Note that calculated and global fields are also excluded.
 Set Variable [ $sync_fields; Value:ExecuteSQL ( SELECT FieldName, FieldReps FROM FileMaker_Fields WHERE ( TableName = ? ) AND ( ( FieldClass = Normal ) OR ( FieldName LIKE B64_% ) ) AND ( FieldName NOT LIKE EXCL_% ) AND ( FieldName  ES_Exclude ) AND ( FieldType NOT LIKE global%); |; ¶; $sync_table ) ]
-If [ $$debug_push ]
+If [ $$debug_pull ]
 Show Custom Dialog [ Title: Fields in   $sync_table; Message: $sync_fields; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
@@ -55,17 +72,18 @@ Set Variable [ $r; Value:1 ]
 Loop
 Set Variable [ $fields; Value:$fields  $field_name  [  $r  ]/field ]
 Set Variable [ $r; Value:$r + 1 ]
-Exit Loop If [ $r  $field_reps ]
+Exit Loop If [ $r  GetAsNumber ( $field_reps )// v1.2: $r  $field_reps ]
 End Loop
 Set Variable [ $f; Value:$f + 1 ]
 Exit Loop If [ $f  ValueCount ( $sync_fields ) ]
 End Loop
-If [ $$debug_push ]
+If [ $$debug_pull ]
 Show Custom Dialog [ Title: Reformatted Fields in   $sync_table; Message: $fields; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 #Add this tables info to the running table_info.
 Set Variable [ $table_info; Value:If ( not IsEmpty ( $table_info ); $table_info  ¶;  )  $fields  /table ]
+#
 #
 #Loop over the fields in the table to create the fields portion of what will be the SELECT statement...
 Set Variable [ $dyn_sql; Value:  $sync_table   ]
@@ -79,7 +97,7 @@ Set Variable [ $r; Value:1 ]
 Loop
 Set Variable [ $dyn_sql; Value:$dyn_sql  ,  || \\\  $field_name  \\\  [  $r  ] ]
 Set Variable [ $r; Value:$r + 1 ]
-Exit Loop If [ $r  $field_reps ]
+Exit Loop If [ $r  GetAsNumber ( $field_reps )// v1.2: $r  $field_reps ]
 End Loop
 #
 Set Variable [ $j; Value:$j + 1 ]
@@ -87,14 +105,16 @@ Exit Loop If [ $j  ValueCount ( $sync_fields ) ]
 End Loop
 #
 #Add this tables fields to the SELECT statement.
-Set Variable [ $dyn_sql; Value:SELECT   $dyn_sql  ,   $$record_delimiter   FROM \\\  $sync_table  \\\  WHERE ( ES_UTC_Time    Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time )   ) AND ( COALESCE ( ES_Exclude, 0 ) = 0 ) ]
-If [ $$debug_push ]
+#Note: This is the SELECT statement that is used to select the data for the payload.
+#You can add your own custom business rules here to determine what data is sent to the user, by looking at things like the table name being worked on, the user / device that has requested the data, etc. Dynamically add your conditions to the WHERE clause.
+Set Variable [ $dyn_sql; Value:SELECT   $dyn_sql  ,   $$record_delimiter    FROM \\\  $sync_table  \\\   WHERE  // Exclude records flagged for sync exclusion.( COALESCE ( ES_Exclude, 0 ) = 0 )  // If the client is merging new/updated data with data already on the device...// Only include records that have been added/updated since the last pull...// And only include data that they did not just push (i.e. no round tripping!)...If ( ( $$sync_method = Merge ) and ( $last_pull_utc  0 );  AND ( ES_UTC_Time    $last_pull_utc   )    AND ( COALESCE ( ES_Device_ID, X )    $client_persistent_id  ) ;  ) ]
+If [ $$debug_pull ]
 Show Custom Dialog [ Title: SELECT Statement for   $sync_table; Message: $dyn_sql; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 #Wrap the SELECT statement in an ExecuteSQL call.
 Set Variable [ $dyn_esql; Value:ExecuteSQL ( \  $dyn_sql  \; \  $$field_delimiter  \; \\ ) ]
-If [ $$debug_push ]
+If [ $$debug_pull ]
 Show Custom Dialog [ Title: ExecuteSQL Statement for   $sync_table; Message: $dyn_esql; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
@@ -114,87 +134,31 @@ Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
 #
 End Loop
 #
-#Check to see if any records have been deleted.
-Set Variable [ $deletions; Value:ExecuteSQL ( SELECT ES_Deleted_Record_UUID, Created_TimeStamp_UTC FROM EasySync_Payloads WHERE ES_Deleted_Record_UUID IS NOT NULL; |; ¶ ) ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: Deletions; Message: $deletions; Default Button: “OK”, Commit: “Yes” ]
-End If
-#
-#If no data needs to be synced...
-If [ IsEmpty ( $records ) and IsEmpty ( $deletions ) ]
-Exit Script [ Result: 1  ¶  Push Completed  ¶  There is no data that needs to be pushed to the server. ]
-End If
-#
-#Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:Pushing payload to server... ]
-Refresh Window
-#
 #Wrap the records portion of the payload.
-If [ not IsEmpty ( $records ) ]
 Set Variable [ $records; Value:records  ¶  $records  ¶  /records ]
-End If
-#
-#Wrap the deletions portion of the payload.
-If [ not IsEmpty ( $deletions ) ]
-Set Variable [ $deletions; Value:deletions  ¶  $deletions  ¶  /deletions ]
-End If
 #
 #Wrap the table info portion of the payload.
 Set Variable [ $table_info; Value:tables  ¶  $table_info  ¶  /tables ]
 #
 #Put the payload together.
-Set Variable [ $payload; Value:payload¶ $last_sync_info  ¶  $settings_info  ¶  $table_info  ¶  If ( not IsEmpty ( $records ); $records  ¶;  ) If ( not IsEmpty ( $deletions ); $deletions  ¶;  ) /payload ]
+Set Variable [ $payload; Value:payload¶ $settings_info  ¶  $table_info  ¶  $records  ¶  /payload ]
 #
-#Pass the payload to the server.
-#Note: We use this segmented approach to work around the PSoS script parameters 1,000,000 character limit.
-#Special thanks to Kirk Bowman @ MightyData for the idea!
-Set Variable [ $num_segments; Value:Int ( Length ( $payload ) / $$max_push_segment_size ) + If ( Mod ( Length ( $payload ) ; $$max_push_segment_size ); 1; 0 ) ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: # Segments; Message: Payload Size:   Length ( $payload )  ¶  Max Segment Size:   $$max_push_segment_size  ¶  Number of Segments Being Sent:   $num_segments; Default Button: “OK”, Commit: “Yes” ]
-End If
-Set Variable [ $payload_segment_ids; Value: ]
-Set Variable [ $i; Value:1 ]
-Loop
-Set Variable [ $segment; Value:Middle ( $payload ; ( ( $i - 1 ) * $$max_push_segment_size ) + 1 ; $$max_push_segment_size ) ]
-If [ $$use_psos_during_push ]
-#*** Remote Script: Receive Payload Segment from Client
-Perform Script on Server [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ][ Wait for completion ]
+#If the payload is small enough to send at one time...
+If [ Length ( $payload )  ≤ $$max_pull_payload_size ]
+#Return the payload to the client.
+Exit Script [ Result: $payload ]
 Else
-#*** Remote Script: Receive Payload Segment from Client
-Perform Script [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ]
-End If
-If [ IsEmpty (  Get ( ScriptResult ) ) ]
-Exit Script [ Result: 0  ¶  Sync Error  ¶  Server did not receive payload segment   $i  . ]
-End If
-Set Variable [ $payload_segment_ids; Value:$payload_segment_ids  If ( not IsEmpty ( $payload_segment_ids ); ¶;  )  Get ( ScriptResult ) ]
-Set Variable [ $i; Value:$i + 1 ]
-Exit Loop If [ $i  $num_segments ]
-End Loop
-If [ $debug ]
-Show Custom Dialog [ Title: Payload Segment IDs; Message: $payload_segment_ids; Default Button: “OK”, Commit: “Yes” ]
-End If
 #
-#Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:Server is processing payload... ]
-Refresh Object [ Object Name: easysync_status ]
+#Save payload.
+Go to Layout [ EasySync_Payloads ]
+New Record/Request
+Set Field By Name [ EasySync_Payloads::Payload; $payload ]
+Set Field By Name [ EasySync_Payloads::Payload_Type; Pull Payload ]
+Commit Records/Requests[ No dialog ]
 #
-#Process the payload.
-If [ $$use_psos_during_push ]
-#*** Remote Script: Process Payload from Client
-Perform Script on Server [ “Process Payload from Client” from file: “Hosted_Database”; Parameter: $payload_segment_ids ][ Wait for completion ]
-Else
-#*** Remote Script: Process Payload from Client
-Perform Script [ “Process Payload from Client” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
-End If
+#Return payload ID to the client.
+Exit Script [ Result: Payload_UUID:   Evaluate ( EasySync_Payloads::ES_Payload_UUID ) ]
 #
-#Close the hosted file.
-Close File [ “Hosted_Database” ]
-#
-#Return the result to the caller.
-If [ Get ( ScriptResult ) = 0 ]
-Exit Script [ Result: 1  ¶  Push Successful  ¶  Local data has been successfully pushed to the server. (Elapsed Time:   GetAsTime ( Get ( CurrentTimeStamp ) - $start )  ) ]
-Else
-Exit Script [ Result: 0  ¶  Push Failed  ¶  The attempt to push data to the server has failed. (The message received from the server was: \  Get ( ScriptResult )  \) ]
 End If
 #
 
@@ -203,53 +167,69 @@ End If
 Script:
   includeInMenu: 'False'
   runFullAccess: 'False'
-  id: '17'
-  name: Push Payload
+  id: '11'
+  name: Prepare Payload for Client
   StepList:
     Step:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#Push Payload:\nHandles the push phase of the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded timezone offset to the settings portion
-        of the payload.\n\n2014-04-19\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
-        shift to UTC timestamps.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tResolves
-        issues with non-SQL compliant table names.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
-        support for passing in a param of ES_Record_UUIDs so that a partial push\n\tcan
-        be processed. See the sample partial push script for an example of how to
-        put\n\tthe param together and how to handle the partial push in general.\n\n2014-04-23\n\tTim
-        Dietrich (timdietrich@me.com)\n\tGet ( SystemIPAddress ) is now comma-delimited
-        when passed as a param.\n\tThis resolves an issue that comes up if the client
-        has multiple IPs.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tBegrudgingly
-        added support for repeating fields.\n\tYeah, I know. Dont get me started.\n\n2014-04-30\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded support for the new deletions portion
-        of the payload.\n\tNow omitting global fields from the payload.\n\n2014-05-02\n\tTim
+      StepText: "#Prepare Payload for Client:\nProcesses a pull request from the client
+        by building a pull package.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tThe push and pull timestamps are now being pushed
+        by the client in a\n\tSQL-friendly format, to avoid potential differences
+        in timestamp formats\n\tbetween the client and server.\n\t\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tMods to resolve simultaneous sync issues.\n\n2014-04-21\n\tTim
+        Dietrich (timdietrich@me.com)\n\tResolves issues with non-SQL compliant table
+        names.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tModified the
+        code that determines what records to pull. Previously we tried to\n\tprevent
+        round-tripping the data that had just been pulled. That failed miserably,\n\tespecially
+        for users syncing from multiple devices. It also caused sync issues\n\tin
+        cases were record changes were rejected due to the conflict resolution being\n\tused.
+        See the release notes for more info.\n\n2014-04-23\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        code to support the initial sync function of the EasySync demo database.\n\tSee
+        \ Heres the SELECT statement that is used to select the data for the payload
+        \n\tcomment / code for details.\n\t\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tWhen
+        selecting records for inclusing, we now look at the ID of the device that
+        last\n\tupdated the record so that we dont round trip the data that was just
+        pushed.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tMinor change
+        to account for a user who has wiped / reset their mobile database.\n\tAllows
+        them to pull records that they last touched via that device.\n\n2014-05-02\n\tTim
         Dietrich (timdietrich@me.com)\n\tModified the SELECT statement that gets the
         list of tables to be synced, so that the underscore\n\tescaped. Thanks to
         Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
         this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAddess support
-        for Push/Pull-only tables.\n\n\n"
-      Text: "Push Payload:\nHandles the push phase of the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded timezone offset to the settings portion
-        of the payload.\n\n2014-04-19\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
-        shift to UTC timestamps.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tResolves
-        issues with non-SQL compliant table names.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
-        support for passing in a param of ES_Record_UUIDs so that a partial push\n\tcan
-        be processed. See the sample partial push script for an example of how to
-        put\n\tthe param together and how to handle the partial push in general.\n\n2014-04-23\n\tTim
-        Dietrich (timdietrich@me.com)\n\tGet ( SystemIPAddress ) is now comma-delimited
-        when passed as a param.\n\tThis resolves an issue that comes up if the client
-        has multiple IPs.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tBegrudgingly
-        added support for repeating fields.\n\tYeah, I know. Dont get me started.\n\n2014-04-30\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded support for the new deletions portion
-        of the payload.\n\tNow omitting global fields from the payload.\n\n2014-05-02\n\tTim
+        for Push/Pull-only tables.\n\n"
+      Text: "Prepare Payload for Client:\nProcesses a pull request from the client
+        by building a pull package.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tThe push and pull timestamps are now being pushed
+        by the client in a\n\tSQL-friendly format, to avoid potential differences
+        in timestamp formats\n\tbetween the client and server.\n\t\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tMods to resolve simultaneous sync issues.\n\n2014-04-21\n\tTim
+        Dietrich (timdietrich@me.com)\n\tResolves issues with non-SQL compliant table
+        names.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tModified the
+        code that determines what records to pull. Previously we tried to\n\tprevent
+        round-tripping the data that had just been pulled. That failed miserably,\n\tespecially
+        for users syncing from multiple devices. It also caused sync issues\n\tin
+        cases were record changes were rejected due to the conflict resolution being\n\tused.
+        See the release notes for more info.\n\n2014-04-23\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        code to support the initial sync function of the EasySync demo database.\n\tSee
+        \ Heres the SELECT statement that is used to select the data for the payload
+        \n\tcomment / code for details.\n\t\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tWhen
+        selecting records for inclusing, we now look at the ID of the device that
+        last\n\tupdated the record so that we dont round trip the data that was just
+        pushed.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tMinor change
+        to account for a user who has wiped / reset their mobile database.\n\tAllows
+        them to pull records that they last touched via that device.\n\n2014-05-02\n\tTim
         Dietrich (timdietrich@me.com)\n\tModified the SELECT statement that gets the
         list of tables to be synced, so that the underscore\n\tescaped. Thanks to
         Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
         this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAddess support
-        for Push/Pull-only tables.\n\n\n"
+        for Push/Pull-only tables.\n\n"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -257,8 +237,24 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Note the push start time.'
-      Text: Note the push start time.
+      StepText: '#Load settings.'
+      Text: Load settings.
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “EasySync Settings” ]
+      Script:
+        id: '19'
+        name: EasySync Settings
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Log the start time.'
+      Text: Log the start time.
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -283,46 +279,294 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Create the last pull portion of the payload.'
-      Text: Create the last pull portion of the payload.
+      StepText: '#Prevent the user from aborting, and well handle errors, so suppress
+        those...'
+      Text: Prevent the user from aborting, and well handle errors, so suppress those...
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the parameters passed by the client.'
+      Text: Get the parameters passed by the client.
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $last_sync_info; Value:last_pull¶ \nEvaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time
-        )  ¶  \n/last_pull ]"
+      StepText: Set Variable [ $last_pull_utc; Value:GetValue ( Get ( ScriptParameter
+        ); 1 ) ]
       Value:
-        Calculation: "\"<last_pull>¶\" &\nEvaluate ( \"EasySync_Payloads::ES_Last_Pull_UTC_Time\"
-          ) & ¶ & \n\"</last_pull>\""
+        Calculation: GetValue ( Get ( ScriptParameter ); 1 )
         DisplayCalculation:
           Chunk:
-          - "last_pull¶ \n"
-          - Evaluate
-          - " ( EasySync_Payloads::ES_Last_Pull_UTC_Time )  ¶  \n/last_pull"
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 1 )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $last_sync_info
+      Name: $last_pull_utc
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $last_push_utc; Value:GetValue ( Get ( ScriptParameter
+        ); 2 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $last_push_utc
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_persistent_id; Value:GetValue ( Get ( ScriptParameter
+        ); 3 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 3 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 3 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_persistent_id
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter
+        ); 4 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 4 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 4 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_ip_address; Value:GetValue ( Get ( ScriptParameter
+        ); 5 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 5 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 5 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_ip_address
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_nic_address; Value:GetValue ( Get ( ScriptParameter
+        ); 6 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 6 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 6 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_nic_address
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_platform; Value:GetValue ( Get ( ScriptParameter
+        ); 7 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 7 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 7 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_platform
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_system_version; Value:GetValue ( Get ( ScriptParameter
+        ); 8 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 8 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 8 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_system_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_device; Value:GetValue ( Get ( ScriptParameter
+        ); 9 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 9 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 9 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_device
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_network_protocol; Value:GetValue ( Get ( ScriptParameter
+        ); 10 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 10 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 10 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_network_protocol
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_network_type; Value:GetValue ( Get ( ScriptParameter
+        ); 11 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 11 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 11 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_network_type
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $additional_settings; Value:GetValue ( Get ( ScriptParameter
+        ); 12 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 12 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 12 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $additional_settings
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$debug_pull
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Last Sync Info; Message: $last_sync_info;
-        Default Button: “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: Pull Params; Message: Get ( ScriptParameter
+        ); Default Button: “OK”, Commit: “Yes” ]'
       Title:
-        Calculation: '"Last Sync Info"'
+        Calculation: '"Pull Params"'
         DisplayCalculation:
-          Chunk: Last Sync Info
+          Chunk: Pull Params
       Message:
-        Calculation: $last_sync_info
+        Calculation: Get ( ScriptParameter )
         DisplayCalculation:
-          Chunk: $last_sync_info
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
       Buttons:
         Button:
         - CommitState: 'True'
@@ -348,98 +592,18 @@ Script:
       id: '141'
       name: Set Variable
       StepText: "Set Variable [ $settings_info; Value:settings¶ \n$$field_delimiter
-        \ /setting  \n$$record_delimiter  /setting  \nGet ( PersistentID )  /setting
-        \ \n$$client_version  /setting  \nSubstitute ( Get ( SystemIPAddress ); ¶;
-        ,  )  /setting  \nSubstitute ( Get ( SystemNICAddress ); ¶; ,  )  /setting
-        \ \nGet ( SystemPlatform )  /setting  \nGet ( SystemVersion )  /setting  \nGet
-        ( Device )  /setting  \nGet ( NetworkProtocol )  /setting  \nGet ( NetworkType
-        )  /setting  \n$$additional_push_info  \n¶/settings ]"
+        \ /setting  $$record_delimiter  /setting  $$sync_method  ¶  \n/settings ]"
       Value:
-        Calculation: "\"<settings>¶\" &\n$$field_delimiter & \"</setting>\" & \n$$record_delimiter
-          & \"</setting>\" & \nGet ( PersistentID ) & \"</setting>\" & \n$$client_version
-          & \"</setting>\" & \nSubstitute ( Get ( SystemIPAddress ); ¶; \", \" ) &
-          \"</setting>\" & \nSubstitute ( Get ( SystemNICAddress ); ¶; \", \" ) &
-          \"</setting>\" & \nGet ( SystemPlatform ) & \"</setting>\" & \nGet ( SystemVersion
-          ) & \"</setting>\" & \nGet ( Device ) & \"</setting>\" & \nGet ( NetworkProtocol
-          ) & \"</setting>\" & \nGet ( NetworkType ) & \"</setting>\" & \n$$additional_push_info
-          & \n\"¶</settings>\""
+        Calculation: "\"<settings>¶\" &\n$$field_delimiter & \"</setting>\" & $$record_delimiter
+          & \"</setting>\" & $$sync_method & ¶ & \n\"</settings>\""
         DisplayCalculation:
-          Chunk:
-          - "settings¶ \n$$field_delimiter  /setting  \n$$record_delimiter  /setting
-            \ \n"
-          - Get
-          - ' ( '
-          - PersistentID
-          - " )  /setting  \n$$client_version  /setting  \n"
-          - Substitute
-          - ' ( '
-          - Get
-          - ' ( '
-          - SystemIPAddress
-          - " ); ¶; ,  )  /setting  \n"
-          - Substitute
-          - ' ( '
-          - Get
-          - ' ( '
-          - SystemNICAddress
-          - " ); ¶; ,  )  /setting  \n"
-          - Get
-          - ' ( '
-          - SystemPlatform
-          - " )  /setting  \n"
-          - Get
-          - ' ( '
-          - SystemVersion
-          - " )  /setting  \n"
-          - Get
-          - ' ( '
-          - Device
-          - " )  /setting  \n"
-          - Get
-          - ' ( '
-          - NetworkProtocol
-          - " )  /setting  \n"
-          - Get
-          - ' ( '
-          - NetworkType
-          - " )  /setting  \n$$additional_push_info  \n¶/settings"
+          Chunk: "settings¶ \n$$field_delimiter  /setting  $$record_delimiter  /setting
+            \ $$sync_method  ¶  \n/settings"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
       Name: $settings_info
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
-      DisplayCalculation:
-        Chunk: $$debug_push
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Settings Info; Message: $settings_info;
-        Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Settings Info"'
-        DisplayCalculation:
-          Chunk: Settings Info
-      Message:
-        Calculation: $settings_info
-        DisplayCalculation:
-          Chunk: $settings_info
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: OK
-        - CommitState: 'False'
-        - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
     - enable: 'True'
       id: '89'
       name: Comment
@@ -453,16 +617,16 @@ Script:
       id: '141'
       name: Set Variable
       StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables
-        WHERE ( TableName LIKE ES\_% ) AND ( TableName NOT LIKE ES\_PULL\_% ); /col;
+        WHERE ( TableName LIKE ES\_% ) AND ( TableName NOT LIKE ES\_PUSH\_% ); /col;
         ¶ ) ]
       Value:
         Calculation: ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName
-          LIKE 'ES\_%' ) AND ( TableName NOT LIKE 'ES\_PULL\_%' )"; "</col>"; ¶ )
+          LIKE 'ES\_%' ) AND ( TableName NOT LIKE 'ES\_PUSH\_%' )"; "</col>"; ¶ )
         DisplayCalculation:
           Chunk:
           - ExecuteSQL
           - ' ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ) AND
-            ( TableName NOT LIKE ES\_PULL\_% ); /col; ¶ )'
+            ( TableName NOT LIKE ES\_PUSH\_% ); /col; ¶ )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -478,14 +642,30 @@ Script:
         - IsEmpty
         - ' ( $sync_tables )'
     - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: There are no tables
+        configured for syncing.; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Error"'
+        DisplayCalculation:
+          Chunk: Sync Error
+      Message:
+        Calculation: '"There are no tables configured for syncing."'
+        DisplayCalculation:
+          Chunk: There are no tables configured for syncing.
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
       id: '103'
       name: Exit Script
-      StepText: "Exit Script [ Result: 0  ¶  \nSync Error  ¶  \nThere are no tables
-        configured for syncing. ]"
-      Calculation: "0 & ¶ & \n\"Sync Error\" & ¶ & \n\"There are no tables configured
-        for syncing.\""
-      DisplayCalculation:
-        Chunk: "0  ¶  \nSync Error  ¶  \nThere are no tables configured for syncing."
+      StepText: Exit Script [  ]
     - enable: 'True'
       id: '70'
       name: End If
@@ -493,10 +673,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$debug_pull
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
@@ -522,6 +702,27 @@ Script:
       id: '70'
       name: End If
       StepText: End If
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Tables; Message: $sync_tables; Default
+        Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Tables"'
+        DisplayCalculation:
+          Chunk: Sync Tables
+      Message:
+        Calculation: $sync_tables
+        DisplayCalculation:
+          Chunk: $sync_tables
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -640,13 +841,13 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Note: Fields with an EXCL_ prefix are excluded from the payload.'
-      Text: 'Note: Fields with an EXCL_ prefix are excluded from the payload.'
+      StepText: '#Note that fields prefixed with EXCL_ are excluded from the payload.'
+      Text: Note that fields prefixed with EXCL_ are excluded from the payload.
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Note: We also exclude calculated fields and those stored as globals.'
-      Text: 'Note: We also exclude calculated fields and those stored as globals.'
+      StepText: '#Note that calculated and global fields are also excluded.'
+      Text: Note that calculated and global fields are also excluded.
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -675,10 +876,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$debug_pull
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
@@ -862,10 +1063,22 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $r  $field_reps ]
-      Calculation: $r > $field_reps
+      StepText: |-
+        Exit Loop If [ $r  GetAsNumber ( $field_reps )
+
+        // v1.2: $r  $field_reps ]
+      Calculation: |-
+        $r > GetAsNumber ( $field_reps )
+
+        // v1.2: $r > $field_reps
       DisplayCalculation:
-        Chunk: $r  $field_reps
+        Chunk:
+        - '$r  '
+        - GetAsNumber
+        - |2+
+           ( $field_reps )
+
+        - '// v1.2: $r  $field_reps'
     - enable: 'True'
       id: '73'
       name: End Loop
@@ -900,10 +1113,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$debug_pull
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
@@ -960,6 +1173,10 @@ Script:
         DisplayCalculation:
           Chunk: '1'
       Name: $table_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1130,10 +1347,22 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $r  $field_reps ]
-      Calculation: $r > $field_reps
+      StepText: |-
+        Exit Loop If [ $r  GetAsNumber ( $field_reps )
+
+        // v1.2: $r  $field_reps ]
+      Calculation: |-
+        $r > GetAsNumber ( $field_reps )
+
+        // v1.2: $r > $field_reps
       DisplayCalculation:
-        Chunk: $r  $field_reps
+        Chunk:
+        - '$r  '
+        - GetAsNumber
+        - |2+
+           ( $field_reps )
+
+        - '// v1.2: $r  $field_reps'
     - enable: 'True'
       id: '73'
       name: End Loop
@@ -1179,24 +1408,64 @@ Script:
       StepText: '#Add this tables fields to the SELECT statement.'
       Text: Add this tables fields to the SELECT statement.
     - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: This is the SELECT statement that is used to select the data
+        for the payload.'
+      Text: 'Note: This is the SELECT statement that is used to select the data for
+        the payload.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#You can add your own custom business rules here to determine what
+        data is sent to the user, by looking at things like the table name being worked
+        on, the user / device that has requested the data, etc. Dynamically add your
+        conditions to the WHERE clause.'
+      Text: You can add your own custom business rules here to determine what data
+        is sent to the user, by looking at things like the table name being worked
+        on, the user / device that has requested the data, etc. Dynamically add your
+        conditions to the WHERE clause.
+    - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $dyn_sql; Value:SELECT   $dyn_sql  ,   $$record_delimiter
-        \ \n FROM \\\\\\  $sync_table  \\\\\\ \n WHERE ( ES_UTC_Time    Evaluate (
-        EasySync_Payloads::ES_Last_Pull_UTC_Time )   ) AND ( COALESCE ( ES_Exclude,
-        0 ) = 0 ) ]"
+      StepText: "Set Variable [ $dyn_sql; Value:SELECT   \n$dyn_sql  ,   $$record_delimiter
+        \  \n FROM \\\\\\  $sync_table  \\\\\\  \n WHERE  \n\n// Exclude records flagged
+        for sync exclusion.\n( COALESCE ( ES_Exclude, 0 ) = 0 )  \n\n// If the client
+        is merging new/updated data with data already on the device...\n// Only include
+        records that have been added/updated since the last pull...\n// And only include
+        data that they did not just push (i.e. no round tripping!)...\nIf ( ( $$sync_method
+        = Merge ) and ( $last_pull_utc  0 );  AND ( ES_UTC_Time    $last_pull_utc
+        \  )    AND ( COALESCE ( ES_Device_ID, X )    $client_persistent_id  ) ;  )
+        ]"
       Value:
-        Calculation: "\"SELECT \" & $dyn_sql & \", '\" & $$record_delimiter & \n\"'
-          FROM \\\\\\\"\" & $sync_table & \"\\\\\\\"\" &\n\" WHERE ( ES_UTC_Time >
-          \" & Evaluate ( \"EasySync_Payloads::ES_Last_Pull_UTC_Time\" ) & \" ) AND
-          ( COALESCE ( ES_Exclude, 0 ) = 0 )\""
+        Calculation: "\"SELECT \" & \n$dyn_sql & \", '\" & $$record_delimiter & \"'\"
+          &\n\" FROM \\\\\\\"\" & $sync_table & \"\\\\\\\"\" & \n\" WHERE \" &\n\n//
+          Exclude records flagged for sync exclusion.\n\"( COALESCE ( ES_Exclude,
+          0 ) = 0 ) \" &\n\n// If the client is merging new/updated data with data
+          already on the device...\n// Only include records that have been added/updated
+          since the last pull...\n// And only include data that they did not just
+          push (i.e. no \"round tripping!\")...\nIf ( ( $$sync_method = \"Merge\"
+          ) and ( $last_pull_utc > 0 );  \"AND ( ES_UTC_Time > \" & $last_pull_utc
+          & \" ) \" &  \"AND ( COALESCE ( ES_Device_ID, 'X' ) <> '\" & $client_persistent_id
+          & \"') \"; \"\" )"
         DisplayCalculation:
           Chunk:
-          - "SELECT   $dyn_sql  ,   $$record_delimiter  \n FROM \\\\\\  $sync_table
-            \ \\\\\\ \n WHERE ( ES_UTC_Time    "
-          - Evaluate
-          - ' ( EasySync_Payloads::ES_Last_Pull_UTC_Time )   ) AND ( COALESCE ( ES_Exclude,
-            0 ) = 0 )'
+          - "SELECT   \n$dyn_sql  ,   $$record_delimiter   \n FROM \\\\\\  $sync_table
+            \ \\\\\\  \n WHERE  \n\n"
+          - |
+            // Exclude records flagged for sync exclusion.
+          - "( COALESCE ( ES_Exclude, 0 ) = 0 )  \n\n"
+          - |
+            // If the client is merging new/updated data with data already on the device...
+          - |
+            // Only include records that have been added/updated since the last pull...
+          - |
+            // And only include data that they did not just push (i.e. no round tripping!)...
+          - If
+          - ' ( ( $$sync_method = Merge ) '
+          - and
+          - ' ( $last_pull_utc  0 );  AND ( ES_UTC_Time    $last_pull_utc   )    AND
+            ( COALESCE ( ES_Device_ID, X )    $client_persistent_id  ) ;  )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1205,10 +1474,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$debug_pull
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
@@ -1261,10 +1530,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$debug_pull
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
@@ -1436,149 +1705,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Check to see if any records have been deleted.'
-      Text: Check to see if any records have been deleted.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $deletions; Value:ExecuteSQL ( SELECT ES_Deleted_Record_UUID,
-        Created_TimeStamp_UTC FROM EasySync_Payloads WHERE ES_Deleted_Record_UUID
-        IS NOT NULL; |; ¶ ) ]
-      Value:
-        Calculation: ExecuteSQL ( "SELECT ES_Deleted_Record_UUID, Created_TimeStamp_UTC
-          FROM EasySync_Payloads WHERE ES_Deleted_Record_UUID IS NOT NULL"; "|"; ¶
-          )
-        DisplayCalculation:
-          Chunk:
-          - ExecuteSQL
-          - ' ( SELECT ES_Deleted_Record_UUID, Created_TimeStamp_UTC FROM EasySync_Payloads
-            WHERE ES_Deleted_Record_UUID IS NOT NULL; |; ¶ )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $deletions
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
-      DisplayCalculation:
-        Chunk: $$debug_push
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Deletions; Message: $deletions; Default
-        Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Deletions"'
-        DisplayCalculation:
-          Chunk: Deletions
-      Message:
-        Calculation: $deletions
-        DisplayCalculation:
-          Chunk: $deletions
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: OK
-        - CommitState: 'False'
-        - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If no data needs to be synced...'
-      Text: If no data needs to be synced...
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ IsEmpty ( $records ) and IsEmpty ( $deletions ) ]
-      Calculation: IsEmpty ( $records ) and IsEmpty ( $deletions )
-      DisplayCalculation:
-        Chunk:
-        - IsEmpty
-        - ' ( $records ) '
-        - and
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( $deletions )'
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: "Exit Script [ Result: 1  ¶  \nPush Completed  ¶  \nThere is no data
-        that needs to be pushed to the server. ]"
-      Calculation: "1 & ¶ & \n\"Push Completed\" & ¶ & \n\"There is no data that needs
-        to be pushed to the server.\""
-      DisplayCalculation:
-        Chunk: "1  ¶  \nPush Completed  ¶  \nThere is no data that needs to be pushed
-          to the server."
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Refresh sync status.'
-      Text: Refresh sync status.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Pushing payload to server...
-        ]
-      Value:
-        Calculation: '"Pushing payload to server..."'
-        DisplayCalculation:
-          Chunk: Pushing payload to server...
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#Wrap the records portion of the payload.'
       Text: Wrap the records portion of the payload.
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ not IsEmpty ( $records ) ]
-      Calculation: not IsEmpty ( $records )
-      DisplayCalculation:
-        Chunk:
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( $records )'
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -1592,49 +1720,6 @@ Script:
         DisplayCalculation:
           Chunk: '1'
       Name: $records
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Wrap the deletions portion of the payload.'
-      Text: Wrap the deletions portion of the payload.
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ not IsEmpty ( $deletions ) ]
-      Calculation: not IsEmpty ( $deletions )
-      DisplayCalculation:
-        Chunk:
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( $deletions )'
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $deletions; Value:deletions  ¶  $deletions  ¶  /deletions
-        ]
-      Value:
-        Calculation: '"<deletions>" & ¶ & $deletions & ¶ & "</deletions>"'
-        DisplayCalculation:
-          Chunk: deletions  ¶  $deletions  ¶  /deletions
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $deletions
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1670,31 +1755,13 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $payload; Value:payload¶ \n$last_sync_info  ¶  \n$settings_info
-        \ ¶  \n$table_info  ¶  \nIf ( not IsEmpty ( $records ); $records  ¶;  ) \nIf
-        ( not IsEmpty ( $deletions ); $deletions  ¶;  ) \n/payload ]"
+      StepText: "Set Variable [ $payload; Value:payload¶ \n$settings_info  ¶  \n$table_info
+        \ ¶  \n$records  ¶  \n/payload ]"
       Value:
-        Calculation: "\"<payload>¶\" &\n$last_sync_info & ¶ & \n$settings_info & ¶
-          & \n$table_info & ¶ & \nIf ( not IsEmpty ( $records ); $records & ¶; \"\"
-          ) &\nIf ( not IsEmpty ( $deletions ); $deletions & ¶; \"\" ) &\n\"</payload>\""
+        Calculation: "\"<payload>¶\" &\n$settings_info & ¶ & \n$table_info & ¶ & \n$records
+          & ¶ & \n\"</payload>\""
         DisplayCalculation:
-          Chunk:
-          - "payload¶ \n$last_sync_info  ¶  \n$settings_info  ¶  \n$table_info  ¶
-            \ \n"
-          - If
-          - ' ( '
-          - not
-          - type: NoRef
-            __content__: ' '
-          - IsEmpty
-          - " ( $records ); $records  ¶;  ) \n"
-          - If
-          - ' ( '
-          - not
-          - type: NoRef
-            __content__: ' '
-          - IsEmpty
-          - " ( $deletions ); $deletions  ¶;  ) \n/payload"
+          Chunk: "payload¶ \n$settings_info  ¶  \n$table_info  ¶  \n$records  ¶  \n/payload"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1707,163 +1774,29 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Pass the payload to the server.'
-      Text: Pass the payload to the server.
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Note: We use this segmented approach to work around the PSoS script
-        parameters 1,000,000 character limit.'
-      Text: 'Note: We use this segmented approach to work around the PSoS script parameters
-        1,000,000 character limit.'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Special thanks to Kirk Bowman @ MightyData for the idea!'
-      Text: Special thanks to Kirk Bowman @ MightyData for the idea!
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $num_segments; Value:Int ( Length ( $payload ) / $$max_push_segment_size
-        ) + If ( Mod ( Length ( $payload ) ; $$max_push_segment_size ); 1; 0 ) ]
-      Value:
-        Calculation: Int ( Length ( $payload ) / $$max_push_segment_size ) + If (
-          Mod ( Length ( $payload ) ; $$max_push_segment_size ); 1; 0 )
-        DisplayCalculation:
-          Chunk:
-          - Int
-          - ' ( '
-          - Length
-          - ' ( $payload ) / $$max_push_segment_size ) + '
-          - If
-          - ' ( '
-          - Mod
-          - ' ( '
-          - Length
-          - ' ( $payload ) ; $$max_push_segment_size ); 1; 0 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $num_segments
+      StepText: '#If the payload is small enough to send at one time...'
+      Text: If the payload is small enough to send at one time...
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ Length ( $payload )  ≤ $$max_pull_payload_size ]
+      Calculation: Length ( $payload )  ≤ $$max_pull_payload_size
       DisplayCalculation:
-        Chunk: $$debug_push
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: "Show Custom Dialog [ Title: # Segments; Message: Payload Size:   Length
-        ( $payload )  ¶  \nMax Segment Size:   $$max_push_segment_size  ¶  \nNumber
-        of Segments Being Sent:   $num_segments; Default Button: “OK”, Commit: “Yes”
-        ]"
-      Title:
-        Calculation: '"# Segments"'
-        DisplayCalculation:
-          Chunk: '# Segments'
-      Message:
-        Calculation: "\"Payload Size: \" & Length ( $payload ) & ¶ & \n\"Max Segment
-          Size: \" & $$max_push_segment_size & ¶ & \n\"Number of Segments Being Sent:
-          \" & $num_segments"
-        DisplayCalculation:
-          Chunk:
-          - 'Payload Size:   '
-          - Length
-          - " ( $payload )  ¶  \nMax Segment Size:   $$max_push_segment_size  ¶  \nNumber
-            of Segments Being Sent:   $num_segments"
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: OK
-        - CommitState: 'False'
-        - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: 'Set Variable [ $payload_segment_ids; Value: ]'
-      Value:
-        Calculation: '""'
-        DisplayCalculation:
-          Chunk: 
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $payload_segment_ids
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $i; Value:1 ]
-      Value:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $i
-    - enable: 'True'
-      id: '71'
-      name: Loop
-      StepText: Loop
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $segment; Value:Middle ( $payload ; ( ( $i - 1 ) *
-        $$max_push_segment_size ) + 1 ; $$max_push_segment_size ) ]
-      Value:
-        Calculation: Middle ( $payload ; ( ( $i - 1 ) * $$max_push_segment_size )
-          + 1 ; $$max_push_segment_size )
-        DisplayCalculation:
-          Chunk:
-          - Middle
-          - ' ( $payload ; ( ( $i - 1 ) * $$max_push_segment_size ) + 1 ; $$max_push_segment_size
-            )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $segment
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$use_psos_during_push ]
-      Calculation: $$use_psos_during_push
-      DisplayCalculation:
-        Chunk: $$use_psos_during_push
+        Chunk:
+        - Length
+        - ' ( $payload )  ≤ $$max_pull_payload_size'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#*** Remote Script: Receive Payload Segment from Client'
-      Text: '*** Remote Script: Receive Payload Segment from Client'
+      StepText: '#Return the payload to the client.'
+      Text: Return the payload to the client.
     - enable: 'True'
-      id: '164'
-      name: Perform Script on Server
-      StepText: |-
-        Perform Script on Server [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ]
-        [ Wait for completion ]
-      WaitForCompletion:
-        state: 'True'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
-      Calculation: $segment
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $payload ]'
+      Calculation: $payload
       DisplayCalculation:
-        Chunk: $segment
-      Script:
-        id: '15'
-        name: Receive Payload Segment from Client
+        Chunk: $payload
     - enable: 'True'
       id: '69'
       name: Else
@@ -1871,239 +1804,63 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#*** Remote Script: Receive Payload Segment from Client'
-      Text: '*** Remote Script: Receive Payload Segment from Client'
-    - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: 'Perform Script [ “Receive Payload Segment from Client” from file:
-        “Hosted_Database”; Parameter: $segment ]'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
-      Calculation: $segment
-      DisplayCalculation:
-        Chunk: $segment
-      Script:
-        id: '15'
-        name: Receive Payload Segment from Client
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ IsEmpty (  Get ( ScriptResult ) ) ]
-      Calculation: IsEmpty (  Get ( ScriptResult ) )
-      DisplayCalculation:
-        Chunk:
-        - IsEmpty
-        - ' (  '
-        - Get
-        - ' ( '
-        - ScriptResult
-        - ' ) )'
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: "Exit Script [ Result: 0  ¶  \nSync Error  ¶  \nServer did not receive
-        payload segment   $i  . ]"
-      Calculation: "0 & ¶ & \n\"Sync Error\" & ¶ & \n\"Server did not receive payload
-        segment \" & $i & \".\""
-      DisplayCalculation:
-        Chunk: "0  ¶  \nSync Error  ¶  \nServer did not receive payload segment   $i
-          \ ."
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $payload_segment_ids; Value:$payload_segment_ids  If
-        ( not IsEmpty ( $payload_segment_ids ); ¶;  )  Get ( ScriptResult ) ]
-      Value:
-        Calculation: $payload_segment_ids & If ( not IsEmpty ( $payload_segment_ids
-          ); ¶; "" ) & Get ( ScriptResult )
-        DisplayCalculation:
-          Chunk:
-          - '$payload_segment_ids  '
-          - If
-          - ' ( '
-          - not
-          - type: NoRef
-            __content__: ' '
-          - IsEmpty
-          - ' ( $payload_segment_ids ); ¶;  )  '
-          - Get
-          - ' ( '
-          - ScriptResult
-          - ' )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $payload_segment_ids
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $i; Value:$i + 1 ]
-      Value:
-        Calculation: $i + 1
-        DisplayCalculation:
-          Chunk: $i + 1
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $i
-    - enable: 'True'
-      id: '72'
-      name: Exit Loop If
-      StepText: Exit Loop If [ $i  $num_segments ]
-      Calculation: $i > $num_segments
-      DisplayCalculation:
-        Chunk: $i  $num_segments
-    - enable: 'True'
-      id: '73'
-      name: End Loop
-      StepText: End Loop
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $debug ]
-      Calculation: $debug
-      DisplayCalculation:
-        Chunk: $debug
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Payload Segment IDs; Message: $payload_segment_ids;
-        Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Payload Segment IDs"'
-        DisplayCalculation:
-          Chunk: Payload Segment IDs
-      Message:
-        Calculation: $payload_segment_ids
-        DisplayCalculation:
-          Chunk: $payload_segment_ids
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: OK
-        - CommitState: 'False'
-        - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Refresh sync status.'
-      Text: Refresh sync status.
+      StepText: '#Save payload.'
+      Text: Save payload.
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Server is processing payload...
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ EasySync_Payloads ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        Calculation: '"EasySync_Payloads"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payloads::Payload; $payload ]
+      Result:
+        Calculation: $payload
+        DisplayCalculation:
+          Chunk: $payload
+      TargetName:
+        Calculation: '"EasySync_Payloads::Payload"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads::Payload
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payloads::Payload_Type; Pull Payload
         ]
-      Value:
-        Calculation: '"Server is processing payload..."'
+      Result:
+        Calculation: '"Pull Payload"'
         DisplayCalculation:
-          Chunk: Server is processing payload...
-      Repetition:
-        Calculation: '1'
+          Chunk: Pull Payload
+      TargetName:
+        Calculation: '"EasySync_Payloads::Payload_Type"'
         DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
+          Chunk: EasySync_Payloads::Payload_Type
     - enable: 'True'
-      id: '167'
-      name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: easysync_status ]'
-      ObjectName:
-        Calculation: '"easysync_status"'
-        DisplayCalculation:
-          Chunk: easysync_status
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Process the payload.'
-      Text: Process the payload.
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$use_psos_during_push ]
-      Calculation: $$use_psos_during_push
-      DisplayCalculation:
-        Chunk: $$use_psos_during_push
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Process Payload from Client'
-      Text: '*** Remote Script: Process Payload from Client'
-    - enable: 'True'
-      id: '164'
-      name: Perform Script on Server
+      id: '75'
+      name: Commit Records/Requests
       StepText: |-
-        Perform Script on Server [ “Process Payload from Client” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
-        [ Wait for completion ]
-      WaitForCompletion:
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
         state: 'True'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
-      Calculation: $payload_segment_ids
-      DisplayCalculation:
-        Chunk: $payload_segment_ids
-      Script:
-        id: '8'
-        name: Process Payload from Client
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Process Payload from Client'
-      Text: '*** Remote Script: Process Payload from Client'
-    - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: 'Perform Script [ “Process Payload from Client” from file: “Hosted_Database”;
-        Parameter: $payload_segment_ids ]'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
-      Calculation: $payload_segment_ids
-      DisplayCalculation:
-        Chunk: $payload_segment_ids
-      Script:
-        id: '8'
-        name: Process Payload from Client
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -2111,76 +1868,24 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Close the hosted file.'
-      Text: Close the hosted file.
+      StepText: '#Return payload ID to the client.'
+      Text: Return payload ID to the client.
     - enable: 'True'
-      id: '34'
-      name: Close File
-      StepText: Close File [ “Hosted_Database” ]
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Payload_UUID:   Evaluate ( EasySync_Payloads::ES_Payload_UUID
+        ) ]'
+      Calculation: '"Payload_UUID: " & Evaluate ( "EasySync_Payloads::ES_Payload_UUID"
+        )'
+      DisplayCalculation:
+        Chunk:
+        - 'Payload_UUID:   '
+        - Evaluate
+        - ' ( EasySync_Payloads::ES_Payload_UUID )'
     - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Return the result to the caller.'
-      Text: Return the result to the caller.
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ Get ( ScriptResult ) = 0 ]
-      Calculation: Get ( ScriptResult ) = 0
-      DisplayCalculation:
-        Chunk:
-        - Get
-        - ' ( '
-        - ScriptResult
-        - ' ) = 0'
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: "Exit Script [ Result: 1  ¶  \nPush Successful  ¶  \nLocal data has
-        been successfully pushed to the server. (Elapsed Time:   GetAsTime ( Get (
-        CurrentTimeStamp ) - $start )  ) ]"
-      Calculation: "1 & ¶ & \n\"Push Successful\" & ¶ & \n\"Local data has been successfully
-        pushed to the server. (Elapsed Time: \" & GetAsTime ( Get ( CurrentTimeStamp
-        ) - $start ) & \")\""
-      DisplayCalculation:
-        Chunk:
-        - "1  ¶  \nPush Successful  ¶  \nLocal data has been successfully pushed to
-          the server. (Elapsed Time:   "
-        - GetAsTime
-        - ' ( '
-        - Get
-        - ' ( '
-        - CurrentTimeStamp
-        - ' ) - $start )  )'
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: "Exit Script [ Result: 0  ¶  \nPush Failed  ¶  \nThe attempt to push
-        data to the server has failed. (The message received from the server was:
-        \\  Get ( ScriptResult )  \\) ]"
-      Calculation: "0 & ¶ & \n\"Push Failed\" & ¶ & \n\"The attempt to push data to
-        the server has failed. (The message received from the server was: \\\"\" &
-        Get ( ScriptResult ) & \"\\\")\""
-      DisplayCalculation:
-        Chunk:
-        - "0  ¶  \nPush Failed  ¶  \nThe attempt to push data to the server has failed.
-          (The message received from the server was: \\  "
-        - Get
-        - ' ( '
-        - ScriptResult
-        - ' )  \)'
     - enable: 'True'
       id: '70'
       name: End If

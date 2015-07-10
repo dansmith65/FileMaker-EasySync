@@ -272,7 +272,7 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
       Calculation: $ping_params
       DisplayCalculation:
         Chunk: $ping_params
@@ -313,7 +313,7 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
       Calculation: $ping_params
       DisplayCalculation:
         Chunk: $ping_params
@@ -421,7 +421,7 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
     - enable: 'True'
       id: '89'
       name: Comment
@@ -739,7 +739,7 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
     - enable: 'True'
       id: '103'
       name: Exit Script
@@ -944,7 +944,7 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
     - enable: 'True'
       id: '103'
       name: Exit Script
@@ -990,7 +990,7 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
     - enable: 'True'
       id: '103'
       name: Exit Script

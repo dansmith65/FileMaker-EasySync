@@ -3,13 +3,13 @@ Tables
     Base Table (id)            Table occurrence (id)    
     ---------------            ---------------------    
 
-    Survey_Hobbies (132)       ES_Survey Hobbies (1065094)
     Survey_Documents (133)     ES_Survey_Documents (1065097)
+    Survey_Hobbies (132)       ES_Survey Hobbies (1065094)
+    Surveys (129)              ES_Surveys (1065090)     
     EasyDeploy (134)           EasyDeploy (1065098)     
     Surveys (129)              Surveys (1065089)        
     Survey_Documents (133)     Survey_Documents (1065096)
     Survey_Hobbies (132)       Survey_Hobbies (1065093) 
-    Surveys (129)              ES_Surveys (1065090)     
     EasySync (130)             EasySync_Payload_Details (1065095)
     EasySync (130)             EasySync_Payloads (1065091)
 
@@ -38,16 +38,21 @@ Relationships
 RelationshipGraph:
   TableList:
     Table:
-    - id: '1065094'
-      color: '#787878'
-      baseTableId: '132'
-      baseTable: Survey_Hobbies
-      name: ES_Survey Hobbies
     - id: '1065097'
       color: '#787878'
       baseTableId: '133'
       baseTable: Survey_Documents
       name: ES_Survey_Documents
+    - id: '1065094'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: Survey_Hobbies
+      name: ES_Survey Hobbies
+    - id: '1065090'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: Surveys
+      name: ES_Surveys
     - id: '1065098'
       color: '#787878'
       baseTableId: '134'
@@ -68,11 +73,6 @@ RelationshipGraph:
       baseTableId: '132'
       baseTable: Survey_Hobbies
       name: Survey_Hobbies
-    - id: '1065090'
-      color: '#787878'
-      baseTableId: '129'
-      baseTable: Surveys
-      name: ES_Surveys
     - id: '1065095'
       color: '#787878'
       baseTableId: '130'

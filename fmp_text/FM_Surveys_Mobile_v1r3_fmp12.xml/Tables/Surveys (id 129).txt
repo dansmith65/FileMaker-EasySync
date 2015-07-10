@@ -64,7 +64,7 @@ BaseTable:
         NotEmpty:
           value: 'False'
         Unique:
-          value: 'False'
+          value: 'True'
         Existing:
           value: 'False'
         StrictValidation:
@@ -137,8 +137,7 @@ BaseTable:
         StrictValidation:
           value: 'False'
       Storage:
-        autoIndex: 'True'
-        index: Minimal
+        index: All
         indexLanguage: English
         global: 'False'
         maxRepetition: '1'
@@ -170,8 +169,7 @@ BaseTable:
         StrictValidation:
           value: 'False'
       Storage:
-        autoIndex: 'True'
-        index: Minimal
+        index: All
         indexLanguage: English
         global: 'False'
         maxRepetition: '1'
@@ -630,11 +628,10 @@ BaseTable:
         StrictValidation:
           value: 'False'
       Storage:
-        autoIndex: 'True'
-        index: None
+        index: All
         indexLanguage: English
         global: 'False'
-        maxRepetition: '5'
+        maxRepetition: '10'
     - id: '18'
       dataType: Text
       fieldType: Normal

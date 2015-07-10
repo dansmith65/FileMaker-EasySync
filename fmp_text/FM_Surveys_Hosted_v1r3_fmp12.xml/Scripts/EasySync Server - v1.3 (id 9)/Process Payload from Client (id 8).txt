@@ -254,7 +254,7 @@ End If
 End If
 #
 #If the value of this field has changed...
-If [ $field_value ≠ Evaluate ( $table_name  ::  $field_name ) ]
+If [ not Exact ( $field_value ; Evaluate ( $table_name  ::  $field_name ) )// v1.2: $field_value ≠ Evaluate ( $table_name  ::  $field_name ) ]
 #
 #We might make several attempts to set the field if the record is locked.
 Set Variable [ $a; Value:1 ]
@@ -3012,13 +3012,26 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: 'If [ $field_value ≠ Evaluate ( $table_name  ::  $field_name ) ]'
-      Calculation: $field_value ≠ Evaluate ( $table_name & "::" & $field_name )
+      StepText: |-
+        If [ not Exact ( $field_value ; Evaluate ( $table_name  ::  $field_name ) )
+
+        // v1.2: $field_value ≠ Evaluate ( $table_name  ::  $field_name ) ]
+      Calculation: |-
+        not Exact ( $field_value ; Evaluate ( $table_name & "::" & $field_name ) )
+
+        // v1.2: $field_value ≠ Evaluate ( $table_name & "::" & $field_name )
       DisplayCalculation:
         Chunk:
-        - '$field_value ≠ '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - Exact
+        - ' ( $field_value ; '
         - Evaluate
-        - ' ( $table_name  ::  $field_name )'
+        - |2+
+           ( $table_name  ::  $field_name ) )
+
+        - '// v1.2: $field_value ≠ Evaluate ( $table_name  ::  $field_name )'
     - enable: 'True'
       id: '89'
       name: Comment

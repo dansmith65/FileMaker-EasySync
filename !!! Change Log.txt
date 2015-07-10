@@ -1,5 +1,67 @@
 EasySync Demo - Change Log
 
+###
+
+Version 1.3 (Posted 10-19-2014)
+
+Changes made to the "Mobile" database...
+
+Script: Sync With Server
+Added lines 3 through 8.
+Reason: Moved configuration check from "Push Payload” script to this earlier step in the sync process.
+
+Script: Pull Payload
+Changed: Line 213 (near comment "If the value of this field has changed…”)
+From: If ( $field_value ≠ Evaluate ( $table_name & "::" & $field_name ) )
+To: not Exact ( $field_value ; Evaluate ( $table_name & "::" & $field_name ) )
+Reason: Resolves issue when only the case of a text value has change. Ex: “Joe” to “joe"
+
+Script: Push Payload
+Changed: Line 21 (Exit Script script step, result returned)
+From: 0 & ¶ & "Sync Error" & ¶ & "There are no tables configured for syncing."
+To: 1 & ¶ & "Push Phase Cancelled" & ¶ & "There are no tables configured for push.”
+Reason: Helps to resolve Pull-only configuration issues.
+
+Script: Push Payload
+Changed: Line 58
+From : Exit Loop If ( $r > $field_reps )
+To: Exit Loop If ( $r > GetAsNumber ( $field_reps ) )
+Reason: Resolves issue encountered with fields that have more than 10 reps. 
+
+Script: Push Payload
+Changed: Line 82
+From : Exit Loop If ( $r > $field_reps )
+To: Exit Loop If ( $r > GetAsNumber ( $field_reps ) )
+Reason: Resolves issue encountered with fields that have more than 10 reps.  
+
+
+Changes made to the "Hosted" database...
+
+Script: Process Payload from Client
+Changed: Line 257 (near comment "If the value of this field has changed…”)
+From: If ( $field_value ≠ Evaluate ( $table_name & "::" & $field_name ) )
+To: not Exact ( $field_value ; Evaluate ( $table_name & "::" & $field_name ) ) 
+Reason: Resolves issue when only the case of a text value has change. Ex: “Joe” to “joe"
+
+Script: Prepare Payload for Client
+Deleted: Line 18
+Reason: Duplicate of Line 17
+Thanks: Chris Stapleton for pointing this out.  
+
+Script: Prepare Payload for Client
+Changed: Line 75
+From : Exit Loop If ( $r > $field_reps )
+To: Exit Loop If ( $r > GetAsNumber ( $field_reps ) )
+Reason: Resolves issue encountered with fields that have more than 10 reps.   
+
+Script: Prepare Payload for Client
+Changed: Line 100
+From : Exit Loop If ( $r > $field_reps )
+To: Exit Loop If ( $r > GetAsNumber ( $field_reps ) )
+Reason: Resolves issue encountered with fields that have more than 10 reps.    
+
+###
+
 Version 1.2 (Posted 06–03-2014)
 
 Mobile and Hosted: The “Sync Check” process now supports passing / receiving “additional info.” This can be used to apply complex business rules during the phase, to ensure that a mobile user’s device has only those records that they should have access to.
