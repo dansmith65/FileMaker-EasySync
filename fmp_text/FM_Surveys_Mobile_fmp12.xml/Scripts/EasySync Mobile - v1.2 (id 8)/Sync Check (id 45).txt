@@ -1,4 +1,4 @@
-#Sync Check:Sends a list of all ES_Record_UUIDs, from all synced tables, to the server. The server runs that list up against its own list of ES_Record_UUIDs, and returns the difference. This script takes the diff and deletes the records. This rounds out the delete support. It helps to ensure that the mobile device doesnt have any records locally that it shouldnt have.Please note: Records flagged as do not sync (via the ES_Exclude field) are not included in the UUID list sent to the server. Therefore, they will not be deleted if they are not on the server.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.	2014-05-15	Tim Dietrich (timdietrich@me.com)	Delimiting the underscore used in the query that gets ES_ tables.
+#Sync Check:Sends a list of all ES_Record_UUIDs, from all synced tables, to the server. The server runs that list up against its own list of ES_Record_UUIDs, and returns the difference. This script takes the diff and deletes the records. This rounds out the delete support. It helps to ensure that the mobile device doesnt have any records locally that it shouldnt have.Please note: Records flagged as do not sync (via the ES_Exclude field) are not included in the UUID list sent to the server. Therefore, they will not be deleted if they are not on the server.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.	2014-05-15	Tim Dietrich (timdietrich@me.com)	Delimiting the underscore used in the query that gets ES_ tables.2014-06-02	Tim Dietrich (timdietrich@me.com)	Properly escapes the ES_ table names.	Supports passing additional info to server (via $$additional_sync_check_info).
 #
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
@@ -18,7 +18,7 @@ Set Variable [ $select; Value: ]
 Set Variable [ $i; Value:1 ]
 Loop
 Set Variable [ $sync_table; Value:GetValue ( $sync_tables ; $i ) ]
-Set Variable [ $select; Value:$select  If ( not IsEmpty ( $select );  UNION ALL ;  ) SELECT ES_Record_UUID FROM   $sync_table   WHERE COALESCE ( ES_Exclude, 0 ) = 0 ]
+Set Variable [ $select; Value:$select  If ( not IsEmpty ( $select );  UNION ALL ;  ) SELECT ES_Record_UUID FROM \\\  $sync_table  \\\ WHERE COALESCE ( ES_Exclude, 0 ) = 0 ]
 Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
 End Loop
@@ -29,6 +29,11 @@ Set Variable [ $executesql; Value:ExecuteSQL ( \  $select  \; \\; \\) ]
 #Execute the SELECT statement.
 Set Variable [ $UUIDs; Value:Evaluate ( $executesql ) ]
 #
+#If there are no UUIDs in the sync tables...
+If [ IsEmpty ( $UUIDs ) ]
+Exit Script [  ]
+End If
+#
 #Refresh sync status.
 Set Variable [ $$EasySync_Status; Value:Performing sync check with server... ]
 Refresh Window
@@ -36,18 +41,18 @@ Refresh Window
 #Send list to Server for analysis. Server will return the diff.
 If [ $$use_psos_during_sync_check ]
 #*** Remote Script: Sync Check
-Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $UUIDs ][ Wait for completion ]
+Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info  ¶  $UUIDs ][ Wait for completion ]
 Set Variable [ $error; Value:Get ( LastError ) ]
 Else
 #*** Remote Script: Sync Check
-Perform Script [ “Sync Check” from file: “Hosted_Database”; Parameter: $UUIDs ]
+Perform Script [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info  ¶  $UUIDs ]
 Set Variable [ $error; Value:Get ( LastError ) ]
 End If
 Close File [ “Hosted_Database” ]
 #
 #If there was an error...
 If [ $error ]
-Show Custom Dialog [ Title: Sync Check Error; Message: The sync checks call to the server has failed.; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: Sync Check Error; Message: The sync checks call to the server has failed.; Default Button: “OK”, Commit: “Yes” ]
 Exit Script [  ]
 End If
 #
@@ -135,7 +140,9 @@ Script:
         in the UUID list sent to the server. Therefore, they will not be deleted if
         they are not on the server.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
         version.\n\t\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
-        the underscore used in the query that gets ES_ tables."
+        the underscore used in the query that gets ES_ tables.\n\n2014-06-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tProperly escapes the ES_ table names.\n\tSupports
+        passing additional info to server (via $$additional_sync_check_info)."
       Text: "Sync Check:\nSends a list of all ES_Record_UUIDs, from all synced tables,
         to the server. The server runs that list up against its own list of ES_Record_UUIDs,
         and returns the difference. This script takes the diff and deletes the records.
@@ -145,7 +152,9 @@ Script:
         UUID list sent to the server. Therefore, they will not be deleted if they
         are not on the server.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
         version.\n\t\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
-        the underscore used in the query that gets ES_ tables."
+        the underscore used in the query that gets ES_ tables.\n\n2014-06-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tProperly escapes the ES_ table names.\n\tSupports
+        passing additional info to server (via $$additional_sync_check_info)."
     - enable: 'True'
       id: '89'
       name: Comment
@@ -294,12 +303,12 @@ Script:
       id: '141'
       name: Set Variable
       StepText: "Set Variable [ $select; Value:$select  If ( not IsEmpty ( $select
-        );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM   $sync_table   WHERE COALESCE
-        ( ES_Exclude, 0 ) = 0 ]"
+        );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM \\\\\\  $sync_table  \\\\\\
+        WHERE COALESCE ( ES_Exclude, 0 ) = 0 ]"
       Value:
         Calculation: |-
           $select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &
-          "SELECT ES_Record_UUID FROM " & $sync_table & " WHERE COALESCE ( ES_Exclude, 0 ) = 0"
+          "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0"
         DisplayCalculation:
           Chunk:
           - '$select  '
@@ -309,8 +318,8 @@ Script:
           - type: NoRef
             __content__: ' '
           - IsEmpty
-          - " ( $select );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM   $sync_table
-            \  WHERE COALESCE ( ES_Exclude, 0 ) = 0"
+          - " ( $select );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM \\\\\\  $sync_table
+            \ \\\\\\ WHERE COALESCE ( ES_Exclude, 0 ) = 0"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -397,6 +406,32 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
+      StepText: '#If there are no UUIDs in the sync tables...'
+      Text: If there are no UUIDs in the sync tables...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $UUIDs ) ]
+      Calculation: IsEmpty ( $UUIDs )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $UUIDs )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
       StepText: '#Refresh sync status.'
       Text: Refresh sync status.
     - enable: 'True'
@@ -446,7 +481,7 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $UUIDs ]
+        Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info  ¶  $UUIDs ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
@@ -454,9 +489,9 @@ Script:
         id: '1'
         name: Hosted_Database
         UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
-      Calculation: $UUIDs
+      Calculation: $$additional_sync_check_info & ¶ & $UUIDs
       DisplayCalculation:
-        Chunk: $UUIDs
+        Chunk: $$additional_sync_check_info  ¶  $UUIDs
       Script:
         id: '21'
         name: Sync Check
@@ -490,14 +525,14 @@ Script:
       id: '1'
       name: Perform Script
       StepText: 'Perform Script [ “Sync Check” from file: “Hosted_Database”; Parameter:
-        $UUIDs ]'
+        $$additional_sync_check_info  ¶  $UUIDs ]'
       FileReference:
         id: '1'
         name: Hosted_Database
         UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
-      Calculation: $UUIDs
+      Calculation: $$additional_sync_check_info & ¶ & $UUIDs
       DisplayCalculation:
-        Chunk: $UUIDs
+        Chunk: $$additional_sync_check_info  ¶  $UUIDs
       Script:
         id: '21'
         name: Sync Check
@@ -550,8 +585,7 @@ Script:
       id: '87'
       name: Show Custom Dialog
       StepText: 'Show Custom Dialog [ Title: Sync Check Error; Message: The sync checks
-        call to the server has failed.; Default Button: “Yes”, Commit: “Yes”; Button
-        2: “No”, Commit: “No” ]'
+        call to the server has failed.; Default Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Sync Check Error"'
         DisplayCalculation:
@@ -563,13 +597,10 @@ Script:
       Buttons:
         Button:
         - CommitState: 'True'
-          Calculation: '"Yes"'
+          Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: OK
         - CommitState: 'False'
-          Calculation: '"No"'
-          DisplayCalculation:
-            Chunk: 'No'
         - CommitState: 'False'
     - enable: 'True'
       id: '103'

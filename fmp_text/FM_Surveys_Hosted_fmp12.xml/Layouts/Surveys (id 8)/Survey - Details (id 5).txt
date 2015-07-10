@@ -3462,13 +3462,22 @@ Layout:
               - type: Button
                 key: '186'
                 LabelKey: '0'
-                flags: '0'
+                flags: '16384'
                 rotation: '0'
                 Bounds:
                   top: '11.0000000'
                   left: '808.0000000'
                   bottom: '40.0000000'
                   right: '890.0000000'
+                ToolTip:
+                  Calculation: Survey_Documents::ES_Record_UUID
+                  DisplayCalculation:
+                    Chunk:
+                      type: FieldRef
+                      Field:
+                        table: Survey_Documents
+                        id: '28'
+                        name: ES_Record_UUID
                 TextObj:
                   flags: '2'
                   ExtendedAttributes:

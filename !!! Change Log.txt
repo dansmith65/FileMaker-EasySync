@@ -1,5 +1,14 @@
 EasySync Demo - Change Log
 
+Version 1.2 (Posted 06–03-2014)
+
+Mobile and Hosted: The “Sync Check” process now supports passing / receiving “additional info.” This can be used to apply complex business rules during the phase, to ensure that a mobile user’s device has only those records that they should have access to.
+Mobile: EasySync Settings - Added the $$additional_sync_check_info setting. This is the additional info that gets passed during the “Sync Check” phase.
+Mobile and Hosted: Some debugging dialog boxes, which had previously been showing odd button values, have been cleaned up (and now read “OK” instead of “Yes” and “No”).
+Hosted: The “Process Payload from Client” script eliminates an empty find request when processing deletions. It also resolves a bug encountered in cases where, when a record is deleted, an additional record on the last “ES_” layout was also inadvertently deleted.
+
+###
+
 Version 1.1 (Posted 05-15-2014)
 
 Mobile and Hosted: Optimizations to payload processing that reduce the memory needed and increase speed. Also, no longer saving full payloads to the EasySync table unless in running in debug mode.

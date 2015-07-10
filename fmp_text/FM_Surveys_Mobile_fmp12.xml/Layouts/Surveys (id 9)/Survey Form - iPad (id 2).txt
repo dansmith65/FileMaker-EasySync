@@ -2417,8 +2417,17 @@ Layout:
                       id: '44'
                       name: EasySync Delete Record
                 HideCondition:
-                  Calculation: Survey_Hobbies::<Field Missing>
-                  DisplayCalculation: 
+                  Calculation: IsEmpty ( Survey_Hobbies::Survey_Hobby_ID )
+                  DisplayCalculation:
+                    Chunk:
+                    - IsEmpty
+                    - ' ( '
+                    - type: FieldRef
+                      Field:
+                        table: Survey_Hobbies
+                        id: '1'
+                        name: Survey_Hobby_ID
+                    - ' )'
           - type: Text
             key: '287'
             LabelKey: '0'
@@ -2852,13 +2861,22 @@ Layout:
               - type: Button
                 key: '333'
                 LabelKey: '0'
-                flags: '1342177284'
+                flags: '1342193668'
                 rotation: '0'
                 Bounds:
                   top: '13.0000000'
                   left: '780.0000000'
                   bottom: '57.0000000'
                   right: '912.0000000'
+                ToolTip:
+                  Calculation: Survey_Documents::ES_Record_UUID
+                  DisplayCalculation:
+                    Chunk:
+                      type: FieldRef
+                      Field:
+                        table: Survey_Documents
+                        id: '28'
+                        name: ES_Record_UUID
                 TextObj:
                   flags: '2'
                   ExtendedAttributes:
@@ -2944,8 +2962,17 @@ Layout:
                       id: '44'
                       name: EasySync Delete Record
                 HideCondition:
-                  Calculation: Survey_Documents::<Field Missing>
-                  DisplayCalculation: 
+                  Calculation: IsEmpty ( Survey_Documents::Survey_Document_ID )
+                  DisplayCalculation:
+                    Chunk:
+                    - IsEmpty
+                    - ' ( '
+                    - type: FieldRef
+                      Field:
+                        table: Survey_Documents
+                        id: '1'
+                        name: Survey_Document_ID
+                    - ' )'
           - type: Text
             key: '317'
             LabelKey: '0'

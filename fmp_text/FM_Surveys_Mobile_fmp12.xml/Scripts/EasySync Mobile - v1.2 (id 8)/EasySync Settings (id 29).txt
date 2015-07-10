@@ -1,7 +1,7 @@
-#EasySync Settings:Initializes all EasySync mobile settings.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version, based on settings that had been local to the push / pull scripts.2014-04-18		Tim Dietrich (timdietrich@me.com)	Added client_version setting. Can be used by the server to confirm that the 	client meets sync requirements, and either notify the usser that a new version is	available, or reject the sync.2014-04-19		Tim Dietrich (timdietrich@me.com)	Added support for additional ping info which can be used by the developer to send	additional info to the server during the ping / handshake process.	Added support for max ping time and slow connection behavior which can be used	to warn the user, or abort the sync, when a slow connection to the server is detected.	Added support for additional push info which can be used by the developer to send	additional info to the server during the push phase of the sync process.	Added support for additional pull info which can be used by the developer to send	additional info to the server during the pull phase of the sync process.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added $$process_deletions setting, which gives you the option to enable / disable	the new deletion phase of the sync process.2014-05-01	Tim Dietrich (timdietrich@me.com)	Changed deletion settings, and added new sync check settings.	Added support for $$pull_progress_indicator_logic setting.
+#EasySync Settings:Initializes all EasySync mobile settings.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version, based on settings that had been local to the push / pull scripts.2014-04-18		Tim Dietrich (timdietrich@me.com)	Added client_version setting. Can be used by the server to confirm that the 	client meets sync requirements, and either notify the usser that a new version is	available, or reject the sync.2014-04-19		Tim Dietrich (timdietrich@me.com)	Added support for additional ping info which can be used by the developer to send	additional info to the server during the ping / handshake process.	Added support for max ping time and slow connection behavior which can be used	to warn the user, or abort the sync, when a slow connection to the server is detected.	Added support for additional push info which can be used by the developer to send	additional info to the server during the push phase of the sync process.	Added support for additional pull info which can be used by the developer to send	additional info to the server during the pull phase of the sync process.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added $$process_deletions setting, which gives you the option to enable / disable	the new deletion phase of the sync process.2014-06-02	Tim Dietrich (timdietrich@me.com)	Changed deletion settings, and added new sync check settings.	Added support for $$pull_progress_indicator_logic setting.
 #
 #Client version.
-Set Variable [ $$client_version; Value:1.1// The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 1.1 ]
+Set Variable [ $$client_version; Value:1.2// The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 1.1 ]
 #
 #General sync settings.
 Set Variable [ $$ask_before_sync; Value:0 // 1 = Yes, 0 = No.  0 is the default. ]
@@ -12,7 +12,7 @@ Set Variable [ $$show_successful_pulls; Value:0 // Let the user know that a pull
 #Server ping settings.
 Set Variable [ $$debug_ping; Value:0 // Display debug info during the ping? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$use_psos_during_ping; Value:1/* 1 = Yes, 0 = No.  1 is the default.Indicates whether the processing of the server ping should be done on the server (using Perform Script on Server) or on the client (using Perform Script).*/ ]
-Set Variable [ $$additional_ping_info; Value:/*Additional information that sent to the server during the ping process.*/ ]
+Set Variable [ $$additional_ping_info; Value:/*Additional information that is sent to the server during the ping process.*/ ]
 Set Variable [ $$max_ping_time; Value:5000/*The maximum amount of time, in milliseconds, that the ping process can take before the decision is made to disallow the sync. Set to a high value (ex: 999999) to disable this feature.*/ ]
 Set Variable [ $$slow_connection_behavior; Value:warn/*The action to take when the users connection is determined to be slow (meaning that the ping process was slower than the max ping time setting.Options:• warn: The user is warned that the connection is slow, but is given the option to proceed anyway.• halt: The user is notified that the connection is slow, and the process is halted. (The user is not given the option to proceed.)*/ ]
 #
@@ -22,14 +22,14 @@ Set Variable [ $$field_delimiter; Value:/fld // The delimiter used between field
 Set Variable [ $$record_delimiter; Value:/rec // The delimiter used between records in the push payload. ]
 Set Variable [ $$use_psos_during_push; Value:1/* Indicates whether the processing of the pushed payload should be done on the server (using Perform Script on Server) or on the client (using Perform Script).*/ ]
 Set Variable [ $$max_push_segment_size; Value:500000 // The maximum size of payload segments (# chars) sent to the server. Do not set higher than 1,000,000. Recommended setting is 500000. ]
-Set Variable [ $$additional_push_info; Value:/*Additional information that sent to the server during the push process.*/ ]
+Set Variable [ $$additional_push_info; Value:/*Additional information that is sent to the server during the push process.*/ ]
 #
 #Pull settings.
 Set Variable [ $$debug_pull; Value:0 // Display debug info during pull? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$delete_pull_payloads; Value:Successful/*Indicates the type of pull payloads that should be deleted.Options are: • Successful: Only successfully processed payloads are deleted. Recommended.• None: No pulled payloads are deleted.• All: All payloads are deleted.*/ ]
 Set Variable [ $$use_psos_during_pull; Value:1/* 1 = Yes, 0 = No.  1 is the default.Indicates whether the processing of the pushed payloads should be done on the server (using Perform Script on Server) or on the client (using Perform Script).*/ ]
 Set Variable [ $$max_pull_segment_size; Value:500000 // The maximum size of payload segments (# chars) to pull from the server. Do not set higher than 1,000,000. Recommended size is 500000. ]
-Set Variable [ $$additional_pull_info; Value:/*Additional information that sent to the server during the pull process.*/ ]
+Set Variable [ $$additional_pull_info; Value:/*Additional information that is sent to the server during the pull process.*/ ]
 Set Variable [ $$pull_progress_indicator_logic; Value:1/*1 = Yes, 0 = No.  1 is the default.Can be used to display progress updates as records in the pull payload are processed.Specify this in the form of a FileMaker calculation.Examples: • Right ( $i; 1 ) = 0 // Refreshes as every tenth record is processed.• 1 // Refreshes as each record is processed.To disable the feature, use: 0Note that frequent refreshes wil slow the processing down slightly. Use with care!*/ ]
 #
 #Deletion settings.
@@ -39,6 +39,7 @@ Set Variable [ $$perform_sync_check; Value:1// Perform a sync check? 1 = Yes, 0 
 #Sync-check settings.
 Set Variable [ $$debug_sync_check; Value:0 // Display debug info during sync check? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$use_psos_during_sync_check; Value:1/* 1 = Yes, 0 = No. 1 is the default.Indicates whether the processing of the sync check should be done on the server (using Perform Script on Server) or on the client (using Perform Script).*/ ]
+Set Variable [ $$additional_sync_check_info; Value:/*Additional information that is sent to the server during the sync check process.*/ ]
 #
 
 
@@ -69,7 +70,7 @@ Script:
         info to the server during the pull phase of the sync process.\n\n2014-04-24\n\tTim
         Dietrich (timdietrich@me.com)\n\tAdded $$process_deletions setting, which
         gives you the option to enable / disable\n\tthe new deletion phase of the
-        sync process.\n\n2014-05-01\n\tTim Dietrich (timdietrich@me.com)\n\tChanged
+        sync process.\n\n2014-06-02\n\tTim Dietrich (timdietrich@me.com)\n\tChanged
         deletion settings, and added new sync check settings.\n\tAdded support for
         $$pull_progress_indicator_logic setting."
       Text: "EasySync Settings:\nInitializes all EasySync mobile settings.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
@@ -88,7 +89,7 @@ Script:
         info to the server during the pull phase of the sync process.\n\n2014-04-24\n\tTim
         Dietrich (timdietrich@me.com)\n\tAdded $$process_deletions setting, which
         gives you the option to enable / disable\n\tthe new deletion phase of the
-        sync process.\n\n2014-05-01\n\tTim Dietrich (timdietrich@me.com)\n\tChanged
+        sync process.\n\n2014-06-02\n\tTim Dietrich (timdietrich@me.com)\n\tChanged
         deletion settings, and added new sync check settings.\n\tAdded support for
         $$pull_progress_indicator_logic setting."
     - enable: 'True'
@@ -104,18 +105,18 @@ Script:
       id: '141'
       name: Set Variable
       StepText: |-
-        Set Variable [ $$client_version; Value:1.1
+        Set Variable [ $$client_version; Value:1.2
 
         // The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 1.1 ]
       Value:
         Calculation: |-
-          1.1
+          1.2
 
           // The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 1.1
         DisplayCalculation:
           Chunk:
           - |+
-            1.1
+            1.2
 
           - '// The version of the mobile client. This gets pushed to the server during
             the push and pull phases of the sync process. Should be a numeric value.
@@ -258,7 +259,7 @@ Script:
 
         /*
 
-        Additional information that sent to the server during the ping process.
+        Additional information that is sent to the server during the ping process.
 
         */ ]
       Value:
@@ -267,7 +268,7 @@ Script:
 
           /*
 
-          Additional information that sent to the server during the "ping" process.
+          Additional information that is sent to the server during the "ping" process.
 
           */
         DisplayCalculation:
@@ -276,7 +277,7 @@ Script:
 
             /*
 
-            Additional information that sent to the server during the ping process.
+            Additional information that is sent to the server during the ping process.
 
             */
       Repetition:
@@ -469,7 +470,7 @@ Script:
 
         /*
 
-        Additional information that sent to the server during the push process.
+        Additional information that is sent to the server during the push process.
 
         */ ]
       Value:
@@ -478,7 +479,7 @@ Script:
 
           /*
 
-          Additional information that sent to the server during the "push" process.
+          Additional information that is sent to the server during the "push" process.
 
           */
         DisplayCalculation:
@@ -487,7 +488,7 @@ Script:
 
             /*
 
-            Additional information that sent to the server during the push process.
+            Additional information that is sent to the server during the push process.
 
             */
       Repetition:
@@ -591,7 +592,7 @@ Script:
 
         /*
 
-        Additional information that sent to the server during the pull process.
+        Additional information that is sent to the server during the pull process.
 
         */ ]
       Value:
@@ -600,7 +601,7 @@ Script:
 
           /*
 
-          Additional information that sent to the server during the "pull" process.
+          Additional information that is sent to the server during the "pull" process.
 
           */
         DisplayCalculation:
@@ -609,7 +610,7 @@ Script:
 
             /*
 
-            Additional information that sent to the server during the pull process.
+            Additional information that is sent to the server during the pull process.
 
             */
       Repetition:
@@ -753,6 +754,40 @@ Script:
         DisplayCalculation:
           Chunk: '1'
       Name: $$use_psos_during_sync_check
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$additional_sync_check_info; Value:
+
+        /*
+
+        Additional information that is sent to the server during the sync check process.
+
+        */ ]
+      Value:
+        Calculation: |-
+          ""
+
+          /*
+
+          Additional information that is sent to the server during the "sync check" process.
+
+          */
+        DisplayCalculation:
+          Chunk: |2-
+
+
+            /*
+
+            Additional information that is sent to the server during the sync check process.
+
+            */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$additional_sync_check_info
     - enable: 'True'
       id: '89'
       name: Comment

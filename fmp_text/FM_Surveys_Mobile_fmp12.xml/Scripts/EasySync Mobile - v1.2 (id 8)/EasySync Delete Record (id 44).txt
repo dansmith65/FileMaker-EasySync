@@ -1,4 +1,4 @@
-#EasySync Delete Record:Handles the deletion of records in synced tables. Logs the UUID of the record that is to be deleted, and then deletes the record.Parameters:Position 1: The type of record to be deleted. Record or Portal Row are supported. This determines how the record itself is deleted (using either Delete Record or Delete Portal Row). This param is required.Position 2: The ES_Record_UUID of the record to be deleted. This param is required.Position 3: The word to use to describe the object to be deleted. ex: Survey Document. This is an optional param.Note: Params should be passed as a return-delimited list.Example Calls: Record¶  Surveys::ES_Record_UUID  ¶surveyPortal Row¶  Survey_Hobbies::ES_Record_UUID  ¶hobbyHistory:2014-04-30	Tim Dietrich (timdietrich@me.com)	Initial version. I tried to avoid having to require params for this, but havent found a way 	to determine in what context the script has been called. In other words, I cant tell whether the 	script has been called in such a way that a record is to be deleted, or if a portal row is to be 	deleted. Additionally, in the case of a portal row, I cant determine what the the ES_Record_UUID.2014-05-05	Tim Dietrich (timdietrich@me.com)	Added step to load ES settings.
+#EasySync Delete Record:Handles the deletion of records in synced tables. Logs the UUID of the record that is to be deleted, and then deletes the record. The UUIDs of deleted records are stored in the EasySync_Payloads table, and then passed to the server during the next sync (at which point they are deleted from the server as well).Parameters:Position 1: The type of record to be deleted. Record or Portal Row are supported. This determines how the record itself is deleted (using either Delete Record or Delete Portal Row). This param is required.Position 2: The ES_Record_UUID of the record to be deleted. This param is required.Position 3: The word to use to describe the object to be deleted. ex: Survey Document. This is an optional param.Note: Params should be passed as a return-delimited list.Example Calls: Record¶  Surveys::ES_Record_UUID  ¶surveyPortal Row¶  Survey_Hobbies::ES_Record_UUID  ¶hobbyHistory:2014-04-30	Tim Dietrich (timdietrich@me.com)	Initial version. I tried to avoid having to require params for this, but havent found a way 	to determine in what context the script has been called. In other words, I cant tell whether the 	script has been called in such a way that a record is to be deleted, or if a portal row is to be 	deleted. Additionally, in the case of a portal row, I cant determine what the the ES_Record_UUID.2014-05-05	Tim Dietrich (timdietrich@me.com)	Added step to load ES settings.
 #
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
@@ -64,24 +64,10 @@ Script:
       name: Comment
       StepText: "#EasySync Delete Record:\nHandles the deletion of records in synced
         tables. Logs the UUID of the record that is to be deleted, and then deletes
-        the record.\n\n\nParameters:\n\nPosition 1: The type of record to be deleted.
-        Record or Portal Row are supported. This determines how the record itself
-        is deleted (using either Delete Record or Delete Portal Row). This param is
-        required.\nPosition 2: The ES_Record_UUID of the record to be deleted. This
-        param is required.\nPosition 3: The word to use to describe the object to
-        be deleted. ex: Survey Document. This is an optional param.\n\nNote: Params
-        should be passed as a return-delimited list.\n\nExample Calls: \nRecord¶  Surveys::ES_Record_UUID
-        \ ¶survey\nPortal Row¶  Survey_Hobbies::ES_Record_UUID  ¶hobby\n\n\nHistory:\n\n2014-04-30\n\tTim
-        Dietrich (timdietrich@me.com)\n\tInitial version. I tried to avoid having
-        to require params for this, but havent found a way \n\tto determine in what
-        context the script has been called. In other words, I cant tell whether the
-        \n\tscript has been called in such a way that a record is to be deleted, or
-        if a portal row is to be \n\tdeleted. Additionally, in the case of a portal
-        row, I cant determine what the the ES_Record_UUID.\n\n2014-05-05\n\tTim Dietrich
-        (timdietrich@me.com)\n\tAdded step to load ES settings.\n\n\n"
-      Text: "EasySync Delete Record:\nHandles the deletion of records in synced tables.
-        Logs the UUID of the record that is to be deleted, and then deletes the record.\n\n\nParameters:\n\nPosition
-        1: The type of record to be deleted. Record or Portal Row are supported. This
+        the record. The UUIDs of deleted records are stored in the EasySync_Payloads
+        table, and then passed to the server during the next sync (at which point
+        they are deleted from the server as well).\n\n\nParameters:\n\nPosition 1:
+        The type of record to be deleted. Record or Portal Row are supported. This
         determines how the record itself is deleted (using either Delete Record or
         Delete Portal Row). This param is required.\nPosition 2: The ES_Record_UUID
         of the record to be deleted. This param is required.\nPosition 3: The word
@@ -96,6 +82,25 @@ Script:
         if a portal row is to be \n\tdeleted. Additionally, in the case of a portal
         row, I cant determine what the the ES_Record_UUID.\n\n2014-05-05\n\tTim Dietrich
         (timdietrich@me.com)\n\tAdded step to load ES settings.\n\n\n"
+      Text: "EasySync Delete Record:\nHandles the deletion of records in synced tables.
+        Logs the UUID of the record that is to be deleted, and then deletes the record.
+        The UUIDs of deleted records are stored in the EasySync_Payloads table, and
+        then passed to the server during the next sync (at which point they are deleted
+        from the server as well).\n\n\nParameters:\n\nPosition 1: The type of record
+        to be deleted. Record or Portal Row are supported. This determines how the
+        record itself is deleted (using either Delete Record or Delete Portal Row).
+        This param is required.\nPosition 2: The ES_Record_UUID of the record to be
+        deleted. This param is required.\nPosition 3: The word to use to describe
+        the object to be deleted. ex: Survey Document. This is an optional param.\n\nNote:
+        Params should be passed as a return-delimited list.\n\nExample Calls: \nRecord¶
+        \ Surveys::ES_Record_UUID  ¶survey\nPortal Row¶  Survey_Hobbies::ES_Record_UUID
+        \ ¶hobby\n\n\nHistory:\n\n2014-04-30\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version. I tried to avoid having to require params for this, but havent found
+        a way \n\tto determine in what context the script has been called. In other
+        words, I cant tell whether the \n\tscript has been called in such a way that
+        a record is to be deleted, or if a portal row is to be \n\tdeleted. Additionally,
+        in the case of a portal row, I cant determine what the the ES_Record_UUID.\n\n2014-05-05\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded step to load ES settings.\n\n\n"
     - enable: 'True'
       id: '89'
       name: Comment

@@ -3,8 +3,8 @@ Tables
     Base Table (id)            Table occurrence (id)    
     ---------------            ---------------------    
 
+    Survey_Hobbies (132)       ES_Survey Hobbies (1065094)
     Survey_Documents (133)     ES_Survey_Documents (1065097)
-    Survey_Hobbies (132)       ES_Survey_Hobbies (1065094)
     EasyDeploy (134)           EasyDeploy (1065098)     
     Surveys (129)              Surveys (1065089)        
     Survey_Documents (133)     Survey_Documents (1065096)
@@ -25,7 +25,7 @@ Relationships
         EasySync_Payload_Details::ES_Child_Record_UUID  Equal            ES_Surveys::ES_Record_UUID         
 
     Relationship: 7   
-        EasySync_Payload_Details::ES_Child_Record_UUID  Equal            ES_Survey_Hobbies::ES_Record_UUID  
+        EasySync_Payload_Details::ES_Child_Record_UUID  Equal            ES_Survey Hobbies::ES_Record_UUID  
 
     Relationship: 8   
         Survey_Documents::Survey_ID          Equal            Surveys::Survey_ID                 
@@ -38,16 +38,16 @@ Relationships
 RelationshipGraph:
   TableList:
     Table:
+    - id: '1065094'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: Survey_Hobbies
+      name: ES_Survey Hobbies
     - id: '1065097'
       color: '#787878'
       baseTableId: '133'
       baseTable: Survey_Documents
       name: ES_Survey_Documents
-    - id: '1065094'
-      color: '#787878'
-      baseTableId: '132'
-      baseTable: Survey_Hobbies
-      name: ES_Survey_Hobbies
     - id: '1065098'
       color: '#787878'
       baseTableId: '134'
@@ -180,7 +180,7 @@ RelationshipGraph:
       RightTable:
         cascadeCreate: 'True'
         cascadeDelete: 'False'
-        name: ES_Survey_Hobbies
+        name: ES_Survey Hobbies
         SortList:
           Maintain: 'True'
           value: 'False'
@@ -194,7 +194,7 @@ RelationshipGraph:
               name: ES_Child_Record_UUID
           RightField:
             Field:
-              table: ES_Survey_Hobbies
+              table: ES_Survey Hobbies
               id: '3'
               name: ES_Record_UUID
     - id: '8'

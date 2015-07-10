@@ -203,8 +203,7 @@ BaseTable:
         StrictValidation:
           value: 'False'
       Storage:
-        autoIndex: 'True'
-        index: Minimal
+        index: All
         indexLanguage: English
         global: 'False'
         maxRepetition: '1'

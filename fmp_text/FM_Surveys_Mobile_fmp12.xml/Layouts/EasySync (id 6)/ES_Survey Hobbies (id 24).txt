@@ -1,18 +1,18 @@
-     Layout name:  ES_Survey_Hobbies        
+     Layout name:  ES_Survey Hobbies        
               id:  24                       
-           Table:  ES_Survey_Hobbies        
+           Table:  ES_Survey Hobbies        
            Theme:  Enlightened              
 
          Objects:                           
                     Type              'Name'                             
                     ----              ------                             
-                    Field             ES_Survey_Hobbies::Survey_Hobby_ID 
-                    Field             ES_Survey_Hobbies::Survey_ID       
-                    Field             ES_Survey_Hobbies::Hobby           
-                    Field             ES_Survey_Hobbies::ES_Record_UUID  
-                    Field             ES_Survey_Hobbies::ES_UTC_Time     
-                    Field             ES_Survey_Hobbies::ES_Account      
-                    Field             ES_Survey_Hobbies::ES_Exclude      
+                    Field             ES_Survey Hobbies::Survey_Hobby_ID 
+                    Field             ES_Survey Hobbies::Survey_ID       
+                    Field             ES_Survey Hobbies::Hobby           
+                    Field             ES_Survey Hobbies::ES_Record_UUID  
+                    Field             ES_Survey Hobbies::ES_UTC_Time     
+                    Field             ES_Survey Hobbies::ES_Account      
+                    Field             ES_Survey Hobbies::ES_Exclude      
 
 
 ---
@@ -21,10 +21,10 @@ Layout:
   quickFind: 'True'
   includeInMenu: 'False'
   id: '24'
-  name: ES_Survey_Hobbies
+  name: ES_Survey Hobbies
   Table:
     id: '1065095'
-    name: ES_Survey_Hobbies
+    name: ES_Survey Hobbies
   CustomMenuSet:
     id: '0'
     name: ''
@@ -56,7 +56,7 @@ Layout:
       tableViewVisibility: '2'
       quickFind: '1'
       pictFormat: '5'
-      Name: ES_Survey_Hobbies::Survey_Hobby_ID
+      Name: ES_Survey Hobbies::Survey_Hobby_ID
       ExtendedAttributes:
         fontHeight: '14'
         graphicFormat: '5'
@@ -114,7 +114,7 @@ Layout:
           id: '1'
           repetition: '1'
           maxRepetition: '1'
-          table: ES_Survey_Hobbies
+          table: ES_Survey Hobbies
   - type: Field
     key: '4'
     LabelKey: '0'
@@ -134,7 +134,7 @@ Layout:
       tableViewVisibility: '2'
       quickFind: '1'
       pictFormat: '5'
-      Name: ES_Survey_Hobbies::Survey_ID
+      Name: ES_Survey Hobbies::Survey_ID
       ExtendedAttributes:
         fontHeight: '14'
         graphicFormat: '5'
@@ -192,7 +192,7 @@ Layout:
           id: '6'
           repetition: '1'
           maxRepetition: '1'
-          table: ES_Survey_Hobbies
+          table: ES_Survey Hobbies
   - type: Field
     key: '5'
     LabelKey: '0'
@@ -212,7 +212,7 @@ Layout:
       tableViewVisibility: '2'
       quickFind: '1'
       pictFormat: '5'
-      Name: ES_Survey_Hobbies::Hobby
+      Name: ES_Survey Hobbies::Hobby
       ExtendedAttributes:
         fontHeight: '14'
         graphicFormat: '5'
@@ -270,7 +270,7 @@ Layout:
           id: '2'
           repetition: '1'
           maxRepetition: '1'
-          table: ES_Survey_Hobbies
+          table: ES_Survey Hobbies
   - type: Field
     key: '6'
     LabelKey: '0'
@@ -290,7 +290,7 @@ Layout:
       tableViewVisibility: '2'
       quickFind: '1'
       pictFormat: '5'
-      Name: ES_Survey_Hobbies::ES_Record_UUID
+      Name: ES_Survey Hobbies::ES_Record_UUID
       ExtendedAttributes:
         fontHeight: '14'
         graphicFormat: '5'
@@ -348,7 +348,7 @@ Layout:
           id: '3'
           repetition: '1'
           maxRepetition: '1'
-          table: ES_Survey_Hobbies
+          table: ES_Survey Hobbies
   - type: Field
     key: '7'
     LabelKey: '0'
@@ -368,7 +368,7 @@ Layout:
       tableViewVisibility: '2'
       quickFind: '1'
       pictFormat: '5'
-      Name: ES_Survey_Hobbies::ES_UTC_Time
+      Name: ES_Survey Hobbies::ES_UTC_Time
       ExtendedAttributes:
         fontHeight: '14'
         graphicFormat: '5'
@@ -426,7 +426,7 @@ Layout:
           id: '4'
           repetition: '1'
           maxRepetition: '1'
-          table: ES_Survey_Hobbies
+          table: ES_Survey Hobbies
   - type: Field
     key: '8'
     LabelKey: '0'
@@ -446,7 +446,7 @@ Layout:
       tableViewVisibility: '2'
       quickFind: '1'
       pictFormat: '5'
-      Name: ES_Survey_Hobbies::ES_Account
+      Name: ES_Survey Hobbies::ES_Account
       ExtendedAttributes:
         fontHeight: '14'
         graphicFormat: '5'
@@ -504,7 +504,7 @@ Layout:
           id: '7'
           repetition: '1'
           maxRepetition: '1'
-          table: ES_Survey_Hobbies
+          table: ES_Survey Hobbies
   - type: Field
     key: '9'
     LabelKey: '0'
@@ -524,7 +524,7 @@ Layout:
       tableViewVisibility: '2'
       quickFind: '1'
       pictFormat: '5'
-      Name: ES_Survey_Hobbies::ES_Exclude
+      Name: ES_Survey Hobbies::ES_Exclude
       ExtendedAttributes:
         fontHeight: '14'
         graphicFormat: '5'
@@ -582,4 +582,4 @@ Layout:
           id: '5'
           repetition: '1'
           maxRepetition: '1'
-          table: ES_Survey_Hobbies
+          table: ES_Survey Hobbies

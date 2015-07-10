@@ -114,7 +114,7 @@ Refresh Object [ Object Name: easysync_status ]
 #Get the table info.
 Set Variable [ $tables; Value:Let ( [beginning = Position ( $payload ; tables¶ ; 1 ; 1 ) + 9;end = Position ( $payload ; ¶/tables ; 1 ; 1 );tables = Middle ( $payload ; beginning ; end - beginning );tables = Trim ( tables );tables = Substitute ( tables ; table ;  );tables = Substitute ( tables ; /table ;  )];tables) ]
 If [ $$debug_pull ]
-Show Custom Dialog [ Title: Payload Tables; Message: $tables; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+Show Custom Dialog [ Title: Payload Tables; Message: $tables; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 #Create field name value lists for each table.
@@ -125,7 +125,7 @@ Set Variable [ $table_name; Value:GetValue ( $table; 1 ) ]
 Set Variable [ $dyn_code; Value:Let ( [ $  $table_name   = $table ]; 1 ) ]
 Set Variable [ $dyn_code; Value:Evaluate ( $dyn_code ) ]
 If [ $$debug_pull ]
-Show Custom Dialog [ Title: Created Field Value List for Table   $table_name; Message: Evaluate ( $  $table_name ); Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+Show Custom Dialog [ Title: Created Field Value List for Table   $table_name; Message: Evaluate ( $  $table_name ); Default Button: “OK”, Commit: “Yes” ]
 End If
 Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i  ValueCount ( $tables ) ]
@@ -1496,7 +1496,7 @@ Script:
       id: '87'
       name: Show Custom Dialog
       StepText: 'Show Custom Dialog [ Title: Payload Tables; Message: $tables; Default
-        Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]'
+        Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Payload Tables"'
         DisplayCalculation:
@@ -1512,9 +1512,6 @@ Script:
           DisplayCalculation:
             Chunk: OK
         - CommitState: 'False'
-          Calculation: '"Cancel"'
-          DisplayCalculation:
-            Chunk: Cancel
         - CommitState: 'False'
     - enable: 'True'
       id: '70'
@@ -1619,8 +1616,8 @@ Script:
       id: '87'
       name: Show Custom Dialog
       StepText: 'Show Custom Dialog [ Title: Created Field Value List for Table   $table_name;
-        Message: Evaluate ( $  $table_name ); Default Button: “OK”, Commit: “Yes”;
-        Button 2: “Cancel”, Commit: “No” ]'
+        Message: Evaluate ( $  $table_name ); Default Button: “OK”, Commit: “Yes”
+        ]'
       Title:
         Calculation: '"Created Field Value List for Table " & $table_name'
         DisplayCalculation:
@@ -1638,9 +1635,6 @@ Script:
           DisplayCalculation:
             Chunk: OK
         - CommitState: 'False'
-          Calculation: '"Cancel"'
-          DisplayCalculation:
-            Chunk: Cancel
         - CommitState: 'False'
     - enable: 'True'
       id: '70'

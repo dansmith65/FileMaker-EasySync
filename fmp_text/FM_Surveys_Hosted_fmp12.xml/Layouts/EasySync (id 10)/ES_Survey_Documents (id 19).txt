@@ -41,7 +41,7 @@ Layout:
       top: '20.0000000'
       left: '0.0000000'
       bottom: '37.0000000'
-      right: '120.0000000'
+      right: '353.0000000'
     FieldObj:
       numOfReps: '1'
       flags: '32'
@@ -117,9 +117,9 @@ Layout:
     rotation: '0'
     Bounds:
       top: '20.0000000'
-      left: '120.0000000'
+      left: '353.0000000'
       bottom: '37.0000000'
-      right: '240.0000000'
+      right: '587.0000000'
     FieldObj:
       numOfReps: '1'
       flags: '32'

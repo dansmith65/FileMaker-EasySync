@@ -103,7 +103,7 @@ PrivilegesCatalog:
             value: NoAccess
         - runFullAccess: 'False'
           id: '9'
-          name: EasySync Server - v1.1
+          name: EasySync Server - v1.2
           Access:
             value: NoAccess
         - runFullAccess: 'False'
@@ -148,7 +148,7 @@ PrivilegesCatalog:
             value: ViewOnly
         - runFullAccess: 'False'
           id: '27'
-          name: EasyDeploy Server - v1.1
+          name: EasyDeploy Server - v1.2
           Access:
             value: NoAccess
         - runFullAccess: 'False'

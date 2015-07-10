@@ -204,7 +204,7 @@ BaseTable:
           value: 'False'
       Storage:
         autoIndex: 'True'
-        index: None
+        index: Minimal
         indexLanguage: English
         global: 'False'
         maxRepetition: '1'
