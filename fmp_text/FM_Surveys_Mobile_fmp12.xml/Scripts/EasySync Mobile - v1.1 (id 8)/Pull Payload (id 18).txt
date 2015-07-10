@@ -1,4 +1,4 @@
-#Pull Payload:Handles the pull phase of the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-17			Tim Dietrich (timdietrich@me.com)	Now pushing the last push / pull timestamps in a SQL-friendly format.	Were doing this client-side to avoid problems that occur when the servers	timestamp format differs from that of the client.2014-04-18	Tim Dietrich (timdietrich@me.com)	Adjusting ES_Timestamp values based on the timezone offset.	Other minor changes to improve performance.2014-04-19	Tim Dietrich (timdietrich@me.com)	Reflects shift to UTC timestamps.2014-04-21     Tim Dietrich (timdietrich@me.com)     Were now only setting fields that have actually changed.2014-04-22	Tim Dietrich (timdietrich@me.com)	Now searching for the closing /records tag using -1 as the start position	so that were searching for the tag from the end of the payload.	Thanks to Daniel Smith (@FMweetbicks) for the suggestion.2014-04-23	Tim Dietrich (timdietrich@me.com)	Get ( SystemIPAddress ) is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	Added a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to be	overwritten during the sync process.2014-05-08	Tim Dietrich (timdietrich@me.com)	Optimized code that gets the next record.
+#Pull Payload:Handles the pull phase of the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-17			Tim Dietrich (timdietrich@me.com)	Now pushing the last push / pull timestamps in a SQL-friendly format.	Were doing this client-side to avoid problems that occur when the servers	timestamp format differs from that of the client.2014-04-18	Tim Dietrich (timdietrich@me.com)	Adjusting ES_Timestamp values based on the timezone offset.	Other minor changes to improve performance.2014-04-19	Tim Dietrich (timdietrich@me.com)	Reflects shift to UTC timestamps.2014-04-21     Tim Dietrich (timdietrich@me.com)     Were now only setting fields that have actually changed.2014-04-22	Tim Dietrich (timdietrich@me.com)	Now searching for the closing /records tag using -1 as the start position	so that were searching for the tag from the end of the payload.	Thanks to Daniel Smith (@FMweetbicks) for the suggestion.2014-04-23	Tim Dietrich (timdietrich@me.com)	Get ( SystemIPAddress ) is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	Added a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to be	overwritten during the sync process.2014-05-08	Tim Dietrich (timdietrich@me.com)	Optimized code that gets the next record.2014-05-15	Tim Dietrich (timdietrich@me.com)	Eliminated the need to copy the records portion of the payload to a distinct $records variable.	This should help to reduce the memory needed to process the payload, and should also slightly	increase performance.	Also, were now only saving the actual payload to the record if debugging of the pull process	is enabled. Otherwise, there is no need to write the payload to disk.
 #
 #Log the start time.
 Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
@@ -101,7 +101,9 @@ Refresh Object [ Object Name: easysync_status ]
 #Note: We wait to save the payload until this point. Otherwise, a wipe would have deleted the saved payload.
 Freeze Window
 New Record/Request
+If [ $$debug_pull ]
 Set Field By Name [ EasySync_Payloads::Payload; $payload ]
+End If
 Set Field By Name [ EasySync_Payloads::Payload_Type; Pull Payload ]
 Commit Records/Requests[ No dialog ]
 #
@@ -129,33 +131,24 @@ Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i  ValueCount ( $tables ) ]
 End Loop
 #
-#Get the records from the payload.
-Set Variable [ $records; Value:Let ( [beginning = Position ( $payload ; records¶ ; 1 ; 1 ) + 10;end = Position ( $payload ; ¶/records ; -1 ; 1 );records = Middle ( $payload ; beginning ; end - beginning );records = Trim ( records )];records) ]
-If [ $$debug_pull ]
-Show Custom Dialog [ Title: Payload Records; Message: $records; Default Button: “OK”, Commit: “Yes” ]
-End If
+#Get the # of records in the payload.
+Set Variable [ $record_count; Value:PatternCount ( $payload; $record_delimiter ) - 1 ]
 #
 #If there are no records to sync...
-If [ IsEmpty ( $records ) ]
+If [ $record_count = 0 ]
 If [ $$delete_pull_payloads ≠ None ]
 Delete Record/Request[ No dialog ]
 End If
 Exit Script [ Result: 1  ¶  Pull Completed  ¶  There was no data that needed to be pulled from the server. ]
 End If
 #
-#Get the # of records in the payload.
-Set Variable [ $record_count; Value:PatternCount ( $records; $record_delimiter ) ]
-#
 #Refresh sync status.
 Set Variable [ $$EasySync_Status; Value:Processing   $record_count   records received from server... ]
 Refresh Window
 #
-#Add a leading record delimiter to make it easier to loop through the records.
-Set Variable [ $records; Value:$record_delimiter  ¶  $records ]
-#
 #Loop over the records.
 Set Variable [ $i; Value:1 ]
-Set Variable [ $previous_start; Value:1 ]
+Set Variable [ $previous_start; Value:0 ]
 Loop
 #
 #Refresh sync status occasionally...
@@ -167,7 +160,7 @@ Refresh Object [ Object Name: easysync_status ]
 End If
 #
 #Get the record, formatted as a return-delimited value list.
-Set Variable [ $record; Value:Let ( [ // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.beginning = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1;end = Position ( $records ; $record_delimiter ; 1 ; $i + 1 );$previous_start = end;record = Middle ( $records ; beginning ; end - beginning );// Encode CRLFs that might be found in Base64-encoded container data.// This makes it easier to treat the fields as a return-delimited value list.record = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]] );// Encode any remaining newline characters.record = Substitute ( record ; ¶ ; [[BR]] );record = Substitute ( record ; $field_delimiter ; ¶ )];record) ]
+Set Variable [ $record; Value:Let ( [ // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.beginning = If ( $previous_start  0; Position ( $payload ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; records¶; 1; 1 ) + 10 );end = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 );$previous_start = end;record = Middle ( $payload ; beginning ; end - beginning );// Encode CRLFs that might be found in Base64-encoded container data.// This makes it easier to treat the fields as a return-delimited value list.record = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]] );// Encode any remaining newline characters.record = Substitute ( record ; ¶ ; [[BR]] );record = Substitute ( record ; $field_delimiter ; ¶ )];record) ]
 If [ $$debug_pull ]
 Show Custom Dialog [ Title: Payload Record   $i; Message: $record; Default Button: “OK”, Commit: “Yes” ]
 End If
@@ -303,7 +296,12 @@ Script:
         support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
         a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to
         be\n\toverwritten during the sync process.\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
-        code that gets the next record.\n"
+        code that gets the next record.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tEliminated
+        the need to copy the records portion of the payload to a distinct $records
+        variable.\n\tThis should help to reduce the memory needed to process the payload,
+        and should also slightly\n\tincrease performance.\n\tAlso, were now only saving
+        the actual payload to the record if debugging of the pull process\n\tis enabled.
+        Otherwise, there is no need to write the payload to disk.\n"
       Text: "Pull Payload:\nHandles the pull phase of the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-17\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tNow pushing the last push / pull timestamps
@@ -323,7 +321,12 @@ Script:
         support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
         a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to
         be\n\toverwritten during the sync process.\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
-        code that gets the next record.\n"
+        code that gets the next record.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tEliminated
+        the need to copy the records portion of the payload to a distinct $records
+        variable.\n\tThis should help to reduce the memory needed to process the payload,
+        and should also slightly\n\tincrease performance.\n\tAlso, were now only saving
+        the actual payload to the record if debugging of the pull process\n\tis enabled.
+        Otherwise, there is no need to write the payload to disk.\n"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1353,6 +1356,13 @@ Script:
       name: New Record/Request
       StepText: New Record/Request
     - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
+      DisplayCalculation:
+        Chunk: $$debug_pull
+    - enable: 'True'
       id: '147'
       name: Set Field By Name
       StepText: Set Field By Name [ EasySync_Payloads::Payload; $payload ]
@@ -1364,6 +1374,10 @@ Script:
         Calculation: '"EasySync_Payloads::Payload"'
         DisplayCalculation:
           Chunk: EasySync_Payloads::Payload
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
     - enable: 'True'
       id: '147'
       name: Set Field By Name
@@ -1666,73 +1680,24 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Get the records from the payload.'
-      Text: Get the records from the payload.
+      StepText: '#Get the # of records in the payload.'
+      Text: 'Get the # of records in the payload.'
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $records; Value:Let ( \n[\nbeginning = Position (
-        $payload ; records¶ ; 1 ; 1 ) + 10;\nend = Position ( $payload ; ¶/records
-        ; -1 ; 1 );\nrecords = Middle ( $payload ; beginning ; end - beginning );\nrecords
-        = Trim ( records )\n];\nrecords\n) ]"
+      StepText: Set Variable [ $record_count; Value:PatternCount ( $payload; $record_delimiter
+        ) - 1 ]
       Value:
-        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<records>¶\"
-          ; 1 ; 1 ) + 10;\nend = Position ( $payload ; \"¶</records>\" ; -1 ; 1 );\nrecords
-          = Middle ( $payload ; beginning ; end - beginning );\nrecords = Trim ( records
-          )\n];\nrecords\n)"
+        Calculation: PatternCount ( $payload; $record_delimiter ) - 1
         DisplayCalculation:
           Chunk:
-          - Let
-          - " ( \n[\nbeginning = "
-          - Position
-          - " ( $payload ; records¶ ; 1 ; 1 ) + 10;\nend = "
-          - Position
-          - " ( $payload ; ¶/records ; -1 ; 1 );\nrecords = "
-          - Middle
-          - " ( $payload ; beginning ; end - beginning );\nrecords = "
-          - Trim
-          - |2-
-             ( records )
-            ];
-            records
-            )
+          - PatternCount
+          - ' ( $payload; $record_delimiter ) - 1'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $records
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$debug_pull ]
-      Calculation: $$debug_pull
-      DisplayCalculation:
-        Chunk: $$debug_pull
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Payload Records; Message: $records; Default
-        Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Payload Records"'
-        DisplayCalculation:
-          Chunk: Payload Records
-      Message:
-        Calculation: $records
-        DisplayCalculation:
-          Chunk: $records
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: OK
-        - CommitState: 'False'
-        - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+      Name: $record_count
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1745,12 +1710,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ IsEmpty ( $records ) ]
-      Calculation: IsEmpty ( $records )
+      StepText: If [ $record_count = 0 ]
+      Calculation: $record_count = 0
       DisplayCalculation:
-        Chunk:
-        - IsEmpty
-        - ' ( $records )'
+        Chunk: $record_count = 0
     - enable: 'True'
       id: '68'
       name: If
@@ -1791,31 +1754,6 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Get the # of records in the payload.'
-      Text: 'Get the # of records in the payload.'
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $record_count; Value:PatternCount ( $records; $record_delimiter
-        ) ]
-      Value:
-        Calculation: PatternCount ( $records; $record_delimiter )
-        DisplayCalculation:
-          Chunk:
-          - PatternCount
-          - ' ( $records; $record_delimiter )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $record_count
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#Refresh sync status.'
       Text: Refresh sync status.
     - enable: 'True'
@@ -1847,29 +1785,6 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Add a leading record delimiter to make it easier to loop through
-        the records.'
-      Text: Add a leading record delimiter to make it easier to loop through the records.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $records; Value:$record_delimiter  ¶  $records ]
-      Value:
-        Calculation: $record_delimiter & ¶ & $records
-        DisplayCalculation:
-          Chunk: $record_delimiter  ¶  $records
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $records
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#Loop over the records.'
       Text: Loop over the records.
     - enable: 'True'
@@ -1888,11 +1803,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $previous_start; Value:1 ]
+      StepText: Set Variable [ $previous_start; Value:0 ]
       Value:
-        Calculation: '1'
+        Calculation: '0'
         DisplayCalculation:
-          Chunk: '1'
+          Chunk: '0'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1977,23 +1892,24 @@ Script:
       name: Set Variable
       StepText: "Set Variable [ $record; Value:Let ( \n[\n // Note: The +1 in the
         beginning calc is to account for the default carriage return imposed by ExectueSQL.\nbeginning
-        = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length
-        ( $record_delimiter ) + 1;\nend = Position ( $records ; $record_delimiter
-        ; 1 ; $i + 1 );\n$previous_start = end;\nrecord = Middle ( $records ; beginning
-        ; end - beginning );\n// Encode CRLFs that might be found in Base64-encoded
-        container data.\n// This makes it easier to treat the fields as a return-delimited
-        value list.\nrecord = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]]
-        );\n// Encode any remaining newline characters.\nrecord = Substitute ( record
-        ; ¶ ; [[BR]] );\nrecord = Substitute ( record ; $field_delimiter ; ¶ )\n];\nrecord\n)
-        ]"
+        = If ( $previous_start  0; Position ( $payload ; $record_delimiter ; $previous_start
+        ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; records¶; 1;
+        1 ) + 10 );\nend = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 );\n$previous_start
+        = end;\nrecord = Middle ( $payload ; beginning ; end - beginning );\n// Encode
+        CRLFs that might be found in Base64-encoded container data.\n// This makes
+        it easier to treat the fields as a return-delimited value list.\nrecord =
+        Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]] );\n// Encode any
+        remaining newline characters.\nrecord = Substitute ( record ; ¶ ; [[BR]] );\nrecord
+        = Substitute ( record ; $field_delimiter ; ¶ )\n];\nrecord\n) ]"
       Value:
         Calculation: "Let ( \n[\n // Note: The \"+1\" in the \"beginning calc\" is
           to account for the default carriage return imposed by ExectueSQL.\nbeginning
-          = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length
-          ( $record_delimiter ) + 1;\nend = Position ( $records ; $record_delimiter
-          ; 1 ; $i + 1 );\n$previous_start = end;\nrecord = Middle ( $records ; beginning
-          ; end - beginning );\n// Encode CRLFs that might be found in Base64-encoded
-          container data.\n// This makes it easier to treat the fields as a return-delimited
+          = If ( $previous_start > 0; Position ( $payload ; $record_delimiter ; $previous_start
+          ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; \"<records>¶\";
+          1; 1 ) + 10 );\nend = Position ( $payload ; $record_delimiter ; 1 ; $i +
+          1 );\n$previous_start = end;\nrecord = Middle ( $payload ; beginning ; end
+          - beginning );\n// Encode CRLFs that might be found in Base64-encoded container
+          data.\n// This makes it easier to treat the fields as a return-delimited
           value list.\nrecord = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ;
           \"[[CRLF]]\" );\n// Encode any remaining newline characters.\nrecord = Substitute
           ( record ; ¶ ; \"[[BR]]\" );\nrecord = Substitute ( record ; $field_delimiter
@@ -2005,16 +1921,20 @@ Script:
           - |
             // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.
           - 'beginning = '
+          - If
+          - ' ( $previous_start  0; '
           - Position
-          - ' ( $records ; $record_delimiter ; $previous_start ; 1 ) + '
+          - ' ( $payload ; $record_delimiter ; $previous_start ; 1 ) + '
           - Length
-          - " ( $record_delimiter ) + 1;\nend = "
+          - ' ( $record_delimiter ) + 1; '
           - Position
-          - " ( $records ; $record_delimiter ; 1 ; $i + 1 );\n$previous_start = end;\nrecord
+          - " ( $payload; records¶; 1; 1 ) + 10 );\nend = "
+          - Position
+          - " ( $payload ; $record_delimiter ; 1 ; $i + 1 );\n$previous_start = end;\nrecord
             = "
           - Middle
           - |2
-             ( $records ; beginning ; end - beginning );
+             ( $payload ; beginning ; end - beginning );
           - |
             // Encode CRLFs that might be found in Base64-encoded container data.
           - |

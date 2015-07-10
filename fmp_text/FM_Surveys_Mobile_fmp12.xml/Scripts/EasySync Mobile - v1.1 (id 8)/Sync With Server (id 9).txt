@@ -1,4 +1,4 @@
-#Sync With Server:Manages the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	Ping process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the deletion phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to Sync Check, code to clean up deleted record UUIDs, etc.	Also reflects move to a single EasySync_Payloads layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.
+#Sync With Server:Manages the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	Ping process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the deletion phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to Sync Check, code to clean up deleted record UUIDs, etc.	Also reflects move to a single EasySync_Payloads layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.2014-05-15		Tim Dietrich (timdietrich@me.com)	The last pull UTC is now captured prior to the pull itself, and only gets set if the pull	is successful. This prevents records that are in play on the servr while the payload is 	being processed on the mobile device from being excluded from future pulls.
 #
 #Note the start time - both as a timestamp and UTC time.
 Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
@@ -97,13 +97,16 @@ End If
 Set Variable [ $$EasySync_Status; Value:Pulling Data from Server... ]
 Refresh Object [ Object Name: easysync_status ]
 #
+#Log the start of the pull process.
+Set Variable [ $pull_start_utc; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+#
 #Pull data from the server.
 Perform Script [ “Pull Payload” ]
 #
 #If the pull process was also successful...
 If [ ( GetValue ( Get ( ScriptResult ) ; 1 ) = 1 ) ]
 #Update the last pull time.
-Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; Get ( CurrentTimeUTCMilliseconds ) ]
+Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; $pull_start_utc ]
 #Set a timestamp as well, for use by the UI to show the last sync.
 Set Field By Name [ EasySync_Payloads::ES_Last_Full_Sync; Get ( CurrentTimeStamp ) ]
 Commit Records/Requests[ Skip data entry validation; No dialog ]
@@ -158,7 +161,11 @@ Script:
         Dietrich (timdietrich@me.com)\n\tReflects new delete support strategy. \n\tIncludes
         call to Sync Check, code to clean up deleted record UUIDs, etc.\n\tAlso reflects
         move to a single EasySync_Payloads layout.\n\tRefresh Window script steps
-        replaced with Refresh Object steps.\n\tMinor changes to UI and status messages."
+        replaced with Refresh Object steps.\n\tMinor changes to UI and status messages.\n\n2014-05-15\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tThe last pull UTC is now captured prior to
+        the pull itself, and only gets set if the pull\n\tis successful. This prevents
+        records that are in play on the servr while the payload is \n\tbeing processed
+        on the mobile device from being excluded from future pulls."
       Text: "Sync With Server:\nManages the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tReflects move to UTC time.\n\tPing process
@@ -167,7 +174,11 @@ Script:
         Dietrich (timdietrich@me.com)\n\tReflects new delete support strategy. \n\tIncludes
         call to Sync Check, code to clean up deleted record UUIDs, etc.\n\tAlso reflects
         move to a single EasySync_Payloads layout.\n\tRefresh Window script steps
-        replaced with Refresh Object steps.\n\tMinor changes to UI and status messages."
+        replaced with Refresh Object steps.\n\tMinor changes to UI and status messages.\n\n2014-05-15\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tThe last pull UTC is now captured prior to
+        the pull itself, and only gets set if the pull\n\tis successful. This prevents
+        records that are in play on the servr while the payload is \n\tbeing processed
+        on the mobile device from being excluded from future pulls."
     - enable: 'True'
       id: '89'
       name: Comment
@@ -929,6 +940,33 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
+      StepText: '#Log the start of the pull process.'
+      Text: Log the start of the pull process.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $pull_start_utc; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $pull_start_utc
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
       StepText: '#Pull data from the server.'
       Text: Pull data from the server.
     - enable: 'True'
@@ -969,16 +1007,12 @@ Script:
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; Get
-        ( CurrentTimeUTCMilliseconds ) ]
+      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; $pull_start_utc
+        ]
       Result:
-        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        Calculation: $pull_start_utc
         DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - CurrentTimeUTCMilliseconds
-          - ' )'
+          Chunk: $pull_start_utc
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
         DisplayCalculation:

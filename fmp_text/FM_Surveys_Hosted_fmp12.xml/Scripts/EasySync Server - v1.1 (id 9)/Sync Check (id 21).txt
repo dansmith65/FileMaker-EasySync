@@ -1,4 +1,4 @@
-#Sync Check:Receives list of UUIDs from synced table on the mobile device, compares it to those on the host, and returns the difference.History:2014-05-02		Tim Dietrich (timdietrich@me.com)	Initial version.2014-05-05		Tim Dietrich (timdietrich@me.com)	Added code so that excluded records (ES_Exclude = 1) are included in the DIFF.	In other words, we are forcing the mobile device to delete records that they are holding	that have been excluded since the last sync.
+#Sync Check:Receives list of UUIDs from synced table on the mobile device, compares it to those on the host, and returns the difference.History:2014-05-02		Tim Dietrich (timdietrich@me.com)	Initial version.2014-05-05		Tim Dietrich (timdietrich@me.com)	Added code so that excluded records (ES_Exclude = 1) are included in the DIFF.	In other words, we are forcing the mobile device to delete records that they are holding	that have been excluded since the last sync.2014-05-15	Tim Dietrich (timdietrich@me.com)	Delimiting the underscore used in the query that gets ES_ tables.
 #
 #
 #
@@ -19,7 +19,7 @@ Set Variable [ $UUIDs_Mobile; Value:Get ( ScriptParameter ) ]
 #
 #
 #Get all of the tables that are to be synced.
-Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES_%; |; ¶ ) ]
+Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES\_%; |; ¶ ) ]
 #
 #Init the SELECT statement...
 Set Variable [ $select; Value: ]
@@ -98,14 +98,16 @@ Script:
         (timdietrich@me.com)\n\tAdded code so that excluded records (ES_Exclude =
         1) are included in the DIFF.\n\tIn other words, we are forcing the mobile
         device to delete records that they are holding\n\tthat have been excluded
-        since the last sync."
+        since the last sync.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
+        the underscore used in the query that gets ES_ tables."
       Text: "Sync Check:\nReceives list of UUIDs from synced table on the mobile device,
         compares it to those on the host, and returns the difference.\n\nHistory:\n\n2014-05-02\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-05-05\t\n\tTim Dietrich
         (timdietrich@me.com)\n\tAdded code so that excluded records (ES_Exclude =
         1) are included in the DIFF.\n\tIn other words, we are forcing the mobile
         device to delete records that they are holding\n\tthat have been excluded
-        since the last sync."
+        since the last sync.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
+        the underscore used in the query that gets ES_ tables."
     - enable: 'True'
       id: '89'
       name: Comment
@@ -210,14 +212,14 @@ Script:
       id: '141'
       name: Set Variable
       StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT TableName FROM
-        FileMaker_Tables WHERE TableName LIKE ES_%; |; ¶ ) ]
+        FileMaker_Tables WHERE TableName LIKE ES\_%; |; ¶ ) ]
       Value:
         Calculation: ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName
-          LIKE 'ES_%'"; "|"; ¶ )
+          LIKE 'ES\_%'"; "|"; ¶ )
         DisplayCalculation:
           Chunk:
           - ExecuteSQL
-          - ' ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES_%;
+          - ' ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES\_%;
             |; ¶ )'
       Repetition:
         Calculation: '1'

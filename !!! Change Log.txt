@@ -1,5 +1,13 @@
 EasySync Demo - Change Log
 
+Version 1.1 (Posted 05-15-2014)
+
+Mobile and Hosted: Optimizations to payload processing that reduce the memory needed and increase speed. Also, no longer saving full payloads to the EasySync table unless in running in debug mode.
+Mobile and Hosted: Bug fix in “sync check” process - delimits the underscore used in the SELECT statement that gets the “ES_" tables.
+Mobile: In the “Sync With Server” script, changed how the “last pull” is logged, so that changes made on the server at the time that the mobile device is completing the pull process aren’t missed in later pulls.
+
+###
+
 Version 1.0 (Posted 05-09-2014)
 • Mobile and Hosted: Optimized payload processing. Specifically, when retrieving a record from the payload, we now scan from the end point of the previous record instead of from the start of the records portion of the payload.
 • Hosted: The default conflict handling method is now “Recent.” We believe this will be the most commonly used method.

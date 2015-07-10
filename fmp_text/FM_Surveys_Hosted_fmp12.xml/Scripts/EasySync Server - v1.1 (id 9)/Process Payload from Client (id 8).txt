@@ -1,4 +1,4 @@
-#Process Payload from Client:Processes a payload that has been pushed by the client.Script Results:Positive response codes greater than 10000 indicate success, and the value is the UTC timestamp recorded on the server when the process began. See below for details.Positive response codes less than 10000 indicate a FileMaker error.-1 No payload segments were found.-2.x Payload segment x is missing.-3 Payload is malformed.-4 Missing payload settings.-5 Missing table information.-6 No records. (Note: As of Beta 10, we allow for payloads that do not have records.)History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Changes to reflect move to UTC.	More granular error codes added.2014-04-20	Tim Dietrich (timdietrich@me.com)	Modifications to resolve simultaneous sync issue, support for record lock handling, etc.2014-04-21	Tim Dietrich (timdietrich@me.com)	Were now only setting fields that have actually changed.2014-04-22	Tim Dietrich (timdietrich@me.com)	Now searching for the closing /records tag using -1 as the start position	so that were searching for the tag from the end of the payload.	Thanks to Daniel Smith (@FMweetbicks) for the suggestion.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	Added a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to be	overwritten during the sync process.2014-05-03	Tim Dietrich (timdietrich@me.com)	Fixed bug that was causing the clients ES_UTC_Time from being pulled when processing	a record. Thanks to Paul Jansen at APJ Computing Solutions for finding this one. Good catch!2014-05-08	Tim Dietrich (timdietrich@me.com)	Optimized code that gets the next record.
+#Process Payload from Client:Processes a payload that has been pushed by the client.Script Results:Positive response codes greater than 10000 indicate success, and the value is the UTC timestamp recorded on the server when the process began. See below for details.Positive response codes less than 10000 indicate a FileMaker error.-1 No payload segments were found.-2.x Payload segment x is missing.-3 Payload is malformed.-4 Missing payload settings.-5 Missing table information.-6 No records. (Note: As of Beta 10, we allow for payloads that do not have records.)History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Changes to reflect move to UTC.	More granular error codes added.2014-04-20	Tim Dietrich (timdietrich@me.com)	Modifications to resolve simultaneous sync issue, support for record lock handling, etc.2014-04-21	Tim Dietrich (timdietrich@me.com)	Were now only setting fields that have actually changed.2014-04-22	Tim Dietrich (timdietrich@me.com)	Now searching for the closing /records tag using -1 as the start position	so that were searching for the tag from the end of the payload.	Thanks to Daniel Smith (@FMweetbicks) for the suggestion.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	Added a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to be	overwritten during the sync process.2014-05-03	Tim Dietrich (timdietrich@me.com)	Fixed bug that was causing the clients ES_UTC_Time from being pulled when processing	a record. Thanks to Paul Jansen at APJ Computing Solutions for finding this one. Good catch!2014-05-08	Tim Dietrich (timdietrich@me.com)	Optimized code that gets the next record.2014-05-15	Tim Dietrich (timdietrich@me.com)	Eliminated the need to copy the records portion of the payload to a distinct $records variable.	This should help to reduce the memory needed to process the payload, and should also slightly	increase performance.
 #
 #Load settings.
 Perform Script [ “EasySync Settings” ]
@@ -120,14 +120,8 @@ Set Variable [ $additional_settings; Value:GetValue ( Substitute ( $settings ; /
 #
 #
 #
-#Get the records from the payload.
-Set Variable [ $records; Value:Let ( [beginning = Position ( $payload ; records¶ ; 1 ; 1 ) + 10;end = Position ( $payload ; ¶/records ; -1 ; 1 );records = Middle ( $payload ; beginning ; end - beginning );records = Trim ( records )];records) ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: Payload Records; Message: $records; Default Button: “OK”, Commit: “Yes” ]
-End If
-#
 #If there are records in the payload...
-If [ not IsEmpty ( $records ) ]
+If [ PatternCount ( $payload; $record_delimiter )  1// not IsEmpty ( $records ) ]
 #
 #Note: Theres no need to get the table information from the payload if we dont have records to process - so that code has moved here.
 #
@@ -157,16 +151,13 @@ Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i  ValueCount ( $tables ) ]
 End Loop
 #
-#Add a leading record delimiter to make it easier to loop through the records.
-Set Variable [ $records; Value:$record_delimiter  ¶  $records ]
-#
 #Loop over the records.
 Set Variable [ $i; Value:1 ]
-Set Variable [ $previous_start; Value:1 ]
+Set Variable [ $previous_start; Value:0 ]
 Loop
 #
 #Get the record, formatted as a return-delimited value list.
-Set Variable [ $record; Value:Let ( [ // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.beginning = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1;end = Position ( $records ; $record_delimiter ; beginning ; 1 );$previous_start = end;record = Middle ( $records ; beginning ; end - beginning );// Encode CRLFs that might be found in Base64-encoded container data.// This makes it easier to treat the fields as a return-delimited value list.record = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]] );// Encode any remaining newline characters.record = Substitute ( record ; ¶ ; [[BR]] );record = Substitute ( record ; $field_delimiter ; ¶ )];record) ]
+Set Variable [ $record; Value:Let ( [ // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.beginning = If ( $previous_start  0; Position ( $payload ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; records¶; 1; 1 ) + 10 );end = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 );$previous_start = end;record = Middle ( $payload ; beginning ; end - beginning );// Encode CRLFs that might be found in Base64-encoded container data.// This makes it easier to treat the fields as a return-delimited value list.record = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]] );// Encode any remaining newline characters.record = Substitute ( record ; ¶ ; [[BR]] );record = Substitute ( record ; $field_delimiter ; ¶ )];record) ]
 If [ $$debug_push ]
 Show Custom Dialog [ Title: Payload Record   $i; Message: $record; Default Button: “OK”, Commit: “Yes” ]
 End If
@@ -320,7 +311,7 @@ End If
 #End If we are to update the record.
 #
 Set Variable [ $i; Value:$i + 1 ]
-Exit Loop If [ $i  ( PatternCount ( $records; $record_delimiter ) - 1 ) ]
+Exit Loop If [ $i  ( PatternCount ( $payload; $record_delimiter ) - 1 ) ]
 #
 End Loop
 #End loop over the records.
@@ -438,6 +429,8 @@ End If
 #Return the success code to the caller. (A zero indicates that no problems were encountered during the process.)
 Exit Script [ Result: 0 ]
 #
+#
+#
 
 
 ---
@@ -474,7 +467,10 @@ Script:
         bug that was causing the clients ES_UTC_Time from being pulled when processing\n\ta
         record. Thanks to Paul Jansen at APJ Computing Solutions for finding this
         one. Good catch!\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
-        code that gets the next record.\n\n\n"
+        code that gets the next record.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tEliminated
+        the need to copy the records portion of the payload to a distinct $records
+        variable.\n\tThis should help to reduce the memory needed to process the payload,
+        and should also slightly\n\tincrease performance.\n"
       Text: "Process Payload from Client:\nProcesses a payload that has been pushed
         by the client.\n\nScript Results:\nPositive response codes greater than 10000
         indicate success, and the value is the UTC timestamp recorded on the server
@@ -498,7 +494,10 @@ Script:
         bug that was causing the clients ES_UTC_Time from being pulled when processing\n\ta
         record. Thanks to Paul Jansen at APJ Computing Solutions for finding this
         one. Good catch!\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
-        code that gets the next record.\n\n\n"
+        code that gets the next record.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tEliminated
+        the need to copy the records portion of the payload to a distinct $records
+        variable.\n\tThis should help to reduce the memory needed to process the payload,
+        and should also slightly\n\tincrease performance.\n"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1631,94 +1630,26 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Get the records from the payload.'
-      Text: Get the records from the payload.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: "Set Variable [ $records; Value:Let ( \n[\nbeginning = Position (
-        $payload ; records¶ ; 1 ; 1 ) + 10;\nend = Position ( $payload ; ¶/records
-        ; -1 ; 1 );\nrecords = Middle ( $payload ; beginning ; end - beginning );\nrecords
-        = Trim ( records )\n];\nrecords\n) ]"
-      Value:
-        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<records>¶\"
-          ; 1 ; 1 ) + 10;\nend = Position ( $payload ; \"¶</records>\" ; -1 ; 1 );\nrecords
-          = Middle ( $payload ; beginning ; end - beginning );\nrecords = Trim ( records
-          )\n];\nrecords\n)"
-        DisplayCalculation:
-          Chunk:
-          - Let
-          - " ( \n[\nbeginning = "
-          - Position
-          - " ( $payload ; records¶ ; 1 ; 1 ) + 10;\nend = "
-          - Position
-          - " ( $payload ; ¶/records ; -1 ; 1 );\nrecords = "
-          - Middle
-          - " ( $payload ; beginning ; end - beginning );\nrecords = "
-          - Trim
-          - |2-
-             ( records )
-            ];
-            records
-            )
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $records
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
-      DisplayCalculation:
-        Chunk: $$debug_push
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Payload Records; Message: $records; Default
-        Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Payload Records"'
-        DisplayCalculation:
-          Chunk: Payload Records
-      Message:
-        Calculation: $records
-        DisplayCalculation:
-          Chunk: $records
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: OK
-        - CommitState: 'False'
-        - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#If there are records in the payload...'
       Text: If there are records in the payload...
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ not IsEmpty ( $records ) ]
-      Calculation: not IsEmpty ( $records )
+      StepText: |-
+        If [ PatternCount ( $payload; $record_delimiter )  1
+
+        // not IsEmpty ( $records ) ]
+      Calculation: |-
+        PatternCount ( $payload; $record_delimiter ) > 1
+
+        // not IsEmpty ( $records )
       DisplayCalculation:
         Chunk:
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( $records )'
+        - PatternCount
+        - |2+
+           ( $payload; $record_delimiter )  1
+
+        - // not IsEmpty ( $records )
     - enable: 'True'
       id: '89'
       name: Comment
@@ -2012,29 +1943,6 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Add a leading record delimiter to make it easier to loop through
-        the records.'
-      Text: Add a leading record delimiter to make it easier to loop through the records.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $records; Value:$record_delimiter  ¶  $records ]
-      Value:
-        Calculation: $record_delimiter & ¶ & $records
-        DisplayCalculation:
-          Chunk: $record_delimiter  ¶  $records
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $records
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#Loop over the records.'
       Text: Loop over the records.
     - enable: 'True'
@@ -2053,11 +1961,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $previous_start; Value:1 ]
+      StepText: Set Variable [ $previous_start; Value:0 ]
       Value:
-        Calculation: '1'
+        Calculation: '0'
         DisplayCalculation:
-          Chunk: '1'
+          Chunk: '0'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -2081,23 +1989,24 @@ Script:
       name: Set Variable
       StepText: "Set Variable [ $record; Value:Let ( \n[\n // Note: The +1 in the
         beginning calc is to account for the default carriage return imposed by ExectueSQL.\nbeginning
-        = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length
-        ( $record_delimiter ) + 1;\nend = Position ( $records ; $record_delimiter
-        ; beginning ; 1 );\n$previous_start = end;\nrecord = Middle ( $records ; beginning
-        ; end - beginning );\n// Encode CRLFs that might be found in Base64-encoded
-        container data.\n// This makes it easier to treat the fields as a return-delimited
-        value list.\nrecord = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]]
-        );\n// Encode any remaining newline characters.\nrecord = Substitute ( record
-        ; ¶ ; [[BR]] );\nrecord = Substitute ( record ; $field_delimiter ; ¶ )\n];\nrecord\n)
-        ]"
+        = If ( $previous_start  0; Position ( $payload ; $record_delimiter ; $previous_start
+        ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; records¶; 1;
+        1 ) + 10 );\nend = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 );\n$previous_start
+        = end;\nrecord = Middle ( $payload ; beginning ; end - beginning );\n// Encode
+        CRLFs that might be found in Base64-encoded container data.\n// This makes
+        it easier to treat the fields as a return-delimited value list.\nrecord =
+        Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]] );\n// Encode any
+        remaining newline characters.\nrecord = Substitute ( record ; ¶ ; [[BR]] );\nrecord
+        = Substitute ( record ; $field_delimiter ; ¶ )\n];\nrecord\n) ]"
       Value:
         Calculation: "Let ( \n[\n // Note: The \"+1\" in the \"beginning calc\" is
           to account for the default carriage return imposed by ExectueSQL.\nbeginning
-          = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length
-          ( $record_delimiter ) + 1;\nend = Position ( $records ; $record_delimiter
-          ; beginning ; 1 );\n$previous_start = end;\nrecord = Middle ( $records ;
-          beginning ; end - beginning );\n// Encode CRLFs that might be found in Base64-encoded
-          container data.\n// This makes it easier to treat the fields as a return-delimited
+          = If ( $previous_start > 0; Position ( $payload ; $record_delimiter ; $previous_start
+          ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; \"<records>¶\";
+          1; 1 ) + 10 );\nend = Position ( $payload ; $record_delimiter ; 1 ; $i +
+          1 );\n$previous_start = end;\nrecord = Middle ( $payload ; beginning ; end
+          - beginning );\n// Encode CRLFs that might be found in Base64-encoded container
+          data.\n// This makes it easier to treat the fields as a return-delimited
           value list.\nrecord = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ;
           \"[[CRLF]]\" );\n// Encode any remaining newline characters.\nrecord = Substitute
           ( record ; ¶ ; \"[[BR]]\" );\nrecord = Substitute ( record ; $field_delimiter
@@ -2109,16 +2018,20 @@ Script:
           - |
             // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.
           - 'beginning = '
+          - If
+          - ' ( $previous_start  0; '
           - Position
-          - ' ( $records ; $record_delimiter ; $previous_start ; 1 ) + '
+          - ' ( $payload ; $record_delimiter ; $previous_start ; 1 ) + '
           - Length
-          - " ( $record_delimiter ) + 1;\nend = "
+          - ' ( $record_delimiter ) + 1; '
           - Position
-          - " ( $records ; $record_delimiter ; beginning ; 1 );\n$previous_start =
-            end;\nrecord = "
+          - " ( $payload; records¶; 1; 1 ) + 10 );\nend = "
+          - Position
+          - " ( $payload ; $record_delimiter ; 1 ; $i + 1 );\n$previous_start = end;\nrecord
+            = "
           - Middle
           - |2
-             ( $records ; beginning ; end - beginning );
+             ( $payload ; beginning ; end - beginning );
           - |
             // Encode CRLFs that might be found in Base64-encoded container data.
           - |
@@ -3466,14 +3379,14 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $i  ( PatternCount ( $records; $record_delimiter )
+      StepText: Exit Loop If [ $i  ( PatternCount ( $payload; $record_delimiter )
         - 1 ) ]
-      Calculation: $i > ( PatternCount ( $records; $record_delimiter ) - 1 )
+      Calculation: $i > ( PatternCount ( $payload; $record_delimiter ) - 1 )
       DisplayCalculation:
         Chunk:
         - '$i  ( '
         - PatternCount
-        - ' ( $records; $record_delimiter ) - 1 )'
+        - ' ( $payload; $record_delimiter ) - 1 )'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -4274,6 +4187,14 @@ Script:
       Calculation: '0'
       DisplayCalculation:
         Chunk: '0'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment

@@ -1,7 +1,7 @@
 #EasySync Settings:Initializes all EasySync mobile settings.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version, based on settings that had been local to the push / pull scripts.2014-04-18		Tim Dietrich (timdietrich@me.com)	Added client_version setting. Can be used by the server to confirm that the 	client meets sync requirements, and either notify the usser that a new version is	available, or reject the sync.2014-04-19		Tim Dietrich (timdietrich@me.com)	Added support for additional ping info which can be used by the developer to send	additional info to the server during the ping / handshake process.	Added support for max ping time and slow connection behavior which can be used	to warn the user, or abort the sync, when a slow connection to the server is detected.	Added support for additional push info which can be used by the developer to send	additional info to the server during the push phase of the sync process.	Added support for additional pull info which can be used by the developer to send	additional info to the server during the pull phase of the sync process.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added $$process_deletions setting, which gives you the option to enable / disable	the new deletion phase of the sync process.2014-05-01	Tim Dietrich (timdietrich@me.com)	Changed deletion settings, and added new sync check settings.	Added support for $$pull_progress_indicator_logic setting.
 #
 #Client version.
-Set Variable [ $$client_version; Value:1// The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 10.1 ]
+Set Variable [ $$client_version; Value:1.1// The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 1.1 ]
 #
 #General sync settings.
 Set Variable [ $$ask_before_sync; Value:0 // 1 = Yes, 0 = No.  0 is the default. ]
@@ -104,22 +104,22 @@ Script:
       id: '141'
       name: Set Variable
       StepText: |-
-        Set Variable [ $$client_version; Value:1
+        Set Variable [ $$client_version; Value:1.1
 
-        // The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 10.1 ]
+        // The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 1.1 ]
       Value:
         Calculation: |-
-          1
+          1.1
 
-          // The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 10.1
+          // The version of the mobile client. This gets pushed to the server during the push and pull phases of the sync process. Should be a numeric value. ex: 1.1
         DisplayCalculation:
           Chunk:
           - |+
-            1
+            1.1
 
           - '// The version of the mobile client. This gets pushed to the server during
             the push and pull phases of the sync process. Should be a numeric value.
-            ex: 10.1'
+            ex: 1.1'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
