@@ -1,0 +1,1 @@
+*.fmp12 filter=lfs diff=lfs merge=lfs -crlf

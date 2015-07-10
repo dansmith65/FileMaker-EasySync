@@ -1,0 +1,178 @@
+Go to Layout [ “Survey List - iPad” (Surveys) ]
+If [ Get ( SystemPlatform ) = 3 ]
+Show/Hide Toolbars[ Hide ]
+Set Zoom Level [ Lock; 100%; Camera: Back; Resolution: Full ]
+Else
+Set Zoom Level [ 100%; Camera: Back; Resolution: Full ]
+End If
+#
+#Optional - Added to demonstrate the Initial Pull script.
+//  If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time ) ) ]
+//  #
+//  #Confirm the sync.
+//  Show Custom Dialog [ Title: Welcome!; Message: It appears that this is the first time that youve used this database. Would you like to perform an initial sync with the server to get your data?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+//  #
+//  If [ Get ( LastMessageChoice ) = 1 ]
+//  Perform Script [ “unknown” ]
+//  End If
+//  #
+//  End If
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '16'
+  name: Trigger - On First Window Open
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Survey List - iPad” (Surveys) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '3'
+        name: Survey List - iPad
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( SystemPlatform ) = 3 ]
+      Calculation: Get ( SystemPlatform ) = 3
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - ' ) = 3'
+    - enable: 'True'
+      id: '29'
+      name: Show/Hide Toolbars
+      StepText: |-
+        Show/Hide Toolbars
+        [ Hide ]
+      Lock:
+        state: 'False'
+      ShowHide:
+        value: Hide
+    - enable: 'True'
+      id: '97'
+      name: Set Zoom Level
+      StepText: 'Set Zoom Level [ Lock; 100%; Camera: Back; Resolution: Full ]'
+      Lock:
+        state: 'True'
+      Zoom:
+        value: '100'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '97'
+      name: Set Zoom Level
+      StepText: 'Set Zoom Level [ 100%; Camera: Back; Resolution: Full ]'
+      Lock:
+        state: 'False'
+      Zoom:
+        value: '100'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Optional - Added to demonstrate the Initial Pull script.'
+      Text: Optional - Added to demonstrate the Initial Pull script.
+    - enable: 'False'
+      id: '68'
+      name: If
+      StepText: //  If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time
+        ) ) ]
+      Calculation: IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time"
+        ) )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( '
+        - Evaluate
+        - ' ( EasySync_Payloads::ES_Last_Pull_UTC_Time ) )'
+    - enable: 'False'
+      id: '89'
+      name: Comment
+      StepText: '//  #'
+    - enable: 'False'
+      id: '89'
+      name: Comment
+      StepText: '//  #Confirm the sync.'
+      Text: Confirm the sync.
+    - enable: 'False'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: '//  Show Custom Dialog [ Title: Welcome!; Message: It appears that
+        this is the first time that youve used this database. Would you like to perform
+        an initial sync with the server to get your data?; Default Button: “Yes”,
+        Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
+      Title:
+        Calculation: '"Welcome!"'
+        DisplayCalculation:
+          Chunk: Welcome!
+      Message:
+        Calculation: '"It appears that this is the first time that you''ve used this
+          database. Would you like to perform an initial sync with the server to get
+          your data?"'
+        DisplayCalculation:
+          Chunk: It appears that this is the first time that youve used this database.
+            Would you like to perform an initial sync with the server to get your
+            data?
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Yes"'
+          DisplayCalculation:
+            Chunk: 'Yes'
+        - CommitState: 'False'
+          Calculation: '"No"'
+          DisplayCalculation:
+            Chunk: 'No'
+        - CommitState: 'False'
+    - enable: 'False'
+      id: '89'
+      name: Comment
+      StepText: '//  #'
+    - enable: 'False'
+      id: '68'
+      name: If
+      StepText: //  If [ Get ( LastMessageChoice ) = 1 ]
+      Calculation: Get ( LastMessageChoice ) = 1
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 1'
+    - enable: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: //  Perform Script [ “unknown” ]
+      Script:
+        id: '39'
+        name: <unknown>
+    - enable: 'False'
+      id: '70'
+      name: End If
+      StepText: //  End If
+    - enable: 'False'
+      id: '89'
+      name: Comment
+      StepText: '//  #'
+    - enable: 'False'
+      id: '70'
+      name: End If
+      StepText: //  End If

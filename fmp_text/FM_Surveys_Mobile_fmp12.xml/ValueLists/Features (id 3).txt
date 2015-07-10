@@ -1,0 +1,32 @@
+WebDirect
+Redesigned Layout/Report Assistant
+Popovers
+Slide controls
+New iOS keyboards
+Bar code scanner
+Custom themes
+Built-in themes
+Styles
+Improved Starter Solutions
+Field Picker
+Control Object Visibility
+Security Improvements
+Undo After Save (Layouts)
+Container Field Enhancements
+HTTP Post 
+Perform Script on Server
+Upload to FileMaker Server
+Refresh Object
+
+---
+ValueList:
+  id: '3'
+  name: Features
+  Source:
+    value: Custom
+  CustomValues:
+    Text: "WebDirect\nRedesigned Layout/Report Assistant\nPopovers\nSlide controls\nNew
+      iOS keyboards\nBar code scanner\nCustom themes\nBuilt-in themes\nStyles\nImproved
+      Starter Solutions\nField Picker\nControl Object Visibility\nSecurity Improvements\nUndo
+      After Save (Layouts)\nContainer Field Enhancements\nHTTP Post \nPerform Script
+      on Server\nUpload to FileMaker Server\nRefresh Object"

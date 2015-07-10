@@ -1,0 +1,20 @@
+FileMaker Go
+WebDirect
+PSoS
+Themes
+CWP
+
+
+---
+ValueList:
+  id: '2'
+  name: FileMaker Interests
+  Source:
+    value: Custom
+  CustomValues:
+    Text: |
+      FileMaker Go
+      WebDirect
+      PSoS
+      Themes
+      CWP

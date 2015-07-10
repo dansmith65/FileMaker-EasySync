@@ -1,0 +1,16 @@
+
+---
+ValueList:
+  id: '6'
+  name: Hobbies
+  Source:
+    value: Field
+  PrimaryField:
+    show: 'True'
+    sort: 'True'
+    Field:
+      table: ''
+      id: '2'
+      name: ''
+  ShowRelated:
+    value: 'False'

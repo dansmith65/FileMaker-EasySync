@@ -1,0 +1,120 @@
+EasySync Demo - Change Log
+
+Version 1.0 (Posted 05-09-2014)
+• Mobile and Hosted: Optimized payload processing. Specifically, when retrieving a record from the payload, we now scan from the end point of the previous record instead of from the start of the records portion of the payload.
+• Hosted: The default conflict handling method is now “Recent.” We believe this will be the most commonly used method.
+• Mobile and Hosted: Improved inline documentation of binary-type settings.
+• Hosted: Added support for “min_syncable_client_version” setting. With EasySync's current integration with EasyDeploy, the following scenario is possible: Version 1.0 of the solution is released, followed by versions 1.1, 1.2, and 1.3. The solution is still able to sync with version 1.2, but due to schema-related changes, 1.1 is no longer supported. If the developer sets the "Reject Sync from Prior Versions" option for v1.3 to "Yes," then users of v1.1 and v1.2 will not be able to sync. The introduction of the new “min_syncable_client_version” setting allows the developer to indicate that users of v1.2 can sync, but prior versions (those less than $$min_syncable_client_version) cannot.
+• Mobile: Removed “Implementation Examples” that had been previously included in the betas.
+• Mobile: Removed the “Exclude from sync” field from the UI. As a best practice, we’re recommending against allowing the mobile user to exclude records from the sync. Regardless, it is still supported.
+• Hosted: Exposed the exclude fields for child records for easier testing.
+
+###
+
+Beta 10 (2014-05-05)
+• Special thanks to Bill Heizer at FileMaker Inc for talking sense in to me with regard to EasySync’s deletion support. This new approach to handling deletions feels more professional, and seems to be more “FileMaker-like.” Thanks Bill! You rock!
+• Thanks also go to Bill for helping with EasyDeploy and this initial integration of it with EasySync. Bill’s expertise on this was immensely helpful.
+• We’re down to one EasySync layout now. It’s called “EasySync_Payloads.” The portal required for transactional payload processing is off of the edge of the layout, so we can use it without the user having to see it. This move also seems to reduce a lot of “flicker.”
+• The $$EasySync_Status text object on the EasySync_Payloads layout has been assigned an object name of “easysync_status” and we now refresh that single object specifically (instead of the entire window) as the sync progresses.  
+• Mobile and Hosted: Two additional fields have been added to the EasySync table (Created_TimeStamp_UTC and ES_Deleted_Record_UUID) to facilitate the change in deletion strategy.
+• Mobile and Hosted: In synced tables, the “ES_Deleted” field has been removed, as it is no longer necessary.
+• Mobile: Added a new script ("EasySync Delete Record”) that logs the UUIDs of records deleted from sync tables. It supports deleting parent records and individual child records visible in portals. Note that in the demo I’m calling this via a button. Would need to think through how to call it via a custom menu, because it takes params. 
+• Mobile: Added a new deletion setting ($$ask_before_deleting) that is used by the "EasySync Delete Record” script to determine whether the user should be asked confirm a deletion. 
+• Mobile: In the “Nav, etc.” script folder, all of the delete and undelete scripts, which had been added in a previous version to demonstrate the old “flagged for deletion” method, have been removed.
+• Mobile: On the “Survey Form” layout, the portals for “Documents" and “Hobbies” now have the “Allow deletion of portal records” option set. This allows the "EasySync Delete Record” script to delete the portal rows.
+• Mobile: The "Push Payload" script now creates a “deletions” portion of the payload, and takes into account the possibility that while there might not be any records to be pushed, there might be deletions to push.
+• Mobile: "Sync With Server” script includes code to remove the “deleted record UUIDs."
+• Hosted: The logic used by the "Process Payload from Client” script to check for well-formed payloads has changed. It now takes into account the possibility of a pushed payload not having records, not having deletions, etc. The payload now has to have records or deletions, but not both.
+• Mobile and Hosted: Added corresponding “ES_” layouts for each syncing table, and those layouts are grouped in a "EasySync Delete Support” layout folder. On the mobile side, these are used to handle wipes and remote deletions (the deletions performed after a “sync check”). On the server side, they are used to process the “deletions” portion of pushed payloads.
+• Mobile: "Process Deletions” script has been deleted, as it is no longer needed. The call to it in "Sync With Server” has also been deleted.
+• Mobile: The “Sync Utilities - Wipe” function now only loops over ES layouts. Much cleaner, much faster, and avoids any potential layout-based script triggers.
+• Improved reporting of 102 ("Field is missing”) and 106 ("Table is missing”) errors during push. The error message now includes the specific field or table that was missing. This should significantly help when trying to resolve these common configuration issues.
+• Global fields are now excluded from both pushed and pulled payloads. (Calculated fields never were included.)
+• Added new "Sync Check - Mobile” script to round out the new deletion strategy. On the mobile side, this grabs the UUIDs of all records in all synced tables, and passes it to the server. The server side has a corresponding script (“Sync Check - Host”) that looks for any UUIDs in the list that aren’t on the server (and therefore have apparently been deleted), and send back the diff to the client. The client then deletes those records using a process similar to how deletions are processed in pushed payloads.
+• Mobile: New $$debug_sync_check and $$use_psos_during_sync_check settings.
+• Mobile and Hosted: EasyDeploy integration. See documentation for details and info on how to test this.
+• Mobile and Hosted: Small change to SELECT statement that gets the list of “ES_” tables to sync. We’re now escaping the underscore, as it is apparently a wildcard. Thanks to Paul Jansen of APJ Computing Solutions ( http://www.apjuk.com/ ) for reporting this one. Good catch.
+• Mobile and Hosted: Support for Push-only and Pull-only tables. To indicate that a table should be pushed but not pulled, prefix the table occurrence with “ES_PUSH_”, to indicate that a table should be pulled but not pushed, prefix the table occurrence with “ES_PULL_”. Thanks to Paul Jansen of APJ Computing Solutions ( http://www.apjuk.com/ ) for the suggestion.
+
+###
+
+Beta 9b (Posted 2014-04-29)
+• Maintenance release that resolves issue where a user has wiped / reset their device. The change allows the user to pull their own records (records that they had previously pushed via that same device).
+
+###
+
+Beta 9 (Posted 2014-04-28)
+• “Round-Tripping” data during syncs is gone baby, gone!
+• Changed ES_UTC_Time so that its auto-enter calculation is: Let ( trigger = GetField ( "" ); If ( IsEmpty ( $script_override ) ; Get ( CurrentTimeUTCMilliseconds ); Self ) )
+• Added new ES_Device_ID field as an auto-enter calculation: Let ( trigger = GetField ( "" ); If ( IsEmpty ( $script_override ) ; Get ( PersistentID ); Self ) )
+• Made mods to scripts in the mobile and hosted databases so that “$script_override” local variable is set during payload processing so that the UTC timestamps and Device IDs are not stomped on.
+• When preparing payloads for the client, the hosted database now excludes any records where the mobile device was the last device to “touch” the records.
+• Special thanks to Paul Jansen of APJ Computing Solutions ( http://www.apjuk.com/ ) for helping make this happen. It turns out that “round tripping” was driving him as crazy as it was me. Thanks Paul!
+
+###
+
+Beta 8 (Posted 2014-04-25)
+• “Round-Tripping” data during syncs to resolve several issues, especially cases where a mobile user syncs from multiple devices using the same FileMaker account.
+• Support for deletions.
+• Support for repeating fields. Yes, really.
+• Performance improvements when processing payloads. We’re now searching for the closing “</records>” tag starting at the end of the payload, which improves speed slightly. Thanks go to Daniel Wood (Twitter: @FMweetbicks) for the suggestion.
+• “Partial Push” Example. See “EasySync Implementation Examples” script folder.
+• “Initial Pull” Example. See “EasySync Implementation Examples” script folder.
+• Bug fixed: The "Get ( SystemIPAddress )” parameter, which is included in the ping, push, and pull requests as a script parameter, is now comma-delimited. This resolves an issue that comes up if the client has multiple IPs assigned to the mobile device. Thanks to Paul Jansen of APJ Computing Solutions ( http://www.apjuk.com/ ) for reporting this one. Good catch!
+
+###
+
+Beta 7 (Posted 2014-04-21)
+• Demo database names now include the beta version number.
+• Adds support for table occurrence names that are not "SQL-friendly."
+• When processing payloads, EasySync now only sets fields that have actually changed. This helps in cases where a database is being audited at the field level (using something like Ray Cologan's Ultra Log: http://www.nightwing.com.au/FileMaker/demosX/demoX01.html ). Thanks go out to Hal Gumbert of CampSoftware ( Twitter: @CampSoftware, Web: http://www.campsoftware.com ) for the suggestion.
+
+###
+
+Beta 6 (Posted 2014-04-20)
+• Switched to UTC timestamps to fully resolve potential timezone and server config issues. Also allows a mobile user to move between timezones without causing sync problems.
+• Added an “ES_Account” field to sync tables for overall improved syncing. Resolves issues encountered when two users sync simultaneously. Also keeps records in sync when the “recent” or “server” conflict resolutions are used.
+• Added support for client versioning.
+• Added connection speed support.
+• New options for handing record lock errors during sync. You can indicate how many attempts should be made before giving up, and how long to wait between attempts.
+• Improved demo database. Slightly more complex (additional table, with child containers). Illustrates mobile database best practices - “thin” tables, partitioning container fields into distinct tables, etc.
+• Added support for "additional ping info" which can be used by the developer to send additional info to the server during the ping / handshake process.
+• Added support for "max ping time" and "slow connection behavior" which can be used to warn the user, or abort the sync, when a slow connection to the server is detected.
+• Added support for "additional push info" which can be used by the developer to send additional info to the server during the push phase of the sync process.
+• Added support for "additional pull info" which can be used by the developer to send additional info to the server during the pull phase of the sync process.
+• FileMaker accounts in demo databases have changed. See “Read Me” for details.
+
+###
+
+Beta 5 (Posted 2014-04-18)
+• Resolves regional timestamp formatting issues.
+
+###
+
+Beta 4 (Posted 2014-04-18)
+• Significant changes to handle cases where users are in different timezones, or where a user is in a timezone that is different from that of the server. ES_TimeStamp is now based on CurrentHostTimeStamp. Also, during the initial sync “ping” with the server, the server responds with its current timestamp. The client uses this to determine any timezone offset, so that the syncing can be performed with the offset in mind.
+
+###
+
+Beta 3 (Posted 2014-04-17)
+• The mobile database now passes the last push and pull timestamps in a SQL-friendly format to the server (during the pull request). Previously, the transformation of the timestamps was done server-side. However, problems arose if the client and server were using different timestamp formats. 
+
+###
+
+Beta 2 (Posted 2014-04-17)
+• Changes were made to the mobile database to resolve an issue where the user would be presented with the "Open File" dialog in cases where the hosted database wasn't available.
+
+###
+
+Beta 1 (Posted 2014-04-16)
+• Initial beta released.
+
+###
+
+
+
+
+
+
+
+

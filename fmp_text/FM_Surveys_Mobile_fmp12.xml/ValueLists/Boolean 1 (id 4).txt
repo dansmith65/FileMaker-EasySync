@@ -1,0 +1,10 @@
+1
+
+---
+ValueList:
+  id: '4'
+  name: Boolean 1
+  Source:
+    value: Custom
+  CustomValues:
+    Text: '1'

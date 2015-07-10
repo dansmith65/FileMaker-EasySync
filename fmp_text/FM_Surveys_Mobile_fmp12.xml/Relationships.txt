@@ -1,0 +1,255 @@
+Tables
+
+    Base Table (id)            Table occurrence (id)    
+    ---------------            ---------------------    
+
+    Survey_Documents (133)     ES_Survey_Documents (1065098)
+    Survey_Hobbies (131)       ES_Survey_Hobbies (1065095)
+    Surveys (129)              ES_Surveys (1065090)     
+    Surveys (129)              Surveys (1065089)        
+    EasySync (132)             EasySync_Payload_Details (1065093)
+    EasySync (132)             EasySync_Payloads (1065096)
+    Survey_Documents (133)     Survey_Documents (1065097)
+    Survey_Hobbies (131)       Survey_Hobbies (1065094) 
+    EasyDeploy (134)           EasyDeploy (1065099)     
+
+Relationships
+
+    Relationship: 2   
+        ES_Surveys::ES_Record_UUID           Equal            EasySync_Payload_Details::ES_Child_Record_UUID
+
+    Relationship: 3   
+        Surveys::Survey_ID                   Equal            Survey_Hobbies::Survey_ID          
+
+    Relationship: 4   
+        ES_Survey_Hobbies::ES_Record_UUID    Equal            EasySync_Payload_Details::ES_Child_Record_UUID
+
+    Relationship: 5   
+        EasySync_Payload_Details::ES_Parent_Payload_UUID  Equal            EasySync_Payloads::ES_Payload_UUID 
+
+    Relationship: 6   
+        Survey_Documents::Survey_ID          Equal            Surveys::Survey_ID                 
+
+    Relationship: 7   
+        ES_Survey_Documents::ES_Record_UUID  Equal            EasySync_Payload_Details::ES_Child_Record_UUID
+
+
+---
+RelationshipGraph:
+  TableList:
+    Table:
+    - id: '1065098'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: Survey_Documents
+      name: ES_Survey_Documents
+    - id: '1065095'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Survey_Hobbies
+      name: ES_Survey_Hobbies
+    - id: '1065090'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: Surveys
+      name: ES_Surveys
+    - id: '1065089'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: Surveys
+      name: Surveys
+    - id: '1065093'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: EasySync
+      name: EasySync_Payload_Details
+    - id: '1065096'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: EasySync
+      name: EasySync_Payloads
+    - id: '1065097'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: Survey_Documents
+      name: Survey_Documents
+    - id: '1065094'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Survey_Hobbies
+      name: Survey_Hobbies
+    - id: '1065099'
+      color: '#787878'
+      baseTableId: '134'
+      baseTable: EasyDeploy
+      name: EasyDeploy
+  RelationshipList:
+    Relationship:
+    - id: '2'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: ES_Surveys
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: EasySync_Payload_Details
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: ES_Surveys
+              id: '18'
+              name: ES_Record_UUID
+          RightField:
+            Field:
+              table: EasySync_Payload_Details
+              id: '12'
+              name: ES_Child_Record_UUID
+    - id: '3'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: Surveys
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'True'
+        name: Survey_Hobbies
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: Surveys
+              id: '1'
+              name: Survey_ID
+          RightField:
+            Field:
+              table: Survey_Hobbies
+              id: '6'
+              name: Survey_ID
+    - id: '4'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: ES_Survey_Hobbies
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: EasySync_Payload_Details
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: ES_Survey_Hobbies
+              id: '3'
+              name: ES_Record_UUID
+          RightField:
+            Field:
+              table: EasySync_Payload_Details
+              id: '12'
+              name: ES_Child_Record_UUID
+    - id: '5'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'True'
+        name: EasySync_Payload_Details
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: EasySync_Payloads
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: EasySync_Payload_Details
+              id: '13'
+              name: ES_Parent_Payload_UUID
+          RightField:
+            Field:
+              table: EasySync_Payloads
+              id: '1'
+              name: ES_Payload_UUID
+    - id: '6'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'True'
+        name: Survey_Documents
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: Surveys
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: Survey_Documents
+              id: '27'
+              name: Survey_ID
+          RightField:
+            Field:
+              table: Surveys
+              id: '1'
+              name: Survey_ID
+    - id: '7'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: ES_Survey_Documents
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: EasySync_Payload_Details
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: ES_Survey_Documents
+              id: '28'
+              name: ES_Record_UUID
+          RightField:
+            Field:
+              table: EasySync_Payload_Details
+              id: '12'
+              name: ES_Child_Record_UUID

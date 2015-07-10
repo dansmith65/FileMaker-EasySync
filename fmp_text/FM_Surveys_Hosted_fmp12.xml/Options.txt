@@ -1,0 +1,25 @@
+File Options
+------------
+
+    Encryption:                  0 (no encryption)             
+
+    Minimum Allowed Version:     13.0                          
+    Account:                                                   
+    Layout:                                                    
+
+    Default Custom Menu Set:     [Standard FileMaker Menus]    
+
+    Triggers
+
+
+---
+Options:
+  Encryption: 
+  OnOpen:
+    MinimumAllowedVersion:
+      name: '13.0'
+      id: '1300'
+  DefaultCustomMenuSet:
+    CustomMenuSet:
+      id: '1'
+      name: '[Standard FileMaker Menus]'

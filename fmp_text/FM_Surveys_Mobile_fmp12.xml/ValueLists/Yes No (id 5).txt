@@ -1,0 +1,13 @@
+Yes
+No
+
+---
+ValueList:
+  id: '5'
+  name: Yes No
+  Source:
+    value: Custom
+  CustomValues:
+    Text: |-
+      Yes
+      No

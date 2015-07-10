@@ -1,0 +1,160 @@
+Allow User Abort [ Off ]
+Set Error Capture [ On ]
+Loop
+Enter Find Mode [  ]
+Refresh Object [ Object Name: push_indicator ]
+Pause/Resume Script [ Indefinitely ]
+Perform Find [  ]
+If [ Get ( FoundCount ) = 0 ]
+Show Custom Dialog [ Title: Nothing Found; Message: Sorry, but no surveys were found that meet your criteria. Try again?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Exit Loop If [ Get ( LastMessageChoice ) = 2 ]
+End If
+Exit Loop If [ Get ( FoundCount )  0 ]
+End Loop
+If [ Get ( FoundCount ) = 0 ]
+Show All Records
+End If
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '20'
+  name: Find Mode
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '22'
+      name: Enter Find Mode
+      StepText: Enter Find Mode [  ]
+      Pause:
+        state: 'False'
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '167'
+      name: Refresh Object
+      StepText: 'Refresh Object [ Object Name: push_indicator ]'
+      ObjectName:
+        Calculation: '"push_indicator"'
+        DisplayCalculation:
+          Chunk: push_indicator
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+    - enable: 'True'
+      id: '62'
+      name: Pause/Resume Script
+      StepText: Pause/Resume Script [ Indefinitely ]
+      PauseTime:
+        value: Indefinitely
+    - enable: 'True'
+      id: '28'
+      name: Perform Find
+      StepText: Perform Find [  ]
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) = 0 ]
+      Calculation: Get ( FoundCount ) = 0
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' ) = 0'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Nothing Found; Message: Sorry, but no
+        surveys were found that meet your criteria. Try again?; Default Button: “Yes”,
+        Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
+      Title:
+        Calculation: '"Nothing Found"'
+        DisplayCalculation:
+          Chunk: Nothing Found
+      Message:
+        Calculation: '"Sorry, but no surveys were found that meet your criteria. Try
+          again?"'
+        DisplayCalculation:
+          Chunk: Sorry, but no surveys were found that meet your criteria. Try again?
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Yes"'
+          DisplayCalculation:
+            Chunk: 'Yes'
+        - CommitState: 'False'
+          Calculation: '"No"'
+          DisplayCalculation:
+            Chunk: 'No'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ Get ( LastMessageChoice ) = 2 ]
+      Calculation: Get ( LastMessageChoice ) = 2
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 2'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ Get ( FoundCount )  0 ]
+      Calculation: Get ( FoundCount ) > 0
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )  0'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) = 0 ]
+      Calculation: Get ( FoundCount ) = 0
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' ) = 0'
+    - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If

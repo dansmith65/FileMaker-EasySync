@@ -1,0 +1,74 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     3   Database_Container          Binary           Normal                                                              
+     7   Consumed                    Number           Normal            A 1 indicates that this copy of EasyDeploy has already been used.
+
+
+---
+BaseTable:
+  id: '134'
+  records: ''
+  name: Temp
+  FieldCatalog:
+    Field:
+    - id: '3'
+      dataType: Binary
+      fieldType: Normal
+      name: Database_Container
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        global: 'True'
+        maxRepetition: '1'
+    - id: '7'
+      dataType: Number
+      fieldType: Normal
+      name: Consumed
+      Comment: A 1 indicates that this copy of EasyDeploy has already been used.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'

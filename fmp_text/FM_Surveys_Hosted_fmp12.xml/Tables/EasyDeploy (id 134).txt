@@ -1,0 +1,188 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     4   Version                     Number           Normal                                                              
+     2   Comments                    Text             Normal                                                              
+     3   Database_Container          Binary           Normal                                                              
+     5   Database_Container_B64      Text             Calculated                                                          
+     6   Reject_Prior_Versions       Text             Normal                                                              
+
+
+---
+BaseTable:
+  id: '134'
+  records: ''
+  name: EasyDeploy
+  FieldCatalog:
+    Field:
+    - id: '4'
+      dataType: Number
+      fieldType: Normal
+      name: Version
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: GetContainerAttribute ( Database_Container ; "All" )
+        DisplayCalculation:
+          Chunk:
+          - GetContainerAttribute
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: EasyDeploy
+              id: '3'
+              name: Database_Container
+          - ' ; All )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        StrictDataType:
+          value: Numeric
+        NotEmpty:
+          value: 'True'
+        Unique:
+          value: 'True'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '2'
+      dataType: Text
+      fieldType: Normal
+      name: Comments
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '3'
+      dataType: Binary
+      fieldType: Normal
+      name: Database_Container
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        global: 'False'
+        maxRepetition: '1'
+    - id: '5'
+      dataType: Text
+      fieldType: Calculated
+      name: Database_Container_B64
+      Calculation: Database_Container & "<b64>" & Base64Encode ( Database_Container
+        ) & "</b64>"
+      DisplayCalculation:
+        Chunk:
+        - type: FieldRef
+          Field:
+            table: EasyDeploy
+            id: '3'
+            name: Database_Container
+        - '  b64  '
+        - Base64Encode
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: EasyDeploy
+            id: '3'
+            name: Database_Container
+        - ' )  /b64'
+      Comment: 
+      AutoEnter:
+        alwaysEvaluate: 'False'
+      Storage:
+        storeCalculationResults: 'False'
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '6'
+      dataType: Text
+      fieldType: Normal
+      name: Reject_Prior_Versions
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        value: ConstantData
+        constant: 'True'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 'Yes'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'

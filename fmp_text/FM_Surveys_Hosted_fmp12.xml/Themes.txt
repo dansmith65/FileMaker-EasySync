@@ -1,0 +1,21 @@
+      id  Name                  Group                 Version     Locale      Internal Name       
+      --  ----                  -----                 -------     ------      -------------       
+      01  Enlightened           Aspire                5           en          com.filemaker.theme.enlightened
+      02  Enlightened Touch     Aspire Touch          5           en          com.filemaker.theme.enlightened_touch
+
+
+---
+ThemeCatalog:
+  Theme:
+  - group: Aspire
+    name: Enlightened
+    locale: en
+    version: '5'
+    internalName: com.filemaker.theme.enlightened
+    id: '01'
+  - group: Aspire Touch
+    name: Enlightened Touch
+    locale: en
+    version: '5'
+    internalName: com.filemaker.theme.enlightened_touch
+    id: '02'

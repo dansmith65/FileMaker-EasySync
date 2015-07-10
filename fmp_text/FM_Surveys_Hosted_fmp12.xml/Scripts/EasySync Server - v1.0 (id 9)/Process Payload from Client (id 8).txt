@@ -1,0 +1,4280 @@
+#Process Payload from Client:Processes a payload that has been pushed by the client.Script Results:Positive response codes greater than 10000 indicate success, and the value is the UTC timestamp recorded on the server when the process began. See below for details.Positive response codes less than 10000 indicate a FileMaker error.-1 No payload segments were found.-2.x Payload segment x is missing.-3 Payload is malformed.-4 Missing payload settings.-5 Missing table information.-6 No records. (Note: As of Beta 10, we allow for payloads that do not have records.)History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Changes to reflect move to UTC.	More granular error codes added.2014-04-20	Tim Dietrich (timdietrich@me.com)	Modifications to resolve simultaneous sync issue, support for record lock handling, etc.2014-04-21	Tim Dietrich (timdietrich@me.com)	Were now only setting fields that have actually changed.2014-04-22	Tim Dietrich (timdietrich@me.com)	Now searching for the closing /records tag using -1 as the start position	so that were searching for the tag from the end of the payload.	Thanks to Daniel Smith (@FMweetbicks) for the suggestion.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	Added a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to be	overwritten during the sync process.2014-05-03	Tim Dietrich (timdietrich@me.com)	Fixed bug that was causing the clients ES_UTC_Time from being pulled when processing	a record. Thanks to Paul Jansen at APJ Computing Solutions for finding this one. Good catch!2014-05-08	Tim Dietrich (timdietrich@me.com)	Optimized code that gets the next record.
+#
+#Load settings.
+Perform Script [ “EasySync Settings” ]
+#
+#Allow auto-enter calcs for ES_UTC_Time and ES_Device_ID to be overwritten during the sync process.
+Set Variable [ $script_override; Value:1 // Used to override auto-enter calculations. ]
+#
+#Prevent the user from aborting, and well handle errors, so suppress those...
+Allow User Abort [ Off ]
+Set Error Capture [ On ]
+#
+#Go to the Payload worksheet.
+Go to Layout [ EasySync_Payloads ]
+#
+#
+#
+##############################################################################
+#BEGIN PAYLOAD CONSOLIDATION
+##############################################################################
+#
+#
+#
+#Create the consolidated payload based on the specified segment IDs.
+Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter ) ]
+If [ IsEmpty ( $payload_segment_ids ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Sync Error; Message: No Payload Segment IDs received.; Default Button: “OK”, Commit: “Yes” ]
+End If
+Exit Script [ Result: -1 ]
+End If
+Set Variable [ $i; Value:1 ]
+Set Variable [ $payload ]
+Loop
+Enter Find Mode [  ]
+Set Field By Name [ EasySync_Payloads::ES_Payload_UUID; GetValue ( $payload_segment_ids ; $i ) ]
+Perform Find [  ]
+If [ Get ( FoundCount )  1 ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Sync Error; Message: Missing Payload Segment ID   GetValue ( $payload_segment_ids ; $i ); Default Button: “OK”, Commit: “Yes” ]
+End If
+Exit Script [ Result: -2  .  $i ]
+End If
+Set Variable [ $payload; Value:$payload  EasySync_Payloads::Payload ]
+Delete Record/Request[ No dialog ]
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i  ValueCount ( $payload_segment_ids ) ]
+End Loop
+New Record/Request
+Set Field By Name [ EasySync_Payloads::Payload; $payload ]
+Set Field By Name [ EasySync_Payloads::Payload_Type; Push Payload ]
+Commit Records/Requests[ Skip data entry validation; No dialog ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Payload; Message: $payload; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#
+#
+##############################################################################
+#BEGIN PAYLOAD EVALUATION
+##############################################################################
+#
+#
+#
+#Is the payload well-formed?
+If [ PatternCount ( $payload ; payload ) ≠ 1or PatternCount ( $payload ; /payload ) ≠ 1or PatternCount ( $payload ; last_pull ) ≠ 1or PatternCount ( $payload ; /last_pull ) ≠ 1or PatternCount ( $payload ; settings ) ≠ 1or PatternCount ( $payload ; /settings ) ≠ 1or PatternCount ( $payload ; tables ) ≠ 1or PatternCount ( $payload ; /tables ) ≠ 1or PatternCount ( $payload ; records ) ≠ PatternCount ( $payload ; /records )or PatternCount ( $payload ; deletions ) ≠ PatternCount ( $payload ; /deletions )or ( PatternCount ( $payload ; records ) = 0 and PatternCount ( $payload ; deletions ) = 0 ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Sync Error; Message: The payload is malformed.; Default Button: “OK”, Commit: “Yes” ]
+End If
+If [ $$delete_payloads = All ]
+Delete Record/Request[ No dialog ]
+End If
+Exit Script [ Result: -3 ]
+End If
+#
+#
+#
+##############################################################################
+#BEGIN PAYLOAD HEADER UNPACKING
+##############################################################################
+#
+#
+#
+#Get the clients last pull time from the payload.
+#Note: This is an integer representing the UTC time that the client last peformed a pull. It is used for conflict resolution.
+Set Variable [ $last_pull_utc; Value:Let ( [beginning = Position ( $payload ; last_pull¶ ; 1 ; 1 ) + 11;end = Position ( $payload ; ¶/last_pull ; 1 ; 1 );last_pull = Middle ( $payload ; beginning ; end - beginning );last_pull = Trim ( last_pull )];last_pull) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Last Pull; Message: $last_pull_utc; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Get the payload settings.
+Set Variable [ $settings; Value:Let ( [beginning = Position ( $payload ; settings¶ ; 1 ; 1 ) + 11;end = Position ( $payload ; ¶/settings ; 1 ; 1 );settings = Middle ( $payload ; beginning ; end - beginning );settings = Trim ( settings )];settings) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Payload Settings; Message: $settings; Default Button: “OK”, Commit: “Yes” ]
+End If
+If [ IsEmpty ( $settings ) ]
+If [ $$delete_payloads = All ]
+Delete Record/Request[ No dialog ]
+End If
+Exit Script [ Result: -4 ]
+End If
+Set Variable [ $field_delimiter; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 1 ) ]
+Set Variable [ $record_delimiter; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 2 ) ]
+Set Variable [ $client_persistent_id; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 3 ) ]
+Set Variable [ $client_version; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 4 ) ]
+Set Variable [ $client_ip_address; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 5 ) ]
+Set Variable [ $client_nic_address; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 6 ) ]
+Set Variable [ $client_platform; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 7 ) ]
+Set Variable [ $client_system_version; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 8 ) ]
+Set Variable [ $client_device; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 9 ) ]
+Set Variable [ $client_network_protocol; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 10 ) ]
+Set Variable [ $client_network_type; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 11 ) ]
+Set Variable [ $additional_settings; Value:GetValue ( Substitute ( $settings ; /setting ; ¶ ) ; 12 ) ]
+#
+#
+#
+##############################################################################
+#BEGIN RECORD PROCESSING
+##############################################################################
+#
+#
+#
+#Get the records from the payload.
+Set Variable [ $records; Value:Let ( [beginning = Position ( $payload ; records¶ ; 1 ; 1 ) + 10;end = Position ( $payload ; ¶/records ; -1 ; 1 );records = Middle ( $payload ; beginning ; end - beginning );records = Trim ( records )];records) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Payload Records; Message: $records; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#If there are records in the payload...
+If [ not IsEmpty ( $records ) ]
+#
+#Note: Theres no need to get the table information from the payload if we dont have records to process - so that code has moved here.
+#
+#Get the table info from the payload.
+Set Variable [ $tables; Value:Let ( [beginning = Position ( $payload ; tables¶ ; 1 ; 1 ) + 9;end = Position ( $payload ; ¶/tables ; 1 ; 1 );tables = Middle ( $payload ; beginning ; end - beginning );tables = Trim ( tables );tables = Substitute ( tables ; table ;  );tables = Substitute ( tables ; /table ;  )];tables) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Payload Tables; Message: $tables; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+End If
+If [ IsEmpty ( $tables ) ]
+If [ $$delete_payloads = All ]
+Delete Record/Request[ No dialog ]
+End If
+Exit Script [ Result: -5 ]
+End If
+#
+#Create field name value lists for each table.
+Set Variable [ $i; Value:1 ]
+Loop
+Set Variable [ $table; Value:Substitute ( GetValue ( $tables ; $i ); /field; ¶ ) ]
+Set Variable [ $table_name; Value:GetValue ( $table; 1 ) ]
+Set Variable [ $dyn_code; Value:Let ( [ $  $table_name   = $table ]; 1 ) ]
+Set Variable [ $dyn_code; Value:Evaluate ( $dyn_code ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Created Field Value List for Table   $table_name; Message: Evaluate ( $  $table_name ); Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+End If
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i  ValueCount ( $tables ) ]
+End Loop
+#
+#Add a leading record delimiter to make it easier to loop through the records.
+Set Variable [ $records; Value:$record_delimiter  ¶  $records ]
+#
+#Loop over the records.
+Set Variable [ $i; Value:1 ]
+Set Variable [ $previous_start; Value:1 ]
+Loop
+#
+#Get the record, formatted as a return-delimited value list.
+Set Variable [ $record; Value:Let ( [ // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.beginning = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1;end = Position ( $records ; $record_delimiter ; beginning ; 1 );$previous_start = end;record = Middle ( $records ; beginning ; end - beginning );// Encode CRLFs that might be found in Base64-encoded container data.// This makes it easier to treat the fields as a return-delimited value list.record = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]] );// Encode any remaining newline characters.record = Substitute ( record ; ¶ ; [[BR]] );record = Substitute ( record ; $field_delimiter ; ¶ )];record) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Payload Record   $i; Message: $record; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Get the name of the table that is associated with this record.
+Set Variable [ $table_name; Value:GetValue ( $record ; 1 ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Table Name for Payload Record   $i; Message: $table_name; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Get the names of the fields that make up the table that this record is in.
+Set Variable [ $field_names; Value:Evaluate ( $  $table_name ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Field Names for Payload Record   $i; Message: $field_names; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Get the ES_Record_UUID value of this record.
+Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Franks ValuePosition ( theList ; theValue ) custom function.// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/// Thanks Kevin!Let( [theList = $field_names;theValue = ES_Record_UUID[1];pLp = ¶  theList  ¶ ;pVp = ¶  theValue  ¶ ;thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;theSegment = Left ( pLp ; thePos ) ;theValPos = PatternCount ( theSegment ; ¶ )] ;GetValue ( $record ; theValPos )) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: ES_Record_UUID for Payload Record   $i; Message: $ES_Record_UUID; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Get the clients ES_UTC_Time value of this record.
+Set Variable [ $ES_UTC_Time_Client; Value:Let( [theList = $field_names;theValue = ES_UTC_Time[1];pLp = ¶  theList  ¶ ;pVp = ¶  theValue  ¶ ;thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;theSegment = Left ( pLp ; thePos ) ;theValPos = PatternCount ( theSegment ; ¶ )] ;GetValue ( $record ; theValPos )) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: ES_UTC_Time for Payload Record   $i; Message: $ES_UTC_Time_Client; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Go to the correct row in the Payload Details portal.
+Go to Portal Row [ $i ][ Select; No dialog ]
+#
+#Set the Record UUID for the Payload Details record.
+Set Field By Name [ EasySync_Payload_Details::ES_Child_Record_UUID; $ES_Record_UUID ]
+Set Field By Name [ EasySync_Payload_Details::Payload_Type; Payload Detail ]
+#
+#Assume that we are going to update the record.
+Set Variable [ $update_record; Value:1 ]
+#
+#If we are handling conflicts using any means other than Client...
+If [ $$conflict_handling ≠ Client ]
+#
+#Need to check to see if there is a confict.
+#If there is one, determine how to handle it.
+#
+#Get the hosts ES_UTC_Time for the record.
+Set Variable [ $ES_UTC_Time_Host; Value:Evaluate ( $table_name  ::ES_UTC_Time ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: UTC Time Client; Message: $ES_UTC_Time_Client; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+Show Custom Dialog [ Title: UTC Time Host; Message: $ES_UTC_Time_Host; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+End If
+#
+#If the record has been updated since the last time the user pulled data...
+If [ $ES_UTC_Time_Host  $last_pull_utc ]
+If [ $$conflict_handling = Server ]
+#Server wins.
+Set Variable [ $update_record; Value:0 ]
+Else If [ ( $$conflict_handling = Recent ) and ( $ES_UTC_Time_Host  $ES_UTC_Time_Client ) ]
+#Server wins if its update was the most recent.
+Set Variable [ $update_record; Value:0 ]
+End If
+#
+End If
+#
+End If
+#
+#If we are to update the record...
+If [ $update_record ]
+#
+#Loop over the field names.
+#We skip the first value because it is really the table name that the record is from.
+Set Variable [ $f; Value:2 ]
+Loop
+#
+#Get the name of the field.
+Set Variable [ $field_name; Value:GetValue ( $field_names; $f ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Field Name to be Set; Message: $field_name; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#If this is not a container...
+If [ Left ( $field_name ; 4 ) ≠ B64_ ]
+#Get the value of the field.
+Set Variable [ $field_value; Value:Let ([value = If ( $field_name ≠ ES_Device_ID[1]; GetValue ( $record ; $f ); $client_persistent_id );value = Substitute ( value ; [[BR]] ; ¶ )];value) ]
+Else
+#Get the real name of the container field.
+Set Variable [ $field_name; Value:Right ( $field_name; Length ( $field_name ) - 4 ) ]
+#Get the value of the field.
+Set Variable [ $field_value; Value:GetValue ( $record ; $f ) ]
+#If the container field isnt empty...
+If [ not IsEmpty ( $field_value ) ]
+#Decode it.
+Set Variable [ $field_value; Value:Let ([value = $field_value;value = Substitute ( value ; /b64;  );fileNameWithExtension = GetValue ( Substitute ( value ; b64; ¶ ); 1 );encoded = Substitute ( value; fileNameWithExtension  b64;  );encoded = Substitute ( encoded ; [[CRLF]] ; Char ( 13 )  Char ( 10 ) );decoded = Base64Decode ( encoded; fileNameWithExtension )];decoded) ]
+End If
+End If
+#
+#If the value of this field has changed...
+If [ $field_value ≠ Evaluate ( $table_name  ::  $field_name ) ]
+#
+#We might make several attempts to set the field if the record is locked.
+Set Variable [ $a; Value:1 ]
+Loop
+#
+#Try to set the field.
+Set Field By Name [ $table_name  ::  $field_name; $field_value ]
+#
+#Grab the error code.
+Set Variable [ $LastError; Value:Get ( LastError ) ]
+#
+#If there wasnt an error, or if the error wasnt a 301 (Record is in use by another user)...
+Exit Loop If [ $LastError ≠ 301 ]
+#
+#Increment the attempts counter.
+Set Variable [ $a; Value:$a + 1 ]
+#
+#If weve reached the max # of times to try to resolve a 301 error...
+Exit Loop If [ $a  ≥ $$record_lock_max_attempts ]
+#
+#Wait $$record_lock_attempt_pause seconds before trying again...
+Pause/Resume Script [ Duration (seconds): $$record_lock_attempt_pause ]
+#
+End Loop
+#
+#If we could not set the field...
+If [ $LastError ≠ 0 ]
+#Rollback the changes.
+Revert Record/Request[ No dialog ]
+If [ $$delete_payloads = All ]
+Delete Record/Request[ No dialog ]
+End If
+#
+#Lets try to give the developer some help with common errors...
+If [ $LastError = 106 // Table is missing ]
+Set Variable [ $LastError; Value:Table   $table_name   is missing. FileMaker Error Code 106. ]
+Else If [ $LastError = 102 // Field is missing ]
+Set Variable [ $LastError; Value:Field   $field_name   is missing. FileMaker Error Code 102. ]
+End If
+#
+#Return the Error info to the caller.
+Exit Script [ Result: $LastError ]
+End If
+#
+End If
+#
+Set Variable [ $f; Value:$f + 1 ]
+Exit Loop If [ $f  ValueCount ( $field_names ) ]
+#
+End Loop
+#End loop that sets the fields.
+#
+End If
+#End If we are to update the record.
+#
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i  ( PatternCount ( $records; $record_delimiter ) - 1 ) ]
+#
+End Loop
+#End loop over the records.
+#
+#Try to commit the transaction.
+Commit Records/Requests[ No dialog ]
+#
+#If an error has occurred...
+Set Variable [ $LastError; Value:Get ( LastError ) ]
+If [ $LastError ≠ 0 ]
+#Rollback the changes.
+Revert Record/Request[ No dialog ]
+If [ $$delete_payloads = All ]
+Delete Record/Request[ No dialog ]
+End If
+#Return the Error info to the caller.
+Exit Script [ Result: $LastError ]
+End If
+#
+End If
+#End If there are records in the payload...
+#
+#
+#
+##############################################################################
+#BEGIN DELETIONS PROCESSING
+##############################################################################
+#
+#
+#
+#Get the deletions from the payload.
+Set Variable [ $deletions; Value:Let ( [beginning = Position ( $payload ; deletions¶ ; 1 ; 1 ) + 11;end = Position ( $payload ; ¶/deletions ; -1 ; 1 );deletions = Middle ( $payload ; beginning ; end - beginning );records = Trim ( deletions )];deletions) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Payload Deletions; Message: $deletions; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#If there are deletions in the payload...
+If [ not IsEmpty ( $deletions ) ]
+#
+#It sure would be nice to have DELETE support in ExecuteSQL right about now. ;-)
+#
+#Get a list of the layouts.
+Set Variable [ $layouts; Value:LayoutNames ( Get ( FileName ) ) ]
+#
+#Loop over ES layouts to process deletions...
+Set Variable [ $l; Value:1 ]
+Loop
+#
+#Get the next layout.
+Set Variable [ $layout; Value:GetValue ( $layouts ; $l ) ]
+#
+#If this is a layout based on a sync table (ES_)...
+If [ Left ( $layout; 3 ) = ES_ ]
+#
+#Go to the layout.
+Go to Layout [ GetValue ( $layouts ; $l ) ]
+#
+#Find records in the deletions portion of the payload...
+#But only find those that really can be deleted, based on the conflict resolution method being used...
+Enter Find Mode [  ]
+Set Variable [ $d; Value:1 ]
+Loop
+#
+#Get the deletion info.
+Set Variable [ $deletion; Value:GetValue ( $deletions ; $d ) ]
+Set Variable [ $deletion_UUID; Value:GetValue ( Substitute ( $deletion ; | ; ¶ ) ; 1 ) ]
+Set Variable [ $deletion_UTC; Value:GetValue ( Substitute ( $deletion ; | ; ¶ ) ; 2 ) ]
+#
+Set Field By Name [ Get ( LayoutTableName )  ::ES_Record_UUID; $deletion_UUID ]
+#
+#Heres where were applying conflict resolution to the deletion process...
+If [ $$conflict_handling = Server ]
+#In this case, we should only delete if the record hasnt changed on the server since the last pull.
+Set Field By Name [ Get ( LayoutTableName )  ::ES_UTC_Time;   $last_pull_utc ]
+Else If [ $$conflict_handling = Recent ]
+#In this case, we should only delete if the record was deleted on the mobile after any changes have been made to the hosted record.
+Set Field By Name [ Get ( LayoutTableName )  ::ES_UTC_Time;   $deletion_UTC ]
+End If
+#
+Set Variable [ $d; Value:$d + 1 ]
+Exit Loop If [ $d  ValueCount ( $deletions ) ]
+New Record/Request
+#
+End Loop
+Perform Find [  ]
+#
+#Delete the records.
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+End If
+#
+End If
+#
+Set Variable [ $l; Value:$l + 1 ]
+Exit Loop If [ $l  ValueCount ( $layouts ) ]
+#
+End Loop
+#End Loop over ES layouts to process deletions...
+#
+End If
+#
+#
+#
+##############################################################################
+#BEGIN CLEAN-UP
+##############################################################################
+#
+#
+#
+#Delete the payload.
+If [ $$delete_payloads = All or $$delete_payloads = Successful ]
+Delete Record/Request[ No dialog ]
+End If
+#
+#Return the success code to the caller. (A zero indicates that no problems were encountered during the process.)
+Exit Script [ Result: 0 ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '8'
+  name: Process Payload from Client
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Process Payload from Client:\nProcesses a payload that has been
+        pushed by the client.\n\nScript Results:\nPositive response codes greater
+        than 10000 indicate success, and the value is the UTC timestamp recorded on
+        the server when the process began. See below for details.\nPositive response
+        codes less than 10000 indicate a FileMaker error.\n-1 No payload segments
+        were found.\n-2.x Payload segment x is missing.\n-3 Payload is malformed.\n-4
+        Missing payload settings.\n-5 Missing table information.\n-6 No records. (Note:
+        As of Beta 10, we allow for payloads that do not have records.)\n\n\nHistory:\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tChanges to reflect move to UTC.\n\tMore granular
+        error codes added.\n\n2014-04-20\n\tTim Dietrich (timdietrich@me.com)\n\tModifications
+        to resolve simultaneous sync issue, support for record lock handling, etc.\n\n2014-04-21\n\tTim
+        Dietrich (timdietrich@me.com)\n\tWere now only setting fields that have actually
+        changed.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tNow searching
+        for the closing /records tag using -1 as the start position\n\tso that were
+        searching for the tag from the end of the payload.\n\tThanks to Daniel Smith
+        (@FMweetbicks) for the suggestion.\n\n2014-04-24\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to
+        be\n\toverwritten during the sync process.\n\n2014-05-03\n\tTim Dietrich (timdietrich@me.com)\n\tFixed
+        bug that was causing the clients ES_UTC_Time from being pulled when processing\n\ta
+        record. Thanks to Paul Jansen at APJ Computing Solutions for finding this
+        one. Good catch!\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
+        code that gets the next record.\n\n\n"
+      Text: "Process Payload from Client:\nProcesses a payload that has been pushed
+        by the client.\n\nScript Results:\nPositive response codes greater than 10000
+        indicate success, and the value is the UTC timestamp recorded on the server
+        when the process began. See below for details.\nPositive response codes less
+        than 10000 indicate a FileMaker error.\n-1 No payload segments were found.\n-2.x
+        Payload segment x is missing.\n-3 Payload is malformed.\n-4 Missing payload
+        settings.\n-5 Missing table information.\n-6 No records. (Note: As of Beta
+        10, we allow for payloads that do not have records.)\n\n\nHistory:\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tChanges to reflect move to UTC.\n\tMore granular
+        error codes added.\n\n2014-04-20\n\tTim Dietrich (timdietrich@me.com)\n\tModifications
+        to resolve simultaneous sync issue, support for record lock handling, etc.\n\n2014-04-21\n\tTim
+        Dietrich (timdietrich@me.com)\n\tWere now only setting fields that have actually
+        changed.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tNow searching
+        for the closing /records tag using -1 as the start position\n\tso that were
+        searching for the tag from the end of the payload.\n\tThanks to Daniel Smith
+        (@FMweetbicks) for the suggestion.\n\n2014-04-24\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        a variable that allows auto-enter calcs for ES_UTC_Time and ES_Device_ID to
+        be\n\toverwritten during the sync process.\n\n2014-05-03\n\tTim Dietrich (timdietrich@me.com)\n\tFixed
+        bug that was causing the clients ES_UTC_Time from being pulled when processing\n\ta
+        record. Thanks to Paul Jansen at APJ Computing Solutions for finding this
+        one. Good catch!\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
+        code that gets the next record.\n\n\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Load settings.'
+      Text: Load settings.
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “EasySync Settings” ]
+      Script:
+        id: '19'
+        name: EasySync Settings
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Allow auto-enter calcs for ES_UTC_Time and ES_Device_ID to be overwritten
+        during the sync process.'
+      Text: Allow auto-enter calcs for ES_UTC_Time and ES_Device_ID to be overwritten
+        during the sync process.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $script_override; Value:1 // Used to override auto-enter
+        calculations. ]
+      Value:
+        Calculation: 1 // Used to override auto-enter calculations.
+        DisplayCalculation:
+          Chunk:
+          - '1 '
+          - // Used to override auto-enter calculations.
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $script_override
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Prevent the user from aborting, and well handle errors, so suppress
+        those...'
+      Text: Prevent the user from aborting, and well handle errors, so suppress those...
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Go to the Payload worksheet.'
+      Text: Go to the Payload worksheet.
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ EasySync_Payloads ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        Calculation: '"EasySync_Payloads"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#BEGIN PAYLOAD CONSOLIDATION'
+      Text: BEGIN PAYLOAD CONSOLIDATION
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Create the consolidated payload based on the specified segment IDs.'
+      Text: Create the consolidated payload based on the specified segment IDs.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter )
+        ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_segment_ids
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $payload_segment_ids ) ]
+      Calculation: IsEmpty ( $payload_segment_ids )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $payload_segment_ids )'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: No Payload Segment
+        IDs received.; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Error"'
+        DisplayCalculation:
+          Chunk: Sync Error
+      Message:
+        Calculation: '"No Payload Segment IDs received."'
+        DisplayCalculation:
+          Chunk: No Payload Segment IDs received.
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -1 ]'
+      Calculation: '-1'
+      DisplayCalculation:
+        Chunk: '-1'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '22'
+      name: Enter Find Mode
+      StepText: Enter Find Mode [  ]
+      Pause:
+        state: 'False'
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payloads::ES_Payload_UUID; GetValue (
+        $payload_segment_ids ; $i ) ]
+      Result:
+        Calculation: GetValue ( $payload_segment_ids ; $i )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $payload_segment_ids ; $i )'
+      TargetName:
+        Calculation: '"EasySync_Payloads::ES_Payload_UUID"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads::ES_Payload_UUID
+    - enable: 'True'
+      id: '28'
+      name: Perform Find
+      StepText: Perform Find [  ]
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount )  1 ]
+      Calculation: Get ( FoundCount ) <> 1
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )  1'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: Missing Payload
+        Segment ID   GetValue ( $payload_segment_ids ; $i ); Default Button: “OK”,
+        Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Error"'
+        DisplayCalculation:
+          Chunk: Sync Error
+      Message:
+        Calculation: '"Missing Payload Segment ID " & GetValue ( $payload_segment_ids
+          ; $i )'
+        DisplayCalculation:
+          Chunk:
+          - 'Missing Payload Segment ID   '
+          - GetValue
+          - ' ( $payload_segment_ids ; $i )'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -2  .  $i ]'
+      Calculation: -2 & "." & $i
+      DisplayCalculation:
+        Chunk: -2  .  $i
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload; Value:$payload  EasySync_Payloads::Payload
+        ]
+      Value:
+        Calculation: $payload & EasySync_Payloads::Payload
+        DisplayCalculation:
+          Chunk:
+          - '$payload  '
+          - type: FieldRef
+            Field:
+              table: EasySync_Payloads
+              id: '4'
+              name: Payload
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i  ValueCount ( $payload_segment_ids ) ]
+      Calculation: $i > ValueCount ( $payload_segment_ids )
+      DisplayCalculation:
+        Chunk:
+        - '$i  '
+        - ValueCount
+        - ' ( $payload_segment_ids )'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payloads::Payload; $payload ]
+      Result:
+        Calculation: $payload
+        DisplayCalculation:
+          Chunk: $payload
+      TargetName:
+        Calculation: '"EasySync_Payloads::Payload"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads::Payload
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payloads::Payload_Type; Push Payload
+        ]
+      Result:
+        Calculation: '"Push Payload"'
+        DisplayCalculation:
+          Chunk: Push Payload
+      TargetName:
+        Calculation: '"EasySync_Payloads::Payload_Type"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads::Payload_Type
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ Skip data entry validation; No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'True'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Payload; Message: $payload; Default Button:
+        “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Payload"'
+        DisplayCalculation:
+          Chunk: Payload
+      Message:
+        Calculation: $payload
+        DisplayCalculation:
+          Chunk: $payload
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#BEGIN PAYLOAD EVALUATION'
+      Text: BEGIN PAYLOAD EVALUATION
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Is the payload well-formed?'
+      Text: Is the payload well-formed?
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ PatternCount ( $payload ; payload ) ≠ 1
+        or PatternCount ( $payload ; /payload ) ≠ 1
+        or PatternCount ( $payload ; last_pull ) ≠ 1
+        or PatternCount ( $payload ; /last_pull ) ≠ 1
+        or PatternCount ( $payload ; settings ) ≠ 1
+        or PatternCount ( $payload ; /settings ) ≠ 1
+        or PatternCount ( $payload ; tables ) ≠ 1
+        or PatternCount ( $payload ; /tables ) ≠ 1
+        or PatternCount ( $payload ; records ) ≠ PatternCount ( $payload ; /records )
+        or PatternCount ( $payload ; deletions ) ≠ PatternCount ( $payload ; /deletions )
+        or ( PatternCount ( $payload ; records ) = 0 and PatternCount ( $payload ; deletions ) = 0 ) ]
+      Calculation: |-
+        PatternCount ( $payload ; "<payload>" ) ≠ 1
+        or PatternCount ( $payload ; "</payload>" ) ≠ 1
+        or PatternCount ( $payload ; "<last_pull>" ) ≠ 1
+        or PatternCount ( $payload ; "</last_pull>" ) ≠ 1
+        or PatternCount ( $payload ; "<settings>" ) ≠ 1
+        or PatternCount ( $payload ; "</settings>" ) ≠ 1
+        or PatternCount ( $payload ; "<tables>" ) ≠ 1
+        or PatternCount ( $payload ; "</tables>" ) ≠ 1
+        or PatternCount ( $payload ; "<records>" ) ≠ PatternCount ( $payload ; "</records>" )
+        or PatternCount ( $payload ; "<deletions>" ) ≠ PatternCount ( $payload ; "</deletions>" )
+        or ( PatternCount ( $payload ; "<records>" ) = 0 and PatternCount ( $payload ; "<deletions>" ) = 0 )
+      DisplayCalculation:
+        Chunk:
+        - PatternCount
+        - |2
+           ( $payload ; payload ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - |2
+           ( $payload ; /payload ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - |2
+           ( $payload ; last_pull ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - |2
+           ( $payload ; /last_pull ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - |2
+           ( $payload ; settings ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - |2
+           ( $payload ; /settings ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - |2
+           ( $payload ; tables ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - |2
+           ( $payload ; /tables ) ≠ 1
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - ' ( $payload ; records ) ≠ '
+        - PatternCount
+        - |2
+           ( $payload ; /records )
+        - or
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - ' ( $payload ; deletions ) ≠ '
+        - PatternCount
+        - |2
+           ( $payload ; /deletions )
+        - or
+        - ' ( '
+        - PatternCount
+        - ' ( $payload ; records ) = 0 '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - ' ( $payload ; deletions ) = 0 )'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: The payload is malformed.;
+        Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Error"'
+        DisplayCalculation:
+          Chunk: Sync Error
+      Message:
+        Calculation: '"The payload is malformed."'
+        DisplayCalculation:
+          Chunk: The payload is malformed.
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$delete_payloads = All ]
+      Calculation: $$delete_payloads = "All"
+      DisplayCalculation:
+        Chunk: $$delete_payloads = All
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -3 ]'
+      Calculation: '-3'
+      DisplayCalculation:
+        Chunk: '-3'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#BEGIN PAYLOAD HEADER UNPACKING'
+      Text: BEGIN PAYLOAD HEADER UNPACKING
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the clients last pull time from the payload.'
+      Text: Get the clients last pull time from the payload.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: This is an integer representing the UTC time that the client
+        last peformed a pull. It is used for conflict resolution.'
+      Text: 'Note: This is an integer representing the UTC time that the client last
+        peformed a pull. It is used for conflict resolution.'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $last_pull_utc; Value:Let ( \n[\nbeginning = Position
+        ( $payload ; last_pull¶ ; 1 ; 1 ) + 11;\nend = Position ( $payload ; ¶/last_pull
+        ; 1 ; 1 );\nlast_pull = Middle ( $payload ; beginning ; end - beginning );\nlast_pull
+        = Trim ( last_pull )\n];\nlast_pull\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<last_pull>¶\"
+          ; 1 ; 1 ) + 11;\nend = Position ( $payload ; \"¶</last_pull>\" ; 1 ; 1 );\nlast_pull
+          = Middle ( $payload ; beginning ; end - beginning );\nlast_pull = Trim (
+          last_pull )\n];\nlast_pull\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nbeginning = "
+          - Position
+          - " ( $payload ; last_pull¶ ; 1 ; 1 ) + 11;\nend = "
+          - Position
+          - " ( $payload ; ¶/last_pull ; 1 ; 1 );\nlast_pull = "
+          - Middle
+          - " ( $payload ; beginning ; end - beginning );\nlast_pull = "
+          - Trim
+          - |2-
+             ( last_pull )
+            ];
+            last_pull
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $last_pull_utc
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Last Pull; Message: $last_pull_utc; Default
+        Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Last Pull"'
+        DisplayCalculation:
+          Chunk: Last Pull
+      Message:
+        Calculation: $last_pull_utc
+        DisplayCalculation:
+          Chunk: $last_pull_utc
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the payload settings.'
+      Text: Get the payload settings.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $settings; Value:Let ( \n[\nbeginning = Position (
+        $payload ; settings¶ ; 1 ; 1 ) + 11;\nend = Position ( $payload ; ¶/settings
+        ; 1 ; 1 );\nsettings = Middle ( $payload ; beginning ; end - beginning );\nsettings
+        = Trim ( settings )\n];\nsettings\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<settings>¶\"
+          ; 1 ; 1 ) + 11;\nend = Position ( $payload ; \"¶</settings>\" ; 1 ; 1 );\nsettings
+          = Middle ( $payload ; beginning ; end - beginning );\nsettings = Trim (
+          settings )\n];\nsettings\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nbeginning = "
+          - Position
+          - " ( $payload ; settings¶ ; 1 ; 1 ) + 11;\nend = "
+          - Position
+          - " ( $payload ; ¶/settings ; 1 ; 1 );\nsettings = "
+          - Middle
+          - " ( $payload ; beginning ; end - beginning );\nsettings = "
+          - Trim
+          - |2-
+             ( settings )
+            ];
+            settings
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $settings
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Payload Settings; Message: $settings;
+        Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Payload Settings"'
+        DisplayCalculation:
+          Chunk: Payload Settings
+      Message:
+        Calculation: $settings
+        DisplayCalculation:
+          Chunk: $settings
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $settings ) ]
+      Calculation: IsEmpty ( $settings )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $settings )'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$delete_payloads = All ]
+      Calculation: $$delete_payloads = "All"
+      DisplayCalculation:
+        Chunk: $$delete_payloads = All
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -4 ]'
+      Calculation: '-4'
+      DisplayCalculation:
+        Chunk: '-4'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $field_delimiter; Value:GetValue ( Substitute ( $settings
+        ; /setting ; ¶ ) ; 1 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_delimiter
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $record_delimiter; Value:GetValue ( Substitute ( $settings
+        ; /setting ; ¶ ) ; 2 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $record_delimiter
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_persistent_id; Value:GetValue ( Substitute
+        ( $settings ; /setting ; ¶ ) ; 3 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 3 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 3 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_persistent_id
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_version; Value:GetValue ( Substitute ( $settings
+        ; /setting ; ¶ ) ; 4 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 4 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 4 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_ip_address; Value:GetValue ( Substitute ( $settings
+        ; /setting ; ¶ ) ; 5 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 5 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 5 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_ip_address
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_nic_address; Value:GetValue ( Substitute (
+        $settings ; /setting ; ¶ ) ; 6 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 6 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 6 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_nic_address
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_platform; Value:GetValue ( Substitute ( $settings
+        ; /setting ; ¶ ) ; 7 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 7 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 7 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_platform
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_system_version; Value:GetValue ( Substitute
+        ( $settings ; /setting ; ¶ ) ; 8 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 8 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 8 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_system_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_device; Value:GetValue ( Substitute ( $settings
+        ; /setting ; ¶ ) ; 9 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 9 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 9 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_device
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_network_protocol; Value:GetValue ( Substitute
+        ( $settings ; /setting ; ¶ ) ; 10 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 10 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 10 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_network_protocol
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_network_type; Value:GetValue ( Substitute (
+        $settings ; /setting ; ¶ ) ; 11 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 11 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 11 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_network_type
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $additional_settings; Value:GetValue ( Substitute (
+        $settings ; /setting ; ¶ ) ; 12 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 12 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $settings ; /setting ; ¶ ) ; 12 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $additional_settings
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#BEGIN RECORD PROCESSING'
+      Text: BEGIN RECORD PROCESSING
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the records from the payload.'
+      Text: Get the records from the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $records; Value:Let ( \n[\nbeginning = Position (
+        $payload ; records¶ ; 1 ; 1 ) + 10;\nend = Position ( $payload ; ¶/records
+        ; -1 ; 1 );\nrecords = Middle ( $payload ; beginning ; end - beginning );\nrecords
+        = Trim ( records )\n];\nrecords\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<records>¶\"
+          ; 1 ; 1 ) + 10;\nend = Position ( $payload ; \"¶</records>\" ; -1 ; 1 );\nrecords
+          = Middle ( $payload ; beginning ; end - beginning );\nrecords = Trim ( records
+          )\n];\nrecords\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nbeginning = "
+          - Position
+          - " ( $payload ; records¶ ; 1 ; 1 ) + 10;\nend = "
+          - Position
+          - " ( $payload ; ¶/records ; -1 ; 1 );\nrecords = "
+          - Middle
+          - " ( $payload ; beginning ; end - beginning );\nrecords = "
+          - Trim
+          - |2-
+             ( records )
+            ];
+            records
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Payload Records; Message: $records; Default
+        Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Payload Records"'
+        DisplayCalculation:
+          Chunk: Payload Records
+      Message:
+        Calculation: $records
+        DisplayCalculation:
+          Chunk: $records
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If there are records in the payload...'
+      Text: If there are records in the payload...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $records ) ]
+      Calculation: not IsEmpty ( $records )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $records )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: Theres no need to get the table information from the payload
+        if we dont have records to process - so that code has moved here.'
+      Text: 'Note: Theres no need to get the table information from the payload if
+        we dont have records to process - so that code has moved here.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the table info from the payload.'
+      Text: Get the table info from the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $tables; Value:Let ( \n[\nbeginning = Position ( $payload
+        ; tables¶ ; 1 ; 1 ) + 9;\nend = Position ( $payload ; ¶/tables ; 1 ; 1 );\ntables
+        = Middle ( $payload ; beginning ; end - beginning );\ntables = Trim ( tables
+        );\ntables = Substitute ( tables ; table ;  );\ntables = Substitute ( tables
+        ; /table ;  )\n];\ntables\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<tables>¶\" ;
+          1 ; 1 ) + 9;\nend = Position ( $payload ; \"¶</tables>\" ; 1 ; 1 );\ntables
+          = Middle ( $payload ; beginning ; end - beginning );\ntables = Trim ( tables
+          );\ntables = Substitute ( tables ; \"<table>\" ; \"\" );\ntables = Substitute
+          ( tables ; \"</table>\" ; \"\" )\n];\ntables\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nbeginning = "
+          - Position
+          - " ( $payload ; tables¶ ; 1 ; 1 ) + 9;\nend = "
+          - Position
+          - " ( $payload ; ¶/tables ; 1 ; 1 );\ntables = "
+          - Middle
+          - " ( $payload ; beginning ; end - beginning );\ntables = "
+          - Trim
+          - " ( tables );\ntables = "
+          - Substitute
+          - " ( tables ; table ;  );\ntables = "
+          - Substitute
+          - |2-
+             ( tables ; /table ;  )
+            ];
+            tables
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $tables
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Payload Tables; Message: $tables; Default
+        Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]'
+      Title:
+        Calculation: '"Payload Tables"'
+        DisplayCalculation:
+          Chunk: Payload Tables
+      Message:
+        Calculation: $tables
+        DisplayCalculation:
+          Chunk: $tables
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: Cancel
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $tables ) ]
+      Calculation: IsEmpty ( $tables )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $tables )'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$delete_payloads = All ]
+      Calculation: $$delete_payloads = "All"
+      DisplayCalculation:
+        Chunk: $$delete_payloads = All
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -5 ]'
+      Calculation: '-5'
+      DisplayCalculation:
+        Chunk: '-5'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Create field name value lists for each table.'
+      Text: Create field name value lists for each table.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table; Value:Substitute ( GetValue ( $tables ; $i
+        ); /field; ¶ ) ]
+      Value:
+        Calculation: Substitute ( GetValue ( $tables ; $i ); "</field>"; ¶ )
+        DisplayCalculation:
+          Chunk:
+          - Substitute
+          - ' ( '
+          - GetValue
+          - ' ( $tables ; $i ); /field; ¶ )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table_name; Value:GetValue ( $table; 1 ) ]
+      Value:
+        Calculation: GetValue ( $table; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $table; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_name
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dyn_code; Value:Let ( [ $  $table_name   = $table
+        ]; 1 ) ]
+      Value:
+        Calculation: '"Let ( [ $" & $table_name & " = $table ]; 1 )"'
+        DisplayCalculation:
+          Chunk: Let ( [ $  $table_name   = $table ]; 1 )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_code
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dyn_code; Value:Evaluate ( $dyn_code ) ]
+      Value:
+        Calculation: Evaluate ( $dyn_code )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $dyn_code )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_code
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Created Field Value List for Table   $table_name;
+        Message: Evaluate ( $  $table_name ); Default Button: “OK”, Commit: “Yes”;
+        Button 2: “Cancel”, Commit: “No” ]'
+      Title:
+        Calculation: '"Created Field Value List for Table " & $table_name'
+        DisplayCalculation:
+          Chunk: Created Field Value List for Table   $table_name
+      Message:
+        Calculation: Evaluate ( "$" & $table_name )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $  $table_name )'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: Cancel
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i  ValueCount ( $tables ) ]
+      Calculation: $i > ValueCount ( $tables )
+      DisplayCalculation:
+        Chunk:
+        - '$i  '
+        - ValueCount
+        - ' ( $tables )'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Add a leading record delimiter to make it easier to loop through
+        the records.'
+      Text: Add a leading record delimiter to make it easier to loop through the records.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $records; Value:$record_delimiter  ¶  $records ]
+      Value:
+        Calculation: $record_delimiter & ¶ & $records
+        DisplayCalculation:
+          Chunk: $record_delimiter  ¶  $records
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the records.'
+      Text: Loop over the records.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $previous_start; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $previous_start
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the record, formatted as a return-delimited value list.'
+      Text: Get the record, formatted as a return-delimited value list.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $record; Value:Let ( \n[\n // Note: The +1 in the
+        beginning calc is to account for the default carriage return imposed by ExectueSQL.\nbeginning
+        = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length
+        ( $record_delimiter ) + 1;\nend = Position ( $records ; $record_delimiter
+        ; beginning ; 1 );\n$previous_start = end;\nrecord = Middle ( $records ; beginning
+        ; end - beginning );\n// Encode CRLFs that might be found in Base64-encoded
+        container data.\n// This makes it easier to treat the fields as a return-delimited
+        value list.\nrecord = Substitute ( record ; Char ( 13 )  Char ( 10 ) ; [[CRLF]]
+        );\n// Encode any remaining newline characters.\nrecord = Substitute ( record
+        ; ¶ ; [[BR]] );\nrecord = Substitute ( record ; $field_delimiter ; ¶ )\n];\nrecord\n)
+        ]"
+      Value:
+        Calculation: "Let ( \n[\n // Note: The \"+1\" in the \"beginning calc\" is
+          to account for the default carriage return imposed by ExectueSQL.\nbeginning
+          = Position ( $records ; $record_delimiter ; $previous_start ; 1 ) + Length
+          ( $record_delimiter ) + 1;\nend = Position ( $records ; $record_delimiter
+          ; beginning ; 1 );\n$previous_start = end;\nrecord = Middle ( $records ;
+          beginning ; end - beginning );\n// Encode CRLFs that might be found in Base64-encoded
+          container data.\n// This makes it easier to treat the fields as a return-delimited
+          value list.\nrecord = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ;
+          \"[[CRLF]]\" );\n// Encode any remaining newline characters.\nrecord = Substitute
+          ( record ; ¶ ; \"[[BR]]\" );\nrecord = Substitute ( record ; $field_delimiter
+          ; ¶ )\n];\nrecord\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\n "
+          - |
+            // Note: The +1 in the beginning calc is to account for the default carriage return imposed by ExectueSQL.
+          - 'beginning = '
+          - Position
+          - ' ( $records ; $record_delimiter ; $previous_start ; 1 ) + '
+          - Length
+          - " ( $record_delimiter ) + 1;\nend = "
+          - Position
+          - " ( $records ; $record_delimiter ; beginning ; 1 );\n$previous_start =
+            end;\nrecord = "
+          - Middle
+          - |2
+             ( $records ; beginning ; end - beginning );
+          - |
+            // Encode CRLFs that might be found in Base64-encoded container data.
+          - |
+            // This makes it easier to treat the fields as a return-delimited value list.
+          - 'record = '
+          - Substitute
+          - ' ( record ; '
+          - Char
+          - ' ( 13 )  '
+          - Char
+          - |2
+             ( 10 ) ; [[CRLF]] );
+          - |
+            // Encode any remaining newline characters.
+          - 'record = '
+          - Substitute
+          - " ( record ; ¶ ; [[BR]] );\nrecord = "
+          - Substitute
+          - |2-
+             ( record ; $field_delimiter ; ¶ )
+            ];
+            record
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $record
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Payload Record   $i; Message: $record;
+        Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Payload Record " & $i'
+        DisplayCalculation:
+          Chunk: Payload Record   $i
+      Message:
+        Calculation: $record
+        DisplayCalculation:
+          Chunk: $record
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the name of the table that is associated with this record.'
+      Text: Get the name of the table that is associated with this record.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table_name; Value:GetValue ( $record ; 1 ) ]
+      Value:
+        Calculation: GetValue ( $record ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $record ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_name
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Table Name for Payload Record   $i; Message:
+        $table_name; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Table Name for Payload Record " & $i'
+        DisplayCalculation:
+          Chunk: Table Name for Payload Record   $i
+      Message:
+        Calculation: $table_name
+        DisplayCalculation:
+          Chunk: $table_name
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the names of the fields that make up the table that this record
+        is in.'
+      Text: Get the names of the fields that make up the table that this record is
+        in.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $field_names; Value:Evaluate ( $  $table_name ) ]
+      Value:
+        Calculation: Evaluate ( "$" & $table_name )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $  $table_name )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_names
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Field Names for Payload Record   $i;
+        Message: $field_names; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Field Names for Payload Record " & $i'
+        DisplayCalculation:
+          Chunk: Field Names for Payload Record   $i
+      Message:
+        Calculation: $field_names
+        DisplayCalculation:
+          Chunk: $field_names
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the ES_Record_UUID value of this record.'
+      Text: Get the ES_Record_UUID value of this record.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Franks ValuePosition ( theList ; theValue ) custom function.
+        // See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/
+        // Thanks Kevin!
+
+        Let( [
+        theList = $field_names;
+        theValue = ES_Record_UUID[1];
+        pLp = ¶  theList  ¶ ;
+        pVp = ¶  theValue  ¶ ;
+        thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
+        theSegment = Left ( pLp ; thePos ) ;
+        theValPos = PatternCount ( theSegment ; ¶ )
+        ] ;
+        GetValue ( $record ; theValPos )
+        ) ]
+      Value:
+        Calculation: |-
+          // Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" custom function.
+          // See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/
+          // Thanks Kevin!
+
+          Let( [
+          theList = $field_names;
+          theValue = "ES_Record_UUID[1]";
+          pLp = ¶ & theList & ¶ ;
+          pVp = ¶ & theValue & ¶ ;
+          thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
+          theSegment = Left ( pLp ; thePos ) ;
+          theValPos = PatternCount ( theSegment ; ¶ )
+          ] ;
+          GetValue ( $record ; theValPos )
+          )
+        DisplayCalculation:
+          Chunk:
+          - |
+            // Note: This is based in VERY large part on Kevin Franks ValuePosition ( theList ; theValue ) custom function.
+          - |
+            // See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/
+          - |
+            // Thanks Kevin!
+          - type: NoRef
+            __content__: |2+
+
+          - Let
+          - "( [\ntheList = $field_names;\ntheValue = ES_Record_UUID[1];\npLp = ¶
+            \ theList  ¶ ;\npVp = ¶  theValue  ¶ ;\nthePos = "
+          - Position
+          - " ( pLp ; pVp ; 1 ; 1 ) ;\ntheSegment = "
+          - Left
+          - " ( pLp ; thePos ) ;\ntheValPos = "
+          - PatternCount
+          - |2
+             ( theSegment ; ¶ )
+            ] ;
+          - GetValue
+          - |2-
+             ( $record ; theValPos )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ES_Record_UUID
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: ES_Record_UUID for Payload Record   $i;
+        Message: $ES_Record_UUID; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"ES_Record_UUID for Payload Record " & $i'
+        DisplayCalculation:
+          Chunk: ES_Record_UUID for Payload Record   $i
+      Message:
+        Calculation: $ES_Record_UUID
+        DisplayCalculation:
+          Chunk: $ES_Record_UUID
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the clients ES_UTC_Time value of this record.'
+      Text: Get the clients ES_UTC_Time value of this record.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $ES_UTC_Time_Client; Value:Let( [
+        theList = $field_names;
+        theValue = ES_UTC_Time[1];
+        pLp = ¶  theList  ¶ ;
+        pVp = ¶  theValue  ¶ ;
+        thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
+        theSegment = Left ( pLp ; thePos ) ;
+        theValPos = PatternCount ( theSegment ; ¶ )
+        ] ;
+        GetValue ( $record ; theValPos )
+        ) ]
+      Value:
+        Calculation: |-
+          Let( [
+          theList = $field_names;
+          theValue = "ES_UTC_Time[1]";
+          pLp = ¶ & theList & ¶ ;
+          pVp = ¶ & theValue & ¶ ;
+          thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
+          theSegment = Left ( pLp ; thePos ) ;
+          theValPos = PatternCount ( theSegment ; ¶ )
+          ] ;
+          GetValue ( $record ; theValPos )
+          )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - "( [\ntheList = $field_names;\ntheValue = ES_UTC_Time[1];\npLp = ¶  theList
+            \ ¶ ;\npVp = ¶  theValue  ¶ ;\nthePos = "
+          - Position
+          - " ( pLp ; pVp ; 1 ; 1 ) ;\ntheSegment = "
+          - Left
+          - " ( pLp ; thePos ) ;\ntheValPos = "
+          - PatternCount
+          - |2
+             ( theSegment ; ¶ )
+            ] ;
+          - GetValue
+          - |2-
+             ( $record ; theValPos )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ES_UTC_Time_Client
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: ES_UTC_Time for Payload Record   $i;
+        Message: $ES_UTC_Time_Client; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"ES_UTC_Time for Payload Record " & $i'
+        DisplayCalculation:
+          Chunk: ES_UTC_Time for Payload Record   $i
+      Message:
+        Calculation: $ES_UTC_Time_Client
+        DisplayCalculation:
+          Chunk: $ES_UTC_Time_Client
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Go to the correct row in the Payload Details portal.'
+      Text: Go to the correct row in the Payload Details portal.
+    - enable: 'True'
+      id: '99'
+      name: Go to Portal Row
+      StepText: |-
+        Go to Portal Row [ $i ]
+        [ Select; No dialog ]
+      NoInteract:
+        state: 'True'
+      SelectAll:
+        state: 'True'
+      RowPageLocation:
+        value: ByCalculation
+      Calculation: $i
+      DisplayCalculation:
+        Chunk: $i
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Set the Record UUID for the Payload Details record.'
+      Text: Set the Record UUID for the Payload Details record.
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payload_Details::ES_Child_Record_UUID;
+        $ES_Record_UUID ]
+      Result:
+        Calculation: $ES_Record_UUID
+        DisplayCalculation:
+          Chunk: $ES_Record_UUID
+      TargetName:
+        Calculation: '"EasySync_Payload_Details::ES_Child_Record_UUID"'
+        DisplayCalculation:
+          Chunk: EasySync_Payload_Details::ES_Child_Record_UUID
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payload_Details::Payload_Type; Payload
+        Detail ]
+      Result:
+        Calculation: '"Payload Detail"'
+        DisplayCalculation:
+          Chunk: Payload Detail
+      TargetName:
+        Calculation: '"EasySync_Payload_Details::Payload_Type"'
+        DisplayCalculation:
+          Chunk: EasySync_Payload_Details::Payload_Type
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Assume that we are going to update the record.'
+      Text: Assume that we are going to update the record.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $update_record; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $update_record
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If we are handling conflicts using any means other than Client...'
+      Text: If we are handling conflicts using any means other than Client...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$conflict_handling ≠ Client ]
+      Calculation: $$conflict_handling ≠ "Client"
+      DisplayCalculation:
+        Chunk: $$conflict_handling ≠ Client
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Need to check to see if there is a confict.'
+      Text: Need to check to see if there is a confict.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If there is one, determine how to handle it.'
+      Text: If there is one, determine how to handle it.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the hosts ES_UTC_Time for the record.'
+      Text: Get the hosts ES_UTC_Time for the record.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ES_UTC_Time_Host; Value:Evaluate ( $table_name  ::ES_UTC_Time
+        ) ]
+      Value:
+        Calculation: Evaluate ( $table_name & "::ES_UTC_Time" )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $table_name  ::ES_UTC_Time )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ES_UTC_Time_Host
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: UTC Time Client; Message: $ES_UTC_Time_Client;
+        Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]'
+      Title:
+        Calculation: '"UTC Time Client"'
+        DisplayCalculation:
+          Chunk: UTC Time Client
+      Message:
+        Calculation: $ES_UTC_Time_Client
+        DisplayCalculation:
+          Chunk: $ES_UTC_Time_Client
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: Cancel
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: UTC Time Host; Message: $ES_UTC_Time_Host;
+        Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]'
+      Title:
+        Calculation: '"UTC Time Host"'
+        DisplayCalculation:
+          Chunk: UTC Time Host
+      Message:
+        Calculation: $ES_UTC_Time_Host
+        DisplayCalculation:
+          Chunk: $ES_UTC_Time_Host
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: Cancel
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If the record has been updated since the last time the user pulled
+        data...'
+      Text: If the record has been updated since the last time the user pulled data...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $ES_UTC_Time_Host  $last_pull_utc ]
+      Calculation: $ES_UTC_Time_Host > $last_pull_utc
+      DisplayCalculation:
+        Chunk: $ES_UTC_Time_Host  $last_pull_utc
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$conflict_handling = Server ]
+      Calculation: $$conflict_handling = "Server"
+      DisplayCalculation:
+        Chunk: $$conflict_handling = Server
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Server wins.'
+      Text: Server wins.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $update_record; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $update_record
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ ( $$conflict_handling = Recent ) and ( $ES_UTC_Time_Host  $ES_UTC_Time_Client
+        ) ]
+      Calculation: ( $$conflict_handling = "Recent" ) and ( $ES_UTC_Time_Host > $ES_UTC_Time_Client
+        )
+      DisplayCalculation:
+        Chunk:
+        - '( $$conflict_handling = Recent ) '
+        - and
+        - ' ( $ES_UTC_Time_Host  $ES_UTC_Time_Client )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Server wins if its update was the most recent.'
+      Text: Server wins if its update was the most recent.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $update_record; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $update_record
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If we are to update the record...'
+      Text: If we are to update the record...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $update_record ]
+      Calculation: $update_record
+      DisplayCalculation:
+        Chunk: $update_record
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the field names.'
+      Text: Loop over the field names.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#We skip the first value because it is really the table name that
+        the record is from.'
+      Text: We skip the first value because it is really the table name that the record
+        is from.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $f; Value:2 ]
+      Value:
+        Calculation: '2'
+        DisplayCalculation:
+          Chunk: '2'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $f
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the name of the field.'
+      Text: Get the name of the field.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $field_name; Value:GetValue ( $field_names; $f ) ]
+      Value:
+        Calculation: GetValue ( $field_names; $f )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $field_names; $f )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_name
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Field Name to be Set; Message: $field_name;
+        Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Field Name to be Set"'
+        DisplayCalculation:
+          Chunk: Field Name to be Set
+      Message:
+        Calculation: $field_name
+        DisplayCalculation:
+          Chunk: $field_name
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If this is not a container...'
+      Text: If this is not a container...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Left ( $field_name ; 4 ) ≠ B64_ ]
+      Calculation: Left ( $field_name ; 4 ) ≠ "B64_"
+      DisplayCalculation:
+        Chunk:
+        - Left
+        - ' ( $field_name ; 4 ) ≠ B64_'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the value of the field.'
+      Text: Get the value of the field.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $field_value; Value:Let (
+        [
+        value = If ( $field_name ≠ ES_Device_ID[1]; GetValue ( $record ; $f ); $client_persistent_id );
+        value = Substitute ( value ; [[BR]] ; ¶ )
+        ];
+        value
+        ) ]
+      Value:
+        Calculation: |-
+          Let (
+          [
+          value = If ( $field_name ≠ "ES_Device_ID[1]"; GetValue ( $record ; $f ); $client_persistent_id );
+          value = Substitute ( value ; "[[BR]]" ; ¶ )
+          ];
+          value
+          )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " (\n[\nvalue = "
+          - If
+          - ' ( $field_name ≠ ES_Device_ID[1]; '
+          - GetValue
+          - " ( $record ; $f ); $client_persistent_id );\nvalue = "
+          - Substitute
+          - |2-
+             ( value ; [[BR]] ; ¶ )
+            ];
+            value
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_value
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the real name of the container field.'
+      Text: Get the real name of the container field.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $field_name; Value:Right ( $field_name; Length ( $field_name
+        ) - 4 ) ]
+      Value:
+        Calculation: Right ( $field_name; Length ( $field_name ) - 4 )
+        DisplayCalculation:
+          Chunk:
+          - Right
+          - ' ( $field_name; '
+          - Length
+          - ' ( $field_name ) - 4 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the value of the field.'
+      Text: Get the value of the field.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $field_value; Value:GetValue ( $record ; $f ) ]
+      Value:
+        Calculation: GetValue ( $record ; $f )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $record ; $f )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_value
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If the container field isnt empty...'
+      Text: If the container field isnt empty...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $field_value ) ]
+      Calculation: not IsEmpty ( $field_value )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $field_value )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Decode it.'
+      Text: Decode it.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $field_value; Value:Let (
+        [
+        value = $field_value;
+        value = Substitute ( value ; /b64;  );
+        fileNameWithExtension = GetValue ( Substitute ( value ; b64; ¶ ); 1 );
+        encoded = Substitute ( value; fileNameWithExtension  b64;  );
+        encoded = Substitute ( encoded ; [[CRLF]] ; Char ( 13 )  Char ( 10 ) );
+        decoded = Base64Decode ( encoded; fileNameWithExtension )
+        ];
+        decoded
+        ) ]
+      Value:
+        Calculation: |-
+          Let (
+          [
+          value = $field_value;
+          value = Substitute ( value ; "</b64>"; "" );
+          fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );
+          encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );
+          encoded = Substitute ( encoded ; "[[CRLF]]" ; Char ( 13 ) & Char ( 10 ) );
+          decoded = Base64Decode ( encoded; fileNameWithExtension )
+          ];
+          decoded
+          )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " (\n[\nvalue = $field_value;\nvalue = "
+          - Substitute
+          - " ( value ; /b64;  );\nfileNameWithExtension = "
+          - GetValue
+          - ' ( '
+          - Substitute
+          - " ( value ; b64; ¶ ); 1 );\nencoded = "
+          - Substitute
+          - " ( value; fileNameWithExtension  b64;  );\nencoded = "
+          - Substitute
+          - ' ( encoded ; [[CRLF]] ; '
+          - Char
+          - ' ( 13 )  '
+          - Char
+          - " ( 10 ) );\ndecoded = "
+          - Base64Decode
+          - |2-
+             ( encoded; fileNameWithExtension )
+            ];
+            decoded
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_value
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If the value of this field has changed...'
+      Text: If the value of this field has changed...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: 'If [ $field_value ≠ Evaluate ( $table_name  ::  $field_name ) ]'
+      Calculation: $field_value ≠ Evaluate ( $table_name & "::" & $field_name )
+      DisplayCalculation:
+        Chunk:
+        - '$field_value ≠ '
+        - Evaluate
+        - ' ( $table_name  ::  $field_name )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#We might make several attempts to set the field if the record is
+        locked.'
+      Text: We might make several attempts to set the field if the record is locked.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $a; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $a
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Try to set the field.'
+      Text: Try to set the field.
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: 'Set Field By Name [ $table_name  ::  $field_name; $field_value ]'
+      Result:
+        Calculation: $field_value
+        DisplayCalculation:
+          Chunk: $field_value
+      TargetName:
+        Calculation: $table_name & "::" & $field_name
+        DisplayCalculation:
+          Chunk: '$table_name  ::  $field_name'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Grab the error code.'
+      Text: Grab the error code.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $LastError; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $LastError
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If there wasnt an error, or if the error wasnt a 301 (Record is
+        in use by another user)...'
+      Text: If there wasnt an error, or if the error wasnt a 301 (Record is in use
+        by another user)...
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $LastError ≠ 301 ]
+      Calculation: $LastError ≠ 301
+      DisplayCalculation:
+        Chunk: $LastError ≠ 301
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Increment the attempts counter.'
+      Text: Increment the attempts counter.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $a; Value:$a + 1 ]
+      Value:
+        Calculation: $a + 1
+        DisplayCalculation:
+          Chunk: $a + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $a
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If weve reached the max # of times to try to resolve a 301 error...'
+      Text: 'If weve reached the max # of times to try to resolve a 301 error...'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $a  ≥ $$record_lock_max_attempts ]
+      Calculation: $a  ≥ $$record_lock_max_attempts
+      DisplayCalculation:
+        Chunk: $a  ≥ $$record_lock_max_attempts
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wait $$record_lock_attempt_pause seconds before trying again...'
+      Text: Wait $$record_lock_attempt_pause seconds before trying again...
+    - enable: 'True'
+      id: '62'
+      name: Pause/Resume Script
+      StepText: 'Pause/Resume Script [ Duration (seconds): $$record_lock_attempt_pause
+        ]'
+      PauseTime:
+        value: ForDuration
+      Calculation: $$record_lock_attempt_pause
+      DisplayCalculation:
+        Chunk: $$record_lock_attempt_pause
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If we could not set the field...'
+      Text: If we could not set the field...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $LastError ≠ 0 ]
+      Calculation: $LastError ≠ 0
+      DisplayCalculation:
+        Chunk: $LastError ≠ 0
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Rollback the changes.'
+      Text: Rollback the changes.
+    - enable: 'True'
+      id: '51'
+      name: Revert Record/Request
+      StepText: |-
+        Revert Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$delete_payloads = All ]
+      Calculation: $$delete_payloads = "All"
+      DisplayCalculation:
+        Chunk: $$delete_payloads = All
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Lets try to give the developer some help with common errors...'
+      Text: Lets try to give the developer some help with common errors...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $LastError = 106 // Table is missing ]
+      Calculation: $LastError = 106 // Table is missing
+      DisplayCalculation:
+        Chunk:
+        - '$LastError = 106 '
+        - // Table is missing
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $LastError; Value:Table   $table_name   is missing.
+        FileMaker Error Code 106. ]
+      Value:
+        Calculation: '"Table " & $table_name & " is missing. FileMaker Error Code
+          106."'
+        DisplayCalculation:
+          Chunk: Table   $table_name   is missing. FileMaker Error Code 106.
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $LastError
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $LastError = 102 // Field is missing ]
+      Calculation: $LastError = 102 // Field is missing
+      DisplayCalculation:
+        Chunk:
+        - '$LastError = 102 '
+        - // Field is missing
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $LastError; Value:Field   $field_name   is missing.
+        FileMaker Error Code 102. ]
+      Value:
+        Calculation: '"Field " & $field_name & " is missing. FileMaker Error Code
+          102."'
+        DisplayCalculation:
+          Chunk: Field   $field_name   is missing. FileMaker Error Code 102.
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $LastError
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Return the Error info to the caller.'
+      Text: Return the Error info to the caller.
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $LastError ]'
+      Calculation: $LastError
+      DisplayCalculation:
+        Chunk: $LastError
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $f; Value:$f + 1 ]
+      Value:
+        Calculation: $f + 1
+        DisplayCalculation:
+          Chunk: $f + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $f
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $f  ValueCount ( $field_names ) ]
+      Calculation: $f > ValueCount ( $field_names )
+      DisplayCalculation:
+        Chunk:
+        - '$f  '
+        - ValueCount
+        - ' ( $field_names )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#End loop that sets the fields.'
+      Text: End loop that sets the fields.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#End If we are to update the record.'
+      Text: End If we are to update the record.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i  ( PatternCount ( $records; $record_delimiter )
+        - 1 ) ]
+      Calculation: $i > ( PatternCount ( $records; $record_delimiter ) - 1 )
+      DisplayCalculation:
+        Chunk:
+        - '$i  ( '
+        - PatternCount
+        - ' ( $records; $record_delimiter ) - 1 )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#End loop over the records.'
+      Text: End loop over the records.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Try to commit the transaction.'
+      Text: Try to commit the transaction.
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If an error has occurred...'
+      Text: If an error has occurred...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $LastError; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $LastError
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $LastError ≠ 0 ]
+      Calculation: $LastError ≠ 0
+      DisplayCalculation:
+        Chunk: $LastError ≠ 0
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Rollback the changes.'
+      Text: Rollback the changes.
+    - enable: 'True'
+      id: '51'
+      name: Revert Record/Request
+      StepText: |-
+        Revert Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$delete_payloads = All ]
+      Calculation: $$delete_payloads = "All"
+      DisplayCalculation:
+        Chunk: $$delete_payloads = All
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Return the Error info to the caller.'
+      Text: Return the Error info to the caller.
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $LastError ]'
+      Calculation: $LastError
+      DisplayCalculation:
+        Chunk: $LastError
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#End If there are records in the payload...'
+      Text: End If there are records in the payload...
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#BEGIN DELETIONS PROCESSING'
+      Text: BEGIN DELETIONS PROCESSING
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the deletions from the payload.'
+      Text: Get the deletions from the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $deletions; Value:Let ( \n[\nbeginning = Position
+        ( $payload ; deletions¶ ; 1 ; 1 ) + 11;\nend = Position ( $payload ; ¶/deletions
+        ; -1 ; 1 );\ndeletions = Middle ( $payload ; beginning ; end - beginning );\nrecords
+        = Trim ( deletions )\n];\ndeletions\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<deletions>¶\"
+          ; 1 ; 1 ) + 11;\nend = Position ( $payload ; \"¶</deletions>\" ; -1 ; 1
+          );\ndeletions = Middle ( $payload ; beginning ; end - beginning );\nrecords
+          = Trim ( deletions )\n];\ndeletions\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nbeginning = "
+          - Position
+          - " ( $payload ; deletions¶ ; 1 ; 1 ) + 11;\nend = "
+          - Position
+          - " ( $payload ; ¶/deletions ; -1 ; 1 );\ndeletions = "
+          - Middle
+          - " ( $payload ; beginning ; end - beginning );\nrecords = "
+          - Trim
+          - |2-
+             ( deletions )
+            ];
+            deletions
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $deletions
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Payload Deletions; Message: $deletions;
+        Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Payload Deletions"'
+        DisplayCalculation:
+          Chunk: Payload Deletions
+      Message:
+        Calculation: $deletions
+        DisplayCalculation:
+          Chunk: $deletions
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If there are deletions in the payload...'
+      Text: If there are deletions in the payload...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $deletions ) ]
+      Calculation: not IsEmpty ( $deletions )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $deletions )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#It sure would be nice to have DELETE support in ExecuteSQL right
+        about now. ;-)'
+      Text: It sure would be nice to have DELETE support in ExecuteSQL right about
+        now. ;-)
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get a list of the layouts.'
+      Text: Get a list of the layouts.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $layouts; Value:LayoutNames ( Get ( FileName ) ) ]
+      Value:
+        Calculation: LayoutNames ( Get ( FileName ) )
+        DisplayCalculation:
+          Chunk:
+          - LayoutNames
+          - ' ( '
+          - Get
+          - ' ( '
+          - FileName
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $layouts
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over ES layouts to process deletions...'
+      Text: Loop over ES layouts to process deletions...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $l; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $l
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the next layout.'
+      Text: Get the next layout.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $layout; Value:GetValue ( $layouts ; $l ) ]
+      Value:
+        Calculation: GetValue ( $layouts ; $l )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $layouts ; $l )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $layout
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If this is a layout based on a sync table (ES_)...'
+      Text: If this is a layout based on a sync table (ES_)...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Left ( $layout; 3 ) = ES_ ]
+      Calculation: Left ( $layout; 3 ) = "ES_"
+      DisplayCalculation:
+        Chunk:
+        - Left
+        - ' ( $layout; 3 ) = ES_'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Go to the layout.'
+      Text: Go to the layout.
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ GetValue ( $layouts ; $l ) ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        Calculation: GetValue ( $layouts ; $l )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $layouts ; $l )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Find records in the deletions portion of the payload...'
+      Text: Find records in the deletions portion of the payload...
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#But only find those that really can be deleted, based on the conflict
+        resolution method being used...'
+      Text: But only find those that really can be deleted, based on the conflict
+        resolution method being used...
+    - enable: 'True'
+      id: '22'
+      name: Enter Find Mode
+      StepText: Enter Find Mode [  ]
+      Pause:
+        state: 'False'
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $d; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $d
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the deletion info.'
+      Text: Get the deletion info.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $deletion; Value:GetValue ( $deletions ; $d ) ]
+      Value:
+        Calculation: GetValue ( $deletions ; $d )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $deletions ; $d )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $deletion
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $deletion_UUID; Value:GetValue ( Substitute ( $deletion
+        ; | ; ¶ ) ; 1 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $deletion ; "|" ; ¶ ) ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $deletion ; | ; ¶ ) ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $deletion_UUID
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $deletion_UTC; Value:GetValue ( Substitute ( $deletion
+        ; | ; ¶ ) ; 2 ) ]
+      Value:
+        Calculation: GetValue ( Substitute ( $deletion ; "|" ; ¶ ) ; 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Substitute
+          - ' ( $deletion ; | ; ¶ ) ; 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $deletion_UTC
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ Get ( LayoutTableName )  ::ES_Record_UUID; $deletion_UUID
+        ]
+      Result:
+        Calculation: $deletion_UUID
+        DisplayCalculation:
+          Chunk: $deletion_UUID
+      TargetName:
+        Calculation: Get ( LayoutTableName ) & "::ES_Record_UUID"
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LayoutTableName
+          - ' )  ::ES_Record_UUID'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Heres where were applying conflict resolution to the deletion process...'
+      Text: Heres where were applying conflict resolution to the deletion process...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$conflict_handling = Server ]
+      Calculation: $$conflict_handling = "Server"
+      DisplayCalculation:
+        Chunk: $$conflict_handling = Server
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#In this case, we should only delete if the record hasnt changed
+        on the server since the last pull.'
+      Text: In this case, we should only delete if the record hasnt changed on the
+        server since the last pull.
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ Get ( LayoutTableName )  ::ES_UTC_Time;   $last_pull_utc
+        ]
+      Result:
+        Calculation: '"<" & $last_pull_utc'
+        DisplayCalculation:
+          Chunk: '  $last_pull_utc'
+      TargetName:
+        Calculation: Get ( LayoutTableName ) & "::ES_UTC_Time"
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LayoutTableName
+          - ' )  ::ES_UTC_Time'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$conflict_handling = Recent ]
+      Calculation: $$conflict_handling = "Recent"
+      DisplayCalculation:
+        Chunk: $$conflict_handling = Recent
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#In this case, we should only delete if the record was deleted on
+        the mobile after any changes have been made to the hosted record.'
+      Text: In this case, we should only delete if the record was deleted on the mobile
+        after any changes have been made to the hosted record.
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ Get ( LayoutTableName )  ::ES_UTC_Time;   $deletion_UTC
+        ]
+      Result:
+        Calculation: '"<" & $deletion_UTC'
+        DisplayCalculation:
+          Chunk: '  $deletion_UTC'
+      TargetName:
+        Calculation: Get ( LayoutTableName ) & "::ES_UTC_Time"
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LayoutTableName
+          - ' )  ::ES_UTC_Time'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $d; Value:$d + 1 ]
+      Value:
+        Calculation: $d + 1
+        DisplayCalculation:
+          Chunk: $d + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $d
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $d  ValueCount ( $deletions ) ]
+      Calculation: $d > ValueCount ( $deletions )
+      DisplayCalculation:
+        Chunk:
+        - '$d  '
+        - ValueCount
+        - ' ( $deletions )'
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '28'
+      name: Perform Find
+      StepText: Perform Find [  ]
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Delete the records.'
+      Text: Delete the records.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $l; Value:$l + 1 ]
+      Value:
+        Calculation: $l + 1
+        DisplayCalculation:
+          Chunk: $l + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $l
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $l  ValueCount ( $layouts ) ]
+      Calculation: $l > ValueCount ( $layouts )
+      DisplayCalculation:
+        Chunk:
+        - '$l  '
+        - ValueCount
+        - ' ( $layouts )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#End Loop over ES layouts to process deletions...'
+      Text: End Loop over ES layouts to process deletions...
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#BEGIN CLEAN-UP'
+      Text: BEGIN CLEAN-UP
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Delete the payload.'
+      Text: Delete the payload.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$delete_payloads = All or $$delete_payloads = Successful ]
+      Calculation: $$delete_payloads = "All" or $$delete_payloads = "Successful"
+      DisplayCalculation:
+        Chunk:
+        - '$$delete_payloads = All '
+        - or
+        - ' $$delete_payloads = Successful'
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Return the success code to the caller. (A zero indicates that no
+        problems were encountered during the process.)'
+      Text: Return the success code to the caller. (A zero indicates that no problems
+        were encountered during the process.)
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: 0 ]'
+      Calculation: '0'
+      DisplayCalculation:
+        Chunk: '0'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

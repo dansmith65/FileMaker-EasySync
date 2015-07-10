@@ -1,0 +1,25 @@
+Go to Layout [ “Survey Form - iPad” (Surveys) ]
+New Record/Request
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '7'
+  name: New Survey
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Survey Form - iPad” (Surveys) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '2'
+        name: Survey Form - iPad
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request

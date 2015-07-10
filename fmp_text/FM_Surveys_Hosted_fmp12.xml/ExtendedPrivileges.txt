@@ -1,0 +1,52 @@
+    id  Name                  Description                                                                            Privilege Sets                                                                                                                                        
+    --  ----                  -----------                                                                            --------------                                                                                                                                        
+     1  fmwebdirect           Access via FileMaker WebDirect                                                                                                                                                                                                               
+     2  fmxdbc                Access via ODBC/JDBC                                                                                                                                                                                                                         
+     3  fmapp                 Access via FileMaker Network                                                           [Full Access], [Data Entry Only], [Read-Only Access], EasyDeploy                                                                                      
+     4  fmreauthenticate10    Require re-authentication after the specified minutes in sleep/background.  Go only.   [Full Access], [Data Entry Only], [Read-Only Access], EasyDeploy                                                                                      
+     5  fmxml                 Access via XML Web Publishing - FMS only                                                                                                                                                                                                     
+     6  fmphp                 Access via PHP Web Publishing - FMS only                                                                                                                                                                                                     
+
+
+---
+ExtendedPrivilegeCatalog:
+  ExtendedPrivilege:
+  - id: '1'
+    comment: Access via FileMaker WebDirect
+    name: fmwebdirect
+  - id: '2'
+    comment: Access via ODBC/JDBC
+    name: fmxdbc
+  - id: '3'
+    comment: Access via FileMaker Network
+    name: fmapp
+    PrivilegeSetList:
+      PrivilegeSet:
+      - id: '1'
+        name: '[Full Access]'
+      - id: '2'
+        name: '[Data Entry Only]'
+      - id: '3'
+        name: '[Read-Only Access]'
+      - id: '5'
+        name: EasyDeploy
+  - id: '4'
+    comment: Require re-authentication after the specified minutes in sleep/background.  Go
+      only.
+    name: fmreauthenticate10
+    PrivilegeSetList:
+      PrivilegeSet:
+      - id: '1'
+        name: '[Full Access]'
+      - id: '2'
+        name: '[Data Entry Only]'
+      - id: '3'
+        name: '[Read-Only Access]'
+      - id: '5'
+        name: EasyDeploy
+  - id: '5'
+    comment: Access via XML Web Publishing - FMS only
+    name: fmxml
+  - id: '6'
+    comment: Access via PHP Web Publishing - FMS only
+    name: fmphp

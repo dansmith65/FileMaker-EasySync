@@ -1,0 +1,670 @@
+     Layout name:  EasyDeploy               
+              id:  22                       
+           Table:  EasyDeploy               
+           Theme:  Enlightened              
+
+         Objects:                           
+                    Type              'Name'                             
+                    ----              ------                             
+                    Field             EasyDeploy::Version                
+                    Field             EasyDeploy::Comments               
+                    Field             EasyDeploy::Database_Container     
+                    Field             EasyDeploy::Reject_Prior_Versions  
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '22'
+  name: EasyDeploy
+  Table:
+    id: '1065098'
+    name: EasyDeploy
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'True'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'
+  Object:
+  - type: Text
+    key: '11'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '11.0000000'
+      left: '26.0000000'
+      bottom: '42.0000000'
+      right: '975.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tfont-weight: bold;\n\tfont-size: 24pt;\n\tcolor: rgba(95.2941%,92.1569%,0%,1);\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: EasyDeploy
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '24'
+            Face: '256'
+            Color: '#F3EB00'
+      ParagraphStyleVector:
+        Style:
+          Data: EasyDeploy
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '18'
+    LabelKey: '19'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '99.0000000'
+      left: '26.0000000'
+      bottom: '120.0000000'
+      right: '105.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: EasyDeploy::Version
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: Version
+          id: '4'
+          repetition: '1'
+          maxRepetition: '1'
+          table: EasyDeploy
+  - type: Text
+    key: '19'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '80.0000000'
+      left: '26.0000000'
+      bottom: '97.0000000'
+      right: '72.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '0'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Version
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: Version
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '20'
+    LabelKey: '21'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '99.0000000'
+      left: '269.0000000'
+      bottom: '523.0000000'
+      right: '942.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '288'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: EasyDeploy::Comments
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: Comments
+          id: '2'
+          repetition: '1'
+          maxRepetition: '1'
+          table: EasyDeploy
+  - type: Text
+    key: '21'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '80.0000000'
+      left: '269.0000000'
+      bottom: '98.0000000'
+      right: '375.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '0'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Version Comments
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: Version Comments
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '22'
+    LabelKey: '23'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '154.0000000'
+      left: '26.0000000'
+      bottom: '279.0000000'
+      right: '205.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: EasyDeploy::Database_Container
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: Database_Container
+          id: '3'
+          repetition: '1'
+          maxRepetition: '1'
+          table: EasyDeploy
+  - type: Text
+    key: '23'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '135.0000000'
+      left: '26.0000000'
+      bottom: '153.0000000'
+      right: '152.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '0'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: FileMaker Solution File
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: FileMaker Solution File
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '26'
+    LabelKey: '27'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '319.0000000'
+      left: '26.0000000'
+      bottom: '340.0000000'
+      right: '205.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '4'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: EasyDeploy::Reject_Prior_Versions
+      ValueList: Yes No
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: Reject_Prior_Versions
+          id: '6'
+          repetition: '1'
+          maxRepetition: '1'
+          table: EasyDeploy
+        ValueList:
+          name: Yes No
+          id: '4'
+  - type: Text
+    key: '27'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '300.0000000'
+      left: '26.0000000'
+      bottom: '318.0000000'
+      right: '200.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '0'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Reject Sync from Prior Versions
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: Reject Sync from Prior Versions
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+

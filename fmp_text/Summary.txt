@@ -1,0 +1,112 @@
+            Summary file:  Summary.xml                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+            Summary path:  /Users/dan/Desktop/FMEasySync/fmp_ddr                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+   FileMaker Pro version:  13.0v9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+           Creation Date:  2015-07-10                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+           Creation Time:  12:33:14 AM                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+                   Report   BaseTables  Tables  Relationships  Accounts  Privileges  ExtendedPrivileges  FileAccess  Layouts  Scripts  ValueLists  CustomFunctions  FileReferences  CustomMenuSets  CustomMenus
+                   ------   ----------  ------  -------------  --------  ----------  ------------------  ----------  -------  -------  ----------  ---------------  --------------  --------------  -----------
+        EasyDeploy.fmp12  1           1       0              3         3           6                   0           1        3        6           0                1               0               0            
+ FM_Surveys_Hosted.fmp12  5           9       6              5         4           6                   0           7        8        4           0                0               0               0            
+ FM_Surveys_Mobile.fmp12  5           9       6              4         3           6                   0           7        16       6           0                1               0               0            
+
+---
+FMPReport:
+  creationTime: 12:33:14 AM
+  creationDate: '2015-07-10'
+  type: Summary
+  version: 13.0v9
+  File:
+  - link: .//EasyDeploy_fmp12.xml
+    name: EasyDeploy.fmp12
+    path: E:\Users\Daniel\GitHub\FMEasySync\master\
+    BaseTables:
+      count: '1'
+    Tables:
+      count: '1'
+    Relationships:
+      count: '0'
+    Accounts:
+      count: '3'
+    Privileges:
+      count: '3'
+    ExtendedPrivileges:
+      count: '6'
+    FileAccess:
+      count: '0'
+    Layouts:
+      count: '1'
+    Scripts:
+      count: '3'
+    ValueLists:
+      count: '6'
+    CustomFunctions:
+      count: '0'
+    FileReferences:
+      count: '1'
+    CustomMenuSets:
+      count: '0'
+    CustomMenus:
+      count: '0'
+  - link: .//FM_Surveys_Hosted_fmp12.xml
+    name: FM_Surveys_Hosted.fmp12
+    path: your-server-address
+    BaseTables:
+      count: '5'
+    Tables:
+      count: '9'
+    Relationships:
+      count: '6'
+    Accounts:
+      count: '5'
+    Privileges:
+      count: '4'
+    ExtendedPrivileges:
+      count: '6'
+    FileAccess:
+      count: '0'
+    Layouts:
+      count: '7'
+    Scripts:
+      count: '8'
+    ValueLists:
+      count: '4'
+    CustomFunctions:
+      count: '0'
+    FileReferences:
+      count: '0'
+    CustomMenuSets:
+      count: '0'
+    CustomMenus:
+      count: '0'
+  - link: .//FM_Surveys_Mobile_fmp12.xml
+    name: FM_Surveys_Mobile.fmp12
+    path: E:\Users\Daniel\GitHub\FMEasySync\master\
+    BaseTables:
+      count: '5'
+    Tables:
+      count: '9'
+    Relationships:
+      count: '6'
+    Accounts:
+      count: '4'
+    Privileges:
+      count: '3'
+    ExtendedPrivileges:
+      count: '6'
+    FileAccess:
+      count: '0'
+    Layouts:
+      count: '7'
+    Scripts:
+      count: '16'
+    ValueLists:
+      count: '6'
+    CustomFunctions:
+      count: '0'
+    FileReferences:
+      count: '1'
+    CustomMenuSets:
+      count: '0'
+    CustomMenus:
+      count: '0'

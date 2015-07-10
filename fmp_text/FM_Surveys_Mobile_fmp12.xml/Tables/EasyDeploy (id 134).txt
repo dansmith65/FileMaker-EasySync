@@ -1,0 +1,42 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     3   EasyDeploy_Container        Binary           Normal                                                              
+
+
+---
+BaseTable:
+  id: '134'
+  records: ''
+  name: EasyDeploy
+  FieldCatalog:
+    Field:
+      id: '3'
+      dataType: Binary
+      fieldType: Normal
+      name: EasyDeploy_Container
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        global: 'True'
+        maxRepetition: '1'

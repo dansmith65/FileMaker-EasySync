@@ -1,0 +1,804 @@
+#Upgrade Solution:Pulls the updated version of the script from the server, exports it, and opens it - then closes itself.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.
+#
+#Clear the OnTimer script that called this script.
+Install OnTimer Script [ Interval: 0 ]
+#
+#No aborting, and well handle errors.
+Allow User Abort [ Off ]
+Set Error Capture [ On ]
+#
+#Hide UI elements.
+Set Variable [ $$hide_ui; Value:1 ]
+#
+#Specify the segment size to use.
+Set Variable [ $segment_size; Value:100000 // Do not set higher than 999,999.  ]
+#
+#Show progress...
+Go to Layout [ “Temp” ]
+Show/Hide Toolbars[ Hide ]
+Adjust Window[ Resize to Fit ]
+Set Variable [ $$EasyDeploy_Status; Value:Upgrading solution... ]
+Refresh Window
+#
+#Pull the updated solution file from the server in segments.
+Set Variable [ $start; Value:1 ]
+Set Variable [ $segment; Value:1 ]
+Set Variable [ $payload_b64; Value: ]
+Loop
+Set Variable [ $$EasyDeploy_Status; Value:Pulling segment   $segment   ... ]
+Refresh Window
+Perform Script on Server [ “Return Requested Deployment Segment” from file: “Hosted_Database”; Parameter: $start  ¶  $segment_size ][ Wait for completion ]
+Set Variable [ $LastError; Value:Get ( LastError ) ]
+If [ $LastError ]
+Close File [ “Hosted_Database” ]
+Show Custom Dialog [ Title: Process Halted; Message: An error occurred during the segment pull. FileMaker Error Code   $LastError; Default Button: “OK”, Commit: “Yes” ]
+Halt Script
+End If
+Set Variable [ $payload_b64; Value:$payload_b64  Get ( ScriptResult ) ]
+Exit Loop If [ PatternCount ( Get ( ScriptResult ) ; /b64 ) ]
+Set Variable [ $start; Value:$start + $segment_size ]
+Set Variable [ $segment; Value:$segment + 1 ]
+End Loop
+#
+#Close the connection to the host.
+Close File [ “Hosted_Database” ]
+#
+#Status update.
+Set Variable [ $$EasyDeploy_Status; Value:Installing upgrade... ]
+Refresh Window
+#
+#Decode the payload and drop it into a container.
+Set Field [ Temp::Database_Container; Let ([value = $payload_b64;value = Substitute ( value ; /b64;  );fileNameWithExtension = GetValue ( Substitute ( value ; b64; ¶ ); 1 );encoded = Substitute ( value; fileNameWithExtension  b64;  );decoded = Base64Decode ( encoded; fileNameWithExtension )];decoded) ]
+#
+#Specify the path / filename to export to.
+Set Variable [ $filename; Value:Get ( DocumentsPath )  GetAsText ( Temp::Database_Container ) ]
+#
+#Export the updated solution.
+Export Field Contents [ Temp::Database_Container; “$filename” ]
+#
+#Set the Consumed flag to prevent the user from using this file again.
+Set Field [ Temp::Consumed; 1 ]
+#
+#Inform user that the upgrade is completed.
+Set Variable [ $$EasyDeploy_Status; Value:Upgrade complete. ]
+Refresh Window
+Show Custom Dialog [ Title: Upgrade Complete; Message: The upgraded database has been installed.¶¶Would you like to open it now?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+#
+#If the user wants to open the upgraded database...
+If [ Get ( LastMessageChoice ) = 1 ]
+#
+#Get the URL to use to open the file.
+Set Variable [ $url; Value:fmp://  If ( Get( SystemPlatform ) = 4; %7e; ~ )  /  GetAsText ( Temp::Database_Container ) ]
+#
+#Open it.
+Open URL [ $url ][ No dialog ]
+#
+End If
+#
+#Close this file.
+Close Window [ Current Window ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '46'
+  name: Upgrade Solution
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Upgrade Solution:\nPulls the updated version of the script from
+        the server, exports it, and opens it - then closes itself.\n\nHistory:\n\n2014-05-01\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version."
+      Text: "Upgrade Solution:\nPulls the updated version of the script from the server,
+        exports it, and opens it - then closes itself.\n\nHistory:\n\n2014-05-01\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Clear the OnTimer script that called this script.'
+      Text: Clear the OnTimer script that called this script.
+    - enable: 'True'
+      id: '148'
+      name: Install OnTimer Script
+      StepText: 'Install OnTimer Script [ Interval: 0 ]'
+      Interval:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#No aborting, and well handle errors.'
+      Text: No aborting, and well handle errors.
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Hide UI elements.'
+      Text: Hide UI elements.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$hide_ui; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$hide_ui
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Specify the segment size to use.'
+      Text: Specify the segment size to use.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment_size; Value:100000 // Do not set higher than
+        999,999.  ]
+      Value:
+        Calculation: '100000 // Do not set higher than 999,999. '
+        DisplayCalculation:
+          Chunk:
+          - '100000 '
+          - '// Do not set higher than 999,999. '
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment_size
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Show progress...'
+      Text: Show progress...
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Temp” ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '28'
+        name: Temp
+    - enable: 'True'
+      id: '29'
+      name: Show/Hide Toolbars
+      StepText: |-
+        Show/Hide Toolbars
+        [ Hide ]
+      Lock:
+        state: 'False'
+      ShowHide:
+        value: Hide
+    - enable: 'True'
+      id: '31'
+      name: Adjust Window
+      StepText: |-
+        Adjust Window
+        [ Resize to Fit ]
+      WindowState:
+        value: ResizeToFit
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:Upgrading solution... ]
+      Value:
+        Calculation: '"Upgrading solution..."'
+        DisplayCalculation:
+          Chunk: Upgrading solution...
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EasyDeploy_Status
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Pull the updated solution file from the server in segments.'
+      Text: Pull the updated solution file from the server in segments.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $payload_b64; Value: ]'
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: 
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_b64
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:Pulling segment   $segment   ...
+        ]
+      Value:
+        Calculation: '"Pulling segment " & $segment  & "..."'
+        DisplayCalculation:
+          Chunk: Pulling segment   $segment   ...
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EasyDeploy_Status
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '164'
+      name: Perform Script on Server
+      StepText: |-
+        Perform Script on Server [ “Return Requested Deployment Segment” from file: “Hosted_Database”; Parameter: $start  ¶  $segment_size ]
+        [ Wait for completion ]
+      WaitForCompletion:
+        state: 'True'
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+      Calculation: $start & ¶ & $segment_size
+      DisplayCalculation:
+        Chunk: $start  ¶  $segment_size
+      Script:
+        id: '26'
+        name: Return Requested Deployment Segment
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $LastError; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $LastError
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $LastError ]
+      Calculation: $LastError
+      DisplayCalculation:
+        Chunk: $LastError
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “Hosted_Database” ]
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Process Halted; Message: An error occurred
+        during the segment pull. FileMaker Error Code   $LastError; Default Button:
+        “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Process Halted"'
+        DisplayCalculation:
+          Chunk: Process Halted
+      Message:
+        Calculation: '"An error occurred during the segment pull. FileMaker Error
+          Code " & $LastError'
+        DisplayCalculation:
+          Chunk: An error occurred during the segment pull. FileMaker Error Code   $LastError
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '90'
+      name: Halt Script
+      StepText: Halt Script
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload_b64; Value:$payload_b64  Get ( ScriptResult
+        ) ]
+      Value:
+        Calculation: $payload_b64 & Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - '$payload_b64  '
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_b64
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ PatternCount ( Get ( ScriptResult ) ; /b64 ) ]
+      Calculation: PatternCount ( Get ( ScriptResult ) ; "</b64>" )
+      DisplayCalculation:
+        Chunk:
+        - PatternCount
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) ; /b64 )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start; Value:$start + $segment_size ]
+      Value:
+        Calculation: $start + $segment_size
+        DisplayCalculation:
+          Chunk: $start + $segment_size
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment; Value:$segment + 1 ]
+      Value:
+        Calculation: $segment + 1
+        DisplayCalculation:
+          Chunk: $segment + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Close the connection to the host.'
+      Text: Close the connection to the host.
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “Hosted_Database” ]
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Status update.'
+      Text: Status update.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:Installing upgrade... ]
+      Value:
+        Calculation: '"Installing upgrade..."'
+        DisplayCalculation:
+          Chunk: Installing upgrade...
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EasyDeploy_Status
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Decode the payload and drop it into a container.'
+      Text: Decode the payload and drop it into a container.
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: |-
+        Set Field [ Temp::Database_Container; Let (
+        [
+        value = $payload_b64;
+        value = Substitute ( value ; /b64;  );
+        fileNameWithExtension = GetValue ( Substitute ( value ; b64; ¶ ); 1 );
+        encoded = Substitute ( value; fileNameWithExtension  b64;  );
+        decoded = Base64Decode ( encoded; fileNameWithExtension )
+        ];
+        decoded
+        ) ]
+      Calculation: |-
+        Let (
+        [
+        value = $payload_b64;
+        value = Substitute ( value ; "</b64>"; "" );
+        fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );
+        encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );
+        decoded = Base64Decode ( encoded; fileNameWithExtension )
+        ];
+        decoded
+        )
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n[\nvalue = $payload_b64;\nvalue = "
+        - Substitute
+        - " ( value ; /b64;  );\nfileNameWithExtension = "
+        - GetValue
+        - ' ( '
+        - Substitute
+        - " ( value ; b64; ¶ ); 1 );\nencoded = "
+        - Substitute
+        - " ( value; fileNameWithExtension  b64;  );\ndecoded = "
+        - Base64Decode
+        - |2-
+           ( encoded; fileNameWithExtension )
+          ];
+          decoded
+          )
+      Field:
+        table: Temp
+        id: '3'
+        name: Database_Container
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Specify the path / filename to export to.'
+      Text: Specify the path / filename to export to.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $filename; Value:Get ( DocumentsPath )  GetAsText (
+        Temp::Database_Container ) ]
+      Value:
+        Calculation: Get ( DocumentsPath ) & GetAsText ( Temp::Database_Container
+          )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - DocumentsPath
+          - ' )  '
+          - GetAsText
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: Temp
+              id: '3'
+              name: Database_Container
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $filename
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Export the updated solution.'
+      Text: Export the updated solution.
+    - enable: 'True'
+      id: '132'
+      name: Export Field Contents
+      StepText: Export Field Contents [ Temp::Database_Container; “$filename” ]
+      AutoOpen:
+        state: 'False'
+      CreateEmail:
+        state: 'False'
+      UniversalPathList: $filename
+      Field:
+        table: Temp
+        id: '3'
+        name: Database_Container
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Set the Consumed flag to prevent the user from using this file again.'
+      Text: Set the Consumed flag to prevent the user from using this file again.
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ Temp::Consumed; 1 ]
+      Calculation: '1'
+      DisplayCalculation:
+        Chunk: '1'
+      Field:
+        table: Temp
+        id: '7'
+        name: Consumed
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Inform user that the upgrade is completed.'
+      Text: Inform user that the upgrade is completed.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:Upgrade complete. ]
+      Value:
+        Calculation: '"Upgrade complete."'
+        DisplayCalculation:
+          Chunk: Upgrade complete.
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EasyDeploy_Status
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Upgrade Complete; Message: The upgraded
+        database has been installed.¶¶Would you like to open it now?; Default Button:
+        “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
+      Title:
+        Calculation: '"Upgrade Complete"'
+        DisplayCalculation:
+          Chunk: Upgrade Complete
+      Message:
+        Calculation: '"The upgraded database has been installed.¶¶Would you like to
+          open it now?"'
+        DisplayCalculation:
+          Chunk: The upgraded database has been installed.¶¶Would you like to open
+            it now?
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Yes"'
+          DisplayCalculation:
+            Chunk: 'Yes'
+        - CommitState: 'False'
+          Calculation: '"No"'
+          DisplayCalculation:
+            Chunk: 'No'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If the user wants to open the upgraded database...'
+      Text: If the user wants to open the upgraded database...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastMessageChoice ) = 1 ]
+      Calculation: Get ( LastMessageChoice ) = 1
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 1'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the URL to use to open the file.'
+      Text: Get the URL to use to open the file.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $url; Value:fmp://  If ( Get( SystemPlatform ) = 4;
+        %7e; ~ )  /  GetAsText ( Temp::Database_Container ) ]
+      Value:
+        Calculation: '"fmp://" & If ( Get( SystemPlatform ) = 4; "%7e"; "~" ) & "/"
+          & GetAsText ( Temp::Database_Container )'
+        DisplayCalculation:
+          Chunk:
+          - 'fmp://  '
+          - If
+          - ' ( '
+          - Get
+          - '( '
+          - SystemPlatform
+          - ' ) = 4; %7e; ~ )  /  '
+          - GetAsText
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: Temp
+              id: '3'
+              name: Database_Container
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $url
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Open it.'
+      Text: Open it.
+    - enable: 'True'
+      id: '111'
+      name: Open URL
+      StepText: |-
+        Open URL [ $url ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Calculation: $url
+      DisplayCalculation:
+        Chunk: $url
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Close this file.'
+      Text: Close this file.
+    - enable: 'True'
+      id: '121'
+      name: Close Window
+      StepText: Close Window [ Current Window ]
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

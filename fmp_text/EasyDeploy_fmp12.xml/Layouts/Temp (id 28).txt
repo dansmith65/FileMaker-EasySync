@@ -1,0 +1,396 @@
+     Layout name:  Temp                     
+              id:  28                       
+           Table:  Temp                     
+           Theme:  Enlightened              
+
+         Objects:                           
+                    Type              'Name'                             
+                    ----              ------                             
+                    Rect                                                 
+                    GroupButton                                          
+                    Button                                               
+                    Button                                               
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '28'
+  name: Temp
+  Table:
+    id: '1065099'
+    name: Temp
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'True'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'
+  Object:
+  - type: Rect
+    key: '13'
+    LabelKey: '0'
+    flags: '4'
+    rotation: '0'
+    Bounds:
+      top: '191.0000000'
+      left: '235.0000000'
+      bottom: '464.0000000'
+      right: '777.0000000'
+    Styles: |2+
+
+    HideCondition:
+      Calculation: $$hide_ui
+      DisplayCalculation:
+        Chunk: $$hide_ui
+  - type: GroupButton
+    key: '11'
+    LabelKey: '0'
+    flags: '65536'
+    rotation: '0'
+    Bounds:
+      top: '118.0000000'
+      left: '32.0000000'
+      bottom: '178.0000000'
+      right: '981.0000000'
+    GroupButtonObj:
+      numOfObjs: '1'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: Perform Script [ “Upgrade Solution” ]
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '46'
+          name: Upgrade Solution
+      Styles: |2+
+
+      Object:
+        type: Text
+        key: '10'
+        LabelKey: '0'
+        flags: '0'
+        rotation: '0'
+        Bounds:
+          top: '0.0000000'
+          left: '0.0000000'
+          bottom: '60.0000000'
+          right: '949.0000000'
+        TextObj:
+          flags: '10'
+          tableViewVisibility: '0'
+          ExtendedAttributes:
+            fontHeight: '14'
+            graphicFormat: '0'
+            NumFormat:
+              flags: '2304'
+              charStyle: '0'
+              negativeStyle: '0'
+              currencySymbol: $
+              thousandsSep: '44'
+              decimalPoint: '46'
+              negativeColor: '#DD000000'
+              decimalDigits: '2'
+              trueString: 'Yes'
+              falseString: 'No'
+            DateFormat:
+              format: '0'
+              charStyle: '0'
+              monthStyle: '0'
+              dayStyle: '0'
+              separator: '47'
+              DateElement:
+              - '3'
+              - '6'
+              - '1'
+              - '8'
+              DateElementSep:
+              - index: '0'
+              - ', '
+              - index: '2'
+                __content__: ' '
+              - ', '
+              - index: '4'
+            TimeFormat:
+              flags: '143'
+              charStyle: '0'
+              hourStyle: '0'
+              minsecStyle: '1'
+              separator: '58'
+              amString: ' AM'
+              pmString: ' PM'
+              ampmString: ''
+          Styles:
+            LocalCSS: "\nself\n{\n\tfont-weight: bold;\n\tfont-size: 24pt;\n\tcolor:
+              rgba(95.2941%,92.1569%,0%,1);\n\ttext-align: center;\n\t-fm-text-vertical-align:
+              center;\n}\n"
+          CharacterStyleVector:
+            Style:
+              Data: $$EasyDeploy_Status
+              CharacterStyle:
+                mask: '32695'
+                Font_family: arial,sans-serif
+                Font_size: '24'
+                Face: '256'
+                Color: '#F3EB00'
+          ParagraphStyleVector:
+            Style:
+              Data: $$EasyDeploy_Status
+              ParagraphStyle:
+                mask: '0'
+                __content__: |2+
+
+          FieldList:
+            quickFind: 'False'
+  - type: Text
+    key: '12'
+    LabelKey: '0'
+    flags: '4'
+    rotation: '0'
+    Bounds:
+      top: '228.0000000'
+      left: '310.0000000'
+      bottom: '309.0000000'
+      right: '703.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tfont-size: 14pt;\n\tcolor: rgba(10.1961%,10.1961%,10.1961%,1);\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: "We are now ready to download the upgrade...\r\rDuring this process,
+            please be sure not to close FileMaker Go\ror allow your device to sleep."
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '14'
+            Face: '0'
+            Color: '#1A1A1A'
+      ParagraphStyleVector:
+        Style:
+          Data: "We are now ready to download the upgrade...\r\rDuring this process,
+            please be sure not to close FileMaker Go\ror allow your device to sleep."
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    HideCondition:
+      Calculation: $$hide_ui
+      DisplayCalculation:
+        Chunk: $$hide_ui
+  - type: Button
+    key: '14'
+    LabelKey: '0'
+    flags: '4'
+    rotation: '0'
+    Bounds:
+      top: '393.0000000'
+      left: '416.0000000'
+      bottom: '434.0000000'
+      right: '596.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tfont-size: 14pt;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Cancel
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '14'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Cancel
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '34'
+        name: Close File
+        StepText: Close File [ Current File ]
+    HideCondition:
+      Calculation: $$hide_ui
+      DisplayCalculation:
+        Chunk: $$hide_ui
+  - type: Button
+    key: '15'
+    LabelKey: '0'
+    flags: '4'
+    rotation: '0'
+    Bounds:
+      top: '339.0000000'
+      left: '416.0000000'
+      bottom: '380.0000000'
+      right: '596.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tfont-size: 14pt;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Continue
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '14'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Continue
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: Perform Script [ “Upgrade Solution” ]
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '46'
+          name: Upgrade Solution
+    HideCondition:
+      Calculation: $$hide_ui
+      DisplayCalculation:
+        Chunk: $$hide_ui

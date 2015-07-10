@@ -1,0 +1,20 @@
+Go to Layout [ “Survey List - iPad” (Surveys) ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '27'
+  name: Trigger - On Last Window Close
+  StepList:
+    Step:
+      enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Survey List - iPad” (Surveys) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '3'
+        name: Survey List - iPad

@@ -1,0 +1,1893 @@
+#Prepare Payload for Client:Processes a pull request from the client by building a pull package.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-16			Tim Dietrich (timdietrich@me.com)	The push and pull timestamps are now being pushed by the client in a	SQL-friendly format, to avoid potential differences in timestamp formats	between the client and server.	2014-04-20	Tim Dietrich (timdietrich@me.com)	Mods to resolve simultaneous sync issues.2014-04-21	Tim Dietrich (timdietrich@me.com)	Resolves issues with non-SQL compliant table names.2014-04-22	Tim Dietrich (timdietrich@me.com)	Modified the code that determines what records to pull. Previously we tried to	prevent round-tripping the data that had just been pulled. That failed miserably,	especially for users syncing from multiple devices. It also caused sync issues	in cases were record changes were rejected due to the conflict resolution being	used. See the release notes for more info.2014-04-23	Tim Dietrich (timdietrich@me.com)	Added code to support the initial sync function of the EasySync demo database.	See  Heres the SELECT statement that is used to select the data for the payload 	comment / code for details.	2014-04-22	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	When selecting records for inclusing, we now look at the ID of the device that last	updated the record so that we dont round trip the data that was just pushed.2014-04-28	Tim Dietrich (timdietrich@me.com)	Minor change to account for a user who has wiped / reset their mobile database.	Allows them to pull records that they last touched via that device.2014-05-02	Tim Dietrich (timdietrich@me.com)	Modified the SELECT statement that gets the list of tables to be synced, so that the underscore	escaped. Thanks to Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for	reporting this bug.2014-05-04	Tim Dietrich (timdietrich@me.com)	Addess support for Push/Pull-only tables.
+#
+#Load settings.
+Perform Script [ “EasySync Settings” ]
+#
+#Log the start time.
+Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
+#
+#Prevent the user from aborting, and well handle errors, so suppress those...
+Allow User Abort [ Off ]
+Set Error Capture [ On ]
+#
+#Get the parameters passed by the client.
+Set Variable [ $last_pull_utc; Value:GetValue ( Get ( ScriptParameter ); 1 ) ]
+Set Variable [ $last_push_utc; Value:GetValue ( Get ( ScriptParameter ); 2 ) ]
+Set Variable [ $client_persistent_id; Value:GetValue ( Get ( ScriptParameter ); 3 ) ]
+Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter ); 4 ) ]
+Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter ); 4 ) ]
+Set Variable [ $client_ip_address; Value:GetValue ( Get ( ScriptParameter ); 5 ) ]
+Set Variable [ $client_nic_address; Value:GetValue ( Get ( ScriptParameter ); 6 ) ]
+Set Variable [ $client_platform; Value:GetValue ( Get ( ScriptParameter ); 7 ) ]
+Set Variable [ $client_system_version; Value:GetValue ( Get ( ScriptParameter ); 8 ) ]
+Set Variable [ $client_device; Value:GetValue ( Get ( ScriptParameter ); 9 ) ]
+Set Variable [ $client_network_protocol; Value:GetValue ( Get ( ScriptParameter ); 10 ) ]
+Set Variable [ $client_network_type; Value:GetValue ( Get ( ScriptParameter ); 11 ) ]
+Set Variable [ $additional_settings; Value:GetValue ( Get ( ScriptParameter ); 12 ) ]
+If [ $$debug_pull ]
+Show Custom Dialog [ Title: Pull Params; Message: Get ( ScriptParameter ); Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Create the settings portion of the payload.
+Set Variable [ $settings_info; Value:settings¶ $$field_delimiter  /setting  $$record_delimiter  /setting  $$sync_method  ¶  /settings ]
+#
+#Get all of the tables that are to be synced.
+Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ) AND ( TableName NOT LIKE ES\_PUSH\_% ); /col; ¶ ) ]
+If [ IsEmpty ( $sync_tables ) ]
+Show Custom Dialog [ Title: Sync Error; Message: There are no tables configured for syncing.; Default Button: “OK”, Commit: “Yes” ]
+Exit Script [  ]
+End If
+If [ $$debug_pull ]
+Show Custom Dialog [ Title: Sync Tables; Message: $sync_tables; Default Button: “OK”, Commit: “Yes” ]
+End If
+Show Custom Dialog [ Title: Sync Tables; Message: $sync_tables; Default Button: “OK”, Commit: “Yes” ]
+#
+#Initalize table info portion of the payload.
+Set Variable [ $table_info; Value: ]
+#
+#Initalize records portion of the payload.
+Set Variable [ $records; Value: ]
+#
+#Loop over the tables to be synced...
+Set Variable [ $i; Value:1 ]
+Loop
+#
+#Get the tables name.
+Set Variable [ $sync_table; Value:Let ( [$t = GetValue ( $sync_tables ; $i );$t = Substitute ( $t; /col; ¶ )];GetValue ( $t; 1 )) ]
+#
+#Get the names (and # of reps) of the fields in this table.
+#Note that fields prefixed with EXCL_ are excluded from the payload.
+#Note that calculated and global fields are also excluded.
+Set Variable [ $sync_fields; Value:ExecuteSQL ( SELECT FieldName, FieldReps FROM FileMaker_Fields WHERE ( TableName = ? ) AND ( ( FieldClass = Normal ) OR ( FieldName LIKE B64_% ) ) AND ( FieldName NOT LIKE EXCL_% ) AND ( FieldName  ES_Exclude ) AND ( FieldType NOT LIKE global%); |; ¶; $sync_table ) ]
+If [ $$debug_pull ]
+Show Custom Dialog [ Title: Fields in   $sync_table; Message: $sync_fields; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Reformat the field names so that repetitions are considered.
+Set Variable [ $fields; Value:$sync_table  /field ]
+Set Variable [ $f; Value:1 ]
+Loop
+Set Variable [ $field_name; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 1 )) ]
+Set Variable [ $field_reps; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 2 )) ]
+Set Variable [ $r; Value:1 ]
+Loop
+Set Variable [ $fields; Value:$fields  $field_name  [  $r  ]/field ]
+Set Variable [ $r; Value:$r + 1 ]
+Exit Loop If [ $r  $field_reps ]
+End Loop
+Set Variable [ $f; Value:$f + 1 ]
+Exit Loop If [ $f  ValueCount ( $sync_fields ) ]
+End Loop
+If [ $$debug_pull ]
+Show Custom Dialog [ Title: Reformatted Fields in   $sync_table; Message: $fields; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Add this tables info to the running table_info.
+Set Variable [ $table_info; Value:If ( not IsEmpty ( $table_info ); $table_info  ¶;  )  $fields  /table ]
+#
+#
+#Loop over the fields in the table to create the fields portion of what will be the SELECT statement...
+Set Variable [ $dyn_sql; Value:  $sync_table   ]
+Set Variable [ $j; Value:1 ]
+Loop
+Set Variable [ $field_name; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 1 )) ]
+Set Variable [ $field_reps; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 2 )) ]
+#
+#Loop over the reps...
+Set Variable [ $r; Value:1 ]
+Loop
+Set Variable [ $dyn_sql; Value:$dyn_sql  ,  || \\\  $field_name  \\\  [  $r  ] ]
+Set Variable [ $r; Value:$r + 1 ]
+Exit Loop If [ $r  $field_reps ]
+End Loop
+#
+Set Variable [ $j; Value:$j + 1 ]
+Exit Loop If [ $j  ValueCount ( $sync_fields ) ]
+End Loop
+#
+#Add this tables fields to the SELECT statement.
+#Note: This is the SELECT statement that is used to select the data for the payload.
+#You can add your own custom business rules here to determine what data is sent to the user, by looking at things like the table name being worked on, the user / device that has requested the data, etc. Dynamically add your conditions to the WHERE clause.
+Set Variable [ $dyn_sql; Value:SELECT   $dyn_sql  ,   $$record_delimiter    FROM \\\  $sync_table  \\\   WHERE  // Exclude records flagged for sync exclusion.( COALESCE ( ES_Exclude, 0 ) = 0 )  // If the client is merging new/updated data with data already on the device...// Only include records that have been added/updated since the last pull...// And only include data that they did not just push (i.e. no round tripping!)...If ( ( $$sync_method = Merge ) and ( $last_pull_utc  0 );  AND ( ES_UTC_Time    $last_pull_utc   )    AND ( COALESCE ( ES_Device_ID, X )    $client_persistent_id  ) ;  ) ]
+If [ $$debug_pull ]
+Show Custom Dialog [ Title: SELECT Statement for   $sync_table; Message: $dyn_sql; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Wrap the SELECT statement in an ExecuteSQL call.
+Set Variable [ $dyn_esql; Value:ExecuteSQL ( \  $dyn_sql  \; \  $$field_delimiter  \; \\ ) ]
+If [ $$debug_pull ]
+Show Custom Dialog [ Title: ExecuteSQL Statement for   $sync_table; Message: $dyn_esql; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#Evaluate the ExecuteSQL statement to get the actual data, and append it to the records.
+Set Variable [ $temp_recs; Value:Evaluate ( $dyn_esql  ) ]
+If [ $$debug_push ]
+Show Custom Dialog [ Title: Records From   $sync_table; Message: $temp_recs; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#If there are records in the current table to be pushed...
+If [ not IsEmpty ( $temp_recs ) ]
+Set Variable [ $records; Value:If ( not IsEmpty ( $records ); $records  ¶;  )  $temp_recs ]
+End If
+#
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
+#
+End Loop
+#
+#Wrap the records portion of the payload.
+Set Variable [ $records; Value:records  ¶  $records  ¶  /records ]
+#
+#Wrap the table info portion of the payload.
+Set Variable [ $table_info; Value:tables  ¶  $table_info  ¶  /tables ]
+#
+#Put the payload together.
+Set Variable [ $payload; Value:payload¶ $settings_info  ¶  $table_info  ¶  $records  ¶  /payload ]
+#
+#If the payload is small enough to send at one time...
+If [ Length ( $payload )  ≤ $$max_pull_payload_size ]
+#Return the payload to the client.
+Exit Script [ Result: $payload ]
+Else
+#
+#Save payload.
+Go to Layout [ EasySync_Payloads ]
+New Record/Request
+Set Field By Name [ EasySync_Payloads::Payload; $payload ]
+Set Field By Name [ EasySync_Payloads::Payload_Type; Pull Payload ]
+Commit Records/Requests[ No dialog ]
+#
+#Return payload ID to the client.
+Exit Script [ Result: Payload_UUID:   Evaluate ( EasySync_Payloads::ES_Payload_UUID ) ]
+#
+End If
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '11'
+  name: Prepare Payload for Client
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Prepare Payload for Client:\nProcesses a pull request from the client
+        by building a pull package.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tThe push and pull timestamps are now being pushed
+        by the client in a\n\tSQL-friendly format, to avoid potential differences
+        in timestamp formats\n\tbetween the client and server.\n\t\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tMods to resolve simultaneous sync issues.\n\n2014-04-21\n\tTim
+        Dietrich (timdietrich@me.com)\n\tResolves issues with non-SQL compliant table
+        names.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tModified the
+        code that determines what records to pull. Previously we tried to\n\tprevent
+        round-tripping the data that had just been pulled. That failed miserably,\n\tespecially
+        for users syncing from multiple devices. It also caused sync issues\n\tin
+        cases were record changes were rejected due to the conflict resolution being\n\tused.
+        See the release notes for more info.\n\n2014-04-23\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        code to support the initial sync function of the EasySync demo database.\n\tSee
+        \ Heres the SELECT statement that is used to select the data for the payload
+        \n\tcomment / code for details.\n\t\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tWhen
+        selecting records for inclusing, we now look at the ID of the device that
+        last\n\tupdated the record so that we dont round trip the data that was just
+        pushed.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tMinor change
+        to account for a user who has wiped / reset their mobile database.\n\tAllows
+        them to pull records that they last touched via that device.\n\n2014-05-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tModified the SELECT statement that gets the
+        list of tables to be synced, so that the underscore\n\tescaped. Thanks to
+        Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
+        this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAddess support
+        for Push/Pull-only tables.\n\n"
+      Text: "Prepare Payload for Client:\nProcesses a pull request from the client
+        by building a pull package.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tThe push and pull timestamps are now being pushed
+        by the client in a\n\tSQL-friendly format, to avoid potential differences
+        in timestamp formats\n\tbetween the client and server.\n\t\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tMods to resolve simultaneous sync issues.\n\n2014-04-21\n\tTim
+        Dietrich (timdietrich@me.com)\n\tResolves issues with non-SQL compliant table
+        names.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tModified the
+        code that determines what records to pull. Previously we tried to\n\tprevent
+        round-tripping the data that had just been pulled. That failed miserably,\n\tespecially
+        for users syncing from multiple devices. It also caused sync issues\n\tin
+        cases were record changes were rejected due to the conflict resolution being\n\tused.
+        See the release notes for more info.\n\n2014-04-23\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        code to support the initial sync function of the EasySync demo database.\n\tSee
+        \ Heres the SELECT statement that is used to select the data for the payload
+        \n\tcomment / code for details.\n\t\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tWhen
+        selecting records for inclusing, we now look at the ID of the device that
+        last\n\tupdated the record so that we dont round trip the data that was just
+        pushed.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tMinor change
+        to account for a user who has wiped / reset their mobile database.\n\tAllows
+        them to pull records that they last touched via that device.\n\n2014-05-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tModified the SELECT statement that gets the
+        list of tables to be synced, so that the underscore\n\tescaped. Thanks to
+        Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
+        this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAddess support
+        for Push/Pull-only tables.\n\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Load settings.'
+      Text: Load settings.
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “EasySync Settings” ]
+      Script:
+        id: '19'
+        name: EasySync Settings
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Log the start time.'
+      Text: Log the start time.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
+      Value:
+        Calculation: Get ( CurrentTimeStamp )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeStamp
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Prevent the user from aborting, and well handle errors, so suppress
+        those...'
+      Text: Prevent the user from aborting, and well handle errors, so suppress those...
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the parameters passed by the client.'
+      Text: Get the parameters passed by the client.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $last_pull_utc; Value:GetValue ( Get ( ScriptParameter
+        ); 1 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $last_pull_utc
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $last_push_utc; Value:GetValue ( Get ( ScriptParameter
+        ); 2 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $last_push_utc
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_persistent_id; Value:GetValue ( Get ( ScriptParameter
+        ); 3 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 3 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 3 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_persistent_id
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter
+        ); 4 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 4 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 4 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter
+        ); 4 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 4 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 4 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_ip_address; Value:GetValue ( Get ( ScriptParameter
+        ); 5 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 5 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 5 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_ip_address
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_nic_address; Value:GetValue ( Get ( ScriptParameter
+        ); 6 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 6 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 6 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_nic_address
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_platform; Value:GetValue ( Get ( ScriptParameter
+        ); 7 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 7 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 7 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_platform
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_system_version; Value:GetValue ( Get ( ScriptParameter
+        ); 8 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 8 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 8 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_system_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_device; Value:GetValue ( Get ( ScriptParameter
+        ); 9 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 9 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 9 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_device
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_network_protocol; Value:GetValue ( Get ( ScriptParameter
+        ); 10 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 10 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 10 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_network_protocol
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_network_type; Value:GetValue ( Get ( ScriptParameter
+        ); 11 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 11 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 11 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_network_type
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $additional_settings; Value:GetValue ( Get ( ScriptParameter
+        ); 12 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ); 12 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); 12 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $additional_settings
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
+      DisplayCalculation:
+        Chunk: $$debug_pull
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Pull Params; Message: Get ( ScriptParameter
+        ); Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Pull Params"'
+        DisplayCalculation:
+          Chunk: Pull Params
+      Message:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Create the settings portion of the payload.'
+      Text: Create the settings portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $settings_info; Value:settings¶ \n$$field_delimiter
+        \ /setting  $$record_delimiter  /setting  $$sync_method  ¶  \n/settings ]"
+      Value:
+        Calculation: "\"<settings>¶\" &\n$$field_delimiter & \"</setting>\" & $$record_delimiter
+          & \"</setting>\" & $$sync_method & ¶ & \n\"</settings>\""
+        DisplayCalculation:
+          Chunk: "settings¶ \n$$field_delimiter  /setting  $$record_delimiter  /setting
+            \ $$sync_method  ¶  \n/settings"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $settings_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get all of the tables that are to be synced.'
+      Text: Get all of the tables that are to be synced.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables
+        WHERE ( TableName LIKE ES\_% ) AND ( TableName NOT LIKE ES\_PUSH\_% ); /col;
+        ¶ ) ]
+      Value:
+        Calculation: ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName
+          LIKE 'ES\_%' ) AND ( TableName NOT LIKE 'ES\_PUSH\_%' )"; "</col>"; ¶ )
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - ' ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ) AND
+            ( TableName NOT LIKE ES\_PUSH\_% ); /col; ¶ )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_tables
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $sync_tables ) ]
+      Calculation: IsEmpty ( $sync_tables )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $sync_tables )'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: There are no tables
+        configured for syncing.; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Error"'
+        DisplayCalculation:
+          Chunk: Sync Error
+      Message:
+        Calculation: '"There are no tables configured for syncing."'
+        DisplayCalculation:
+          Chunk: There are no tables configured for syncing.
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
+      DisplayCalculation:
+        Chunk: $$debug_pull
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Tables; Message: $sync_tables; Default
+        Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Tables"'
+        DisplayCalculation:
+          Chunk: Sync Tables
+      Message:
+        Calculation: $sync_tables
+        DisplayCalculation:
+          Chunk: $sync_tables
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Sync Tables; Message: $sync_tables; Default
+        Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Sync Tables"'
+        DisplayCalculation:
+          Chunk: Sync Tables
+      Message:
+        Calculation: $sync_tables
+        DisplayCalculation:
+          Chunk: $sync_tables
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Initalize table info portion of the payload.'
+      Text: Initalize table info portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $table_info; Value: ]'
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: 
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Initalize records portion of the payload.'
+      Text: Initalize records portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $records; Value: ]'
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: 
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the tables to be synced...'
+      Text: Loop over the tables to be synced...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the tables name.'
+      Text: Get the tables name.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $sync_table; Value:Let ( \n[\n$t = GetValue ( $sync_tables
+        ; $i );\n$t = Substitute ( $t; /col; ¶ )\n];\nGetValue ( $t; 1 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\n$t = GetValue ( $sync_tables ; $i );\n$t = Substitute
+          ( $t; \"</col>\"; ¶ )\n];\nGetValue ( $t; 1 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\n$t = "
+          - GetValue
+          - " ( $sync_tables ; $i );\n$t = "
+          - Substitute
+          - |2
+             ( $t; /col; ¶ )
+            ];
+          - GetValue
+          - |2-
+             ( $t; 1 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_table
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the names (and # of reps) of the fields in this table.'
+      Text: 'Get the names (and # of reps) of the fields in this table.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note that fields prefixed with EXCL_ are excluded from the payload.'
+      Text: Note that fields prefixed with EXCL_ are excluded from the payload.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note that calculated and global fields are also excluded.'
+      Text: Note that calculated and global fields are also excluded.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $sync_fields; Value:ExecuteSQL ( SELECT FieldName,
+        FieldReps FROM FileMaker_Fields WHERE ( TableName = ? ) AND ( ( FieldClass
+        = Normal ) OR ( FieldName LIKE B64_% ) ) AND ( FieldName NOT LIKE EXCL_% )
+        AND ( FieldName  ES_Exclude ) AND ( FieldType NOT LIKE global%); |; ¶; $sync_table
+        ) ]
+      Value:
+        Calculation: ExecuteSQL ( "SELECT FieldName, FieldReps FROM FileMaker_Fields
+          WHERE ( TableName = ? ) AND ( ( FieldClass = 'Normal' ) OR ( FieldName LIKE
+          'B64_%' ) ) AND ( FieldName NOT LIKE 'EXCL_%' ) AND ( FieldName <> 'ES_Exclude'
+          ) AND ( FieldType NOT LIKE 'global%')"; "|"; ¶; $sync_table )
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - ' ( SELECT FieldName, FieldReps FROM FileMaker_Fields WHERE ( TableName
+            = ? ) AND ( ( FieldClass = Normal ) OR ( FieldName LIKE B64_% ) ) AND
+            ( FieldName NOT LIKE EXCL_% ) AND ( FieldName  ES_Exclude ) AND ( FieldType
+            NOT LIKE global%); |; ¶; $sync_table )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_fields
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
+      DisplayCalculation:
+        Chunk: $$debug_pull
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Fields in   $sync_table; Message: $sync_fields;
+        Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Fields in " & $sync_table'
+        DisplayCalculation:
+          Chunk: Fields in   $sync_table
+      Message:
+        Calculation: $sync_fields
+        DisplayCalculation:
+          Chunk: $sync_fields
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Reformat the field names so that repetitions are considered.'
+      Text: Reformat the field names so that repetitions are considered.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $fields; Value:$sync_table  /field ]
+      Value:
+        Calculation: $sync_table & "</field>"
+        DisplayCalculation:
+          Chunk: $sync_table  /field
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $fields
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $f; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $f
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_name; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.\n];\nGetValue
+        ( field_combo_list; 1 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $f );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 1 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $f ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; |; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 1 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_name
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_reps; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.\n];\nGetValue
+        ( field_combo_list; 2 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $f );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 2 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $f ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; |; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 2 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_reps
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $fields; Value:$fields  $field_name  [  $r  ]/field
+        ]
+      Value:
+        Calculation: $fields & $field_name & "[" & $r & "]</field>"
+        DisplayCalculation:
+          Chunk: $fields  $field_name  [  $r  ]/field
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $fields
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:$r + 1 ]
+      Value:
+        Calculation: $r + 1
+        DisplayCalculation:
+          Chunk: $r + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $r  $field_reps ]
+      Calculation: $r > $field_reps
+      DisplayCalculation:
+        Chunk: $r  $field_reps
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $f; Value:$f + 1 ]
+      Value:
+        Calculation: $f + 1
+        DisplayCalculation:
+          Chunk: $f + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $f
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $f  ValueCount ( $sync_fields ) ]
+      Calculation: $f > ValueCount ( $sync_fields )
+      DisplayCalculation:
+        Chunk:
+        - '$f  '
+        - ValueCount
+        - ' ( $sync_fields )'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
+      DisplayCalculation:
+        Chunk: $$debug_pull
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Reformatted Fields in   $sync_table;
+        Message: $fields; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Reformatted Fields in " & $sync_table'
+        DisplayCalculation:
+          Chunk: Reformatted Fields in   $sync_table
+      Message:
+        Calculation: $fields
+        DisplayCalculation:
+          Chunk: $fields
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Add this tables info to the running table_info.'
+      Text: Add this tables info to the running table_info.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table_info; Value:If ( not IsEmpty ( $table_info );
+        $table_info  ¶;  )  $fields  /table ]
+      Value:
+        Calculation: If ( not IsEmpty ( $table_info ); $table_info & ¶; "" ) & $fields
+          & "</table>"
+        DisplayCalculation:
+          Chunk:
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( $table_info ); $table_info  ¶;  )  $fields  /table'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the fields in the table to create the fields portion of
+        what will be the SELECT statement...'
+      Text: Loop over the fields in the table to create the fields portion of what
+        will be the SELECT statement...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $dyn_sql; Value:  $sync_table   ]'
+      Value:
+        Calculation: '"''" & $sync_table & "''"'
+        DisplayCalculation:
+          Chunk: '  $sync_table  '
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_sql
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $j; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $j
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_name; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.\n];\nGetValue
+        ( field_combo_list; 1 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $j );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 1 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $j ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; |; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 1 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_name
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_reps; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; |; ¶ ) // Convert the value to a value list.\n];\nGetValue
+        ( field_combo_list; 2 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $j );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 2 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $j ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; |; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 2 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_reps
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the reps...'
+      Text: Loop over the reps...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dyn_sql; Value:$dyn_sql  ,  || \\\  $field_name  \\\  [  $r  ]
+        ]
+      Value:
+        Calculation: $dyn_sql & ", '' || \\\"" & $field_name & "\\\"" & "[" & $r &
+          "]"
+        DisplayCalculation:
+          Chunk: $dyn_sql  ,  || \\\  $field_name  \\\  [  $r  ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_sql
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:$r + 1 ]
+      Value:
+        Calculation: $r + 1
+        DisplayCalculation:
+          Chunk: $r + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $r  $field_reps ]
+      Calculation: $r > $field_reps
+      DisplayCalculation:
+        Chunk: $r  $field_reps
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $j; Value:$j + 1 ]
+      Value:
+        Calculation: $j + 1
+        DisplayCalculation:
+          Chunk: $j + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $j
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $j  ValueCount ( $sync_fields ) ]
+      Calculation: $j > ValueCount ( $sync_fields )
+      DisplayCalculation:
+        Chunk:
+        - '$j  '
+        - ValueCount
+        - ' ( $sync_fields )'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Add this tables fields to the SELECT statement.'
+      Text: Add this tables fields to the SELECT statement.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: This is the SELECT statement that is used to select the data
+        for the payload.'
+      Text: 'Note: This is the SELECT statement that is used to select the data for
+        the payload.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#You can add your own custom business rules here to determine what
+        data is sent to the user, by looking at things like the table name being worked
+        on, the user / device that has requested the data, etc. Dynamically add your
+        conditions to the WHERE clause.'
+      Text: You can add your own custom business rules here to determine what data
+        is sent to the user, by looking at things like the table name being worked
+        on, the user / device that has requested the data, etc. Dynamically add your
+        conditions to the WHERE clause.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dyn_sql; Value:SELECT   \n$dyn_sql  ,   $$record_delimiter
+        \  \n FROM \\\\\\  $sync_table  \\\\\\  \n WHERE  \n\n// Exclude records flagged
+        for sync exclusion.\n( COALESCE ( ES_Exclude, 0 ) = 0 )  \n\n// If the client
+        is merging new/updated data with data already on the device...\n// Only include
+        records that have been added/updated since the last pull...\n// And only include
+        data that they did not just push (i.e. no round tripping!)...\nIf ( ( $$sync_method
+        = Merge ) and ( $last_pull_utc  0 );  AND ( ES_UTC_Time    $last_pull_utc
+        \  )    AND ( COALESCE ( ES_Device_ID, X )    $client_persistent_id  ) ;  )
+        ]"
+      Value:
+        Calculation: "\"SELECT \" & \n$dyn_sql & \", '\" & $$record_delimiter & \"'\"
+          &\n\" FROM \\\\\\\"\" & $sync_table & \"\\\\\\\"\" & \n\" WHERE \" &\n\n//
+          Exclude records flagged for sync exclusion.\n\"( COALESCE ( ES_Exclude,
+          0 ) = 0 ) \" &\n\n// If the client is merging new/updated data with data
+          already on the device...\n// Only include records that have been added/updated
+          since the last pull...\n// And only include data that they did not just
+          push (i.e. no \"round tripping!\")...\nIf ( ( $$sync_method = \"Merge\"
+          ) and ( $last_pull_utc > 0 );  \"AND ( ES_UTC_Time > \" & $last_pull_utc
+          & \" ) \" &  \"AND ( COALESCE ( ES_Device_ID, 'X' ) <> '\" & $client_persistent_id
+          & \"') \"; \"\" )"
+        DisplayCalculation:
+          Chunk:
+          - "SELECT   \n$dyn_sql  ,   $$record_delimiter   \n FROM \\\\\\  $sync_table
+            \ \\\\\\  \n WHERE  \n\n"
+          - |
+            // Exclude records flagged for sync exclusion.
+          - "( COALESCE ( ES_Exclude, 0 ) = 0 )  \n\n"
+          - |
+            // If the client is merging new/updated data with data already on the device...
+          - |
+            // Only include records that have been added/updated since the last pull...
+          - |
+            // And only include data that they did not just push (i.e. no round tripping!)...
+          - If
+          - ' ( ( $$sync_method = Merge ) '
+          - and
+          - ' ( $last_pull_utc  0 );  AND ( ES_UTC_Time    $last_pull_utc   )    AND
+            ( COALESCE ( ES_Device_ID, X )    $client_persistent_id  ) ;  )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_sql
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
+      DisplayCalculation:
+        Chunk: $$debug_pull
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: SELECT Statement for   $sync_table; Message:
+        $dyn_sql; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"SELECT Statement for " & $sync_table'
+        DisplayCalculation:
+          Chunk: SELECT Statement for   $sync_table
+      Message:
+        Calculation: $dyn_sql
+        DisplayCalculation:
+          Chunk: $dyn_sql
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wrap the SELECT statement in an ExecuteSQL call.'
+      Text: Wrap the SELECT statement in an ExecuteSQL call.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dyn_esql; Value:ExecuteSQL ( \  $dyn_sql  \; \  $$field_delimiter  \;
+        \\ ) ]
+      Value:
+        Calculation: '"ExecuteSQL ( \"" & $dyn_sql & "\"; \"" & $$field_delimiter
+          & "\"; \"\" )"'
+        DisplayCalculation:
+          Chunk: ExecuteSQL ( \  $dyn_sql  \; \  $$field_delimiter  \; \\ )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_esql
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_pull ]
+      Calculation: $$debug_pull
+      DisplayCalculation:
+        Chunk: $$debug_pull
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: ExecuteSQL Statement for   $sync_table;
+        Message: $dyn_esql; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"ExecuteSQL Statement for " & $sync_table'
+        DisplayCalculation:
+          Chunk: ExecuteSQL Statement for   $sync_table
+      Message:
+        Calculation: $dyn_esql
+        DisplayCalculation:
+          Chunk: $dyn_esql
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Evaluate the ExecuteSQL statement to get the actual data, and append
+        it to the records.'
+      Text: Evaluate the ExecuteSQL statement to get the actual data, and append it
+        to the records.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $temp_recs; Value:Evaluate ( $dyn_esql  ) ]
+      Value:
+        Calculation: Evaluate ( $dyn_esql  )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $dyn_esql  )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $temp_recs
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$debug_push ]
+      Calculation: $$debug_push
+      DisplayCalculation:
+        Chunk: $$debug_push
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Records From   $sync_table; Message:
+        $temp_recs; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Records From " & $sync_table'
+        DisplayCalculation:
+          Chunk: Records From   $sync_table
+      Message:
+        Calculation: $temp_recs
+        DisplayCalculation:
+          Chunk: $temp_recs
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If there are records in the current table to be pushed...'
+      Text: If there are records in the current table to be pushed...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $temp_recs ) ]
+      Calculation: not IsEmpty ( $temp_recs )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $temp_recs )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $records; Value:If ( not IsEmpty ( $records ); $records  ¶;  )  $temp_recs
+        ]
+      Value:
+        Calculation: If ( not IsEmpty ( $records ); $records & ¶; "" ) & $temp_recs
+        DisplayCalculation:
+          Chunk:
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( $records ); $records  ¶;  )  $temp_recs'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
+      Calculation: $i > ValueCount ( $sync_tables )
+      DisplayCalculation:
+        Chunk:
+        - '$i  '
+        - ValueCount
+        - ' ( $sync_tables )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wrap the records portion of the payload.'
+      Text: Wrap the records portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $records; Value:records  ¶  $records  ¶  /records ]
+      Value:
+        Calculation: '"<records>" & ¶ & $records & ¶ & "</records>"'
+        DisplayCalculation:
+          Chunk: records  ¶  $records  ¶  /records
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wrap the table info portion of the payload.'
+      Text: Wrap the table info portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table_info; Value:tables  ¶  $table_info  ¶  /tables
+        ]
+      Value:
+        Calculation: '"<tables>" & ¶ & $table_info & ¶ & "</tables>"'
+        DisplayCalculation:
+          Chunk: tables  ¶  $table_info  ¶  /tables
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Put the payload together.'
+      Text: Put the payload together.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $payload; Value:payload¶ \n$settings_info  ¶  \n$table_info
+        \ ¶  \n$records  ¶  \n/payload ]"
+      Value:
+        Calculation: "\"<payload>¶\" &\n$settings_info & ¶ & \n$table_info & ¶ & \n$records
+          & ¶ & \n\"</payload>\""
+        DisplayCalculation:
+          Chunk: "payload¶ \n$settings_info  ¶  \n$table_info  ¶  \n$records  ¶  \n/payload"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If the payload is small enough to send at one time...'
+      Text: If the payload is small enough to send at one time...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Length ( $payload )  ≤ $$max_pull_payload_size ]
+      Calculation: Length ( $payload )  ≤ $$max_pull_payload_size
+      DisplayCalculation:
+        Chunk:
+        - Length
+        - ' ( $payload )  ≤ $$max_pull_payload_size'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Return the payload to the client.'
+      Text: Return the payload to the client.
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $payload ]'
+      Calculation: $payload
+      DisplayCalculation:
+        Chunk: $payload
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Save payload.'
+      Text: Save payload.
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ EasySync_Payloads ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        Calculation: '"EasySync_Payloads"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payloads::Payload; $payload ]
+      Result:
+        Calculation: $payload
+        DisplayCalculation:
+          Chunk: $payload
+      TargetName:
+        Calculation: '"EasySync_Payloads::Payload"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads::Payload
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ EasySync_Payloads::Payload_Type; Pull Payload
+        ]
+      Result:
+        Calculation: '"Pull Payload"'
+        DisplayCalculation:
+          Chunk: Pull Payload
+      TargetName:
+        Calculation: '"EasySync_Payloads::Payload_Type"'
+        DisplayCalculation:
+          Chunk: EasySync_Payloads::Payload_Type
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Return payload ID to the client.'
+      Text: Return payload ID to the client.
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Payload_UUID:   Evaluate ( EasySync_Payloads::ES_Payload_UUID
+        ) ]'
+      Calculation: '"Payload_UUID: " & Evaluate ( "EasySync_Payloads::ES_Payload_UUID"
+        )'
+      DisplayCalculation:
+        Chunk:
+        - 'Payload_UUID:   '
+        - Evaluate
+        - ' ( EasySync_Payloads::ES_Payload_UUID )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

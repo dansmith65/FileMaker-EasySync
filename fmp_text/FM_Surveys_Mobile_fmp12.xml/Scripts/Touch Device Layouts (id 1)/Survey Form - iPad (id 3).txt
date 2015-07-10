@@ -1,0 +1,19 @@
+Set Zoom Level [ Lock; 100%; Camera: Back; Resolution: Full ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '3'
+  name: Survey Form - iPad
+  StepList:
+    Step:
+      enable: 'True'
+      id: '97'
+      name: Set Zoom Level
+      StepText: 'Set Zoom Level [ Lock; 100%; Camera: Back; Resolution: Full ]'
+      Lock:
+        state: 'True'
+      Zoom:
+        value: '100'

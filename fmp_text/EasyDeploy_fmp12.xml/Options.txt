@@ -1,0 +1,38 @@
+File Options
+------------
+
+    Encryption:                  0 (no encryption)             
+
+    Minimum Allowed Version:     13.0                          
+    Account:                     ezdeploy                      
+    Layout:                                                    
+
+    Default Custom Menu Set:     [Standard FileMaker Menus]    
+
+    Triggers
+        OnFirstWindowOpen        OnFirstWindowOpen             
+        OnLastWindowClose        OnLastWindowClose             
+
+
+---
+Options:
+  Encryption: 
+  OnOpen:
+    MinimumAllowedVersion:
+      name: '13.0'
+      id: '1300'
+    Account:
+      name: ezdeploy
+  WindowTriggers:
+    OnFirstWindowOpen:
+      Script:
+        id: '51'
+        name: OnFirstWindowOpen
+    OnLastWindowClose:
+      Script:
+        id: '49'
+        name: OnLastWindowClose
+  DefaultCustomMenuSet:
+    CustomMenuSet:
+      id: '1'
+      name: '[Standard FileMaker Menus]'

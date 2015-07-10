@@ -1,0 +1,302 @@
+#OnFirstWindowOpen:Called via the OnFirstWindowOpen trigger so that we show the UI properly.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.
+#
+Allow User Abort [ Off ]
+#
+Go to Layout [ “Temp” ]
+Show/Hide Toolbars[ Hide ]
+Adjust Window[ Resize to Fit ]
+#
+#If this file hasnt been used previously...
+If [ not Temp::Consumed ]
+#
+#Show UI to the user so that they can proceed with the upgrade process.
+Set Variable [ $$hide_ui; Value:0 ]
+Set Variable [ $$EasyDeploy_Status; Value:Ready To Upgrade ]
+Refresh Window
+#
+Else
+#
+#Hide the UI. We dont want the user to be able to use this file again.
+Set Variable [ $$hide_ui; Value:1 ]
+Set Variable [ $$EasyDeploy_Status; Value:EasyDeploy Already Used ]
+Refresh Window
+Show Custom Dialog [ Title: Already Used; Message: This copy of EasyDeploy has already been used. Please remove it from your device.; Default Button: “OK”, Commit: “Yes” ]
+#
+#We only delete the file if the user isnt logged in with Full Access privileges. That way we can make changes to the file.
+If [ Get ( AccountPrivilegeSetName ) ≠ [Full Access] ]
+Close File [ Current File ]
+Else
+Show Custom Dialog [ Title: Full Access Detected; Message: You are logged in with Full Access privileges. The file will not close, so that you can make changes should you need to.; Default Button: “OK”, Commit: “Yes” ]
+End If
+End If
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '51'
+  name: OnFirstWindowOpen
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#OnFirstWindowOpen:\nCalled via the OnFirstWindowOpen trigger so
+        that we show the UI properly.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tInitial version."
+      Text: "OnFirstWindowOpen:\nCalled via the OnFirstWindowOpen trigger so that
+        we show the UI properly.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Temp” ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '28'
+        name: Temp
+    - enable: 'True'
+      id: '29'
+      name: Show/Hide Toolbars
+      StepText: |-
+        Show/Hide Toolbars
+        [ Hide ]
+      Lock:
+        state: 'False'
+      ShowHide:
+        value: Hide
+    - enable: 'True'
+      id: '31'
+      name: Adjust Window
+      StepText: |-
+        Adjust Window
+        [ Resize to Fit ]
+      WindowState:
+        value: ResizeToFit
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If this file hasnt been used previously...'
+      Text: If this file hasnt been used previously...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not Temp::Consumed ]
+      Calculation: not Temp::Consumed
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - type: FieldRef
+          Field:
+            table: Temp
+            id: '7'
+            name: Consumed
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Show UI to the user so that they can proceed with the upgrade process.'
+      Text: Show UI to the user so that they can proceed with the upgrade process.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$hide_ui; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$hide_ui
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:Ready To Upgrade ]
+      Value:
+        Calculation: '"Ready To Upgrade"'
+        DisplayCalculation:
+          Chunk: Ready To Upgrade
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EasyDeploy_Status
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Hide the UI. We dont want the user to be able to use this file again.'
+      Text: Hide the UI. We dont want the user to be able to use this file again.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$hide_ui; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$hide_ui
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:EasyDeploy Already Used
+        ]
+      Value:
+        Calculation: '"EasyDeploy Already Used"'
+        DisplayCalculation:
+          Chunk: EasyDeploy Already Used
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EasyDeploy_Status
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Already Used; Message: This copy of EasyDeploy
+        has already been used. Please remove it from your device.; Default Button:
+        “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Already Used"'
+        DisplayCalculation:
+          Chunk: Already Used
+      Message:
+        Calculation: '"This copy of EasyDeploy has already been used. Please remove
+          it from your device."'
+        DisplayCalculation:
+          Chunk: This copy of EasyDeploy has already been used. Please remove it from
+            your device.
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#We only delete the file if the user isnt logged in with Full Access
+        privileges. That way we can make changes to the file.'
+      Text: We only delete the file if the user isnt logged in with Full Access privileges.
+        That way we can make changes to the file.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( AccountPrivilegeSetName ) ≠ [Full Access] ]
+      Calculation: Get ( AccountPrivilegeSetName ) ≠ "[Full Access]"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - AccountPrivilegeSetName
+        - ' ) ≠ [Full Access]'
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ Current File ]
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: Full Access Detected; Message: You are
+        logged in with Full Access privileges. The file will not close, so that you
+        can make changes should you need to.; Default Button: “OK”, Commit: “Yes”
+        ]'
+      Title:
+        Calculation: '"Full Access Detected"'
+        DisplayCalculation:
+          Chunk: Full Access Detected
+      Message:
+        Calculation: '"You are logged in with Full Access privileges. The file will
+          not close, so that you can make changes should you need to."'
+        DisplayCalculation:
+          Chunk: You are logged in with Full Access privileges. The file will not
+            close, so that you can make changes should you need to.
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: OK
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

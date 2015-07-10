@@ -1,0 +1,431 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   ES_Payload_UUID             Text             Normal                                                              
+     2   Creator_Account             Text             Normal                                                              
+     3   Created_TimeStamp           TimeStamp        Normal                                                              
+    18   Created_TimeStamp_UTC       Number           Normal                                                              
+     4   Payload                     Text             Normal                                                              
+    11   Payload_Type                Text             Normal                                                              
+    13   ES_Parent_Payload_UUID      Text             Normal                                                              
+    12   ES_Child_Record_UUID        Text             Normal                                                              
+    14   ES_Last_Push_UTC_Time       Number           Normal            The UTC time of the last successful push. (Applies to client only.)
+    15   ES_Last_Pull_UTC_Time       Number           Normal            The UTC time of the last successful pull. (Applies to client only.)
+    16   ES_Last_Full_Sync           Text             Normal            The date/time of the last successful sync (push and pull). Designed for use in the UI.
+    17   ES_Deleted_Record_UUID      Text             Normal                                                              
+
+
+---
+BaseTable:
+  id: '132'
+  records: ''
+  name: EasySync
+  FieldCatalog:
+    Field:
+    - id: '1'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Payload_UUID
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        overwriteExistingValue: 'False'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( UUID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - UUID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '2'
+      dataType: Text
+      fieldType: Normal
+      name: Creator_Account
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        value: CreationAccountName
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '3'
+      dataType: TimeStamp
+      fieldType: Normal
+      name: Created_TimeStamp
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        value: CreationTimeStamp
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '18'
+      dataType: Number
+      fieldType: Normal
+      name: Created_TimeStamp_UTC
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        overwriteExistingValue: 'False'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '4'
+      dataType: Text
+      fieldType: Normal
+      name: Payload
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '11'
+      dataType: Text
+      fieldType: Normal
+      name: Payload_Type
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '13'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Parent_Payload_UUID
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '12'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Child_Record_UUID
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '14'
+      dataType: Number
+      fieldType: Normal
+      name: ES_Last_Push_UTC_Time
+      Comment: The UTC time of the last successful push. (Applies to client only.)
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '15'
+      dataType: Number
+      fieldType: Normal
+      name: ES_Last_Pull_UTC_Time
+      Comment: The UTC time of the last successful pull. (Applies to client only.)
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '16'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Last_Full_Sync
+      Comment: The date/time of the last successful sync (push and pull). Designed
+        for use in the UI.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '17'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Deleted_Record_UUID
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'

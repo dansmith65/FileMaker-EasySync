@@ -1,0 +1,329 @@
+#Respond to Client Ping:Responds to a ping request from the client. The client uses this to determine if the server is available.Returns:-1: The device is not on the whitelist, and is not allowed to sync.-2: The device is on the blacklist, and is not allowed to sync.-3: The device is on the whitelist. Data on the device will be erased, and the sync is rejected.-4: The client version is not up-to-date, and is not allowed to sync. 1: The sync can proceed.2: The client version is not up-to-date. However, the sync can proceed.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Returns servers current timestamp in YYYYMMDDHHMMSS format instead of 1.	Client will use this to determine a timezone offest.2014-04-19	Tim Dietrich (timdietrich@me.com)	Added support for client versioning.
+#
+#Load settings.
+Perform Script [ “EasySync Settings” ]
+#
+#Get the device ID.
+Set Variable [ $device_id; Value:GetValue ( Get ( ScriptParameter ) ; 1 ) ]
+Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter ) ; 2 ) ]
+#
+#If there is a whitelist, is this device on it?
+If [ not IsEmpty ( $$device_whitelist ) ]
+If [ not PatternCount ( $$device_whitelist ; $device_id ) ]
+Exit Script [ Result: -1 ]
+End If
+End If
+#
+#Is the device on the blacklist?
+If [ PatternCount ( $$device_blacklist ; $device_id ) ]
+Exit Script [ Result: -2 ]
+End If
+#
+#Is the device on the wipelist?
+If [ PatternCount ( $$device_wipelist ; $device_id ) ]
+Exit Script [ Result: -3 ]
+End If
+#
+#Is the version of the client up to date?
+If [ $client_version  $$current_client_version ]
+#All previous versions of the client are to be rejected,or this version of the client is no longer supported.
+If [ $$client_version_behavior = reject or $client_version  $$min_syncable_client_version ]
+Exit Script [ Result: -4 ]
+Else
+Exit Script [ Result: 2 ]
+End If
+End If
+#
+#Standard response is 1 indicating that the server is alive and well.
+Exit Script [ Result: 1 ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '16'
+  name: Respond to Client Ping
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Respond to Client Ping:\nResponds to a ping request from the client.
+        The client uses this to determine if the server is available.\n\nReturns:\n-1:
+        The device is not on the whitelist, and is not allowed to sync.\n-2: The device
+        is on the blacklist, and is not allowed to sync.\n-3: The device is on the
+        whitelist. Data on the device will be erased, and the sync is rejected.\n-4:
+        The client version is not up-to-date, and is not allowed to sync. \n1: The
+        sync can proceed.\n2: The client version is not up-to-date. However, the sync
+        can proceed.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReturns
+        servers current timestamp in YYYYMMDDHHMMSS format instead of 1.\n\tClient
+        will use this to determine a timezone offest.\n\n2014-04-19\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded support for client versioning.\n\n"
+      Text: "Respond to Client Ping:\nResponds to a ping request from the client.
+        The client uses this to determine if the server is available.\n\nReturns:\n-1:
+        The device is not on the whitelist, and is not allowed to sync.\n-2: The device
+        is on the blacklist, and is not allowed to sync.\n-3: The device is on the
+        whitelist. Data on the device will be erased, and the sync is rejected.\n-4:
+        The client version is not up-to-date, and is not allowed to sync. \n1: The
+        sync can proceed.\n2: The client version is not up-to-date. However, the sync
+        can proceed.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReturns
+        servers current timestamp in YYYYMMDDHHMMSS format instead of 1.\n\tClient
+        will use this to determine a timezone offest.\n\n2014-04-19\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded support for client versioning.\n\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Load settings.'
+      Text: Load settings.
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “EasySync Settings” ]
+      Script:
+        id: '19'
+        name: EasySync Settings
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the device ID.'
+      Text: Get the device ID.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $device_id; Value:GetValue ( Get ( ScriptParameter
+        ) ; 1 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $device_id
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter
+        ) ; 2 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $client_version
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If there is a whitelist, is this device on it?'
+      Text: If there is a whitelist, is this device on it?
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $$device_whitelist ) ]
+      Calculation: not IsEmpty ( $$device_whitelist )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $$device_whitelist )'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not PatternCount ( $$device_whitelist ; $device_id ) ]
+      Calculation: not PatternCount ( $$device_whitelist ; $device_id )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - ' ( $$device_whitelist ; $device_id )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -1 ]'
+      Calculation: '-1'
+      DisplayCalculation:
+        Chunk: '-1'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Is the device on the blacklist?'
+      Text: Is the device on the blacklist?
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ PatternCount ( $$device_blacklist ; $device_id ) ]
+      Calculation: PatternCount ( $$device_blacklist ; $device_id )
+      DisplayCalculation:
+        Chunk:
+        - PatternCount
+        - ' ( $$device_blacklist ; $device_id )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -2 ]'
+      Calculation: '-2'
+      DisplayCalculation:
+        Chunk: '-2'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Is the device on the wipelist?'
+      Text: Is the device on the wipelist?
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ PatternCount ( $$device_wipelist ; $device_id ) ]
+      Calculation: PatternCount ( $$device_wipelist ; $device_id )
+      DisplayCalculation:
+        Chunk:
+        - PatternCount
+        - ' ( $$device_wipelist ; $device_id )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -3 ]'
+      Calculation: '-3'
+      DisplayCalculation:
+        Chunk: '-3'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Is the version of the client up to date?'
+      Text: Is the version of the client up to date?
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $client_version  $$current_client_version ]
+      Calculation: $client_version < $$current_client_version
+      DisplayCalculation:
+        Chunk: $client_version  $$current_client_version
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #All previous versions of the client are to be rejected,
+        or this version of the client is no longer supported.
+      Text: |-
+        All previous versions of the client are to be rejected,
+        or this version of the client is no longer supported.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$client_version_behavior = reject or $client_version  $$min_syncable_client_version
+        ]
+      Calculation: $$client_version_behavior = "reject" or $client_version < $$min_syncable_client_version
+      DisplayCalculation:
+        Chunk:
+        - '$$client_version_behavior = reject '
+        - or
+        - ' $client_version  $$min_syncable_client_version'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: -4 ]'
+      Calculation: '-4'
+      DisplayCalculation:
+        Chunk: '-4'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: 2 ]'
+      Calculation: '2'
+      DisplayCalculation:
+        Chunk: '2'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Standard response is 1 indicating that the server is alive and well.'
+      Text: Standard response is 1 indicating that the server is alive and well.
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: 1 ]'
+      Calculation: '1'
+      DisplayCalculation:
+        Chunk: '1'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

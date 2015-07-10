@@ -1,0 +1,161 @@
+    id  Name                       Print?    Export?     Manage Ext'd?    Override?     Disconnect?   Password?     Menus     Records            Layouts      (Creation)   ValueLists    (Creation)   Scripts           (Creation)  Description                                                           
+    --  ----                       ------    -------     -------------    ---------     -----------   ---------     -----     -------            -------      ----------   ----------    ----------   -------           ----------  -----------                                                           
+     1  [Full Access]              True      True        True             True          False         True          All       CreateEditDelete   Modifiable   True         Modifiable    True         Modifiable        True        access to everything                                                  
+     2  [Data Entry Only]          True      True        False            False         True          True          All       CreateEditDelete   ViewOnly     False        ViewOnly      False        ExecutableOnly    False       write access to all records, no design access                         
+     3  [Read-Only Access]         True      True        False            False         True          True          All       ViewOnly           ViewOnly     False        ViewOnly      False        ExecutableOnly    False       read access to all records, no design access, write access to all global fields
+     5  EasyDeploy                 True      True        False            False         True          True          All       NoAccess           NoAccess     False        NoAccess      False        Custom            False       Used by EasyDeploy to pull upgrades.                                  
+
+
+---
+PrivilegesCatalog:
+  PrivilegeSet:
+  - comment: access to everything
+    id: '1'
+    allowModifyPassword: 'True'
+    managedExtended: 'True'
+    menu: All
+    idleDisconnect: 'False'
+    overrideValidationWarning: 'True'
+    exporting: 'True'
+    printing: 'True'
+    name: '[Full Access]'
+    Records:
+      value: CreateEditDelete
+    Layouts:
+      value: Modifiable
+      allowCreation: 'True'
+    ValueLists:
+      value: Modifiable
+      allowCreation: 'True'
+    Scripts:
+      value: Modifiable
+      allowCreation: 'True'
+  - comment: write access to all records, no design access
+    id: '2'
+    allowModifyPassword: 'True'
+    managedExtended: 'False'
+    menu: All
+    idleDisconnect: 'True'
+    overrideValidationWarning: 'False'
+    exporting: 'True'
+    printing: 'True'
+    name: '[Data Entry Only]'
+    Records:
+      value: CreateEditDelete
+    Layouts:
+      value: ViewOnly
+      allowCreation: 'False'
+    ValueLists:
+      value: ViewOnly
+      allowCreation: 'False'
+    Scripts:
+      value: ExecutableOnly
+      allowCreation: 'False'
+  - comment: read access to all records, no design access, write access to all global
+      fields
+    id: '3'
+    allowModifyPassword: 'True'
+    managedExtended: 'False'
+    menu: All
+    idleDisconnect: 'True'
+    overrideValidationWarning: 'False'
+    exporting: 'True'
+    printing: 'True'
+    name: '[Read-Only Access]'
+    Records:
+      value: ViewOnly
+    Layouts:
+      value: ViewOnly
+      allowCreation: 'False'
+    ValueLists:
+      value: ViewOnly
+      allowCreation: 'False'
+    Scripts:
+      value: ExecutableOnly
+      allowCreation: 'False'
+  - comment: Used by EasyDeploy to pull upgrades.
+    id: '5'
+    allowModifyPassword: 'True'
+    managedExtended: 'False'
+    menu: All
+    idleDisconnect: 'True'
+    overrideValidationWarning: 'False'
+    exporting: 'True'
+    printing: 'True'
+    name: EasyDeploy
+    Records:
+      value: NoAccess
+    Layouts:
+      value: NoAccess
+      allowCreation: 'False'
+    ValueLists:
+      value: NoAccess
+      allowCreation: 'False'
+    Scripts:
+      value: Custom
+      allowCreation: 'False'
+      ScriptList:
+        Script:
+        - runFullAccess: 'False'
+          id: '8'
+          name: Process Payload from Client
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '9'
+          name: EasySync Server - v1.0
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '10'
+          name: --
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '11'
+          name: Prepare Payload for Client
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '15'
+          name: Receive Payload Segment from Client
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '16'
+          name: Respond to Client Ping
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '17'
+          name: Send Payload Segment to Client
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '19'
+          name: EasySync Settings
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '21'
+          name: Sync Check
+          Access:
+            value: NoAccess
+        - runFullAccess: 'True'
+          id: '26'
+          name: Return Requested Deployment Segment
+          Access:
+            value: ViewOnly
+        - runFullAccess: 'False'
+          id: '27'
+          name: EasyDeploy Server - v1.0
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '28'
+          name: --
+          Access:
+            value: NoAccess
+        - name: '[Any New Script]'
+          Access:
+            value: NoAccess

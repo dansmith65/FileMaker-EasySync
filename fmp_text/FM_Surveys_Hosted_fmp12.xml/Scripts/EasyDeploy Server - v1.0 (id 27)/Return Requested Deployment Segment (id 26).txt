@@ -1,0 +1,132 @@
+#Return Requested Deployment Segment:Called by EasyDeploy file to pull a deployment file segment.History:2014-05-02			Tim Dietrich (timdietrich@me.com)	Initial version.
+#
+Set Variable [ $start; Value:GetValue ( Get ( ScriptParameter ) ; 1 ) ]
+Set Variable [ $numberOfCharacters; Value:GetValue ( Get ( ScriptParameter ) ; 2 ) ]
+Go to Layout [ “EasyDeploy” (EasyDeploy) ]
+Sort Records [ Keep records in sorted order; Specified Sort Order: EasyDeploy::Version; descending ][ Restore; No dialog ]
+Go to Record/Request/Page[ First ]
+Exit Script [ Result: Middle ( EasyDeploy::Database_Container_B64 ; $start ; $numberOfCharacters ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '26'
+  name: Return Requested Deployment Segment
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Return Requested Deployment Segment:\nCalled by EasyDeploy file
+        to pull a deployment file segment.\n\nHistory:\n\n2014-05-02\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tInitial version.\n"
+      Text: "Return Requested Deployment Segment:\nCalled by EasyDeploy file to pull
+        a deployment file segment.\n\nHistory:\n\n2014-05-02\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version.\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start; Value:GetValue ( Get ( ScriptParameter ) ;
+        1 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $numberOfCharacters; Value:GetValue ( Get ( ScriptParameter
+        ) ; 2 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $numberOfCharacters
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “EasyDeploy” (EasyDeploy) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '22'
+        name: EasyDeploy
+    - enable: 'True'
+      id: '39'
+      name: Sort Records
+      StepText: |-
+        Sort Records [ Keep records in sorted order; Specified Sort Order: EasyDeploy::Version; descending ]
+        [ Restore; No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      SortList:
+        Maintain: 'True'
+        value: 'True'
+        Sort:
+          type: Descending
+          PrimaryField:
+            Field:
+              table: EasyDeploy
+              id: '4'
+              name: Version
+    - enable: 'True'
+      id: '16'
+      name: Go to Record/Request/Page
+      StepText: |-
+        Go to Record/Request/Page
+        [ First ]
+      NoInteract:
+        state: 'False'
+      RowPageLocation:
+        value: First
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Middle ( EasyDeploy::Database_Container_B64
+        ; $start ; $numberOfCharacters ) ]'
+      Calculation: Middle ( EasyDeploy::Database_Container_B64 ; $start ; $numberOfCharacters
+        )
+      DisplayCalculation:
+        Chunk:
+        - Middle
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: EasyDeploy
+            id: '5'
+            name: Database_Container_B64
+        - ' ; $start ; $numberOfCharacters )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

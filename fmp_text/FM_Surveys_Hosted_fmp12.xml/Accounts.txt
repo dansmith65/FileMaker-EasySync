@@ -1,0 +1,51 @@
+    id  Name                       Status      Management    Privilege Set         Empty Pass?   Change Pass?  Description                                       
+    --  ----                       ------      ----------    -------------         -----------   ------------  -----------                                       
+     1  [Guest]                    Inactive    FileMaker     [Read-Only Access]    False         False                                                           
+     2  admin                      Active      FileMaker     [Full Access]         False         False                                                           
+     6  user1                      Active      FileMaker     [Data Entry Only]     False         False                                                           
+     7  user2                      Active      FileMaker     [Data Entry Only]     False         False                                                           
+     8  ezdeploy                   Active      FileMaker     EasyDeploy            False         False                                                           
+
+---
+AccountCatalog:
+  Account:
+  - id: '1'
+    privilegeSet: '[Read-Only Access]'
+    emptyPassword: 'False'
+    changePasswordOnNextLogin: 'False'
+    managedBy: FileMaker
+    status: Inactive
+    name: '[Guest]'
+    Description: 
+  - id: '2'
+    privilegeSet: '[Full Access]'
+    emptyPassword: 'False'
+    changePasswordOnNextLogin: 'False'
+    managedBy: FileMaker
+    status: Active
+    name: admin
+    Description: 
+  - id: '6'
+    privilegeSet: '[Data Entry Only]'
+    emptyPassword: 'False'
+    changePasswordOnNextLogin: 'False'
+    managedBy: FileMaker
+    status: Active
+    name: user1
+    Description: 
+  - id: '7'
+    privilegeSet: '[Data Entry Only]'
+    emptyPassword: 'False'
+    changePasswordOnNextLogin: 'False'
+    managedBy: FileMaker
+    status: Active
+    name: user2
+    Description: 
+  - id: '8'
+    privilegeSet: EasyDeploy
+    emptyPassword: 'False'
+    changePasswordOnNextLogin: 'False'
+    managedBy: FileMaker
+    status: Active
+    name: ezdeploy
+    Description: 
