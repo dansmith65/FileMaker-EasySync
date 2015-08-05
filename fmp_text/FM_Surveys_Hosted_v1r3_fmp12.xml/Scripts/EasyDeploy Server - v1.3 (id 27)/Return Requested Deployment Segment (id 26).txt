@@ -1,4 +1,4 @@
-#Return Requested Deployment Segment:Called by EasyDeploy file to pull a deployment file segment.History:2014-05-02			Tim Dietrich (timdietrich@me.com)	Initial version.
+#Return Requested Deployment Segment:Called by "EasyDeploy" file to pull a deployment file segment.History:2014-05-02			Tim Dietrich (timdietrich@me.com)	Initial version.
 #
 Set Variable [ $start; Value:GetValue ( Get ( ScriptParameter ) ; 1 ) ]
 Set Variable [ $numberOfCharacters; Value:GetValue ( Get ( ScriptParameter ) ; 2 ) ]
@@ -20,12 +20,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#Return Requested Deployment Segment:\nCalled by EasyDeploy file
+      StepText: "#Return Requested Deployment Segment:\nCalled by \"EasyDeploy\" file
         to pull a deployment file segment.\n\nHistory:\n\n2014-05-02\t\t\n\tTim Dietrich
         (timdietrich@me.com)\n\tInitial version.\n"
-      Text: "Return Requested Deployment Segment:\nCalled by EasyDeploy file to pull
-        a deployment file segment.\n\nHistory:\n\n2014-05-02\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
-        version.\n"
+      Text: "Return Requested Deployment Segment:\nCalled by \"EasyDeploy\" file to
+        pull a deployment file segment.\n\nHistory:\n\n2014-05-02\t\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tInitial version.\n"
     - enable: 'True'
       id: '89'
       name: Comment

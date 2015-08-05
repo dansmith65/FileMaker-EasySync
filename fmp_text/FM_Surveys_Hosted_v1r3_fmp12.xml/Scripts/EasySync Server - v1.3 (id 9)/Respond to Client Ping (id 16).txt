@@ -1,4 +1,4 @@
-#Respond to Client Ping:Responds to a ping request from the client. The client uses this to determine if the server is available.Returns:-1: The device is not on the whitelist, and is not allowed to sync.-2: The device is on the blacklist, and is not allowed to sync.-3: The device is on the whitelist. Data on the device will be erased, and the sync is rejected.-4: The client version is not up-to-date, and is not allowed to sync. 1: The sync can proceed.2: The client version is not up-to-date. However, the sync can proceed.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Returns servers current timestamp in YYYYMMDDHHMMSS format instead of 1.	Client will use this to determine a timezone offest.2014-04-19	Tim Dietrich (timdietrich@me.com)	Added support for client versioning.
+#Respond to Client Ping:Responds to a "ping" request from the client. The client uses this to determine if the server is available.Returns:-1: The device is not on the whitelist, and is not allowed to sync.-2: The device is on the blacklist, and is not allowed to sync.-3: The device is on the whitelist. Data on the device will be erased, and the sync is rejected.-4: The client version is not up-to-date, and is not allowed to sync. 1: The sync can proceed.2: The client version is not up-to-date. However, the sync can proceed.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Returns server's current timestamp in YYYYMMDDHHMMSS format instead of 1.	Client will use this to determine a timezone offest.2014-04-19	Tim Dietrich (timdietrich@me.com)	Added support for client versioning.
 #
 #Load settings.
 Perform Script [ “EasySync Settings” ]
@@ -25,16 +25,16 @@ Exit Script [ Result: -3 ]
 End If
 #
 #Is the version of the client up to date?
-If [ $client_version  $$current_client_version ]
+If [ $client_version < $$current_client_version ]
 #All previous versions of the client are to be rejected,or this version of the client is no longer supported.
-If [ $$client_version_behavior = reject or $client_version  $$min_syncable_client_version ]
+If [ $$client_version_behavior = "reject" or $client_version < $$min_syncable_client_version ]
 Exit Script [ Result: -4 ]
 Else
 Exit Script [ Result: 2 ]
 End If
 End If
 #
-#Standard response is 1 indicating that the server is alive and well.
+#Standard response is "1" indicating that the server is alive and well.
 Exit Script [ Result: 1 ]
 #
 
@@ -50,8 +50,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#Respond to Client Ping:\nResponds to a ping request from the client.
-        The client uses this to determine if the server is available.\n\nReturns:\n-1:
+      StepText: "#Respond to Client Ping:\nResponds to a \"ping\" request from the
+        client. The client uses this to determine if the server is available.\n\nReturns:\n-1:
         The device is not on the whitelist, and is not allowed to sync.\n-2: The device
         is on the blacklist, and is not allowed to sync.\n-3: The device is on the
         whitelist. Data on the device will be erased, and the sync is rejected.\n-4:
@@ -59,10 +59,10 @@ Script:
         sync can proceed.\n2: The client version is not up-to-date. However, the sync
         can proceed.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
         version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReturns
-        servers current timestamp in YYYYMMDDHHMMSS format instead of 1.\n\tClient
+        server's current timestamp in YYYYMMDDHHMMSS format instead of 1.\n\tClient
         will use this to determine a timezone offest.\n\n2014-04-19\n\tTim Dietrich
         (timdietrich@me.com)\n\tAdded support for client versioning.\n\n"
-      Text: "Respond to Client Ping:\nResponds to a ping request from the client.
+      Text: "Respond to Client Ping:\nResponds to a \"ping\" request from the client.
         The client uses this to determine if the server is available.\n\nReturns:\n-1:
         The device is not on the whitelist, and is not allowed to sync.\n-2: The device
         is on the blacklist, and is not allowed to sync.\n-3: The device is on the
@@ -71,7 +71,7 @@ Script:
         sync can proceed.\n2: The client version is not up-to-date. However, the sync
         can proceed.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
         version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReturns
-        servers current timestamp in YYYYMMDDHHMMSS format instead of 1.\n\tClient
+        server's current timestamp in YYYYMMDDHHMMSS format instead of 1.\n\tClient
         will use this to determine a timezone offest.\n\n2014-04-19\n\tTim Dietrich
         (timdietrich@me.com)\n\tAdded support for client versioning.\n\n"
     - enable: 'True'
@@ -257,10 +257,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $client_version  $$current_client_version ]
+      StepText: If [ $client_version < $$current_client_version ]
       Calculation: $client_version < $$current_client_version
       DisplayCalculation:
-        Chunk: $client_version  $$current_client_version
+        Chunk: $client_version < $$current_client_version
     - enable: 'True'
       id: '89'
       name: Comment
@@ -273,14 +273,14 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$client_version_behavior = reject or $client_version  $$min_syncable_client_version
+      StepText: If [ $$client_version_behavior = "reject" or $client_version < $$min_syncable_client_version
         ]
       Calculation: $$client_version_behavior = "reject" or $client_version < $$min_syncable_client_version
       DisplayCalculation:
         Chunk:
-        - '$$client_version_behavior = reject '
+        - '$$client_version_behavior = "reject" '
         - or
-        - ' $client_version  $$min_syncable_client_version'
+        - ' $client_version < $$min_syncable_client_version'
     - enable: 'True'
       id: '103'
       name: Exit Script
@@ -314,8 +314,9 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Standard response is 1 indicating that the server is alive and well.'
-      Text: Standard response is 1 indicating that the server is alive and well.
+      StepText: '#Standard response is "1" indicating that the server is alive and
+        well.'
+      Text: Standard response is "1" indicating that the server is alive and well.
     - enable: 'True'
       id: '103'
       name: Exit Script

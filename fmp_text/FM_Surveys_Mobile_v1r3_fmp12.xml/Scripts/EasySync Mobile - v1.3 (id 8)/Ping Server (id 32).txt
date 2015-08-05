@@ -1,10 +1,10 @@
-#Ping Server:Pings the server to confirm that it is available, and (optionally) that the connection is fast enough.History:2014-04-18			Tim Dietrich (timdietrich@me.com)	Initial version.	This script was split from Sync with Server due to its increasing complexity.2014-04-20	Tim Dietrich (timdietrich@me.com)	Added code to allow the user to easily email their administrator if their device	isnt on the white list.	2014-04-23	Tim Dietrich (timdietrich@me.com)	Get ( SystemIPAddress ) is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.
+#Ping Server:"Pings" the server to confirm that it is available, and (optionally) that the connection is fast enough.History:2014-04-18			Tim Dietrich (timdietrich@me.com)	Initial version.	This script was split from "Sync with Server" due to its increasing complexity.2014-04-20	Tim Dietrich (timdietrich@me.com)	Added code to allow the user to easily email their administrator if their device	isn't on the white list.	2014-04-23	Tim Dietrich (timdietrich@me.com)	"Get ( SystemIPAddress )" is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.
 #
-Set Variable [ $$EasySync_Status; Value:Testing Connection... ]
-Refresh Object [ Object Name: easysync_status ]
+Set Variable [ $$EasySync_Status; Value:"Testing Connection..." ]
+Refresh Object [ Object Name: "easysync_status" ]
 #
 #Prepare the ping params.
-Set Variable [ $ping_params; Value:Get ( PersistentID )  ¶  $$client_version  ¶  Substitute ( Get ( SystemIPAddress ); ¶; ,  )  ¶  Substitute ( Get ( SystemNICAddress ); ¶; ,  )  ¶  Get ( SystemPlatform )  ¶  Get ( SystemVersion )  ¶  Get ( Device )  ¶  Get ( NetworkProtocol )  ¶  Get ( NetworkType )  If ( not IsEmpty ( $$additional_ping_info ); ¶  $$additional_ping_info;  ) ]
+Set Variable [ $ping_params; Value:Get ( PersistentID ) & ¶ & $$client_version & ¶ & Substitute ( Get ( SystemIPAddress ); ¶; ", " ) & ¶ & Substitute ( Get ( SystemNICAddress ); ¶; ", " ) & ¶ & Get ( SystemPlatform ) & ¶ & Get ( SystemVersion ) & ¶ & Get ( Device ) & ¶ & Get ( NetworkProtocol ) & ¶ & Get ( NetworkType ) & If ( not IsEmpty ( $$additional_ping_info ); ¶ & $$additional_ping_info; "" ) ]
 #
 #Check to see if we have a connection.
 Set Variable [ $ping_start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
@@ -20,35 +20,35 @@ End If
 Set Variable [ $ping_time; Value:Get ( CurrentTimeUTCMilliseconds ) - $ping_start ]
 #
 #Is the solution using EasyDeploy?
-Set Variable [ $$easydeploy; Value:ExecuteSQL ( SELECT COUNT ( * ) FROM FileMaker_Tables WHERE TableName = EasyDeploy; ;  ) ]
+Set Variable [ $$easydeploy; Value:ExecuteSQL ( "SELECT COUNT ( * ) FROM FileMaker_Tables WHERE TableName = 'EasyDeploy'"; ""; "" ) ]
 #
 #If there was a problem with the ping...
-If [ $error or Get ( ScriptResult )  1 ]
+If [ $error or Get ( ScriptResult ) < 1 ]
 #
 Close File [ “Hosted_Database” ]
 #
 If [ Get ( ScriptResult ) = -1 ]
-Show Custom Dialog [ Title: Sync Error; Message: This device is not eligible for syncing. Do you want to email the Device ID (  Get ( PersistentID )  ) to your system administrator?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "This device is not eligible for syncing. Do you want to email the Device ID (" & Get ( PersistentID ) & ") to your system administrator?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
-Send Mail [ Send via E-mail Client; Subject: Please add my device to the \White List\; Message: My device cannot sync because it isnt on the \white list.\¶¶The device ID is:   Get ( PersistentID )  ¶¶Thank you. ]
+Send Mail [ Send via E-mail Client; Subject: "Please add my device to the \"White List\""; Message: "My device cannot sync because it isn't on the \"white list.\"¶¶The device ID is: " & Get ( PersistentID ) & "¶¶Thank you." ]
 End If
 Else If [ Get ( ScriptResult ) = -2 ]
-Show Custom Dialog [ Title: Sync Error; Message: This device is not allowed to sync. (Device ID   Get ( PersistentID )  ); Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "This device is not allowed to sync. (Device ID " & Get ( PersistentID ) & ")"; Default Button: “OK”, Commit: “Yes” ]
 Else If [ Get ( ScriptResult ) = -3 ]
-Perform Script [ “Sync Utilities”; Parameter: wipe ]
-Show Custom Dialog [ Title: Sync Error; Message: This devices local data has been removed.; Default Button: “OK”, Commit: “Yes” ]
+Perform Script [ “Sync Utilities”; Parameter: "wipe" ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "This device's local data has been removed."; Default Button: “OK”, Commit: “Yes” ]
 Else If [ Get ( ScriptResult ) = -4 ]
 If [ $$easydeploy ]
-Show Custom Dialog [ Title: Sync Error; Message: This version of the solution is obsolete, and cannot sync with the hosted database.¶¶Would you like to upgrade the solution now?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "This version of the solution is obsolete, and cannot sync with the hosted database.¶¶Would you like to upgrade the solution now?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
 Perform Script [ “Upgrade Solution” ]
 Halt Script
 End If
 Else
-Show Custom Dialog [ Title: Sync Error; Message: This version of the solution is obsolete and cannot sync with the hosted database.; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "This version of the solution is obsolete and cannot sync with the hosted database."; Default Button: “OK”, Commit: “Yes” ]
 End If
 Else
-Show Custom Dialog [ Title: Sync Error; Message: Unable to connect to the server.; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "Unable to connect to the server."; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 Close File [ “Hosted_Database” ]
@@ -61,25 +61,25 @@ If [ Get ( ScriptResult ) = 2 ]
 If [ $$easydeploy ]
 Set Variable [ $$easydeploy_suggest_upgrade; Value:1 ]
 Else
-Show Custom Dialog [ Title: Notice; Message: This version of the solution is out-of-date. The sync will continue. However, you should contact your administrator for information on obtaining an updated version. ; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Notice"; Message: "This version of the solution is out-of-date. The sync will continue. However, you should contact your administrator for information on obtaining an updated version. "; Default Button: “OK”, Commit: “Yes” ]
 End If
 End If
 #
 #How long did the ping take?
 If [ $$debug_ping ]
-Show Custom Dialog [ Title: Ping Roundtrip Time; Message: $ping_time   Milliseconds; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Ping Roundtrip Time"; Message: $ping_time & " Milliseconds"; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 #Was the ping response too slow?
-If [ $ping_time  $$max_ping_time ]
-If [ $$slow_connection_behavior = warn ]
-Show Custom Dialog [ Title: Sync Error; Message: It appears that your connection to the server is slow. Would you like to continue with the sync, or cancel?; Default Button: “Cancel”, Commit: “Yes”; Button 2: “Continue”, Commit: “No” ]
+If [ $ping_time > $$max_ping_time ]
+If [ $$slow_connection_behavior = "warn" ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "It appears that your connection to the server is slow. Would you like to continue with the sync, or cancel?"; Default Button: “Cancel”, Commit: “Yes”; Button 2: “Continue”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
 Close File [ “Hosted_Database” ]
 Exit Script [ Result: 0 ]
 End If
 Else
-Show Custom Dialog [ Title: Sync Error; Message: The connection to the server is too slow to sync. (Ping time was   $ping_time   ms.); Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Sync Error"; Message: "The connection to the server is too slow to sync. (Ping time was " & $ping_time & " ms.)"; Default Button: “OK”, Commit: “Yes” ]
 Close File [ “Hosted_Database” ]
 Exit Script [ Result: 0 ]
 End If
@@ -100,22 +100,22 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#Ping Server:\nPings the server to confirm that it is available,
+      StepText: "#Ping Server:\n\"Pings\" the server to confirm that it is available,
         and (optionally) that the connection is fast enough.\n\nHistory:\n\n2014-04-18\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\tThis script was split
-        from Sync with Server due to its increasing complexity.\n\n2014-04-20\n\tTim
+        from \"Sync with Server\" due to its increasing complexity.\n\n2014-04-20\n\tTim
         Dietrich (timdietrich@me.com)\n\tAdded code to allow the user to easily email
-        their administrator if their device\n\tisnt on the white list.\t\n\n2014-04-23\n\tTim
-        Dietrich (timdietrich@me.com)\n\tGet ( SystemIPAddress ) is now comma-delimited
+        their administrator if their device\n\tisn't on the white list.\t\n\n2014-04-23\n\tTim
+        Dietrich (timdietrich@me.com)\n\t\"Get ( SystemIPAddress )\" is now comma-delimited
         when passed as a param.\n\tThis resolves an issue that comes up if the client
         has multiple IPs."
-      Text: "Ping Server:\nPings the server to confirm that it is available, and (optionally)
-        that the connection is fast enough.\n\nHistory:\n\n2014-04-18\t\t\n\tTim Dietrich
-        (timdietrich@me.com)\n\tInitial version.\n\tThis script was split from Sync
-        with Server due to its increasing complexity.\n\n2014-04-20\n\tTim Dietrich
-        (timdietrich@me.com)\n\tAdded code to allow the user to easily email their
-        administrator if their device\n\tisnt on the white list.\t\n\n2014-04-23\n\tTim
-        Dietrich (timdietrich@me.com)\n\tGet ( SystemIPAddress ) is now comma-delimited
+      Text: "Ping Server:\n\"Pings\" the server to confirm that it is available, and
+        (optionally) that the connection is fast enough.\n\nHistory:\n\n2014-04-18\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\tThis script was split
+        from \"Sync with Server\" due to its increasing complexity.\n\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded code to allow the user to easily email
+        their administrator if their device\n\tisn't on the white list.\t\n\n2014-04-23\n\tTim
+        Dietrich (timdietrich@me.com)\n\t\"Get ( SystemIPAddress )\" is now comma-delimited
         when passed as a param.\n\tThis resolves an issue that comes up if the client
         has multiple IPs."
     - enable: 'True'
@@ -125,11 +125,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Testing Connection... ]
+      StepText: Set Variable [ $$EasySync_Status; Value:"Testing Connection..." ]
       Value:
         Calculation: '"Testing Connection..."'
         DisplayCalculation:
-          Chunk: Testing Connection...
+          Chunk: '"Testing Connection..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -138,11 +138,11 @@ Script:
     - enable: 'True'
       id: '167'
       name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: easysync_status ]'
+      StepText: 'Refresh Object [ Object Name: "easysync_status" ]'
       ObjectName:
         Calculation: '"easysync_status"'
         DisplayCalculation:
-          Chunk: easysync_status
+          Chunk: '"easysync_status"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -159,12 +159,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $ping_params; Value:Get ( PersistentID )  ¶  \n$$client_version
-        \ ¶  \nSubstitute ( Get ( SystemIPAddress ); ¶; ,  )  ¶  \nSubstitute ( Get
-        ( SystemNICAddress ); ¶; ,  )  ¶  \nGet ( SystemPlatform )  ¶  \nGet ( SystemVersion
-        )  ¶  \nGet ( Device )  ¶  \nGet ( NetworkProtocol )  ¶  \nGet ( NetworkType
-        )  \nIf ( not IsEmpty ( $$additional_ping_info ); ¶  $$additional_ping_info;
-        \ ) ]"
+      StepText: "Set Variable [ $ping_params; Value:Get ( PersistentID ) & ¶ & \n$$client_version
+        & ¶ & \nSubstitute ( Get ( SystemIPAddress ); ¶; \", \" ) & ¶ & \nSubstitute
+        ( Get ( SystemNICAddress ); ¶; \", \" ) & ¶ & \nGet ( SystemPlatform ) & ¶
+        & \nGet ( SystemVersion ) & ¶ & \nGet ( Device ) & ¶ & \nGet ( NetworkProtocol
+        ) & ¶ & \nGet ( NetworkType ) & \nIf ( not IsEmpty ( $$additional_ping_info
+        ); ¶ & $$additional_ping_info; \"\" ) ]"
       Value:
         Calculation: "Get ( PersistentID ) & ¶ & \n$$client_version & ¶ & \nSubstitute
           ( Get ( SystemIPAddress ); ¶; \", \" ) & ¶ & \nSubstitute ( Get ( SystemNICAddress
@@ -177,46 +177,46 @@ Script:
           - Get
           - ' ( '
           - PersistentID
-          - " )  ¶  \n$$client_version  ¶  \n"
+          - " ) & ¶ & \n$$client_version & ¶ & \n"
           - Substitute
           - ' ( '
           - Get
           - ' ( '
           - SystemIPAddress
-          - " ); ¶; ,  )  ¶  \n"
+          - " ); ¶; \", \" ) & ¶ & \n"
           - Substitute
           - ' ( '
           - Get
           - ' ( '
           - SystemNICAddress
-          - " ); ¶; ,  )  ¶  \n"
+          - " ); ¶; \", \" ) & ¶ & \n"
           - Get
           - ' ( '
           - SystemPlatform
-          - " )  ¶  \n"
+          - " ) & ¶ & \n"
           - Get
           - ' ( '
           - SystemVersion
-          - " )  ¶  \n"
+          - " ) & ¶ & \n"
           - Get
           - ' ( '
           - Device
-          - " )  ¶  \n"
+          - " ) & ¶ & \n"
           - Get
           - ' ( '
           - NetworkProtocol
-          - " )  ¶  \n"
+          - " ) & ¶ & \n"
           - Get
           - ' ( '
           - NetworkType
-          - " )  \n"
+          - " ) & \n"
           - If
           - ' ( '
           - not
           - type: NoRef
             __content__: ' '
           - IsEmpty
-          - ' ( $$additional_ping_info ); ¶  $$additional_ping_info;  )'
+          - ' ( $$additional_ping_info ); ¶ & $$additional_ping_info; "" )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -371,16 +371,16 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$easydeploy; Value:ExecuteSQL ( SELECT COUNT ( * )
-        FROM FileMaker_Tables WHERE TableName = EasyDeploy; ;  ) ]
+      StepText: Set Variable [ $$easydeploy; Value:ExecuteSQL ( "SELECT COUNT ( *
+        ) FROM FileMaker_Tables WHERE TableName = 'EasyDeploy'"; ""; "" ) ]
       Value:
         Calculation: ExecuteSQL ( "SELECT COUNT ( * ) FROM FileMaker_Tables WHERE
           TableName = 'EasyDeploy'"; ""; "" )
         DisplayCalculation:
           Chunk:
           - ExecuteSQL
-          - ' ( SELECT COUNT ( * ) FROM FileMaker_Tables WHERE TableName = EasyDeploy;
-            ;  )'
+          - ' ( "SELECT COUNT ( * ) FROM FileMaker_Tables WHERE TableName = ''EasyDeploy''";
+            ""; "" )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -398,7 +398,7 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $error or Get ( ScriptResult )  1 ]
+      StepText: If [ $error or Get ( ScriptResult ) < 1 ]
       Calculation: $error or Get ( ScriptResult ) < 1
       DisplayCalculation:
         Chunk:
@@ -409,7 +409,7 @@ Script:
         - Get
         - ' ( '
         - ScriptResult
-        - ' )  1'
+        - ' ) < 1'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -440,35 +440,35 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: This device is not
-        eligible for syncing. Do you want to email the Device ID (  Get ( PersistentID
-        )  ) to your system administrator?; Default Button: “Yes”, Commit: “Yes”;
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "This device is
+        not eligible for syncing. Do you want to email the Device ID (" & Get ( PersistentID
+        ) & ") to your system administrator?"; Default Button: “Yes”, Commit: “Yes”;
         Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"This device is not eligible for syncing. Do you want to email
           the Device ID (" & Get ( PersistentID ) & ") to your system administrator?"'
         DisplayCalculation:
           Chunk:
-          - 'This device is not eligible for syncing. Do you want to email the Device
-            ID (  '
+          - '"This device is not eligible for syncing. Do you want to email the Device
+            ID (" & '
           - Get
           - ' ( '
           - PersistentID
-          - ' )  ) to your system administrator?'
+          - ' ) & ") to your system administrator?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '68'
@@ -484,26 +484,27 @@ Script:
     - enable: 'True'
       id: '63'
       name: Send Mail
-      StepText: 'Send Mail [ Send via E-mail Client; Subject: Please add my device
-        to the \White List\; Message: My device cannot sync because it isnt on the
-        \white list.\¶¶The device ID is:   Get ( PersistentID )  ¶¶Thank you. ]'
+      StepText: 'Send Mail [ Send via E-mail Client; Subject: "Please add my device
+        to the \"White List\""; Message: "My device cannot sync because it isn''t
+        on the \"white list.\"¶¶The device ID is: " & Get ( PersistentID ) & "¶¶Thank
+        you." ]'
       NoInteract:
         state: 'False'
       Subject:
         Calculation: '"Please add my device to the \"White List\""'
         DisplayCalculation:
-          Chunk: Please add my device to the \White List\
+          Chunk: '"Please add my device to the \"White List\""'
       Message:
         Calculation: '"My device cannot sync because it isn''t on the \"white list.\"¶¶The
           device ID is: " & Get ( PersistentID ) & "¶¶Thank you."'
         DisplayCalculation:
           Chunk:
-          - 'My device cannot sync because it isnt on the \white list.\¶¶The device
-            ID is:   '
+          - '"My device cannot sync because it isn''t on the \"white list.\"¶¶The
+            device ID is: " & '
           - Get
           - ' ( '
           - PersistentID
-          - ' )  ¶¶Thank you.'
+          - ' ) & "¶¶Thank you."'
       MultipleEmails:
         state: 'False'
       SendViaSMTP:
@@ -528,29 +529,29 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: This device is not
-        allowed to sync. (Device ID   Get ( PersistentID )  ); Default Button: “OK”,
-        Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "This device is
+        not allowed to sync. (Device ID " & Get ( PersistentID ) & ")"; Default Button:
+        “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"This device is not allowed to sync. (Device ID " & Get ( PersistentID
           ) & ")"'
         DisplayCalculation:
           Chunk:
-          - 'This device is not allowed to sync. (Device ID   '
+          - '"This device is not allowed to sync. (Device ID " & '
           - Get
           - ' ( '
           - PersistentID
-          - ' )  )'
+          - ' ) & ")"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -567,32 +568,32 @@ Script:
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Sync Utilities”; Parameter: wipe ]'
+      StepText: 'Perform Script [ “Sync Utilities”; Parameter: "wipe" ]'
       Calculation: '"wipe"'
       DisplayCalculation:
-        Chunk: wipe
+        Chunk: '"wipe"'
       Script:
         id: '26'
         name: Sync Utilities
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: This devices local
-        data has been removed.; Default Button: “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "This device''s
+        local data has been removed."; Default Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"This device''s local data has been removed."'
         DisplayCalculation:
-          Chunk: This devices local data has been removed.
+          Chunk: '"This device''s local data has been removed."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -616,30 +617,30 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: This version of
-        the solution is obsolete, and cannot sync with the hosted database.¶¶Would
-        you like to upgrade the solution now?; Default Button: “Yes”, Commit: “Yes”;
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "This version
+        of the solution is obsolete, and cannot sync with the hosted database.¶¶Would
+        you like to upgrade the solution now?"; Default Button: “Yes”, Commit: “Yes”;
         Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"This version of the solution is obsolete, and cannot sync with
           the hosted database.¶¶Would you like to upgrade the solution now?"'
         DisplayCalculation:
-          Chunk: This version of the solution is obsolete, and cannot sync with the
-            hosted database.¶¶Would you like to upgrade the solution now?
+          Chunk: '"This version of the solution is obsolete, and cannot sync with
+            the hosted database.¶¶Would you like to upgrade the solution now?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '68'
@@ -674,25 +675,25 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: This version of
-        the solution is obsolete and cannot sync with the hosted database.; Default
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "This version
+        of the solution is obsolete and cannot sync with the hosted database."; Default
         Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"This version of the solution is obsolete and cannot sync with
           the hosted database."'
         DisplayCalculation:
-          Chunk: This version of the solution is obsolete and cannot sync with the
-            hosted database.
+          Chunk: '"This version of the solution is obsolete and cannot sync with the
+            hosted database."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -706,22 +707,22 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: Unable to connect
-        to the server.; Default Button: “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "Unable to connect
+        to the server."; Default Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"Unable to connect to the server."'
         DisplayCalculation:
-          Chunk: Unable to connect to the server.
+          Chunk: '"Unable to connect to the server."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -802,28 +803,28 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Notice; Message: This version of the
+      StepText: 'Show Custom Dialog [ Title: "Notice"; Message: "This version of the
         solution is out-of-date. The sync will continue. However, you should contact
-        your administrator for information on obtaining an updated version. ; Default
+        your administrator for information on obtaining an updated version. "; Default
         Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Notice"'
         DisplayCalculation:
-          Chunk: Notice
+          Chunk: '"Notice"'
       Message:
         Calculation: '"This version of the solution is out-of-date. The sync will
           continue. However, you should contact your administrator for information
           on obtaining an updated version. "'
         DisplayCalculation:
-          Chunk: 'This version of the solution is out-of-date. The sync will continue.
+          Chunk: '"This version of the solution is out-of-date. The sync will continue.
             However, you should contact your administrator for information on obtaining
-            an updated version. '
+            an updated version. "'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -853,22 +854,22 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Ping Roundtrip Time; Message: $ping_time   Milliseconds;
-        Default Button: “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Ping Roundtrip Time"; Message: $ping_time
+        & " Milliseconds"; Default Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Ping Roundtrip Time"'
         DisplayCalculation:
-          Chunk: Ping Roundtrip Time
+          Chunk: '"Ping Roundtrip Time"'
       Message:
         Calculation: $ping_time & " Milliseconds"
         DisplayCalculation:
-          Chunk: $ping_time   Milliseconds
+          Chunk: $ping_time & " Milliseconds"
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -887,44 +888,44 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $ping_time  $$max_ping_time ]
+      StepText: If [ $ping_time > $$max_ping_time ]
       Calculation: $ping_time > $$max_ping_time
       DisplayCalculation:
-        Chunk: $ping_time  $$max_ping_time
+        Chunk: $ping_time > $$max_ping_time
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$slow_connection_behavior = warn ]
+      StepText: If [ $$slow_connection_behavior = "warn" ]
       Calculation: $$slow_connection_behavior = "warn"
       DisplayCalculation:
-        Chunk: $$slow_connection_behavior = warn
+        Chunk: $$slow_connection_behavior = "warn"
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: It appears that
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "It appears that
         your connection to the server is slow. Would you like to continue with the
-        sync, or cancel?; Default Button: “Cancel”, Commit: “Yes”; Button 2: “Continue”,
+        sync, or cancel?"; Default Button: “Cancel”, Commit: “Yes”; Button 2: “Continue”,
         Commit: “No” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"It appears that your connection to the server is slow. Would
           you like to continue with the sync, or cancel?"'
         DisplayCalculation:
-          Chunk: It appears that your connection to the server is slow. Would you
-            like to continue with the sync, or cancel?
+          Chunk: '"It appears that your connection to the server is slow. Would you
+            like to continue with the sync, or cancel?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Cancel"'
           DisplayCalculation:
-            Chunk: Cancel
+            Chunk: '"Cancel"'
         - CommitState: 'False'
           Calculation: '"Continue"'
           DisplayCalculation:
-            Chunk: Continue
+            Chunk: '"Continue"'
         - CommitState: 'False'
     - enable: 'True'
       id: '68'
@@ -963,24 +964,25 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Error; Message: The connection to
-        the server is too slow to sync. (Ping time was   $ping_time   ms.); Default
-        Button: “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Sync Error"; Message: "The connection
+        to the server is too slow to sync. (Ping time was " & $ping_time & " ms.)";
+        Default Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Sync Error"'
         DisplayCalculation:
-          Chunk: Sync Error
+          Chunk: '"Sync Error"'
       Message:
         Calculation: '"The connection to the server is too slow to sync. (Ping time
           was " & $ping_time & " ms.)"'
         DisplayCalculation:
-          Chunk: The connection to the server is too slow to sync. (Ping time was   $ping_time   ms.)
+          Chunk: '"The connection to the server is too slow to sync. (Ping time was
+            " & $ping_time & " ms.)"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'

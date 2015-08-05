@@ -3,7 +3,7 @@
 #Clear the OnTimer script that called this script.
 Install OnTimer Script [ Interval: 0 ]
 #
-#No aborting, and well handle errors.
+#No aborting, and we'll handle errors.
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
@@ -17,25 +17,25 @@ Set Variable [ $segment_size; Value:100000 // Do not set higher than 999,999.  ]
 Go to Layout [ “Temp” ]
 Show/Hide Toolbars[ Hide ]
 Adjust Window[ Resize to Fit ]
-Set Variable [ $$EasyDeploy_Status; Value:Upgrading solution... ]
+Set Variable [ $$EasyDeploy_Status; Value:"Upgrading solution..." ]
 Refresh Window
 #
 #Pull the updated solution file from the server in segments.
 Set Variable [ $start; Value:1 ]
 Set Variable [ $segment; Value:1 ]
-Set Variable [ $payload_b64; Value: ]
+Set Variable [ $payload_b64; Value:"" ]
 Loop
-Set Variable [ $$EasyDeploy_Status; Value:Pulling segment   $segment   ... ]
+Set Variable [ $$EasyDeploy_Status; Value:"Pulling segment " & $segment  & "..." ]
 Refresh Window
-Perform Script on Server [ unknown from file: “Hosted_Database” (file not open); Parameter: $start  ¶  $segment_size ][ Wait for completion ]
+Perform Script on Server [ <unknown> from file: “Hosted_Database” (file not open); Parameter: $start & ¶ & $segment_size ][ Wait for completion ]
 Set Variable [ $LastError; Value:Get ( LastError ) ]
 If [ $LastError ]
 Close File [ “Hosted_Database” ]
-Show Custom Dialog [ Title: Process Halted; Message: An error occurred during the segment pull. FileMaker Error Code   $LastError; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Process Halted"; Message: "An error occurred during the segment pull. FileMaker Error Code " & $LastError; Default Button: “OK”, Commit: “Yes” ]
 Halt Script
 End If
-Set Variable [ $payload_b64; Value:$payload_b64  Get ( ScriptResult ) ]
-Exit Loop If [ PatternCount ( Get ( ScriptResult ) ; /b64 ) ]
+Set Variable [ $payload_b64; Value:$payload_b64 & Get ( ScriptResult ) ]
+Exit Loop If [ PatternCount ( Get ( ScriptResult ) ; "</b64>" ) ]
 Set Variable [ $start; Value:$start + $segment_size ]
 Set Variable [ $segment; Value:$segment + 1 ]
 End Loop
@@ -44,14 +44,14 @@ End Loop
 Close File [ “Hosted_Database” ]
 #
 #Status update.
-Set Variable [ $$EasyDeploy_Status; Value:Installing upgrade... ]
+Set Variable [ $$EasyDeploy_Status; Value:"Installing upgrade..." ]
 Refresh Window
 #
 #Decode the payload and drop it into a container.
-Set Field [ Temp::Database_Container; Let ([value = $payload_b64;value = Substitute ( value ; /b64;  );fileNameWithExtension = GetValue ( Substitute ( value ; b64; ¶ ); 1 );encoded = Substitute ( value; fileNameWithExtension  b64;  );decoded = Base64Decode ( encoded; fileNameWithExtension )];decoded) ]
+Set Field [ Temp::Database_Container; Let ([value = $payload_b64;value = Substitute ( value ; "</b64>"; "" );fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );decoded = Base64Decode ( encoded; fileNameWithExtension )];decoded) ]
 #
 #Specify the path / filename to export to.
-Set Variable [ $filename; Value:Get ( DocumentsPath )  GetAsText ( Temp::Database_Container ) ]
+Set Variable [ $filename; Value:Get ( DocumentsPath ) & GetAsText ( Temp::Database_Container ) ]
 #
 #Export the updated solution.
 Export Field Contents [ Temp::Database_Container; “$filename” ]
@@ -60,15 +60,15 @@ Export Field Contents [ Temp::Database_Container; “$filename” ]
 Set Field [ Temp::Consumed; 1 ]
 #
 #Inform user that the upgrade is completed.
-Set Variable [ $$EasyDeploy_Status; Value:Upgrade complete. ]
+Set Variable [ $$EasyDeploy_Status; Value:"Upgrade complete." ]
 Refresh Window
-Show Custom Dialog [ Title: Upgrade Complete; Message: The upgraded database has been installed.¶¶Would you like to open it now?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: "Upgrade Complete"; Message: "The upgraded database has been installed.¶¶Would you like to open it now?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 #
 #If the user wants to open the upgraded database...
 If [ Get ( LastMessageChoice ) = 1 ]
 #
 #Get the URL to use to open the file.
-Set Variable [ $url; Value:fmp://  If ( Get( SystemPlatform ) = 4; %7e; ~ )  /  GetAsText ( Temp::Database_Container ) ]
+Set Variable [ $url; Value:"fmp://" & If ( Get( SystemPlatform ) = 4; "%7e"; "~" ) & "/" & GetAsText ( Temp::Database_Container ) ]
 #
 #Open it.
 Open URL [ $url ][ No dialog ]
@@ -121,8 +121,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#No aborting, and well handle errors.'
-      Text: No aborting, and well handle errors.
+      StepText: '#No aborting, and we''ll handle errors.'
+      Text: No aborting, and we'll handle errors.
     - enable: 'True'
       id: '85'
       name: Allow User Abort
@@ -221,11 +221,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasyDeploy_Status; Value:Upgrading solution... ]
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:"Upgrading solution..."
+        ]
       Value:
         Calculation: '"Upgrading solution..."'
         DisplayCalculation:
-          Chunk: Upgrading solution...
+          Chunk: '"Upgrading solution..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -277,11 +278,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: 'Set Variable [ $payload_b64; Value: ]'
+      StepText: Set Variable [ $payload_b64; Value:"" ]
       Value:
         Calculation: '""'
         DisplayCalculation:
-          Chunk: 
+          Chunk: '""'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -294,12 +295,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasyDeploy_Status; Value:Pulling segment   $segment   ...
-        ]
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:"Pulling segment " & $segment  &
+        "..." ]
       Value:
         Calculation: '"Pulling segment " & $segment  & "..."'
         DisplayCalculation:
-          Chunk: Pulling segment   $segment   ...
+          Chunk: '"Pulling segment " & $segment  & "..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -317,7 +318,7 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ unknown from file: “Hosted_Database” (file not open); Parameter: $start  ¶  $segment_size ]
+        Perform Script on Server [ <unknown> from file: “Hosted_Database” (file not open); Parameter: $start & ¶ & $segment_size ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
@@ -327,7 +328,7 @@ Script:
         UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted
       Calculation: $start & ¶ & $segment_size
       DisplayCalculation:
-        Chunk: $start  ¶  $segment_size
+        Chunk: $start & ¶ & $segment_size
       Script:
         id: '26'
     - enable: 'True'
@@ -365,24 +366,25 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Process Halted; Message: An error occurred
-        during the segment pull. FileMaker Error Code   $LastError; Default Button:
-        “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Process Halted"; Message: "An error
+        occurred during the segment pull. FileMaker Error Code " & $LastError; Default
+        Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Process Halted"'
         DisplayCalculation:
-          Chunk: Process Halted
+          Chunk: '"Process Halted"'
       Message:
         Calculation: '"An error occurred during the segment pull. FileMaker Error
           Code " & $LastError'
         DisplayCalculation:
-          Chunk: An error occurred during the segment pull. FileMaker Error Code   $LastError
+          Chunk: '"An error occurred during the segment pull. FileMaker Error Code
+            " & $LastError'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -396,13 +398,13 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $payload_b64; Value:$payload_b64  Get ( ScriptResult
+      StepText: Set Variable [ $payload_b64; Value:$payload_b64 & Get ( ScriptResult
         ) ]
       Value:
         Calculation: $payload_b64 & Get ( ScriptResult )
         DisplayCalculation:
           Chunk:
-          - '$payload_b64  '
+          - '$payload_b64 & '
           - Get
           - ' ( '
           - ScriptResult
@@ -415,7 +417,7 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ PatternCount ( Get ( ScriptResult ) ; /b64 ) ]
+      StepText: Exit Loop If [ PatternCount ( Get ( ScriptResult ) ; "</b64>" ) ]
       Calculation: PatternCount ( Get ( ScriptResult ) ; "</b64>" )
       DisplayCalculation:
         Chunk:
@@ -424,7 +426,7 @@ Script:
         - Get
         - ' ( '
         - ScriptResult
-        - ' ) ; /b64 )'
+        - ' ) ; "</b64>" )'
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -484,11 +486,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasyDeploy_Status; Value:Installing upgrade... ]
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:"Installing upgrade..."
+        ]
       Value:
         Calculation: '"Installing upgrade..."'
         DisplayCalculation:
-          Chunk: Installing upgrade...
+          Chunk: '"Installing upgrade..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -518,9 +521,9 @@ Script:
         Set Field [ Temp::Database_Container; Let (
         [
         value = $payload_b64;
-        value = Substitute ( value ; /b64;  );
-        fileNameWithExtension = GetValue ( Substitute ( value ; b64; ¶ ); 1 );
-        encoded = Substitute ( value; fileNameWithExtension  b64;  );
+        value = Substitute ( value ; "</b64>"; "" );
+        fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );
+        encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );
         decoded = Base64Decode ( encoded; fileNameWithExtension )
         ];
         decoded
@@ -541,13 +544,13 @@ Script:
         - Let
         - " (\n[\nvalue = $payload_b64;\nvalue = "
         - Substitute
-        - " ( value ; /b64;  );\nfileNameWithExtension = "
+        - " ( value ; \"</b64>\"; \"\" );\nfileNameWithExtension = "
         - GetValue
         - ' ( '
         - Substitute
-        - " ( value ; b64; ¶ ); 1 );\nencoded = "
+        - " ( value ; \"<b64>\"; \"¶\" ); 1 );\nencoded = "
         - Substitute
-        - " ( value; fileNameWithExtension  b64;  );\ndecoded = "
+        - " ( value; fileNameWithExtension & \"<b64>\"; \"\" );\ndecoded = "
         - Base64Decode
         - |2-
            ( encoded; fileNameWithExtension )
@@ -570,8 +573,8 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $filename; Value:Get ( DocumentsPath )  GetAsText (
-        Temp::Database_Container ) ]
+      StepText: Set Variable [ $filename; Value:Get ( DocumentsPath ) & GetAsText
+        ( Temp::Database_Container ) ]
       Value:
         Calculation: Get ( DocumentsPath ) & GetAsText ( Temp::Database_Container
           )
@@ -580,7 +583,7 @@ Script:
           - Get
           - ' ( '
           - DocumentsPath
-          - ' )  '
+          - ' ) & '
           - GetAsText
           - ' ( '
           - type: FieldRef
@@ -648,11 +651,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasyDeploy_Status; Value:Upgrade complete. ]
+      StepText: Set Variable [ $$EasyDeploy_Status; Value:"Upgrade complete." ]
       Value:
         Calculation: '"Upgrade complete."'
         DisplayCalculation:
-          Chunk: Upgrade complete.
+          Chunk: '"Upgrade complete."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -669,29 +672,29 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Upgrade Complete; Message: The upgraded
-        database has been installed.¶¶Would you like to open it now?; Default Button:
+      StepText: 'Show Custom Dialog [ Title: "Upgrade Complete"; Message: "The upgraded
+        database has been installed.¶¶Would you like to open it now?"; Default Button:
         “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Upgrade Complete"'
         DisplayCalculation:
-          Chunk: Upgrade Complete
+          Chunk: '"Upgrade Complete"'
       Message:
         Calculation: '"The upgraded database has been installed.¶¶Would you like to
           open it now?"'
         DisplayCalculation:
-          Chunk: The upgraded database has been installed.¶¶Would you like to open
-            it now?
+          Chunk: '"The upgraded database has been installed.¶¶Would you like to open
+            it now?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '89'
@@ -725,20 +728,20 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $url; Value:fmp://  If ( Get( SystemPlatform ) = 4;
-        %7e; ~ )  /  GetAsText ( Temp::Database_Container ) ]
+      StepText: Set Variable [ $url; Value:"fmp://" & If ( Get( SystemPlatform ) =
+        4; "%7e"; "~" ) & "/" & GetAsText ( Temp::Database_Container ) ]
       Value:
         Calculation: '"fmp://" & If ( Get( SystemPlatform ) = 4; "%7e"; "~" ) & "/"
           & GetAsText ( Temp::Database_Container )'
         DisplayCalculation:
           Chunk:
-          - 'fmp://  '
+          - '"fmp://" & '
           - If
           - ' ( '
           - Get
           - '( '
           - SystemPlatform
-          - ' ) = 4; %7e; ~ )  /  '
+          - ' ) = 4; "%7e"; "~" ) & "/" & '
           - GetAsText
           - ' ( '
           - type: FieldRef

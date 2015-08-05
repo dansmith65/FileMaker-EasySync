@@ -13,7 +13,7 @@
 ---
 BaseTable:
   id: '132'
-  records: ''
+  records: '3'
   name: Survey_Hobbies
   FieldCatalog:
     Field:
@@ -188,7 +188,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty
@@ -311,7 +311,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty

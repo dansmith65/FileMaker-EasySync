@@ -112,7 +112,7 @@ Layout:
             Font_size: '14'
             Face: '0'
             Color: '#CDCDCD'
-        - Data: Last_Name, First_Name
+        - Data: <<Last_Name>>, <<First_Name>>
           CharacterStyle:
             mask: '0'
             Font_family: Arial
@@ -121,7 +121,7 @@ Layout:
             Color: '#000000'
       ParagraphStyleVector:
         Style:
-          Data: "FileMaker Survey Details: \rLast_Name, First_Name"
+          Data: "FileMaker Survey Details: \r<<Last_Name>>, <<First_Name>>"
           ParagraphStyle:
             mask: '0'
             __content__: |2+
@@ -294,7 +294,7 @@ Layout:
         TitleCalc:
           Calculation: '"Basic Info"'
           DisplayCalculation:
-            Chunk: Basic Info
+            Chunk: '"Basic Info"'
         TabPanelObj:
           tabLeftEdge: '0'
           tabWidth: '80'
@@ -2136,7 +2136,7 @@ Layout:
         TitleCalc:
           Calculation: '"Survey Info"'
           DisplayCalculation:
-            Chunk: Survey Info
+            Chunk: '"Survey Info"'
         TabPanelObj:
           tabLeftEdge: '79'
           tabWidth: '88'
@@ -3270,7 +3270,7 @@ Layout:
         TitleCalc:
           Calculation: '"Documents"'
           DisplayCalculation:
-            Chunk: Documents
+            Chunk: '"Documents"'
         TabPanelObj:
           tabLeftEdge: '166'
           tabWidth: '88'
@@ -3560,7 +3560,7 @@ Layout:
                       op: '0'
                       Calculation: /*Survey_Hobbies::<Field Missing>*/
                       DisplayCalculation:
-                        Chunk: /*Survey_Hobbies::Field Missing*/
+                        Chunk: /*Survey_Hobbies::<Field Missing>*/
                       RangeBegin: 
                       RangeEnd: 
                     Format:
@@ -3857,7 +3857,7 @@ Layout:
         TitleCalc:
           Calculation: '"Salary Info"'
           DisplayCalculation:
-            Chunk: Salary Info
+            Chunk: '"Salary Info"'
         TabPanelObj:
           tabLeftEdge: '253'
           tabWidth: '85'
@@ -4059,8 +4059,8 @@ Layout:
                 LocalCSS: "\nself\n{\n\t-fm-text-vertical-align: center;\n}\n"
               CharacterStyleVector:
                 Style:
-                  Data: 'Note: This fields name is EXCL_Salary. The EXCL_ prefix is
-                    used to prevent the field from being included in the sync payloads. '
+                  Data: 'Note: This field''s name is "EXCL_Salary." The "EXCL_" prefix
+                    is used to prevent the field from being included in the sync payloads. '
                   CharacterStyle:
                     mask: '32695'
                     Font_family: arial,sans-serif
@@ -4069,8 +4069,8 @@ Layout:
                     Color: '#707070'
               ParagraphStyleVector:
                 Style:
-                  Data: 'Note: This fields name is EXCL_Salary. The EXCL_ prefix is
-                    used to prevent the field from being included in the sync payloads. '
+                  Data: 'Note: This field''s name is "EXCL_Salary." The "EXCL_" prefix
+                    is used to prevent the field from being included in the sync payloads. '
                   ParagraphStyle:
                     mask: '0'
                     __content__: |2+
@@ -4090,7 +4090,7 @@ Layout:
         TitleCalc:
           Calculation: '"Sync Info"'
           DisplayCalculation:
-            Chunk: Sync Info
+            Chunk: '"Sync Info"'
         TabPanelObj:
           tabLeftEdge: '337'
           tabWidth: '78'
@@ -4644,7 +4644,7 @@ Layout:
                 LocalCSS: "\nself\n{\n\t-fm-text-vertical-align: center;\n}\n"
               CharacterStyleVector:
                 Style:
-                  Data: ES_Record_UUID is EasySyncs own primary key.
+                  Data: ES_Record_UUID is EasySync's own primary key.
                   CharacterStyle:
                     mask: '32695'
                     Font_family: arial,sans-serif
@@ -4653,7 +4653,7 @@ Layout:
                     Color: '#707070'
               ParagraphStyleVector:
                 Style:
-                  Data: ES_Record_UUID is EasySyncs own primary key.
+                  Data: ES_Record_UUID is EasySync's own primary key.
                   ParagraphStyle:
                     mask: '0'
                     __content__: |2+
@@ -4926,7 +4926,7 @@ Layout:
                 LocalCSS: "\nself\n{\n\t-fm-text-vertical-align: center;\n}\n"
               CharacterStyleVector:
                 Style:
-                  Data: You can set this field (ES_Exclude) to a value of 1 to indicate
+                  Data: You can set this field ("ES_Exclude") to a value of 1 to indicate
                     that a record should not be included in the sync.
                   CharacterStyle:
                     mask: '32695'
@@ -4936,7 +4936,7 @@ Layout:
                     Color: '#707070'
               ParagraphStyleVector:
                 Style:
-                  Data: You can set this field (ES_Exclude) to a value of 1 to indicate
+                  Data: You can set this field ("ES_Exclude") to a value of 1 to indicate
                     that a record should not be included in the sync.
                   ParagraphStyle:
                     mask: '0'

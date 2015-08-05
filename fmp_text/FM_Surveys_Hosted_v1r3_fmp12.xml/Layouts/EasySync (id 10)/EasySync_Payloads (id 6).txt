@@ -1411,7 +1411,7 @@ Layout:
               rgba(95.2941%,92.1569%,0%,1);\n\ttext-align: center;\n}\n"
           CharacterStyleVector:
             Style:
-              Data: $$EasySync_Status
+              Data: <<$$EasySync_Status>>
               CharacterStyle:
                 mask: '32695'
                 Font_family: arial,sans-serif
@@ -1420,7 +1420,7 @@ Layout:
                 Color: '#F3EB00'
           ParagraphStyleVector:
             Style:
-              Data: $$EasySync_Status
+              Data: <<$$EasySync_Status>>
               ParagraphStyle:
                 mask: '0'
                 __content__: |2+

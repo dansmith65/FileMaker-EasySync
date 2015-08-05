@@ -1,8 +1,8 @@
 Allow User Abort [ Off ]
 If [ Get ( SystemPlatform ) = 3 ]
-Show Custom Dialog [ Title: Add Document; Message: What type of document do you want to add?; Default Button: “Photo”, Commit: “Yes”; Button 2: “Signature”, Commit: “No”; Button 3: “Other”, Commit: “No” ]
+Show Custom Dialog [ Title: "Add Document"; Message: "What type of document do you want to add?"; Default Button: “Photo”, Commit: “Yes”; Button 2: “Signature”, Commit: “No”; Button 3: “Other”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
-Show Custom Dialog [ Title: Which Camera?; Message: What camera do you want to use?; Default Button: “Front”, Commit: “Yes”; Button 2: “Back”, Commit: “No”; Button 3: “Cancel”, Commit: “No” ]
+Show Custom Dialog [ Title: "Which Camera?"; Message: "What camera do you want to use?"; Default Button: “Front”, Commit: “Yes”; Button 2: “Back”, Commit: “No”; Button 3: “Cancel”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
 Insert from Device [ Survey_Documents::Document; Type: Camera; Camera: Front; Resolution: Large ]
 Else If [ Get ( LastMessageChoice ) = 2 ]
@@ -44,31 +44,31 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Add Document; Message: What type of document
-        do you want to add?; Default Button: “Photo”, Commit: “Yes”; Button 2: “Signature”,
-        Commit: “No”; Button 3: “Other”, Commit: “No” ]'
+      StepText: 'Show Custom Dialog [ Title: "Add Document"; Message: "What type of
+        document do you want to add?"; Default Button: “Photo”, Commit: “Yes”; Button
+        2: “Signature”, Commit: “No”; Button 3: “Other”, Commit: “No” ]'
       Title:
         Calculation: '"Add Document"'
         DisplayCalculation:
-          Chunk: Add Document
+          Chunk: '"Add Document"'
       Message:
         Calculation: '"What type of document do you want to add?"'
         DisplayCalculation:
-          Chunk: What type of document do you want to add?
+          Chunk: '"What type of document do you want to add?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Photo"'
           DisplayCalculation:
-            Chunk: Photo
+            Chunk: '"Photo"'
         - CommitState: 'False'
           Calculation: '"Signature"'
           DisplayCalculation:
-            Chunk: Signature
+            Chunk: '"Signature"'
         - CommitState: 'False'
           Calculation: '"Other"'
           DisplayCalculation:
-            Chunk: Other
+            Chunk: '"Other"'
     - enable: 'True'
       id: '68'
       name: If
@@ -83,31 +83,31 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Which Camera?; Message: What camera do
-        you want to use?; Default Button: “Front”, Commit: “Yes”; Button 2: “Back”,
+      StepText: 'Show Custom Dialog [ Title: "Which Camera?"; Message: "What camera
+        do you want to use?"; Default Button: “Front”, Commit: “Yes”; Button 2: “Back”,
         Commit: “No”; Button 3: “Cancel”, Commit: “No” ]'
       Title:
         Calculation: '"Which Camera?"'
         DisplayCalculation:
-          Chunk: Which Camera?
+          Chunk: '"Which Camera?"'
       Message:
         Calculation: '"What camera do you want to use?"'
         DisplayCalculation:
-          Chunk: What camera do you want to use?
+          Chunk: '"What camera do you want to use?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Front"'
           DisplayCalculation:
-            Chunk: Front
+            Chunk: '"Front"'
         - CommitState: 'False'
           Calculation: '"Back"'
           DisplayCalculation:
-            Chunk: Back
+            Chunk: '"Back"'
         - CommitState: 'False'
           Calculation: '"Cancel"'
           DisplayCalculation:
-            Chunk: Cancel
+            Chunk: '"Cancel"'
     - enable: 'True'
       id: '68'
       name: If

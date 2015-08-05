@@ -57,7 +57,7 @@ Layout:
         name: Survey List - iPad
         __content__: |2+
 
-      TriggerText: Survey List - iPad
+      TriggerText: '"Survey List - iPad"'
   Object:
   - type: Button
     key: '28'
@@ -1201,8 +1201,8 @@ Layout:
           center;\n}\n"
       CharacterStyleVector:
         Style:
-          Data: 'Last Sync: EasySync_Payloads::ES_Last_Full_Sync. {{FoundCount}} records
-            displayed.'
+          Data: 'Last Sync: <<EasySync_Payloads::ES_Last_Full_Sync>>. {{FoundCount}}
+            records displayed.'
           CharacterStyle:
             mask: '32695'
             Font_family: arial,sans-serif
@@ -1211,8 +1211,8 @@ Layout:
             Color: '#CDCDCD'
       ParagraphStyleVector:
         Style:
-          Data: 'Last Sync: EasySync_Payloads::ES_Last_Full_Sync. {{FoundCount}} records
-            displayed.'
+          Data: 'Last Sync: <<EasySync_Payloads::ES_Last_Full_Sync>>. {{FoundCount}}
+            records displayed.'
           ParagraphStyle:
             mask: '0'
             __content__: |2+
@@ -1591,13 +1591,13 @@ Layout:
         & \n\"Last Pull: \" & EasySync_Payloads::ES_Last_Pull_UTC_Time"
       DisplayCalculation:
         Chunk:
-        - 'Last Push:   '
+        - '"Last Push: " & '
         - type: FieldRef
           Field:
             table: EasySync_Payloads
             id: '14'
             name: ES_Last_Push_UTC_Time
-        - "  ¶  \rLast Pull:   "
+        - " & ¶ & \r\"Last Pull: \" & "
         - type: FieldRef
           Field:
             table: EasySync_Payloads

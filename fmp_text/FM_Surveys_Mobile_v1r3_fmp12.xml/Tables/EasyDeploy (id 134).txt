@@ -6,7 +6,7 @@
 ---
 BaseTable:
   id: '134'
-  records: ''
+  records: '0'
   name: EasyDeploy
   FieldCatalog:
     Field:

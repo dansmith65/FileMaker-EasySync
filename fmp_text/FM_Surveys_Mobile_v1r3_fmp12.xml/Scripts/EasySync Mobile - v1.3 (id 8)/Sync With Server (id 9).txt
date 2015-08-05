@@ -1,9 +1,9 @@
-#Sync With Server:Manages the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	Ping process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the deletion phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to Sync Check, code to clean up deleted record UUIDs, etc.	Also reflects move to a single EasySync_Payloads layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.2014-05-15		Tim Dietrich (timdietrich@me.com)	The last pull UTC is now captured prior to the pull itself, and only gets set if the pull	is successful. This prevents records that are in play on the servr while the payload is 	being processed on the mobile device from being excluded from future pulls.2014-10-19	Tim Dietrich (timdietrich@me.com)	Added configuration check. If no ES tables are setup, then the sync process is aborted.
+#Sync With Server:Manages the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	"Ping" process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the "deletion" phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to "Sync Check," code to clean up deleted record UUIDs, etc.	Also reflects move to a single "EasySync_Payloads" layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.2014-05-15		Tim Dietrich (timdietrich@me.com)	The last pull UTC is now captured prior to the pull itself, and only gets set if the pull	is successful. This prevents records that are in play on the servr while the payload is 	being processed on the mobile device from being excluded from future pulls.2014-10-19	Tim Dietrich (timdietrich@me.com)	Added configuration check. If no "ES" tables are setup, then the sync process is aborted.
 #
 #Check to see if there are ES tables configured for syncing.
-Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ); /col; ¶ ) ]
+Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE 'ES\_%' )"; "</col>"; ¶ ) ]
 If [ IsEmpty ( $sync_tables ) ]
-Show Custom Dialog [ Title: Configuration Error; Message: There are no \ES\ tables configured for syncing.; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Configuration Error"; Message: "There are no \"ES\" tables configured for syncing."; Default Button: “OK”, Commit: “Yes” ]
 Halt Script
 End If
 #
@@ -15,8 +15,8 @@ Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
 #Display EasySync layout.
-Go to Layout [ EasySync_Payloads ]
-Set Variable [ $$EasySync_Status; Value:EasySync firing up... ]
+Go to Layout [ "EasySync_Payloads" ]
+Set Variable [ $$EasySync_Status; Value:"EasySync firing up..." ]
 Refresh Window
 #
 #Load EasySync settings.
@@ -33,39 +33,39 @@ End If
 #
 #Confirm the sync.
 If [ $$ask_before_sync ]
-Show Custom Dialog [ Title: Sync With Server?; Message: Do you really want to sync with the server?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: "Sync With Server?"; Message: "Do you really want to sync with the server?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 2 ]
 Go to Layout [ original layout ]
 Exit Script [  ]
 End If
 End If
 #
-Set Variable [ $$EasySync_Status; Value:Preparing to Sync... ]
+Set Variable [ $$EasySync_Status; Value:"Preparing to Sync..." ]
 Refresh Window
-//  Refresh Object [ Object Name: easysync_status ]
+//  Refresh Object [ Object Name: "easysync_status" ]
 #
 #Commit any unsaved changes.
 If [ $$commit_before_sync ]
 Commit Records/Requests[ No dialog ]
 End If
 #
-#Prevent the user from aborting, and well handle errors, so suppress those...
+#Prevent the user from aborting, and we'll handle errors, so suppress those...
 If [ $$debug_push = 0 and $$debug_pull = 0 // Allow aborts in debug mode. ]
 Allow User Abort [ Off ]
 End If
 Set Error Capture [ On ]
 #
-Set Variable [ $$EasySync_Status; Value:EasySync is go for launch... ]
+Set Variable [ $$EasySync_Status; Value:"EasySync is go for launch..." ]
 Refresh Window
 #
-#If ES_Last_Pull_UTC_Time is not set...
-If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time ) ) ]
-Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; 0 ]
+#If "ES_Last_Pull_UTC_Time" is not set...
+If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) ) ]
+Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; 0 ]
 End If
 #
-#If ES_Last_Push_UTC_Time is not set...
-If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Push_UTC_Time ) ) ]
-Set Field By Name [ EasySync_Payloads::ES_Last_Push_UTC_Time; 0 ]
+#If "ES_Last_Push_UTC_Time" is not set...
+If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Push_UTC_Time" ) ) ]
+Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; 0 ]
 End If
 #
 #Push data to the server.
@@ -82,27 +82,27 @@ If [ GetValue ( Get ( ScriptResult ) ; 1 ) = 1 ]
 #
 #If, during the ping process, it was found that the solution is out of date...
 If [ $$easydeploy_suggest_upgrade ]
-Show Custom Dialog [ Title: Upgrade Solution?; Message: A new version of this solution is available.¶¶Would you like to upgrade now?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: "Upgrade Solution?"; Message: "A new version of this solution is available.¶¶Would you like to upgrade now?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
 Perform Script [ “Upgrade Solution” ]
 Halt Script
 End If
 End If
 #
-#Update the last push time.
-Set Field By Name [ EasySync_Payloads::ES_Last_Push_UTC_Time; Get ( CurrentTimeUTCMilliseconds ) ]
+#Update the "last push" time.
+Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; Get ( CurrentTimeUTCMilliseconds ) ]
 Commit Records/Requests[ Skip data entry validation; No dialog ]
 #
-#Clean up any deleted record UUID payload records...
+#Clean up any "deleted record UUID" payload records...
 Enter Find Mode [  ]
-Set Field [ EasySync_Payloads::ES_Deleted_Record_UUID; @* ]
+Set Field [ EasySync_Payloads::ES_Deleted_Record_UUID; "@*" ]
 Perform Find [  ]
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 End If
 #
-Set Variable [ $$EasySync_Status; Value:Pulling Data from Server... ]
-Refresh Object [ Object Name: easysync_status ]
+Set Variable [ $$EasySync_Status; Value:"Pulling Data from Server..." ]
+Refresh Object [ Object Name: "easysync_status" ]
 #
 #Log the start of the pull process.
 Set Variable [ $pull_start_utc; Value:Get ( CurrentTimeUTCMilliseconds ) ]
@@ -112,10 +112,10 @@ Perform Script [ “Pull Payload” ]
 #
 #If the pull process was also successful...
 If [ ( GetValue ( Get ( ScriptResult ) ; 1 ) = 1 ) ]
-#Update the last pull time.
-Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; $pull_start_utc ]
-#Set a timestamp as well, for use by the UI to show the last sync.
-Set Field By Name [ EasySync_Payloads::ES_Last_Full_Sync; Get ( CurrentTimeStamp ) ]
+#Update the "last pull" time.
+Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; $pull_start_utc ]
+#Set a timestamp as well, for use by the UI to show the "last sync."
+Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; Get ( CurrentTimeStamp ) ]
 Commit Records/Requests[ Skip data entry validation; No dialog ]
 End If
 #
@@ -127,7 +127,7 @@ End If
 #If the pull was successful, and if we are to perform a sync check...
 If [ ( GetValue ( Get ( ScriptResult ) ; 1 ) = 1 ) and $$perform_sync_check ]
 #
-#Peform a sync check to delete any records on the mobile device that are no longer on the server.
+#Peform a "sync check" to delete any records on the mobile device that are no longer on the server.
 Perform Script [ “Sync Check” ]
 #
 End If
@@ -136,8 +136,8 @@ End If
 Go to Layout [ original layout ]
 Show All Records
 Refresh Window
-Set Variable [ $$EasySync_Status; Value: ]
-Show Custom Dialog [ Title: Sync Completed; Message: Let ([e = Get ( CurrentTimeStamp ) - $start;e = If ( e ≤ 1 ; Less than a second.; e )];The sync process has completed. (Elapsed Time:   e  )); Default Button: “OK”, Commit: “Yes” ]
+Set Variable [ $$EasySync_Status; Value:"" ]
+Show Custom Dialog [ Title: "Sync Completed"; Message: Let ([e = Get ( CurrentTimeStamp ) - $start;e = If ( e ≤ 1 ; "Less than a second."; e )];"The sync process has completed. (Elapsed Time: " & e & ")"); Default Button: “OK”, Commit: “Yes” ]
 #
 Else
 #
@@ -162,34 +162,36 @@ Script:
       name: Comment
       StepText: "#Sync With Server:\nManages the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tReflects move to UTC time.\n\tPing process
+        Dietrich (timdietrich@me.com)\n\tReflects move to UTC time.\n\t\"Ping\" process
         has been split into a separate script.\n\n2014-04-24\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tAdds
-        support for the deletion phase of the sync process.\n\n2014-05-01\t\t\n\tTim
+        support for the \"deletion\" phase of the sync process.\n\n2014-05-01\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tReflects new delete support strategy. \n\tIncludes
-        call to Sync Check, code to clean up deleted record UUIDs, etc.\n\tAlso reflects
-        move to a single EasySync_Payloads layout.\n\tRefresh Window script steps
-        replaced with Refresh Object steps.\n\tMinor changes to UI and status messages.\n\n2014-05-15\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tThe last pull UTC is now captured prior to
-        the pull itself, and only gets set if the pull\n\tis successful. This prevents
-        records that are in play on the servr while the payload is \n\tbeing processed
-        on the mobile device from being excluded from future pulls.\n\n2014-10-19\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded configuration check. If no ES tables
-        are setup, then the sync process is aborted."
+        call to \"Sync Check,\" code to clean up deleted record UUIDs, etc.\n\tAlso
+        reflects move to a single \"EasySync_Payloads\" layout.\n\tRefresh Window
+        script steps replaced with Refresh Object steps.\n\tMinor changes to UI and
+        status messages.\n\n2014-05-15\t\n\tTim Dietrich (timdietrich@me.com)\n\tThe
+        last pull UTC is now captured prior to the pull itself, and only gets set
+        if the pull\n\tis successful. This prevents records that are in play on the
+        servr while the payload is \n\tbeing processed on the mobile device from being
+        excluded from future pulls.\n\n2014-10-19\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        configuration check. If no \"ES\" tables are setup, then the sync process
+        is aborted."
       Text: "Sync With Server:\nManages the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tReflects move to UTC time.\n\tPing process
+        Dietrich (timdietrich@me.com)\n\tReflects move to UTC time.\n\t\"Ping\" process
         has been split into a separate script.\n\n2014-04-24\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tAdds
-        support for the deletion phase of the sync process.\n\n2014-05-01\t\t\n\tTim
+        support for the \"deletion\" phase of the sync process.\n\n2014-05-01\t\t\n\tTim
         Dietrich (timdietrich@me.com)\n\tReflects new delete support strategy. \n\tIncludes
-        call to Sync Check, code to clean up deleted record UUIDs, etc.\n\tAlso reflects
-        move to a single EasySync_Payloads layout.\n\tRefresh Window script steps
-        replaced with Refresh Object steps.\n\tMinor changes to UI and status messages.\n\n2014-05-15\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tThe last pull UTC is now captured prior to
-        the pull itself, and only gets set if the pull\n\tis successful. This prevents
-        records that are in play on the servr while the payload is \n\tbeing processed
-        on the mobile device from being excluded from future pulls.\n\n2014-10-19\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded configuration check. If no ES tables
-        are setup, then the sync process is aborted."
+        call to \"Sync Check,\" code to clean up deleted record UUIDs, etc.\n\tAlso
+        reflects move to a single \"EasySync_Payloads\" layout.\n\tRefresh Window
+        script steps replaced with Refresh Object steps.\n\tMinor changes to UI and
+        status messages.\n\n2014-05-15\t\n\tTim Dietrich (timdietrich@me.com)\n\tThe
+        last pull UTC is now captured prior to the pull itself, and only gets set
+        if the pull\n\tis successful. This prevents records that are in play on the
+        servr while the payload is \n\tbeing processed on the mobile device from being
+        excluded from future pulls.\n\n2014-10-19\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        configuration check. If no \"ES\" tables are setup, then the sync process
+        is aborted."
     - enable: 'True'
       id: '89'
       name: Comment
@@ -202,16 +204,16 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT * FROM FileMaker_Tables
-        WHERE ( TableName LIKE ES\_% ); /col; ¶ ) ]
+      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT * FROM FileMaker_Tables
+        WHERE ( TableName LIKE 'ES\_%' )"; "</col>"; ¶ ) ]
       Value:
         Calculation: ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName
           LIKE 'ES\_%' )"; "</col>"; ¶ )
         DisplayCalculation:
           Chunk:
           - ExecuteSQL
-          - ' ( SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ES\_% ); /col;
-            ¶ )'
+          - ' ( "SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ''ES\_%'' )";
+            "</col>"; ¶ )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -229,23 +231,23 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Configuration Error; Message: There are
-        no \ES\ tables configured for syncing.; Default Button: “OK”, Commit: “Yes”
-        ]'
+      StepText: 'Show Custom Dialog [ Title: "Configuration Error"; Message: "There
+        are no \"ES\" tables configured for syncing."; Default Button: “OK”, Commit:
+        “Yes” ]'
       Title:
         Calculation: '"Configuration Error"'
         DisplayCalculation:
-          Chunk: Configuration Error
+          Chunk: '"Configuration Error"'
       Message:
         Calculation: '"There are no \"ES\" tables configured for syncing."'
         DisplayCalculation:
-          Chunk: There are no \ES\ tables configured for syncing.
+          Chunk: '"There are no \"ES\" tables configured for syncing."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -328,21 +330,21 @@ Script:
     - enable: 'True'
       id: '6'
       name: Go to Layout
-      StepText: Go to Layout [ EasySync_Payloads ]
+      StepText: Go to Layout [ "EasySync_Payloads" ]
       LayoutDestination:
         value: LayoutNameByCalc
       Layout:
         Calculation: '"EasySync_Payloads"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads
+          Chunk: '"EasySync_Payloads"'
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:EasySync firing up... ]
+      StepText: Set Variable [ $$EasySync_Status; Value:"EasySync firing up..." ]
       Value:
         Calculation: '"EasySync firing up..."'
         DisplayCalculation:
-          Chunk: EasySync firing up...
+          Chunk: '"EasySync firing up..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -441,27 +443,27 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync With Server?; Message: Do you really
-        want to sync with the server?; Default Button: “Yes”, Commit: “Yes”; Button
-        2: “No”, Commit: “No” ]'
+      StepText: 'Show Custom Dialog [ Title: "Sync With Server?"; Message: "Do you
+        really want to sync with the server?"; Default Button: “Yes”, Commit: “Yes”;
+        Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Sync With Server?"'
         DisplayCalculation:
-          Chunk: Sync With Server?
+          Chunk: '"Sync With Server?"'
       Message:
         Calculation: '"Do you really want to sync with the server?"'
         DisplayCalculation:
-          Chunk: Do you really want to sync with the server?
+          Chunk: '"Do you really want to sync with the server?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '68'
@@ -499,11 +501,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Preparing to Sync... ]
+      StepText: Set Variable [ $$EasySync_Status; Value:"Preparing to Sync..." ]
       Value:
         Calculation: '"Preparing to Sync..."'
         DisplayCalculation:
-          Chunk: Preparing to Sync...
+          Chunk: '"Preparing to Sync..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -520,11 +522,11 @@ Script:
     - enable: 'False'
       id: '167'
       name: Refresh Object
-      StepText: '//  Refresh Object [ Object Name: easysync_status ]'
+      StepText: '//  Refresh Object [ Object Name: "easysync_status" ]'
       ObjectName:
         Calculation: '"easysync_status"'
         DisplayCalculation:
-          Chunk: easysync_status
+          Chunk: '"easysync_status"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -568,9 +570,9 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Prevent the user from aborting, and well handle errors, so suppress
+      StepText: '#Prevent the user from aborting, and we''ll handle errors, so suppress
         those...'
-      Text: Prevent the user from aborting, and well handle errors, so suppress those...
+      Text: Prevent the user from aborting, and we'll handle errors, so suppress those...
     - enable: 'True'
       id: '68'
       name: If
@@ -607,12 +609,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:EasySync is go for launch...
+      StepText: Set Variable [ $$EasySync_Status; Value:"EasySync is go for launch..."
         ]
       Value:
         Calculation: '"EasySync is go for launch..."'
         DisplayCalculation:
-          Chunk: EasySync is go for launch...
+          Chunk: '"EasySync is go for launch..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -633,12 +635,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#If ES_Last_Pull_UTC_Time is not set...'
-      Text: If ES_Last_Pull_UTC_Time is not set...
+      StepText: '#If "ES_Last_Pull_UTC_Time" is not set...'
+      Text: If "ES_Last_Pull_UTC_Time" is not set...
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time
+      StepText: If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time"
         ) ) ]
       Calculation: IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time"
         ) )
@@ -647,11 +649,12 @@ Script:
         - IsEmpty
         - ' ( '
         - Evaluate
-        - ' ( EasySync_Payloads::ES_Last_Pull_UTC_Time ) )'
+        - ' ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) )'
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; 0 ]
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; 0
+        ]
       Result:
         Calculation: '0'
         DisplayCalculation:
@@ -659,7 +662,7 @@ Script:
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Pull_UTC_Time
+          Chunk: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
     - enable: 'True'
       id: '70'
       name: End If
@@ -671,12 +674,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#If ES_Last_Push_UTC_Time is not set...'
-      Text: If ES_Last_Push_UTC_Time is not set...
+      StepText: '#If "ES_Last_Push_UTC_Time" is not set...'
+      Text: If "ES_Last_Push_UTC_Time" is not set...
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Push_UTC_Time
+      StepText: If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Push_UTC_Time"
         ) ) ]
       Calculation: IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Push_UTC_Time"
         ) )
@@ -685,11 +688,12 @@ Script:
         - IsEmpty
         - ' ( '
         - Evaluate
-        - ' ( EasySync_Payloads::ES_Last_Push_UTC_Time ) )'
+        - ' ( "EasySync_Payloads::ES_Last_Push_UTC_Time" ) )'
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Push_UTC_Time; 0 ]
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; 0
+        ]
       Result:
         Calculation: '0'
         DisplayCalculation:
@@ -697,7 +701,7 @@ Script:
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Push_UTC_Time
+          Chunk: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
     - enable: 'True'
       id: '70'
       name: End If
@@ -781,7 +785,7 @@ Script:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -831,29 +835,29 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Upgrade Solution?; Message: A new version
-        of this solution is available.¶¶Would you like to upgrade now?; Default Button:
-        “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
+      StepText: 'Show Custom Dialog [ Title: "Upgrade Solution?"; Message: "A new
+        version of this solution is available.¶¶Would you like to upgrade now?"; Default
+        Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Upgrade Solution?"'
         DisplayCalculation:
-          Chunk: Upgrade Solution?
+          Chunk: '"Upgrade Solution?"'
       Message:
         Calculation: '"A new version of this solution is available.¶¶Would you like
           to upgrade now?"'
         DisplayCalculation:
-          Chunk: A new version of this solution is available.¶¶Would you like to upgrade
-            now?
+          Chunk: '"A new version of this solution is available.¶¶Would you like to
+            upgrade now?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '68'
@@ -892,12 +896,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Update the last push time.'
-      Text: Update the last push time.
+      StepText: '#Update the "last push" time.'
+      Text: Update the "last push" time.
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Push_UTC_Time; Get
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; Get
         ( CurrentTimeUTCMilliseconds ) ]
       Result:
         Calculation: Get ( CurrentTimeUTCMilliseconds )
@@ -910,7 +914,7 @@ Script:
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Push_UTC_Time
+          Chunk: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
     - enable: 'True'
       id: '75'
       name: Commit Records/Requests
@@ -930,8 +934,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Clean up any deleted record UUID payload records...'
-      Text: Clean up any deleted record UUID payload records...
+      StepText: '#Clean up any "deleted record UUID" payload records...'
+      Text: Clean up any "deleted record UUID" payload records...
     - enable: 'True'
       id: '22'
       name: Enter Find Mode
@@ -943,10 +947,10 @@ Script:
     - enable: 'True'
       id: '76'
       name: Set Field
-      StepText: Set Field [ EasySync_Payloads::ES_Deleted_Record_UUID; @* ]
+      StepText: Set Field [ EasySync_Payloads::ES_Deleted_Record_UUID; "@*" ]
       Calculation: '"@*"'
       DisplayCalculation:
-        Chunk: '@*'
+        Chunk: '"@*"'
       Field:
         table: EasySync_Payloads
         id: '17'
@@ -987,12 +991,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Pulling Data from Server...
+      StepText: Set Variable [ $$EasySync_Status; Value:"Pulling Data from Server..."
         ]
       Value:
         Calculation: '"Pulling Data from Server..."'
         DisplayCalculation:
-          Chunk: Pulling Data from Server...
+          Chunk: '"Pulling Data from Server..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1001,11 +1005,11 @@ Script:
     - enable: 'True'
       id: '167'
       name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: easysync_status ]'
+      StepText: 'Refresh Object [ Object Name: "easysync_status" ]'
       ObjectName:
         Calculation: '"easysync_status"'
         DisplayCalculation:
-          Chunk: easysync_status
+          Chunk: '"easysync_status"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1079,12 +1083,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Update the last pull time.'
-      Text: Update the last pull time.
+      StepText: '#Update the "last pull" time.'
+      Text: Update the "last pull" time.
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time; $pull_start_utc
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; $pull_start_utc
         ]
       Result:
         Calculation: $pull_start_utc
@@ -1093,17 +1097,17 @@ Script:
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Pull_UTC_Time
+          Chunk: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Set a timestamp as well, for use by the UI to show the last sync.'
-      Text: Set a timestamp as well, for use by the UI to show the last sync.
+      StepText: '#Set a timestamp as well, for use by the UI to show the "last sync."'
+      Text: Set a timestamp as well, for use by the UI to show the "last sync."
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Full_Sync; Get ( CurrentTimeStamp
-        ) ]
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; Get (
+        CurrentTimeStamp ) ]
       Result:
         Calculation: Get ( CurrentTimeStamp )
         DisplayCalculation:
@@ -1115,7 +1119,7 @@ Script:
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Full_Sync"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Full_Sync
+          Chunk: '"EasySync_Payloads::ES_Last_Full_Sync"'
     - enable: 'True'
       id: '75'
       name: Commit Records/Requests
@@ -1190,7 +1194,7 @@ Script:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -1230,10 +1234,10 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Peform a sync check to delete any records on the mobile device that
-        are no longer on the server.'
-      Text: Peform a sync check to delete any records on the mobile device that are
-        no longer on the server.
+      StepText: '#Peform a "sync check" to delete any records on the mobile device
+        that are no longer on the server.'
+      Text: Peform a "sync check" to delete any records on the mobile device that
+        are no longer on the server.
     - enable: 'True'
       id: '1'
       name: Perform Script
@@ -1269,7 +1273,7 @@ Script:
         name: ''
         Calculation: '"EasySync_Status"'
         DisplayCalculation:
-          Chunk: EasySync_Status
+          Chunk: '"EasySync_Status"'
     - enable: 'True'
       id: '23'
       name: Show All Records
@@ -1285,11 +1289,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: 'Set Variable [ $$EasySync_Status; Value: ]'
+      StepText: Set Variable [ $$EasySync_Status; Value:"" ]
       Value:
         Calculation: '""'
         DisplayCalculation:
-          Chunk: 
+          Chunk: '""'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1299,17 +1303,17 @@ Script:
       id: '87'
       name: Show Custom Dialog
       StepText: |-
-        Show Custom Dialog [ Title: Sync Completed; Message: Let (
+        Show Custom Dialog [ Title: "Sync Completed"; Message: Let (
         [
         e = Get ( CurrentTimeStamp ) - $start;
-        e = If ( e ≤ 1 ; Less than a second.; e )
+        e = If ( e ≤ 1 ; "Less than a second."; e )
         ];
-        The sync process has completed. (Elapsed Time:   e  )
+        "The sync process has completed. (Elapsed Time: " & e & ")"
         ); Default Button: “OK”, Commit: “Yes” ]
       Title:
         Calculation: '"Sync Completed"'
         DisplayCalculation:
-          Chunk: Sync Completed
+          Chunk: '"Sync Completed"'
       Message:
         Calculation: |-
           Let (
@@ -1329,16 +1333,16 @@ Script:
           - " ) - $start;\ne = "
           - If
           - |2-
-             ( e ≤ 1 ; Less than a second.; e )
+             ( e ≤ 1 ; "Less than a second."; e )
             ];
-            The sync process has completed. (Elapsed Time:   e  )
+            "The sync process has completed. (Elapsed Time: " & e & ")"
             )
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -1379,7 +1383,7 @@ Script:
       Layout:
         Calculation: '"EasySync_Status"'
         DisplayCalculation:
-          Chunk: EasySync_Status
+          Chunk: '"EasySync_Status"'
     - enable: 'True'
       id: '89'
       name: Comment

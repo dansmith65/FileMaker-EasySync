@@ -1,11 +1,11 @@
-#Sync Utilities:Provides support for sync-related functions.Parameters supported:• Reset: resets the last sync date/time and forces all local data to be included in the push payload.• Wipe removes all local data in any of the tables being synced, as well as the EasySync table itself.The script can be run directly without passing a param, in which case a dialog is presented.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-19	Tim Dietrich (timdietrich@me.com)	Reflects shift to UTC timestampts.2014-04-30	Tim Dietrich (timdietrich@me.com)	Significantly changed how wipes are handled. 	We now only loop over the ES_ layouts, not all layouts like we used to do.	This helps avoid potential issues with layout-based triggers.	It also seems to help with performance.
+#Sync Utilities:Provides support for sync-related functions.Parameters supported:• Reset: resets the last sync date/time and forces all local data to be included in the push payload.• Wipe removes all local data in any of the tables being synced, as well as the EasySync table itself.The script can be run directly without passing a param, in which case a dialog is presented.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-19	Tim Dietrich (timdietrich@me.com)	Reflects shift to UTC timestampts.2014-04-30	Tim Dietrich (timdietrich@me.com)	Significantly changed how wipes are handled. 	We now only loop over the "ES_" layouts, not all layouts like we used to do.	This helps avoid potential issues with layout-based triggers.	It also seems to help with performance.
 #
 If [ IsEmpty ( Get ( ScriptParameter ) ) ]
-Show Custom Dialog [ Title: Sync Utilities; Message: What do you want to do?  ¶  Wipe: Removes data from this device.  ¶  Reset: Resets the last push / pull timestamps.; Default Button: “Reset”, Commit: “Yes”; Button 2: “Wipe”, Commit: “No”; Button 3: “Cancel”, Commit: “No” ]
+Show Custom Dialog [ Title: "Sync Utilities"; Message: "What do you want to do?" & ¶ & "Wipe: Removes data from this device." & ¶ & "Reset: Resets the last push / pull timestamps."; Default Button: “Reset”, Commit: “Yes”; Button 2: “Wipe”, Commit: “No”; Button 3: “Cancel”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
-Set Variable [ $utility; Value:reset ]
+Set Variable [ $utility; Value:"reset" ]
 Else If [ Get ( LastMessageChoice ) = 2 ]
-Set Variable [ $utility; Value:wipe ]
+Set Variable [ $utility; Value:"wipe" ]
 Else
 Exit Script [  ]
 End If
@@ -13,14 +13,14 @@ Else
 Set Variable [ $utility; Value:Get ( ScriptParameter ) ]
 End If
 #
-If [ $utility = reset ]
+If [ $utility = "reset" ]
 #
-Set Field By Name [ EasySync_Payloads::ES_Last_Push_UTC_Time;  ]
-Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time;  ]
-Set Field By Name [ EasySync_Payloads::ES_Last_Full_Sync; Never ]
+Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; "" ]
+Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; "" ]
+Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; "Never" ]
 Refresh Window
 #
-Else If [ $utility = wipe ]
+Else If [ $utility = "wipe" ]
 #
 Allow User Abort [ Off ]
 #
@@ -34,8 +34,8 @@ Loop
 #Get the layout name.
 Set Variable [ $layout; Value:GetValue ( $layouts ; $i ) ]
 #
-#If this is an ES layout...
-If [ Left ( $layout; 3 ) = ES_ ]
+#If this is an "ES" layout...
+If [ Left ( $layout; 3 ) = "ES_" ]
 #Go to the layout.
 Go to Layout [ $layout ]
 #
@@ -46,20 +46,20 @@ Delete All Records[ No dialog ]
 End If
 #
 Set Variable [ $i; Value:$i + 1 ]
-Exit Loop If [ $i  ValueCount ( $layouts ) ]
+Exit Loop If [ $i > ValueCount ( $layouts ) ]
 End Loop
 #
 Go to Layout [ original layout ]
 Refresh Window
 #
 #
-Show Custom Dialog [ Title: Sync Utilities; Message: Do you want to \reset\ as well?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: "Sync Utilities"; Message: "Do you want to \"reset\" as well?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
-Perform Script [ “Sync Utilities”; Parameter: reset ]
+Perform Script [ “Sync Utilities”; Parameter: "reset" ]
 End If
 #
 Else
-Show Custom Dialog [ Title: Unsupported Utility; Message: Sorry, but \  $utility  \ is not a supported utility.; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Unsupported Utility"; Message: "Sorry, but \"" & $utility & "\" is not a supported utility."; Default Button: “OK”, Commit: “Yes” ]
 End If
 
 
@@ -82,8 +82,8 @@ Script:
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-19\n\tTim Dietrich
         (timdietrich@me.com)\n\tReflects shift to UTC timestampts.\n\n2014-04-30\n\tTim
         Dietrich (timdietrich@me.com)\n\tSignificantly changed how wipes are handled.
-        \n\tWe now only loop over the ES_ layouts, not all layouts like we used to
-        do.\n\tThis helps avoid potential issues with layout-based triggers.\n\tIt
+        \n\tWe now only loop over the \"ES_\" layouts, not all layouts like we used
+        to do.\n\tThis helps avoid potential issues with layout-based triggers.\n\tIt
         also seems to help with performance."
       Text: "Sync Utilities:\nProvides support for sync-related functions.\n\nParameters
         supported:\n• Reset: resets the last sync date/time and forces all local data
@@ -93,8 +93,8 @@ Script:
         Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-19\n\tTim Dietrich
         (timdietrich@me.com)\n\tReflects shift to UTC timestampts.\n\n2014-04-30\n\tTim
         Dietrich (timdietrich@me.com)\n\tSignificantly changed how wipes are handled.
-        \n\tWe now only loop over the ES_ layouts, not all layouts like we used to
-        do.\n\tThis helps avoid potential issues with layout-based triggers.\n\tIt
+        \n\tWe now only loop over the \"ES_\" layouts, not all layouts like we used
+        to do.\n\tThis helps avoid potential issues with layout-based triggers.\n\tIt
         also seems to help with performance."
     - enable: 'True'
       id: '89'
@@ -116,34 +116,34 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: "Show Custom Dialog [ Title: Sync Utilities; Message: What do you
-        want to do?  ¶  \nWipe: Removes data from this device.  ¶  \nReset: Resets
-        the last push / pull timestamps.; Default Button: “Reset”, Commit: “Yes”;
-        Button 2: “Wipe”, Commit: “No”; Button 3: “Cancel”, Commit: “No” ]"
+      StepText: "Show Custom Dialog [ Title: \"Sync Utilities\"; Message: \"What do
+        you want to do?\" & ¶ & \n\"Wipe: Removes data from this device.\" & ¶ & \n\"Reset:
+        Resets the last push / pull timestamps.\"; Default Button: “Reset”, Commit:
+        “Yes”; Button 2: “Wipe”, Commit: “No”; Button 3: “Cancel”, Commit: “No” ]"
       Title:
         Calculation: '"Sync Utilities"'
         DisplayCalculation:
-          Chunk: Sync Utilities
+          Chunk: '"Sync Utilities"'
       Message:
         Calculation: "\"What do you want to do?\" & ¶ & \n\"Wipe: Removes data from
           this device.\" & ¶ & \n\"Reset: Resets the last push / pull timestamps.\""
         DisplayCalculation:
-          Chunk: "What do you want to do?  ¶  \nWipe: Removes data from this device.
-            \ ¶  \nReset: Resets the last push / pull timestamps."
+          Chunk: "\"What do you want to do?\" & ¶ & \n\"Wipe: Removes data from this
+            device.\" & ¶ & \n\"Reset: Resets the last push / pull timestamps.\""
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Reset"'
           DisplayCalculation:
-            Chunk: Reset
+            Chunk: '"Reset"'
         - CommitState: 'False'
           Calculation: '"Wipe"'
           DisplayCalculation:
-            Chunk: Wipe
+            Chunk: '"Wipe"'
         - CommitState: 'False'
           Calculation: '"Cancel"'
           DisplayCalculation:
-            Chunk: Cancel
+            Chunk: '"Cancel"'
     - enable: 'True'
       id: '68'
       name: If
@@ -158,11 +158,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $utility; Value:reset ]
+      StepText: Set Variable [ $utility; Value:"reset" ]
       Value:
         Calculation: '"reset"'
         DisplayCalculation:
-          Chunk: reset
+          Chunk: '"reset"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -182,11 +182,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $utility; Value:wipe ]
+      StepText: Set Variable [ $utility; Value:"wipe" ]
       Value:
         Calculation: '"wipe"'
         DisplayCalculation:
-          Chunk: wipe
+          Chunk: '"wipe"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -236,10 +236,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $utility = reset ]
+      StepText: If [ $utility = "reset" ]
       Calculation: $utility = "reset"
       DisplayCalculation:
-        Chunk: $utility = reset
+        Chunk: $utility = "reset"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -247,39 +247,42 @@ Script:
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Push_UTC_Time;  ]
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; ""
+        ]
       Result:
         Calculation: '""'
         DisplayCalculation:
-          Chunk: 
+          Chunk: '""'
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Push_UTC_Time
+          Chunk: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Pull_UTC_Time;  ]
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; ""
+        ]
       Result:
         Calculation: '""'
         DisplayCalculation:
-          Chunk: 
+          Chunk: '""'
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Pull_UTC_Time
+          Chunk: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Last_Full_Sync; Never ]
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; "Never"
+        ]
       Result:
         Calculation: '"Never"'
         DisplayCalculation:
-          Chunk: Never
+          Chunk: '"Never"'
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Last_Full_Sync"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Last_Full_Sync
+          Chunk: '"EasySync_Payloads::ES_Last_Full_Sync"'
     - enable: 'True'
       id: '80'
       name: Refresh Window
@@ -295,10 +298,10 @@ Script:
     - enable: 'True'
       id: '125'
       name: Else If
-      StepText: Else If [ $utility = wipe ]
+      StepText: Else If [ $utility = "wipe" ]
       Calculation: $utility = "wipe"
       DisplayCalculation:
-        Chunk: $utility = wipe
+        Chunk: $utility = "wipe"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -394,17 +397,17 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#If this is an ES layout...'
-      Text: If this is an ES layout...
+      StepText: '#If this is an "ES" layout...'
+      Text: If this is an "ES" layout...
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ Left ( $layout; 3 ) = ES_ ]
+      StepText: If [ Left ( $layout; 3 ) = "ES_" ]
       Calculation: Left ( $layout; 3 ) = "ES_"
       DisplayCalculation:
         Chunk:
         - Left
-        - ' ( $layout; 3 ) = ES_'
+        - ' ( $layout; 3 ) = "ES_"'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -469,11 +472,11 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $i  ValueCount ( $layouts ) ]
+      StepText: Exit Loop If [ $i > ValueCount ( $layouts ) ]
       Calculation: $i > ValueCount ( $layouts )
       DisplayCalculation:
         Chunk:
-        - '$i  '
+        - '$i > '
         - ValueCount
         - ' ( $layouts )'
     - enable: 'True'
@@ -517,27 +520,27 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Utilities; Message: Do you want
-        to \reset\ as well?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”,
+      StepText: 'Show Custom Dialog [ Title: "Sync Utilities"; Message: "Do you want
+        to \"reset\" as well?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”,
         Commit: “No” ]'
       Title:
         Calculation: '"Sync Utilities"'
         DisplayCalculation:
-          Chunk: Sync Utilities
+          Chunk: '"Sync Utilities"'
       Message:
         Calculation: '"Do you want to \"reset\" as well?"'
         DisplayCalculation:
-          Chunk: Do you want to \reset\ as well?
+          Chunk: '"Do you want to \"reset\" as well?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '68'
@@ -553,10 +556,10 @@ Script:
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Sync Utilities”; Parameter: reset ]'
+      StepText: 'Perform Script [ “Sync Utilities”; Parameter: "reset" ]'
       Calculation: '"reset"'
       DisplayCalculation:
-        Chunk: reset
+        Chunk: '"reset"'
       Script:
         id: '26'
         name: Sync Utilities
@@ -575,23 +578,23 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Unsupported Utility; Message: Sorry,
-        but \  $utility  \ is not a supported utility.; Default Button: “OK”, Commit:
-        “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Unsupported Utility"; Message: "Sorry,
+        but \"" & $utility & "\" is not a supported utility."; Default Button: “OK”,
+        Commit: “Yes” ]'
       Title:
         Calculation: '"Unsupported Utility"'
         DisplayCalculation:
-          Chunk: Unsupported Utility
+          Chunk: '"Unsupported Utility"'
       Message:
         Calculation: '"Sorry, but \"" & $utility & "\" is not a supported utility."'
         DisplayCalculation:
-          Chunk: Sorry, but \  $utility  \ is not a supported utility.
+          Chunk: '"Sorry, but \"" & $utility & "\" is not a supported utility."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
