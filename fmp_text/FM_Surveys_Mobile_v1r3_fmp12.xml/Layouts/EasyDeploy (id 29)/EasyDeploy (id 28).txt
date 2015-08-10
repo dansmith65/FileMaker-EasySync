@@ -108,7 +108,7 @@ Layout:
         - Get
         - ' ( '
         - AccountPrivilegeSetName
-        - ' ) ≠ [Full Access]'
+        - ' ) ≠ "[Full Access]"'
   - type: Text
     key: '11'
     LabelKey: '0'
@@ -236,7 +236,7 @@ Layout:
         LocalCSS: "\nself\n{\n\tcolor: rgba(100%,100%,100%,1);\n\ttext-align: center;\n}\n"
       CharacterStyleVector:
         Style:
-          Data: 'The EasyDeploy database goes in here. '
+          Data: 'The "EasyDeploy" database goes in here. '
           CharacterStyle:
             mask: '32695'
             Font_family: arial,sans-serif
@@ -245,7 +245,7 @@ Layout:
             Color: '#FFFFFF'
       ParagraphStyleVector:
         Style:
-          Data: 'The EasyDeploy database goes in here. '
+          Data: 'The "EasyDeploy" database goes in here. '
           ParagraphStyle:
             mask: '0'
             __content__: |2+
@@ -257,4 +257,4 @@ Layout:
         - Get
         - ' ( '
         - AccountPrivilegeSetName
-        - ' ) ≠ [Full Access]'
+        - ' ) ≠ "[Full Access]"'

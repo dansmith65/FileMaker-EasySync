@@ -10,7 +10,7 @@
 ---
 BaseTable:
   id: '134'
-  records: ''
+  records: '0'
   name: EasyDeploy
   FieldCatalog:
     Field:
@@ -36,7 +36,7 @@ BaseTable:
               table: EasyDeploy
               id: '3'
               name: Database_Container
-          - ' ; All )'
+          - ' ; "All" )'
       Validation:
         message: 'False'
         maxLength: 'False'
@@ -135,7 +135,7 @@ BaseTable:
             table: EasyDeploy
             id: '3'
             name: Database_Container
-        - '  b64  '
+        - ' & "<b64>" & '
         - Base64Encode
         - ' ( '
         - type: FieldRef
@@ -143,7 +143,7 @@ BaseTable:
             table: EasyDeploy
             id: '3'
             name: Database_Container
-        - ' )  /b64'
+        - ' ) & "</b64>"'
       Comment: 
       AutoEnter:
         alwaysEvaluate: 'False'

@@ -46,7 +46,7 @@ Layout:
         name: Survey Form - iPad
         __content__: |2+
 
-      TriggerText: Survey Form - iPad
+      TriggerText: '"Survey Form - iPad"'
   Object:
   - type: TabControl
     key: '54'
@@ -125,7 +125,7 @@ Layout:
         TitleCalc:
           Calculation: '"Contact Info"'
           DisplayCalculation:
-            Chunk: Contact Info
+            Chunk: '"Contact Info"'
         TabPanelObj:
           tabLeftEdge: '0'
           tabWidth: '122'
@@ -1607,20 +1607,20 @@ Layout:
                 enable: 'True'
                 id: '1'
                 name: Perform Script
-                StepText: 'Perform Script [ “EasySync Delete Record”; Parameter: Record¶  Surveys::ES_Record_UUID  ¶survey
-                  ]'
+                StepText: 'Perform Script [ “EasySync Delete Record”; Parameter: "Record¶"
+                  & Surveys::ES_Record_UUID & "¶survey" ]'
                 CurrentScript:
                   value: Pause
                 Calculation: '"Record¶" & Surveys::ES_Record_UUID & "¶survey"'
                 DisplayCalculation:
                   Chunk:
-                  - 'Record¶  '
+                  - '"Record¶" & '
                   - type: FieldRef
                     Field:
                       table: Surveys
                       id: '18'
                       name: ES_Record_UUID
-                  - '  ¶survey'
+                  - ' & "¶survey"'
                 Script:
                   id: '44'
                   name: EasySync Delete Record
@@ -1643,7 +1643,7 @@ Layout:
         TitleCalc:
           Calculation: '"Survey Questions"'
           DisplayCalculation:
-            Chunk: Survey Questions
+            Chunk: '"Survey Questions"'
         TabPanelObj:
           tabLeftEdge: '121'
           tabWidth: '162'
@@ -2399,20 +2399,20 @@ Layout:
                     id: '1'
                     name: Perform Script
                     StepText: 'Perform Script [ “EasySync Delete Record”; Parameter:
-                      Portal Row¶  Survey_Hobbies::ES_Record_UUID  ¶hobby ]'
+                      "Portal Row¶" & Survey_Hobbies::ES_Record_UUID & "¶hobby" ]'
                     CurrentScript:
                       value: Pause
                     Calculation: '"Portal Row¶" & Survey_Hobbies::ES_Record_UUID &
                       "¶hobby"'
                     DisplayCalculation:
                       Chunk:
-                      - 'Portal Row¶  '
+                      - '"Portal Row¶" & '
                       - type: FieldRef
                         Field:
                           table: Survey_Hobbies
                           id: '3'
                           name: ES_Record_UUID
-                      - '  ¶hobby'
+                      - ' & "¶hobby"'
                     Script:
                       id: '44'
                       name: EasySync Delete Record
@@ -2513,7 +2513,7 @@ Layout:
         TitleCalc:
           Calculation: '"Comments"'
           DisplayCalculation:
-            Chunk: Comments
+            Chunk: '"Comments"'
         TabPanelObj:
           tabLeftEdge: '282'
           tabWidth: '113'
@@ -2674,7 +2674,7 @@ Layout:
         TitleCalc:
           Calculation: '"Documents"'
           DisplayCalculation:
-            Chunk: Documents
+            Chunk: '"Documents"'
         TabPanelObj:
           tabLeftEdge: '394'
           tabWidth: '116'
@@ -2722,7 +2722,7 @@ Layout:
                       name: Add Survey Document
                       __content__: |2+
 
-                    TriggerText: Add Survey Document
+                    TriggerText: '"Add Survey Document"'
                 Bounds:
                   top: '13.0000000'
                   left: '12.0000000'
@@ -2944,20 +2944,21 @@ Layout:
                     id: '1'
                     name: Perform Script
                     StepText: 'Perform Script [ “EasySync Delete Record”; Parameter:
-                      Portal Row¶  Survey_Documents::ES_Record_UUID  ¶document ]'
+                      "Portal Row¶" & Survey_Documents::ES_Record_UUID & "¶document"
+                      ]'
                     CurrentScript:
                       value: Pause
                     Calculation: '"Portal Row¶" & Survey_Documents::ES_Record_UUID
                       & "¶document"'
                     DisplayCalculation:
                       Chunk:
-                      - 'Portal Row¶  '
+                      - '"Portal Row¶" & '
                       - type: FieldRef
                         Field:
                           table: Survey_Documents
                           id: '28'
                           name: ES_Record_UUID
-                      - '  ¶document'
+                      - ' & "¶document"'
                     Script:
                       id: '44'
                       name: EasySync Delete Record
@@ -3128,7 +3129,7 @@ Layout:
         TitleCalc:
           Calculation: '"Repeating"'
           DisplayCalculation:
-            Chunk: Repeating
+            Chunk: '"Repeating"'
         TabPanelObj:
           tabLeftEdge: '509'
           tabWidth: '108'
@@ -3362,7 +3363,7 @@ Layout:
         TitleCalc:
           Calculation: '"Audit"'
           DisplayCalculation:
-            Chunk: Audit
+            Chunk: '"Audit"'
         TabPanelObj:
           tabLeftEdge: '616'
           tabWidth: '72'
@@ -3663,7 +3664,7 @@ Layout:
         TitleCalc:
           Calculation: '"EasySync"'
           DisplayCalculation:
-            Chunk: EasySync
+            Chunk: '"EasySync"'
         TabPanelObj:
           tabLeftEdge: '687'
           tabWidth: '107'
@@ -4318,7 +4319,7 @@ Layout:
             Font_size: '18'
             Face: '0'
             Color: '#B3B3B3'
-        - Data: First_Name Last_Name
+        - Data: <<First_Name>> <<Last_Name>>
           CharacterStyle:
             mask: '2'
             Font_family: Arial
@@ -4327,7 +4328,7 @@ Layout:
             Color: '#000000'
       ParagraphStyleVector:
         Style:
-          Data: "FileMaker Survey:\rFirst_Name Last_Name"
+          Data: "FileMaker Survey:\r<<First_Name>> <<Last_Name>>"
           ParagraphStyle:
             mask: '0'
             __content__: |2+

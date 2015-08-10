@@ -10,26 +10,26 @@ Set Variable [ $start_pos; Value:GetValue ( Get ( ScriptParameter ) ; 2 ) ]
 Set Variable [ $segment_size; Value:GetValue ( Get ( ScriptParameter ) ; 3 ) ]
 #
 #Get the payload.
-Go to Layout [ EasySync_Payloads ]
+Go to Layout [ "EasySync_Payloads" ]
 Enter Find Mode [  ]
-Set Field By Name [ EasySync_Payloads::ES_Payload_UUID; $payload_uuid ]
+Set Field By Name [ "EasySync_Payloads::ES_Payload_UUID"; $payload_uuid ]
 Perform Find [  ]
 If [ Get ( FoundCount ) ≠ 1 ]
-Exit Script [ Result:  ]
+Exit Script [ Result: "" ]
 End If
 #
 #Get the segment.
-Set Variable [ $segment; Value:Middle ( Evaluate (  EasySync_Payloads::Payload ) ; $start_pos ; $segment_size ) ]
+Set Variable [ $segment; Value:Middle ( Evaluate (  "EasySync_Payloads::Payload" ) ; $start_pos ; $segment_size ) ]
 #
 #If this is the last segment...
-If [ ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  EasySync_Payloads::Payload ) ) ) ]
+If [ ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  "EasySync_Payloads::Payload" ) ) ) ]
 Delete Record/Request[ No dialog ]
 End If
 #
 Exit Script [ Result: $segment ]
 #
 Else
-Exit Script [ Result:  ]
+Exit Script [ Result: "" ]
 End If
 #
 
@@ -167,13 +167,13 @@ Script:
     - enable: 'True'
       id: '6'
       name: Go to Layout
-      StepText: Go to Layout [ EasySync_Payloads ]
+      StepText: Go to Layout [ "EasySync_Payloads" ]
       LayoutDestination:
         value: LayoutNameByCalc
       Layout:
         Calculation: '"EasySync_Payloads"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads
+          Chunk: '"EasySync_Payloads"'
     - enable: 'True'
       id: '22'
       name: Enter Find Mode
@@ -185,7 +185,7 @@ Script:
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ EasySync_Payloads::ES_Payload_UUID; $payload_uuid
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Payload_UUID"; $payload_uuid
         ]
       Result:
         Calculation: $payload_uuid
@@ -194,7 +194,7 @@ Script:
       TargetName:
         Calculation: '"EasySync_Payloads::ES_Payload_UUID"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads::ES_Payload_UUID
+          Chunk: '"EasySync_Payloads::ES_Payload_UUID"'
     - enable: 'True'
       id: '28'
       name: Perform Find
@@ -215,10 +215,10 @@ Script:
     - enable: 'True'
       id: '103'
       name: Exit Script
-      StepText: 'Exit Script [ Result:  ]'
+      StepText: 'Exit Script [ Result: "" ]'
       Calculation: '""'
       DisplayCalculation:
-        Chunk: 
+        Chunk: '""'
     - enable: 'True'
       id: '70'
       name: End If
@@ -235,7 +235,7 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $segment; Value:Middle ( Evaluate (  EasySync_Payloads::Payload
+      StepText: Set Variable [ $segment; Value:Middle ( Evaluate (  "EasySync_Payloads::Payload"
         ) ; $start_pos ; $segment_size ) ]
       Value:
         Calculation: Middle ( Evaluate (  "EasySync_Payloads::Payload" ) ; $start_pos
@@ -245,7 +245,7 @@ Script:
           - Middle
           - ' ( '
           - Evaluate
-          - ' (  EasySync_Payloads::Payload ) ; $start_pos ; $segment_size )'
+          - ' (  "EasySync_Payloads::Payload" ) ; $start_pos ; $segment_size )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -263,7 +263,7 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  EasySync_Payloads::Payload
+      StepText: If [ ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  "EasySync_Payloads::Payload"
         ) ) ) ]
       Calculation: ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  "EasySync_Payloads::Payload"
         ) ) )
@@ -273,7 +273,7 @@ Script:
         - Length
         - ' ( '
         - Evaluate
-        - ' (  EasySync_Payloads::Payload ) ) )'
+        - ' (  "EasySync_Payloads::Payload" ) ) )'
     - enable: 'True'
       id: '9'
       name: Delete Record/Request
@@ -308,10 +308,10 @@ Script:
     - enable: 'True'
       id: '103'
       name: Exit Script
-      StepText: 'Exit Script [ Result:  ]'
+      StepText: 'Exit Script [ Result: "" ]'
       Calculation: '""'
       DisplayCalculation:
-        Chunk: 
+        Chunk: '""'
     - enable: 'True'
       id: '70'
       name: End If

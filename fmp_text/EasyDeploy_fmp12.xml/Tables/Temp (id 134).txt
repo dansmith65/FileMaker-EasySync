@@ -1,13 +1,13 @@
     id   Field Name                  Data Type        Field Type        Comment                                           
     --   ----------                  ---------        ----------        -------                                           
      3   Database_Container          Binary           Normal                                                              
-     7   Consumed                    Number           Normal            A 1 indicates that this copy of EasyDeploy has already been used.
+     7   Consumed                    Number           Normal            A "1" indicates that this copy of EasyDeploy has already been used.
 
 
 ---
 BaseTable:
   id: '134'
-  records: ''
+  records: '0'
   name: Temp
   FieldCatalog:
     Field:
@@ -45,7 +45,7 @@ BaseTable:
       dataType: Number
       fieldType: Normal
       name: Consumed
-      Comment: A 1 indicates that this copy of EasyDeploy has already been used.
+      Comment: A "1" indicates that this copy of EasyDeploy has already been used.
       AutoEnter:
         allowEditing: 'True'
         constant: 'False'

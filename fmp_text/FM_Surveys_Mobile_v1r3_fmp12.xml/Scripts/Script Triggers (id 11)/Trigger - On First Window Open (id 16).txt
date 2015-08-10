@@ -6,14 +6,14 @@ Else
 Set Zoom Level [ 100%; Camera: Back; Resolution: Full ]
 End If
 #
-#Optional - Added to demonstrate the Initial Pull script.
-//  If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time ) ) ]
+#Optional - Added to demonstrate the "Initial Pull" script.
+//  If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) ) ]
 //  #
 //  #Confirm the sync.
-//  Show Custom Dialog [ Title: Welcome!; Message: It appears that this is the first time that youve used this database. Would you like to perform an initial sync with the server to get your data?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+//  Show Custom Dialog [ Title: "Welcome!"; Message: "It appears that this is the first time that you've used this database. Would you like to perform an initial sync with the server to get your data?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 //  #
 //  If [ Get ( LastMessageChoice ) = 1 ]
-//  Perform Script [ “unknown” ]
+//  Perform Script [ “<unknown>” ]
 //  End If
 //  #
 //  End If
@@ -88,12 +88,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Optional - Added to demonstrate the Initial Pull script.'
-      Text: Optional - Added to demonstrate the Initial Pull script.
+      StepText: '#Optional - Added to demonstrate the "Initial Pull" script.'
+      Text: Optional - Added to demonstrate the "Initial Pull" script.
     - enable: 'False'
       id: '68'
       name: If
-      StepText: //  If [ IsEmpty ( Evaluate ( EasySync_Payloads::ES_Last_Pull_UTC_Time
+      StepText: //  If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time"
         ) ) ]
       Calculation: IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time"
         ) )
@@ -102,7 +102,7 @@ Script:
         - IsEmpty
         - ' ( '
         - Evaluate
-        - ' ( EasySync_Payloads::ES_Last_Pull_UTC_Time ) )'
+        - ' ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) )'
     - enable: 'False'
       id: '89'
       name: Comment
@@ -115,32 +115,32 @@ Script:
     - enable: 'False'
       id: '87'
       name: Show Custom Dialog
-      StepText: '//  Show Custom Dialog [ Title: Welcome!; Message: It appears that
-        this is the first time that youve used this database. Would you like to perform
-        an initial sync with the server to get your data?; Default Button: “Yes”,
-        Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
+      StepText: '//  Show Custom Dialog [ Title: "Welcome!"; Message: "It appears
+        that this is the first time that you''ve used this database. Would you like
+        to perform an initial sync with the server to get your data?"; Default Button:
+        “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Welcome!"'
         DisplayCalculation:
-          Chunk: Welcome!
+          Chunk: '"Welcome!"'
       Message:
         Calculation: '"It appears that this is the first time that you''ve used this
           database. Would you like to perform an initial sync with the server to get
           your data?"'
         DisplayCalculation:
-          Chunk: It appears that this is the first time that youve used this database.
+          Chunk: '"It appears that this is the first time that you''ve used this database.
             Would you like to perform an initial sync with the server to get your
-            data?
+            data?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'False'
       id: '89'
@@ -160,7 +160,7 @@ Script:
     - enable: 'False'
       id: '1'
       name: Perform Script
-      StepText: //  Perform Script [ “unknown” ]
+      StepText: //  Perform Script [ “<unknown>” ]
       Script:
         id: '39'
         name: <unknown>

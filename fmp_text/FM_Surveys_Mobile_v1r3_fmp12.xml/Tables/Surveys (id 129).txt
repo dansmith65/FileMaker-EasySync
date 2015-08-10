@@ -29,7 +29,7 @@
 ---
 BaseTable:
   id: '129'
-  records: ''
+  records: '0'
   name: Surveys
   FieldCatalog:
     Field:
@@ -695,7 +695,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty
@@ -747,7 +747,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty

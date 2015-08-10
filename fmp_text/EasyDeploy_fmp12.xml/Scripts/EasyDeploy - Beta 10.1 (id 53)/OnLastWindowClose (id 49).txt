@@ -1,10 +1,10 @@
-#OnLastWindowClose:Called via the OnLastWindowClose trigger so that we clear any downloaded payloads. This prevents us from deploying an unnecessarily large EasyDeploy file. We also check to see if the Consumed flag is set, and if the user is logged in with Full Access privileges, we give them a chance to clear it.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.
+#OnLastWindowClose:Called via the "OnLastWindowClose" trigger so that we clear any downloaded payloads. This prevents us from deploying an unnecessarily large "EasyDeploy" file. We also check to see if the "Consumed" flag is set, and if the user is logged in with Full Access privileges, we give them a chance to clear it.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.
 #
-Set Field [ Temp::Database_Container;  ]
+Set Field [ Temp::Database_Container; "" ]
 #
-#Warn full access uses if the consumed flag is still flipped.
-If [ Get ( AccountPrivilegeSetName ) = [Full Access] and Temp::Consumed ]
-Show Custom Dialog [ Title: Full Access Detected; Message: You are logged in with Full Access privileges. This file is set to the \consumed\ state. Do you want to clear that flag?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+#Warn full access uses if the "consumed" flag is still flipped.
+If [ Get ( AccountPrivilegeSetName ) = "[Full Access]" and Temp::Consumed ]
+Show Custom Dialog [ Title: "Full Access Detected"; Message: "You are logged in with Full Access privileges. This file is set to the \"consumed\" state. Do you want to clear that flag?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
 Set Field [ Temp::Consumed; 0 ]
 End If
@@ -23,17 +23,17 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#OnLastWindowClose:\nCalled via the OnLastWindowClose trigger so
-        that we clear any downloaded payloads. This prevents us from deploying an
-        unnecessarily large EasyDeploy file. We also check to see if the Consumed
+      StepText: "#OnLastWindowClose:\nCalled via the \"OnLastWindowClose\" trigger
+        so that we clear any downloaded payloads. This prevents us from deploying
+        an unnecessarily large \"EasyDeploy\" file. We also check to see if the \"Consumed\"
         flag is set, and if the user is logged in with Full Access privileges, we
         give them a chance to clear it.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich
         (timdietrich@me.com)\n\tInitial version."
-      Text: "OnLastWindowClose:\nCalled via the OnLastWindowClose trigger so that
+      Text: "OnLastWindowClose:\nCalled via the \"OnLastWindowClose\" trigger so that
         we clear any downloaded payloads. This prevents us from deploying an unnecessarily
-        large EasyDeploy file. We also check to see if the Consumed flag is set, and
-        if the user is logged in with Full Access privileges, we give them a chance
-        to clear it.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        large \"EasyDeploy\" file. We also check to see if the \"Consumed\" flag is
+        set, and if the user is logged in with Full Access privileges, we give them
+        a chance to clear it.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
         version."
     - enable: 'True'
       id: '89'
@@ -42,10 +42,10 @@ Script:
     - enable: 'True'
       id: '76'
       name: Set Field
-      StepText: Set Field [ Temp::Database_Container;  ]
+      StepText: Set Field [ Temp::Database_Container; "" ]
       Calculation: '""'
       DisplayCalculation:
-        Chunk: 
+        Chunk: '""'
       Field:
         table: Temp
         id: '3'
@@ -57,12 +57,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Warn full access uses if the consumed flag is still flipped.'
-      Text: Warn full access uses if the consumed flag is still flipped.
+      StepText: '#Warn full access uses if the "consumed" flag is still flipped.'
+      Text: Warn full access uses if the "consumed" flag is still flipped.
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ Get ( AccountPrivilegeSetName ) = [Full Access] and Temp::Consumed
+      StepText: If [ Get ( AccountPrivilegeSetName ) = "[Full Access]" and Temp::Consumed
         ]
       Calculation: Get ( AccountPrivilegeSetName ) = "[Full Access]" and Temp::Consumed
       DisplayCalculation:
@@ -70,7 +70,7 @@ Script:
         - Get
         - ' ( '
         - AccountPrivilegeSetName
-        - ' ) = [Full Access] '
+        - ' ) = "[Full Access]" '
         - and
         - type: NoRef
           __content__: ' '
@@ -82,30 +82,30 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Full Access Detected; Message: You are
-        logged in with Full Access privileges. This file is set to the \consumed\
-        state. Do you want to clear that flag?; Default Button: “Yes”, Commit: “Yes”;
+      StepText: 'Show Custom Dialog [ Title: "Full Access Detected"; Message: "You
+        are logged in with Full Access privileges. This file is set to the \"consumed\"
+        state. Do you want to clear that flag?"; Default Button: “Yes”, Commit: “Yes”;
         Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Full Access Detected"'
         DisplayCalculation:
-          Chunk: Full Access Detected
+          Chunk: '"Full Access Detected"'
       Message:
         Calculation: '"You are logged in with Full Access privileges. This file is
           set to the \"consumed\" state. Do you want to clear that flag?"'
         DisplayCalculation:
-          Chunk: You are logged in with Full Access privileges. This file is set to
-            the \consumed\ state. Do you want to clear that flag?
+          Chunk: '"You are logged in with Full Access privileges. This file is set
+            to the \"consumed\" state. Do you want to clear that flag?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '68'

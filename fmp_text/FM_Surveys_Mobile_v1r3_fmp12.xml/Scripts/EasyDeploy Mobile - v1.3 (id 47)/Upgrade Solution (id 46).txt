@@ -1,39 +1,39 @@
 #Upgrade Solution:Initiates the solution upgrade process.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.
 #
-#Prevent aborts, and well handle any errors.
+#Prevent aborts, and we'll handle any errors.
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
 #Go to the EasyDeploy layout.
-Go to Layout [ EasyDeploy ]
+Go to Layout [ "EasyDeploy" ]
 If [ Get ( LastError ) ]
-Show Custom Dialog [ Title: EasyDeploy Configuration Error; Message: The \EasyDeploy\ layout is missing.; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "EasyDeploy Configuration Error"; Message: "The \"EasyDeploy\" layout is missing."; Default Button: “OK”, Commit: “Yes” ]
 Halt Script
 End If
 #
 #If the EasyDeploy database is missing...
 If [ IsEmpty ( EasyDeploy::EasyDeploy_Container ) ]
-Show Custom Dialog [ Title: EasyDeploy Configuration Error; Message: The \EasyDeploy\ database is missing.; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "EasyDeploy Configuration Error"; Message: "The \"EasyDeploy\" database is missing."; Default Button: “OK”, Commit: “Yes” ]
 Halt Script
 End If
 #
 #Confirm upgrade.
-#Note: Disabled, as EasySync has already asked the user if they want to upgrade. Might be helpful later if we provide direct access to an Upgrade Now function.
-//  Show Custom Dialog [ Title: EasyDeploy; Message: Do you really want to upgrade the solution at this time?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+#Note: Disabled, as EasySync has already asked the user if they want to upgrade. Might be helpful later if we provide direct access to an "Upgrade Now" function.
+//  Show Custom Dialog [ Title: "EasyDeploy"; Message: "Do you really want to upgrade the solution at this time?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 //  If [ Get ( LastMessageChoice ) = 2 ]
 //  Go to Layout [ original layout ]
 //  Halt Script
 //  End If
 #
-#Set path  filename to use to export EasyDeploy.
-Set Variable [ $filename; Value:Get ( DocumentsPath )  GetAsText ( EasyDeploy::EasyDeploy_Container ) ]
+#Set path & filename to use to export EasyDeploy.
+Set Variable [ $filename; Value:Get ( DocumentsPath ) & GetAsText ( EasyDeploy::EasyDeploy_Container ) ]
 #
-#Export the EasyDeploy file to the temp directory.
-#The EasyDeploy database will take things from here...
+#Export the "EasyDeploy" file to the temp directory.
+#The "EasyDeploy" database will take things from here...
 Export Field Contents [ EasyDeploy::EasyDeploy_Container; “$filename” ]
 #
 #Get the URL to use to open EasyDeploy.
-Set Variable [ $url; Value:fmp://  If ( Get( SystemPlatform ) = 4; %7e; ~ )  /  EasyDeploy::EasyDeploy_Container// See: http://help.filemaker.com/app/answers/detail/a_id/11358/~/unable-to-open-local-or-hibernated-filemaker-go-file-via-fmp-protocol-when ]
+Set Variable [ $url; Value:"fmp://" & If ( Get( SystemPlatform ) = 4; "%7e"; "~" ) & "/" & EasyDeploy::EasyDeploy_Container// See: http://help.filemaker.com/app/answers/detail/a_id/11358/~/unable-to-open-local-or-hibernated-filemaker-go-file-via-fmp-protocol-when ]
 #
 #Open EasyDeploy.
 Open URL [ $url ][ No dialog ]
@@ -65,8 +65,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Prevent aborts, and well handle any errors.'
-      Text: Prevent aborts, and well handle any errors.
+      StepText: '#Prevent aborts, and we''ll handle any errors.'
+      Text: Prevent aborts, and we'll handle any errors.
     - enable: 'True'
       id: '85'
       name: Allow User Abort
@@ -91,13 +91,13 @@ Script:
     - enable: 'True'
       id: '6'
       name: Go to Layout
-      StepText: Go to Layout [ EasyDeploy ]
+      StepText: Go to Layout [ "EasyDeploy" ]
       LayoutDestination:
         value: LayoutNameByCalc
       Layout:
         Calculation: '"EasyDeploy"'
         DisplayCalculation:
-          Chunk: EasyDeploy
+          Chunk: '"EasyDeploy"'
     - enable: 'True'
       id: '68'
       name: If
@@ -112,22 +112,23 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: EasyDeploy Configuration Error; Message:
-        The \EasyDeploy\ layout is missing.; Default Button: “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "EasyDeploy Configuration Error"; Message:
+        "The \"EasyDeploy\" layout is missing."; Default Button: “OK”, Commit: “Yes”
+        ]'
       Title:
         Calculation: '"EasyDeploy Configuration Error"'
         DisplayCalculation:
-          Chunk: EasyDeploy Configuration Error
+          Chunk: '"EasyDeploy Configuration Error"'
       Message:
         Calculation: '"The \"EasyDeploy\" layout is missing."'
         DisplayCalculation:
-          Chunk: The \EasyDeploy\ layout is missing.
+          Chunk: '"The \"EasyDeploy\" layout is missing."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -165,23 +166,23 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: EasyDeploy Configuration Error; Message:
-        The \EasyDeploy\ database is missing.; Default Button: “OK”, Commit: “Yes”
+      StepText: 'Show Custom Dialog [ Title: "EasyDeploy Configuration Error"; Message:
+        "The \"EasyDeploy\" database is missing."; Default Button: “OK”, Commit: “Yes”
         ]'
       Title:
         Calculation: '"EasyDeploy Configuration Error"'
         DisplayCalculation:
-          Chunk: EasyDeploy Configuration Error
+          Chunk: '"EasyDeploy Configuration Error"'
       Message:
         Calculation: '"The \"EasyDeploy\" database is missing."'
         DisplayCalculation:
-          Chunk: The \EasyDeploy\ database is missing.
+          Chunk: '"The \"EasyDeploy\" database is missing."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -205,35 +206,35 @@ Script:
       id: '89'
       name: Comment
       StepText: '#Note: Disabled, as EasySync has already asked the user if they want
-        to upgrade. Might be helpful later if we provide direct access to an Upgrade
-        Now function.'
+        to upgrade. Might be helpful later if we provide direct access to an "Upgrade
+        Now" function.'
       Text: 'Note: Disabled, as EasySync has already asked the user if they want to
-        upgrade. Might be helpful later if we provide direct access to an Upgrade
-        Now function.'
+        upgrade. Might be helpful later if we provide direct access to an "Upgrade
+        Now" function.'
     - enable: 'False'
       id: '87'
       name: Show Custom Dialog
-      StepText: '//  Show Custom Dialog [ Title: EasyDeploy; Message: Do you really
-        want to upgrade the solution at this time?; Default Button: “Yes”, Commit:
+      StepText: '//  Show Custom Dialog [ Title: "EasyDeploy"; Message: "Do you really
+        want to upgrade the solution at this time?"; Default Button: “Yes”, Commit:
         “Yes”; Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"EasyDeploy"'
         DisplayCalculation:
-          Chunk: EasyDeploy
+          Chunk: '"EasyDeploy"'
       Message:
         Calculation: '"Do you really want to upgrade the solution at this time?"'
         DisplayCalculation:
-          Chunk: Do you really want to upgrade the solution at this time?
+          Chunk: '"Do you really want to upgrade the solution at this time?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'False'
       id: '68'
@@ -267,13 +268,13 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Set path  filename to use to export EasyDeploy.'
-      Text: Set path  filename to use to export EasyDeploy.
+      StepText: '#Set path & filename to use to export EasyDeploy.'
+      Text: Set path & filename to use to export EasyDeploy.
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $filename; Value:Get ( DocumentsPath )  GetAsText (
-        EasyDeploy::EasyDeploy_Container ) ]
+      StepText: Set Variable [ $filename; Value:Get ( DocumentsPath ) & GetAsText
+        ( EasyDeploy::EasyDeploy_Container ) ]
       Value:
         Calculation: Get ( DocumentsPath ) & GetAsText ( EasyDeploy::EasyDeploy_Container
           )
@@ -282,7 +283,7 @@ Script:
           - Get
           - ' ( '
           - DocumentsPath
-          - ' )  '
+          - ' ) & '
           - GetAsText
           - ' ( '
           - type: FieldRef
@@ -303,13 +304,13 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Export the EasyDeploy file to the temp directory.'
-      Text: Export the EasyDeploy file to the temp directory.
+      StepText: '#Export the "EasyDeploy" file to the temp directory.'
+      Text: Export the "EasyDeploy" file to the temp directory.
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#The EasyDeploy database will take things from here...'
-      Text: The EasyDeploy database will take things from here...
+      StepText: '#The "EasyDeploy" database will take things from here...'
+      Text: The "EasyDeploy" database will take things from here...
     - enable: 'True'
       id: '132'
       name: Export Field Contents
@@ -337,7 +338,7 @@ Script:
       id: '141'
       name: Set Variable
       StepText: |-
-        Set Variable [ $url; Value:fmp://  If ( Get( SystemPlatform ) = 4; %7e; ~ )  /  EasyDeploy::EasyDeploy_Container
+        Set Variable [ $url; Value:"fmp://" & If ( Get( SystemPlatform ) = 4; "%7e"; "~" ) & "/" & EasyDeploy::EasyDeploy_Container
 
         // See: http://help.filemaker.com/app/answers/detail/a_id/11358/~/unable-to-open-local-or-hibernated-filemaker-go-file-via-fmp-protocol-when
          ]
@@ -348,13 +349,13 @@ Script:
           // See: http://help.filemaker.com/app/answers/detail/a_id/11358/~/unable-to-open-local-or-hibernated-filemaker-go-file-via-fmp-protocol-when
         DisplayCalculation:
           Chunk:
-          - 'fmp://  '
+          - '"fmp://" & '
           - If
           - ' ( '
           - Get
           - '( '
           - SystemPlatform
-          - ' ) = 4; %7e; ~ )  /  '
+          - ' ) = 4; "%7e"; "~" ) & "/" & '
           - type: FieldRef
             Field:
               table: EasyDeploy

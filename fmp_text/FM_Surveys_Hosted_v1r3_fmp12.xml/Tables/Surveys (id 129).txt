@@ -22,7 +22,7 @@
     31   ES_Device_ID                Text             Normal                                                              
     28   ES_Account                  Text             Normal            The account name that last updated this record.   
     22   ES_Exclude                  Number           Normal            Exclude this record when creating the payload to deliver to the mobile user?
-    26   EXCL_Salary                 Number           Normal            An example of a field that will be excluded from payloads (because of the EXCL_ prefix).
+    26   EXCL_Salary                 Number           Normal            An example of a field that will be excluded from payloads (because of the "EXCL_" prefix).
     30   Repeater                    Text             Normal                                                              
     32   Some_Global_B               Text             Normal            Used to confirm that globals are not pulled from the server.
 
@@ -30,7 +30,7 @@
 ---
 BaseTable:
   id: '129'
-  records: ''
+  records: '100'
   name: Surveys
   FieldCatalog:
     Field:
@@ -665,7 +665,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty
@@ -717,7 +717,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty
@@ -825,7 +825,7 @@ BaseTable:
       fieldType: Normal
       name: EXCL_Salary
       Comment: An example of a field that will be excluded from payloads (because
-        of the EXCL_ prefix).
+        of the "EXCL_" prefix).
       AutoEnter:
         allowEditing: 'True'
         constant: 'False'

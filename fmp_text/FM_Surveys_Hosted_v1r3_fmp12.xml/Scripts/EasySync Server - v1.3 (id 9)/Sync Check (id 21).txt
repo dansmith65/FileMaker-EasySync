@@ -20,22 +20,22 @@ Set Variable [ $UUIDs_Mobile; Value:Right ( Get ( ScriptParameter ); Length (  G
 #
 #
 #Get all of the tables that are to be synced.
-Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES\_%; |; ¶ ) ]
+Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE 'ES\_%'"; "|"; ¶ ) ]
 #
 #Init the SELECT statement...
-Set Variable [ $select; Value: ]
+Set Variable [ $select; Value:"" ]
 #
 #Loop over the ES tables...
 Set Variable [ $i; Value:1 ]
 Loop
 Set Variable [ $sync_table; Value:GetValue ( $sync_tables ; $i ) ]
-Set Variable [ $select; Value:$select  If ( not IsEmpty ( $select );  UNION ALL ;  ) SELECT ES_Record_UUID FROM \\\  $sync_table  \\\ WHERE COALESCE ( ES_Exclude, 0 ) = 0 ]
+Set Variable [ $select; Value:$select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &"SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0" ]
 Set Variable [ $i; Value:$i + 1 ]
-Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
+Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
 End Loop
 #
 #Create the ExecuteSQL call.
-Set Variable [ $executesql; Value:ExecuteSQL ( \  $select  \; \\; \\) ]
+Set Variable [ $executesql; Value:"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")" ]
 #
 #Execute the SELECT statement.
 Set Variable [ $UUIDs_Host; Value:Evaluate ( $executesql ) ]
@@ -49,7 +49,7 @@ Set Variable [ $UUIDs_Host; Value:Evaluate ( $executesql ) ]
 #
 #
 #Init the diff list.
-Set Variable [ $UUIDs_Diff; Value: ]
+Set Variable [ $UUIDs_Diff; Value:"" ]
 #
 #Loop over UUIDs on mobile...
 Set Variable [ $i; Value:1 ]
@@ -59,12 +59,12 @@ Loop
 If [ ( not PatternCount ( $UUIDs_Host ; GetValue ( $UUIDs_Mobile ; $i ) ) ) ]
 #
 #Add it to the diff list.
-Set Variable [ $UUIDs_Diff; Value:$UUIDs_Diff  If ( not IsEmpty ( $UUIDs_Diff ); ¶;  )  GetValue ( $UUIDs_Mobile ; $i ) ]
+Set Variable [ $UUIDs_Diff; Value:$UUIDs_Diff & If ( not IsEmpty ( $UUIDs_Diff ); ¶; "" ) & GetValue ( $UUIDs_Mobile ; $i ) ]
 #
 End If
 #
 Set Variable [ $i; Value:$i + 1 ]
-Exit Loop If [ $i  ValueCount ( $UUIDs_Mobile ) ]
+Exit Loop If [ $i > ValueCount ( $UUIDs_Mobile ) ]
 #
 End Loop
 #
@@ -253,16 +253,16 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT TableName FROM
-        FileMaker_Tables WHERE TableName LIKE ES\_%; |; ¶ ) ]
+      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT TableName
+        FROM FileMaker_Tables WHERE TableName LIKE 'ES\_%'"; "|"; ¶ ) ]
       Value:
         Calculation: ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName
           LIKE 'ES\_%'"; "|"; ¶ )
         DisplayCalculation:
           Chunk:
           - ExecuteSQL
-          - ' ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES\_%;
-            |; ¶ )'
+          - ' ( "SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ''ES\_%''";
+            "|"; ¶ )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -280,11 +280,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: 'Set Variable [ $select; Value: ]'
+      StepText: Set Variable [ $select; Value:"" ]
       Value:
         Calculation: '""'
         DisplayCalculation:
-          Chunk: 
+          Chunk: '""'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -334,24 +334,25 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $select; Value:$select  If ( not IsEmpty ( $select
-        );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM \\\\\\  $sync_table  \\\\\\
-        WHERE COALESCE ( ES_Exclude, 0 ) = 0 ]"
+      StepText: |-
+        Set Variable [ $select; Value:$select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &
+        "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0" ]
       Value:
         Calculation: |-
           $select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &
           "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0"
         DisplayCalculation:
           Chunk:
-          - '$select  '
+          - '$select & '
           - If
           - ' ( '
           - not
           - type: NoRef
             __content__: ' '
           - IsEmpty
-          - " ( $select );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM \\\\\\  $sync_table
-            \ \\\\\\ WHERE COALESCE ( ES_Exclude, 0 ) = 0"
+          - |2-
+             ( $select ); " UNION ALL "; "" ) &
+            "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -373,11 +374,11 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
+      StepText: Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
       Calculation: $i > ValueCount ( $sync_tables )
       DisplayCalculation:
         Chunk:
-        - '$i  '
+        - '$i > '
         - ValueCount
         - ' ( $sync_tables )'
     - enable: 'True'
@@ -396,12 +397,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $executesql; Value:ExecuteSQL ( \  $select  \; \\;
-        \\) ]
+      StepText: Set Variable [ $executesql; Value:"ExecuteSQL ( \"" & $select & "\";
+        \"\"; \"\")" ]
       Value:
         Calculation: '"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")"'
         DisplayCalculation:
-          Chunk: ExecuteSQL ( \  $select  \; \\; \\)
+          Chunk: '"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -478,11 +479,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: 'Set Variable [ $UUIDs_Diff; Value: ]'
+      StepText: Set Variable [ $UUIDs_Diff; Value:"" ]
       Value:
         Calculation: '""'
         DisplayCalculation:
-          Chunk: 
+          Chunk: '""'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -552,21 +553,21 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $UUIDs_Diff; Value:$UUIDs_Diff  If ( not IsEmpty (
-        $UUIDs_Diff ); ¶;  )  GetValue ( $UUIDs_Mobile ; $i ) ]
+      StepText: Set Variable [ $UUIDs_Diff; Value:$UUIDs_Diff & If ( not IsEmpty (
+        $UUIDs_Diff ); ¶; "" ) & GetValue ( $UUIDs_Mobile ; $i ) ]
       Value:
         Calculation: $UUIDs_Diff & If ( not IsEmpty ( $UUIDs_Diff ); ¶; "" ) & GetValue
           ( $UUIDs_Mobile ; $i )
         DisplayCalculation:
           Chunk:
-          - '$UUIDs_Diff  '
+          - '$UUIDs_Diff & '
           - If
           - ' ( '
           - not
           - type: NoRef
             __content__: ' '
           - IsEmpty
-          - ' ( $UUIDs_Diff ); ¶;  )  '
+          - ' ( $UUIDs_Diff ); ¶; "" ) & '
           - GetValue
           - ' ( $UUIDs_Mobile ; $i )'
       Repetition:
@@ -602,11 +603,11 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $i  ValueCount ( $UUIDs_Mobile ) ]
+      StepText: Exit Loop If [ $i > ValueCount ( $UUIDs_Mobile ) ]
       Calculation: $i > ValueCount ( $UUIDs_Mobile )
       DisplayCalculation:
         Chunk:
-        - '$i  '
+        - '$i > '
         - ValueCount
         - ' ( $UUIDs_Mobile )'
     - enable: 'True'

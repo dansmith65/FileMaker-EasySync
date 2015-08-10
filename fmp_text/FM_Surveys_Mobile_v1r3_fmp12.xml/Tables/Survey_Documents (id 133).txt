@@ -15,7 +15,7 @@
 ---
 BaseTable:
   id: '133'
-  records: ''
+  records: '0'
   name: Survey_Documents
   FieldCatalog:
     Field:
@@ -138,7 +138,7 @@ BaseTable:
             table: Survey_Documents
             id: '16'
             name: Document
-        - ' ; All )'
+        - ' ; "All" )'
       Comment: 
       AutoEnter:
         alwaysEvaluate: 'False'
@@ -161,7 +161,7 @@ BaseTable:
             table: Survey_Documents
             id: '16'
             name: Document
-        - '  b64  '
+        - ' & "<b64>" & '
         - Base64Encode
         - ' ( '
         - type: FieldRef
@@ -169,7 +169,7 @@ BaseTable:
             table: Survey_Documents
             id: '16'
             name: Document
-        - ' )  /b64'
+        - ' ) & "</b64>"'
       Comment: 
       AutoEnter:
         alwaysEvaluate: 'False'
@@ -241,7 +241,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty
@@ -293,7 +293,7 @@ BaseTable:
           - Let
           - ' ( trigger = '
           - GetField
-          - ' (  ); '
+          - ' ( "" ); '
           - If
           - ' ( '
           - IsEmpty

@@ -1,30 +1,30 @@
-#Sync Check:Sends a list of all ES_Record_UUIDs, from all synced tables, to the server. The server runs that list up against its own list of ES_Record_UUIDs, and returns the difference. This script takes the diff and deletes the records. This rounds out the delete support. It helps to ensure that the mobile device doesnt have any records locally that it shouldnt have.Please note: Records flagged as do not sync (via the ES_Exclude field) are not included in the UUID list sent to the server. Therefore, they will not be deleted if they are not on the server.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.	2014-05-15	Tim Dietrich (timdietrich@me.com)	Delimiting the underscore used in the query that gets ES_ tables.2014-06-02	Tim Dietrich (timdietrich@me.com)	Properly escapes the ES_ table names.	Supports passing additional info to server (via $$additional_sync_check_info).
+#Sync Check:Sends a list of all ES_Record_UUIDs, from all synced tables, to the server. The server runs that list up against its own list of ES_Record_UUIDs, and returns the difference. This script takes the "diff" and deletes the records. This rounds out the delete support. It helps to ensure that the mobile device doesn't have any records locally that it shouldn't have.Please note: Records flagged as "do not sync" (via the ES_Exclude field) are not included in the UUID list sent to the server. Therefore, they will not be deleted if they are not on the server.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.	2014-05-15	Tim Dietrich (timdietrich@me.com)	Delimiting the underscore used in the query that gets ES_ tables.2014-06-02	Tim Dietrich (timdietrich@me.com)	Properly escapes the ES_ table names.	Supports passing additional info to server (via $$additional_sync_check_info).
 #
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
 #
 #Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:Preparing sync check... ]
-Refresh Object [ Object Name: easysync_status ]
+Set Variable [ $$EasySync_Status; Value:"Preparing sync check..." ]
+Refresh Object [ Object Name: "easysync_status" ]
 #
 #Get all of the tables that are to be synced.
-Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES\_%; |; ¶ ) ]
+Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE 'ES\_%'"; "|"; ¶ ) ]
 #
 #Init the SELECT statement...
-Set Variable [ $select; Value: ]
+Set Variable [ $select; Value:"" ]
 #
 #Loop over the ES tables...
 Set Variable [ $i; Value:1 ]
 Loop
 Set Variable [ $sync_table; Value:GetValue ( $sync_tables ; $i ) ]
-Set Variable [ $select; Value:$select  If ( not IsEmpty ( $select );  UNION ALL ;  ) SELECT ES_Record_UUID FROM \\\  $sync_table  \\\ WHERE COALESCE ( ES_Exclude, 0 ) = 0 ]
+Set Variable [ $select; Value:$select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &"SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0" ]
 Set Variable [ $i; Value:$i + 1 ]
-Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
+Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
 End Loop
 #
 #Create the ExecuteSQL call.
-Set Variable [ $executesql; Value:ExecuteSQL ( \  $select  \; \\; \\) ]
+Set Variable [ $executesql; Value:"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")" ]
 #
 #Execute the SELECT statement.
 Set Variable [ $UUIDs; Value:Evaluate ( $executesql ) ]
@@ -35,24 +35,24 @@ Exit Script [  ]
 End If
 #
 #Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:Performing sync check with server... ]
+Set Variable [ $$EasySync_Status; Value:"Performing sync check with server..." ]
 Refresh Window
 #
 #Send list to Server for analysis. Server will return the diff.
 If [ $$use_psos_during_sync_check ]
 #*** Remote Script: Sync Check
-Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info  ¶  $UUIDs ][ Wait for completion ]
+Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info & ¶ & $UUIDs ][ Wait for completion ]
 Set Variable [ $error; Value:Get ( LastError ) ]
 Else
 #*** Remote Script: Sync Check
-Perform Script [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info  ¶  $UUIDs ]
+Perform Script [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info & ¶ & $UUIDs ]
 Set Variable [ $error; Value:Get ( LastError ) ]
 End If
 Close File [ “Hosted_Database” ]
 #
 #If there was an error...
 If [ $error ]
-Show Custom Dialog [ Title: Sync Check Error; Message: The sync checks call to the server has failed.; Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Sync Check Error"; Message: "The sync check's call to the server has failed."; Default Button: “OK”, Commit: “Yes” ]
 Exit Script [  ]
 End If
 #
@@ -62,14 +62,14 @@ Set Variable [ $diff; Value:Get ( ScriptResult ) ]
 #If there are records to be deleted...
 If [ not IsEmpty ( $diff ) ]
 #
-Set Variable [ $$EasySync_Status; Value:Removing   ValueCount ( $diff )  records that are no longer on the server... ]
+Set Variable [ $$EasySync_Status; Value:"Removing " & ValueCount ( $diff ) & "records that are no longer on the server..." ]
 Refresh Window
 #
 #Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:Processing UUID diff... ]
+Set Variable [ $$EasySync_Status; Value:"Processing UUID diff..." ]
 Refresh Window
 #
-#It sure would be nice to have DELETE support in ExecuteSQL right about now. ;-)
+#It sure would be nice to have "DELETE" support in ExecuteSQL right about now. ;-)
 #
 #Get a list of the layouts.
 Set Variable [ $layouts; Value:LayoutNames ( Get ( FileName ) ) ]
@@ -81,8 +81,8 @@ Loop
 #Get the next layout.
 Set Variable [ $layout; Value:GetValue ( $layouts ; $l ) ]
 #
-#If this is a layout based on a sync table (ES_)...
-If [ Left ( $layout; 3 ) = ES_ ]
+#If this is a layout based on a sync table ("ES_")...
+If [ Left ( $layout; 3 ) = "ES_" ]
 #
 #Go to the layout.
 Go to Layout [ GetValue ( $layouts ; $l ) ]
@@ -92,10 +92,10 @@ Enter Find Mode [  ]
 Set Variable [ $d; Value:1 ]
 Loop
 #
-Set Field By Name [ Get ( LayoutTableName )  ::ES_Record_UUID; GetValue ( $diff ; $d ) ]
+Set Field By Name [ Get ( LayoutTableName ) & "::ES_Record_UUID"; GetValue ( $diff ; $d ) ]
 #
 Set Variable [ $d; Value:$d + 1 ]
-Exit Loop If [ $d  ValueCount ( $diff ) ]
+Exit Loop If [ $d > ValueCount ( $diff ) ]
 New Record/Request
 #
 End Loop
@@ -109,12 +109,12 @@ End If
 End If
 #
 Set Variable [ $l; Value:$l + 1 ]
-Exit Loop If [ $l  ValueCount ( $layouts ) ]
+Exit Loop If [ $l > ValueCount ( $layouts ) ]
 #
 End Loop
-#End Loop over ES layouts to process diff deletions...
+#End "Loop over ES layouts to process diff deletions..."
 #
-Go to Layout [ EasySync_Payloads ]
+Go to Layout [ "EasySync_Payloads" ]
 #
 End If
 #
@@ -133,28 +133,30 @@ Script:
       name: Comment
       StepText: "#Sync Check:\nSends a list of all ES_Record_UUIDs, from all synced
         tables, to the server. The server runs that list up against its own list of
-        ES_Record_UUIDs, and returns the difference. This script takes the diff and
-        deletes the records. This rounds out the delete support. It helps to ensure
-        that the mobile device doesnt have any records locally that it shouldnt have.\n\nPlease
-        note: Records flagged as do not sync (via the ES_Exclude field) are not included
-        in the UUID list sent to the server. Therefore, they will not be deleted if
-        they are not on the server.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
-        version.\n\t\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
-        the underscore used in the query that gets ES_ tables.\n\n2014-06-02\n\tTim
-        Dietrich (timdietrich@me.com)\n\tProperly escapes the ES_ table names.\n\tSupports
-        passing additional info to server (via $$additional_sync_check_info)."
+        ES_Record_UUIDs, and returns the difference. This script takes the \"diff\"
+        and deletes the records. This rounds out the delete support. It helps to ensure
+        that the mobile device doesn't have any records locally that it shouldn't
+        have.\n\nPlease note: Records flagged as \"do not sync\" (via the ES_Exclude
+        field) are not included in the UUID list sent to the server. Therefore, they
+        will not be deleted if they are not on the server.\n\nHistory:\n\n2014-05-01\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\t\n2014-05-15\n\tTim Dietrich
+        (timdietrich@me.com)\n\tDelimiting the underscore used in the query that gets
+        ES_ tables.\n\n2014-06-02\n\tTim Dietrich (timdietrich@me.com)\n\tProperly
+        escapes the ES_ table names.\n\tSupports passing additional info to server
+        (via $$additional_sync_check_info)."
       Text: "Sync Check:\nSends a list of all ES_Record_UUIDs, from all synced tables,
         to the server. The server runs that list up against its own list of ES_Record_UUIDs,
-        and returns the difference. This script takes the diff and deletes the records.
-        This rounds out the delete support. It helps to ensure that the mobile device
-        doesnt have any records locally that it shouldnt have.\n\nPlease note: Records
-        flagged as do not sync (via the ES_Exclude field) are not included in the
-        UUID list sent to the server. Therefore, they will not be deleted if they
-        are not on the server.\n\nHistory:\n\n2014-05-01\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
-        version.\n\t\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
-        the underscore used in the query that gets ES_ tables.\n\n2014-06-02\n\tTim
-        Dietrich (timdietrich@me.com)\n\tProperly escapes the ES_ table names.\n\tSupports
-        passing additional info to server (via $$additional_sync_check_info)."
+        and returns the difference. This script takes the \"diff\" and deletes the
+        records. This rounds out the delete support. It helps to ensure that the mobile
+        device doesn't have any records locally that it shouldn't have.\n\nPlease
+        note: Records flagged as \"do not sync\" (via the ES_Exclude field) are not
+        included in the UUID list sent to the server. Therefore, they will not be
+        deleted if they are not on the server.\n\nHistory:\n\n2014-05-01\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\t\n2014-05-15\n\tTim Dietrich
+        (timdietrich@me.com)\n\tDelimiting the underscore used in the query that gets
+        ES_ tables.\n\n2014-06-02\n\tTim Dietrich (timdietrich@me.com)\n\tProperly
+        escapes the ES_ table names.\n\tSupports passing additional info to server
+        (via $$additional_sync_check_info)."
     - enable: 'True'
       id: '89'
       name: Comment
@@ -187,11 +189,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Preparing sync check... ]
+      StepText: Set Variable [ $$EasySync_Status; Value:"Preparing sync check..."
+        ]
       Value:
         Calculation: '"Preparing sync check..."'
         DisplayCalculation:
-          Chunk: Preparing sync check...
+          Chunk: '"Preparing sync check..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -200,11 +203,11 @@ Script:
     - enable: 'True'
       id: '167'
       name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: easysync_status ]'
+      StepText: 'Refresh Object [ Object Name: "easysync_status" ]'
       ObjectName:
         Calculation: '"easysync_status"'
         DisplayCalculation:
-          Chunk: easysync_status
+          Chunk: '"easysync_status"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -221,16 +224,16 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( SELECT TableName FROM
-        FileMaker_Tables WHERE TableName LIKE ES\_%; |; ¶ ) ]
+      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT TableName
+        FROM FileMaker_Tables WHERE TableName LIKE 'ES\_%'"; "|"; ¶ ) ]
       Value:
         Calculation: ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName
           LIKE 'ES\_%'"; "|"; ¶ )
         DisplayCalculation:
           Chunk:
           - ExecuteSQL
-          - ' ( SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ES\_%;
-            |; ¶ )'
+          - ' ( "SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ''ES\_%''";
+            "|"; ¶ )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -248,11 +251,11 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: 'Set Variable [ $select; Value: ]'
+      StepText: Set Variable [ $select; Value:"" ]
       Value:
         Calculation: '""'
         DisplayCalculation:
-          Chunk: 
+          Chunk: '""'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -302,24 +305,25 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $select; Value:$select  If ( not IsEmpty ( $select
-        );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM \\\\\\  $sync_table  \\\\\\
-        WHERE COALESCE ( ES_Exclude, 0 ) = 0 ]"
+      StepText: |-
+        Set Variable [ $select; Value:$select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &
+        "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0" ]
       Value:
         Calculation: |-
           $select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &
           "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0"
         DisplayCalculation:
           Chunk:
-          - '$select  '
+          - '$select & '
           - If
           - ' ( '
           - not
           - type: NoRef
             __content__: ' '
           - IsEmpty
-          - " ( $select );  UNION ALL ;  ) \nSELECT ES_Record_UUID FROM \\\\\\  $sync_table
-            \ \\\\\\ WHERE COALESCE ( ES_Exclude, 0 ) = 0"
+          - |2-
+             ( $select ); " UNION ALL "; "" ) &
+            "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -341,11 +345,11 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $i  ValueCount ( $sync_tables ) ]
+      StepText: Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
       Calculation: $i > ValueCount ( $sync_tables )
       DisplayCalculation:
         Chunk:
-        - '$i  '
+        - '$i > '
         - ValueCount
         - ' ( $sync_tables )'
     - enable: 'True'
@@ -364,12 +368,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $executesql; Value:ExecuteSQL ( \  $select  \; \\;
-        \\) ]
+      StepText: Set Variable [ $executesql; Value:"ExecuteSQL ( \"" & $select & "\";
+        \"\"; \"\")" ]
       Value:
         Calculation: '"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")"'
         DisplayCalculation:
-          Chunk: ExecuteSQL ( \  $select  \; \\; \\)
+          Chunk: '"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -437,12 +441,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Performing sync check with
-        server... ]
+      StepText: Set Variable [ $$EasySync_Status; Value:"Performing sync check with
+        server..." ]
       Value:
         Calculation: '"Performing sync check with server..."'
         DisplayCalculation:
-          Chunk: Performing sync check with server...
+          Chunk: '"Performing sync check with server..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -481,7 +485,7 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info  ¶  $UUIDs ]
+        Perform Script on Server [ “Sync Check” from file: “Hosted_Database”; Parameter: $$additional_sync_check_info & ¶ & $UUIDs ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
@@ -491,7 +495,7 @@ Script:
         UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
       Calculation: $$additional_sync_check_info & ¶ & $UUIDs
       DisplayCalculation:
-        Chunk: $$additional_sync_check_info  ¶  $UUIDs
+        Chunk: $$additional_sync_check_info & ¶ & $UUIDs
       Script:
         id: '21'
         name: Sync Check
@@ -525,14 +529,14 @@ Script:
       id: '1'
       name: Perform Script
       StepText: 'Perform Script [ “Sync Check” from file: “Hosted_Database”; Parameter:
-        $$additional_sync_check_info  ¶  $UUIDs ]'
+        $$additional_sync_check_info & ¶ & $UUIDs ]'
       FileReference:
         id: '1'
         name: Hosted_Database
         UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
       Calculation: $$additional_sync_check_info & ¶ & $UUIDs
       DisplayCalculation:
-        Chunk: $$additional_sync_check_info  ¶  $UUIDs
+        Chunk: $$additional_sync_check_info & ¶ & $UUIDs
       Script:
         id: '21'
         name: Sync Check
@@ -584,22 +588,23 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Sync Check Error; Message: The sync checks
-        call to the server has failed.; Default Button: “OK”, Commit: “Yes” ]'
+      StepText: 'Show Custom Dialog [ Title: "Sync Check Error"; Message: "The sync
+        check''s call to the server has failed."; Default Button: “OK”, Commit: “Yes”
+        ]'
       Title:
         Calculation: '"Sync Check Error"'
         DisplayCalculation:
-          Chunk: Sync Check Error
+          Chunk: '"Sync Check Error"'
       Message:
         Calculation: '"The sync check''s call to the server has failed."'
         DisplayCalculation:
-          Chunk: The sync checks call to the server has failed.
+          Chunk: '"The sync check''s call to the server has failed."'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"OK"'
           DisplayCalculation:
-            Chunk: OK
+            Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
@@ -664,16 +669,16 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Removing   ValueCount ( $diff
-        )  records that are no longer on the server... ]
+      StepText: Set Variable [ $$EasySync_Status; Value:"Removing " & ValueCount (
+        $diff ) & "records that are no longer on the server..." ]
       Value:
         Calculation: '"Removing " & ValueCount ( $diff ) & "records that are no longer
           on the server..."'
         DisplayCalculation:
           Chunk:
-          - 'Removing   '
+          - '"Removing " & '
           - ValueCount
-          - ' ( $diff )  records that are no longer on the server...'
+          - ' ( $diff ) & "records that are no longer on the server..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -699,11 +704,12 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:Processing UUID diff... ]
+      StepText: Set Variable [ $$EasySync_Status; Value:"Processing UUID diff..."
+        ]
       Value:
         Calculation: '"Processing UUID diff..."'
         DisplayCalculation:
-          Chunk: Processing UUID diff...
+          Chunk: '"Processing UUID diff..."'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -724,9 +730,9 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#It sure would be nice to have DELETE support in ExecuteSQL right
+      StepText: '#It sure would be nice to have "DELETE" support in ExecuteSQL right
         about now. ;-)'
-      Text: It sure would be nice to have DELETE support in ExecuteSQL right about
+      Text: It sure would be nice to have "DELETE" support in ExecuteSQL right about
         now. ;-)
     - enable: 'True'
       id: '89'
@@ -813,17 +819,17 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#If this is a layout based on a sync table (ES_)...'
-      Text: If this is a layout based on a sync table (ES_)...
+      StepText: '#If this is a layout based on a sync table ("ES_")...'
+      Text: If this is a layout based on a sync table ("ES_")...
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ Left ( $layout; 3 ) = ES_ ]
+      StepText: If [ Left ( $layout; 3 ) = "ES_" ]
       Calculation: Left ( $layout; 3 ) = "ES_"
       DisplayCalculation:
         Chunk:
         - Left
-        - ' ( $layout; 3 ) = ES_'
+        - ' ( $layout; 3 ) = "ES_"'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -888,8 +894,8 @@ Script:
     - enable: 'True'
       id: '147'
       name: Set Field By Name
-      StepText: Set Field By Name [ Get ( LayoutTableName )  ::ES_Record_UUID; GetValue
-        ( $diff ; $d ) ]
+      StepText: Set Field By Name [ Get ( LayoutTableName ) & "::ES_Record_UUID";
+        GetValue ( $diff ; $d ) ]
       Result:
         Calculation: GetValue ( $diff ; $d )
         DisplayCalculation:
@@ -903,7 +909,7 @@ Script:
           - Get
           - ' ( '
           - LayoutTableName
-          - ' )  ::ES_Record_UUID'
+          - ' ) & "::ES_Record_UUID"'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -924,11 +930,11 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $d  ValueCount ( $diff ) ]
+      StepText: Exit Loop If [ $d > ValueCount ( $diff ) ]
       Calculation: $d > ValueCount ( $diff )
       DisplayCalculation:
         Chunk:
-        - '$d  '
+        - '$d > '
         - ValueCount
         - ' ( $diff )'
     - enable: 'True'
@@ -1009,11 +1015,11 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ $l  ValueCount ( $layouts ) ]
+      StepText: Exit Loop If [ $l > ValueCount ( $layouts ) ]
       Calculation: $l > ValueCount ( $layouts )
       DisplayCalculation:
         Chunk:
-        - '$l  '
+        - '$l > '
         - ValueCount
         - ' ( $layouts )'
     - enable: 'True'
@@ -1027,8 +1033,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#End Loop over ES layouts to process diff deletions...'
-      Text: End Loop over ES layouts to process diff deletions...
+      StepText: '#End "Loop over ES layouts to process diff deletions..."'
+      Text: End "Loop over ES layouts to process diff deletions..."
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1036,13 +1042,13 @@ Script:
     - enable: 'True'
       id: '6'
       name: Go to Layout
-      StepText: Go to Layout [ EasySync_Payloads ]
+      StepText: Go to Layout [ "EasySync_Payloads" ]
       LayoutDestination:
         value: LayoutNameByCalc
       Layout:
         Calculation: '"EasySync_Payloads"'
         DisplayCalculation:
-          Chunk: EasySync_Payloads
+          Chunk: '"EasySync_Payloads"'
     - enable: 'True'
       id: '89'
       name: Comment

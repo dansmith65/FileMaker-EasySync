@@ -135,7 +135,7 @@ Layout:
               center;\n}\n"
           CharacterStyleVector:
             Style:
-              Data: $$EasyDeploy_Status
+              Data: <<$$EasyDeploy_Status>>
               CharacterStyle:
                 mask: '32695'
                 Font_family: arial,sans-serif
@@ -144,7 +144,7 @@ Layout:
                 Color: '#F3EB00'
           ParagraphStyleVector:
             Style:
-              Data: $$EasyDeploy_Status
+              Data: <<$$EasyDeploy_Status>>
               ParagraphStyle:
                 mask: '0'
                 __content__: |2+

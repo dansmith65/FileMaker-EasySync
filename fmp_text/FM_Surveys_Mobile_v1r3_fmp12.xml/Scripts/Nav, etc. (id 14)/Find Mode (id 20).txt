@@ -2,14 +2,14 @@ Allow User Abort [ Off ]
 Set Error Capture [ On ]
 Loop
 Enter Find Mode [  ]
-Refresh Object [ Object Name: push_indicator ]
+Refresh Object [ Object Name: "push_indicator" ]
 Pause/Resume Script [ Indefinitely ]
 Perform Find [  ]
 If [ Get ( FoundCount ) = 0 ]
-Show Custom Dialog [ Title: Nothing Found; Message: Sorry, but no surveys were found that meet your criteria. Try again?; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Show Custom Dialog [ Title: "Nothing Found"; Message: "Sorry, but no surveys were found that meet your criteria. Try again?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
 Exit Loop If [ Get ( LastMessageChoice ) = 2 ]
 End If
-Exit Loop If [ Get ( FoundCount )  0 ]
+Exit Loop If [ Get ( FoundCount ) > 0 ]
 End Loop
 If [ Get ( FoundCount ) = 0 ]
 Show All Records
@@ -51,11 +51,11 @@ Script:
     - enable: 'True'
       id: '167'
       name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: push_indicator ]'
+      StepText: 'Refresh Object [ Object Name: "push_indicator" ]'
       ObjectName:
         Calculation: '"push_indicator"'
         DisplayCalculation:
-          Chunk: push_indicator
+          Chunk: '"push_indicator"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -86,28 +86,28 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: Nothing Found; Message: Sorry, but no
-        surveys were found that meet your criteria. Try again?; Default Button: “Yes”,
-        Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
+      StepText: 'Show Custom Dialog [ Title: "Nothing Found"; Message: "Sorry, but
+        no surveys were found that meet your criteria. Try again?"; Default Button:
+        “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]'
       Title:
         Calculation: '"Nothing Found"'
         DisplayCalculation:
-          Chunk: Nothing Found
+          Chunk: '"Nothing Found"'
       Message:
         Calculation: '"Sorry, but no surveys were found that meet your criteria. Try
           again?"'
         DisplayCalculation:
-          Chunk: Sorry, but no surveys were found that meet your criteria. Try again?
+          Chunk: '"Sorry, but no surveys were found that meet your criteria. Try again?"'
       Buttons:
         Button:
         - CommitState: 'True'
           Calculation: '"Yes"'
           DisplayCalculation:
-            Chunk: 'Yes'
+            Chunk: '"Yes"'
         - CommitState: 'False'
           Calculation: '"No"'
           DisplayCalculation:
-            Chunk: 'No'
+            Chunk: '"No"'
         - CommitState: 'False'
     - enable: 'True'
       id: '72'
@@ -127,14 +127,14 @@ Script:
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: Exit Loop If [ Get ( FoundCount )  0 ]
+      StepText: Exit Loop If [ Get ( FoundCount ) > 0 ]
       Calculation: Get ( FoundCount ) > 0
       DisplayCalculation:
         Chunk:
         - Get
         - ' ( '
         - FoundCount
-        - ' )  0'
+        - ' ) > 0'
     - enable: 'True'
       id: '73'
       name: End Loop
