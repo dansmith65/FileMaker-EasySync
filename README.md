@@ -66,6 +66,13 @@ Interested in using EasySync in your own FileMaker-based solution? You’ll find
 For details on how to demo and use EasyDeploy in your own solution, please see the Documentation area of the [EasySync Web site](http://fmeasysync.com).
 
 
+
 ## Support
 
 For technical support, please visit our [forum on FMForums](http://fmforums.com/forum/forum/194-fm-easysync/) or [Consultants Directory](http://timdietrich.me/fmeasyconsultants/).
+
+
+
+## Contributing
+
+Contributions to this project are encouraged. If you've used FMEasySync and made improvements to it see [CONTRIBUTING.md](CONTRIBUTING.md) for information on how you can contribute.
