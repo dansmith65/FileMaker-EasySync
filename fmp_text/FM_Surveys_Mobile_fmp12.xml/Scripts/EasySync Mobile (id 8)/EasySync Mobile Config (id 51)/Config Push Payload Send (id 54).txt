@@ -1,0 +1,129 @@
+#
+Set Variable [ $segment; Value:Get ( ScriptParameter ) ]
+#
+If [ $$use_psos_during_push ]
+#*** Remote Script: Receive Payload Segment from Client
+Perform Script on Server [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ][ Wait for completion ]
+Else
+#*** Remote Script: Receive Payload Segment from Client
+Perform Script [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ]
+End If
+#
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '54'
+  name: 'Config: Push Payload: Send'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$use_psos_during_push ]
+      Calculation: $$use_psos_during_push
+      DisplayCalculation:
+        Chunk: $$use_psos_during_push
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#*** Remote Script: Receive Payload Segment from Client'
+      Text: '*** Remote Script: Receive Payload Segment from Client'
+    - enable: 'True'
+      id: '164'
+      name: Perform Script on Server
+      StepText: |-
+        Perform Script on Server [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ]
+        [ Wait for completion ]
+      WaitForCompletion:
+        state: 'True'
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
+      Calculation: $segment
+      DisplayCalculation:
+        Chunk: $segment
+      Script:
+        id: '15'
+        name: Receive Payload Segment from Client
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#*** Remote Script: Receive Payload Segment from Client'
+      Text: '*** Remote Script: Receive Payload Segment from Client'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Receive Payload Segment from Client” from file:
+        “Hosted_Database”; Parameter: $segment ]'
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
+      Calculation: $segment
+      DisplayCalculation:
+        Chunk: $segment
+      Script:
+        id: '15'
+        name: Receive Payload Segment from Client
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

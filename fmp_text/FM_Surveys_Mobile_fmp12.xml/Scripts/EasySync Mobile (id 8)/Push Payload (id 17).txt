@@ -156,13 +156,7 @@ Set Variable [ $payload_segment_ids; Value:"" ]
 Set Variable [ $i; Value:1 ]
 Loop
 Set Variable [ $segment; Value:Middle ( $payload ; ( ( $i - 1 ) * $$max_push_segment_size ) + 1 ; $$max_push_segment_size ) ]
-If [ $$use_psos_during_push ]
-#*** Remote Script: Receive Payload Segment from Client
-Perform Script on Server [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ][ Wait for completion ]
-Else
-#*** Remote Script: Receive Payload Segment from Client
-Perform Script [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ]
-End If
+Perform Script [ “Config: Push Payload: Send”; Parameter: $segment ]
 If [ IsEmpty (  Get ( ScriptResult ) ) ]
 Exit Script [ Result: 0 & ¶ & "Sync Error" & ¶ & "Server did not receive payload segment " & $i & "." ]
 End If
@@ -179,13 +173,7 @@ Set Variable [ $$EasySync_Status; Value:"Server is processing payload..." ]
 Refresh Object [ Object Name: "easysync_status" ]
 #
 #Process the payload.
-If [ $$use_psos_during_push ]
-#*** Remote Script: Process Payload from Client
-Perform Script on Server [ “Process Payload from Client” from file: “Hosted_Database”; Parameter: $payload_segment_ids ][ Wait for completion ]
-Else
-#*** Remote Script: Process Payload from Client
-Perform Script [ “Process Payload from Client” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
-End If
+Perform Script [ “Config: Push Payload: Process”; Parameter: $payload_segment_ids ]
 #
 #Close the hosted file.
 Close File [ “Hosted_Database” ]
@@ -1873,67 +1861,16 @@ Script:
           Chunk: '1'
       Name: $segment
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$use_psos_during_push ]
-      Calculation: $$use_psos_during_push
-      DisplayCalculation:
-        Chunk: $$use_psos_during_push
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Receive Payload Segment from Client'
-      Text: '*** Remote Script: Receive Payload Segment from Client'
-    - enable: 'True'
-      id: '164'
-      name: Perform Script on Server
-      StepText: |-
-        Perform Script on Server [ “Receive Payload Segment from Client” from file: “Hosted_Database”; Parameter: $segment ]
-        [ Wait for completion ]
-      WaitForCompletion:
-        state: 'True'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
-      Calculation: $segment
-      DisplayCalculation:
-        Chunk: $segment
-      Script:
-        id: '15'
-        name: Receive Payload Segment from Client
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Receive Payload Segment from Client'
-      Text: '*** Remote Script: Receive Payload Segment from Client'
-    - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Receive Payload Segment from Client” from file:
-        “Hosted_Database”; Parameter: $segment ]'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
+      StepText: 'Perform Script [ “Config: Push Payload: Send”; Parameter: $segment
+        ]'
       Calculation: $segment
       DisplayCalculation:
         Chunk: $segment
       Script:
-        id: '15'
-        name: Receive Payload Segment from Client
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+        id: '54'
+        name: 'Config: Push Payload: Send'
     - enable: 'True'
       id: '68'
       name: If
@@ -2090,67 +2027,16 @@ Script:
       StepText: '#Process the payload.'
       Text: Process the payload.
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$use_psos_during_push ]
-      Calculation: $$use_psos_during_push
-      DisplayCalculation:
-        Chunk: $$use_psos_during_push
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Process Payload from Client'
-      Text: '*** Remote Script: Process Payload from Client'
-    - enable: 'True'
-      id: '164'
-      name: Perform Script on Server
-      StepText: |-
-        Perform Script on Server [ “Process Payload from Client” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
-        [ Wait for completion ]
-      WaitForCompletion:
-        state: 'True'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
-      Calculation: $payload_segment_ids
-      DisplayCalculation:
-        Chunk: $payload_segment_ids
-      Script:
-        id: '8'
-        name: Process Payload from Client
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Process Payload from Client'
-      Text: '*** Remote Script: Process Payload from Client'
-    - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Process Payload from Client” from file: “Hosted_Database”;
-        Parameter: $payload_segment_ids ]'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
+      StepText: 'Perform Script [ “Config: Push Payload: Process”; Parameter: $payload_segment_ids
+        ]'
       Calculation: $payload_segment_ids
       DisplayCalculation:
         Chunk: $payload_segment_ids
       Script:
-        id: '8'
-        name: Process Payload from Client
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+        id: '55'
+        name: 'Config: Push Payload: Process'
     - enable: 'True'
       id: '89'
       name: Comment

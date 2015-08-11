@@ -17,13 +17,7 @@ Show Custom Dialog [ Title: "Pull Parameters"; Message: $pull_params; Default Bu
 End If
 #
 #Ask the server for a "pull" payload.
-If [ $$use_psos_during_pull ]
-#*** Remote Script: Prepare Payload for Client
-Perform Script on Server [ “Prepare Payload for Client” from file: “Hosted_Database”; Parameter: $pull_params ][ Wait for completion ]
-Else
-#*** Remote Script: Prepare Payload for Client
-Perform Script [ “Prepare Payload for Client” from file: “Hosted_Database”; Parameter: $pull_params ]
-End If
+Perform Script [ “Config: Pull Payload: Prepare”; Parameter: $pull_params ]
 If [ IsEmpty ( Get ( ScriptResult ) ) ]
 Exit Script [ Result: 0 & ¶ & "Pull Error" & ¶ & "The pull request has failed. No payload was received from the server." ]
 End If
@@ -35,13 +29,7 @@ Set Variable [ $payload; Value:"" ]
 Set Variable [ $i; Value:1 ]
 Loop
 Set Variable [ $pull_params; Value:$payload_uuid & ¶ & ( ( ( $i - 1 ) * $$max_pull_segment_size ) + 1 ) & ¶ & $$max_pull_segment_size ]
-If [ $$use_psos_during_pull ]
-#*** Remote Script: Send Payload Segment to Client
-Perform Script on Server [ “Send Payload Segment to Client” from file: “Hosted_Database”; Parameter: $pull_params ][ Wait for completion ]
-Else
-#*** Remote Script: Send Payload Segment to Client
-Perform Script [ “Send Payload Segment to Client” from file: “Hosted_Database”; Parameter: $pull_params ]
-End If
+Perform Script [ “Config: Pull Payload: Get”; Parameter: $pull_params ]
 If [ IsEmpty (  Get ( ScriptResult ) ) ]
 Exit Script [ Result: 0 & ¶ & "Pull Error" & ¶ & "Server did not send payload segment " & $i & "." ]
 End If
@@ -533,67 +521,16 @@ Script:
       StepText: '#Ask the server for a "pull" payload.'
       Text: Ask the server for a "pull" payload.
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$use_psos_during_pull ]
-      Calculation: $$use_psos_during_pull
-      DisplayCalculation:
-        Chunk: $$use_psos_during_pull
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Prepare Payload for Client'
-      Text: '*** Remote Script: Prepare Payload for Client'
-    - enable: 'True'
-      id: '164'
-      name: Perform Script on Server
-      StepText: |-
-        Perform Script on Server [ “Prepare Payload for Client” from file: “Hosted_Database”; Parameter: $pull_params ]
-        [ Wait for completion ]
-      WaitForCompletion:
-        state: 'True'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
-      Calculation: $pull_params
-      DisplayCalculation:
-        Chunk: $pull_params
-      Script:
-        id: '11'
-        name: Prepare Payload for Client
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Prepare Payload for Client'
-      Text: '*** Remote Script: Prepare Payload for Client'
-    - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Prepare Payload for Client” from file: “Hosted_Database”;
-        Parameter: $pull_params ]'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
+      StepText: 'Perform Script [ “Config: Pull Payload: Prepare”; Parameter: $pull_params
+        ]'
       Calculation: $pull_params
       DisplayCalculation:
         Chunk: $pull_params
       Script:
-        id: '11'
-        name: Prepare Payload for Client
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+        id: '56'
+        name: 'Config: Pull Payload: Prepare'
     - enable: 'True'
       id: '68'
       name: If
@@ -710,67 +647,16 @@ Script:
           Chunk: '1'
       Name: $pull_params
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$use_psos_during_pull ]
-      Calculation: $$use_psos_during_pull
-      DisplayCalculation:
-        Chunk: $$use_psos_during_pull
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Send Payload Segment to Client'
-      Text: '*** Remote Script: Send Payload Segment to Client'
-    - enable: 'True'
-      id: '164'
-      name: Perform Script on Server
-      StepText: |-
-        Perform Script on Server [ “Send Payload Segment to Client” from file: “Hosted_Database”; Parameter: $pull_params ]
-        [ Wait for completion ]
-      WaitForCompletion:
-        state: 'True'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
-      Calculation: $pull_params
-      DisplayCalculation:
-        Chunk: $pull_params
-      Script:
-        id: '17'
-        name: Send Payload Segment to Client
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#*** Remote Script: Send Payload Segment to Client'
-      Text: '*** Remote Script: Send Payload Segment to Client'
-    - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Send Payload Segment to Client” from file: “Hosted_Database”;
-        Parameter: $pull_params ]'
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
+      StepText: 'Perform Script [ “Config: Pull Payload: Get”; Parameter: $pull_params
+        ]'
       Calculation: $pull_params
       DisplayCalculation:
         Chunk: $pull_params
       Script:
-        id: '17'
-        name: Send Payload Segment to Client
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+        id: '57'
+        name: 'Config: Pull Payload: Get'
     - enable: 'True'
       id: '68'
       name: If
