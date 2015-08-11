@@ -1,7 +1,7 @@
     id  Name                       Status      Management    Privilege Set         Empty Pass?   Change Pass?  Description                                       
     --  ----                       ------      ----------    -------------         -----------   ------------  -----------                                       
      1  [Guest]                    Inactive    FileMaker     [Read-Only Access]    False         False                                                           
-     2  Admin                      Active      FileMaker     [Full Access]         False         False                                                           
+     2  Admin                      Active      FileMaker     [Full Access]         True          False                                                           
      5  user1                      Active      FileMaker     [Data Entry Only]     False         False                                                           
      6  user2                      Active      FileMaker     [Data Entry Only]     False         False                                                           
 
@@ -18,7 +18,7 @@ AccountCatalog:
     Description: 
   - id: '2'
     privilegeSet: '[Full Access]'
-    emptyPassword: 'False'
+    emptyPassword: 'True'
     changePasswordOnNextLogin: 'False'
     managedBy: FileMaker
     status: Active

@@ -13,7 +13,7 @@ There are three demo databases included:
 There are four accounts setup in both the hosted and mobile “EasySync” databases:
 
 Account Name: Admin  
-Password: fmezsync  
+Password: [blank]  
 Privilege Set: Full Access
 
 Account Name: User1  
@@ -41,7 +41,7 @@ Privilege Set: Data Entry Only
 Note: The file is set to open automatically with this account.
 
 Account Name: Admin  
-Password: fmezdeploy  
+Password: [blank]  
 Privilege Set: Full Access  
 Note: Hold down the option (or alt) key when opening the file to bypass the default account.
 
