@@ -1,6 +1,6 @@
        id  File Reference             Path List                
        --  --------------             ---------                
-        1  Hosted_Database            fmnet:/your-server-address/FM_Surveys_Hosted
+        1  Hosted_Database            fmnet:/your-server-address/FM_Surveys_Hosted file:FM_Surveys_Hosted
 
        id  ODBC Source                DSN                        Link                     
        --  -----------                ---                        ----                     
@@ -9,6 +9,7 @@
 ---
 ExternalDataSourcesCatalog:
   FileReference:
+    link: FM_Surveys_Hosted_fmp12.xml
     id: '1'
-    pathList: fmnet:/your-server-address/FM_Surveys_Hosted
+    pathList: fmnet:/your-server-address/FM_Surveys_Hosted file:FM_Surveys_Hosted
     name: Hosted_Database

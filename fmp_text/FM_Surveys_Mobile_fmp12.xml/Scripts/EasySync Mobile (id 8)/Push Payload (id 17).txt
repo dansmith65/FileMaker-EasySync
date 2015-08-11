@@ -1895,7 +1895,9 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
       Calculation: $segment
       DisplayCalculation:
         Chunk: $segment
@@ -1919,7 +1921,9 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
       Calculation: $segment
       DisplayCalculation:
         Chunk: $segment
@@ -2108,7 +2112,9 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
       Calculation: $payload_segment_ids
       DisplayCalculation:
         Chunk: $payload_segment_ids
@@ -2132,7 +2138,9 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
       Calculation: $payload_segment_ids
       DisplayCalculation:
         Chunk: $payload_segment_ids
@@ -2159,7 +2167,9 @@ Script:
       FileReference:
         id: '1'
         name: Hosted_Database
-        UniversalPathList: fmnet:/your-server-address/FM_Surveys_Hosted_v1r3
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
     - enable: 'True'
       id: '89'
       name: Comment
