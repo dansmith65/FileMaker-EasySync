@@ -9,6 +9,7 @@ Set Variable [ $ping_params; Value:Get ( PersistentID ) & ¶ & $$client_version 
 #Check to see if we have a connection.
 Set Variable [ $ping_start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Perform Script [ “Config: Ping Server”; Parameter: $ping_params ]
+Set Variable [ $error; Value:Get ( LastError ) ]
 Set Variable [ $ping_time; Value:Get ( CurrentTimeUTCMilliseconds ) - $ping_start ]
 #
 #Is the solution using EasyDeploy?
@@ -251,6 +252,23 @@ Script:
       Script:
         id: '53'
         name: 'Config: Ping Server'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $error; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $error
     - enable: 'True'
       id: '141'
       name: Set Variable
