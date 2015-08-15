@@ -156,6 +156,36 @@ PrivilegesCatalog:
           name: --
           Access:
             value: NoAccess
+        - runFullAccess: 'False'
+          id: '30'
+          name: 'EasySync Server: Config'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '31'
+          name: --
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '32'
+          name: 'EasySync Server: Private'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '33'
+          name: --
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '34'
+          name: 'EasySync Server: Public'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '35'
+          name: --
+          Access:
+            value: NoAccess
         - name: '[Any New Script]'
           Access:
             value: NoAccess
