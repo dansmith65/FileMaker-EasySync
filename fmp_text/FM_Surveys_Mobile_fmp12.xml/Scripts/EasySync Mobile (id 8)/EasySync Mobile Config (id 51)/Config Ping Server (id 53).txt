@@ -4,7 +4,9 @@ Set Variable [ $ping_params; Value:Get ( ScriptParameter ) ]
 If [ $$use_psos_during_ping ]
 #*** Remote Script: Respond to Client Ping
 Perform Script on Server [ “Respond to Client Ping” from file: “Hosted_Database”; Parameter: $ping_params ][ Wait for completion ]
-Else
+End If
+#
+If [ not $$use_psos_during_pingor (	$$use_psos_during_ping	and Get ( LastError ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */) ]
 #*** Remote Script: Respond to Client Ping
 Perform Script [ “Respond to Client Ping” from file: “Hosted_Database”; Parameter: $ping_params ]
 End If
@@ -79,9 +81,38 @@ Script:
         id: '16'
         name: Respond to Client Ping
     - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ not $$use_psos_during_ping\nor (\n\t$$use_psos_during_ping\n\tand
+        Get ( LastError ) = 3  /* Command is unavailable: assume the \"hosted\" file
+        is open locally */\n) ]"
+      Calculation: "not $$use_psos_during_ping\nor (\n\t$$use_psos_during_ping\n\tand
+        Get ( LastError ) = 3  /* Command is unavailable: assume the \"hosted\" file
+        is open locally */\n)"
+      DisplayCalculation:
+        Chunk:
+        - not
+        - |2
+           $$use_psos_during_ping
+        - or
+        - " (\n\t$$use_psos_during_ping\n\t"
+        - and
+        - type: NoRef
+          __content__: ' '
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */
+          )
     - enable: 'True'
       id: '89'
       name: Comment

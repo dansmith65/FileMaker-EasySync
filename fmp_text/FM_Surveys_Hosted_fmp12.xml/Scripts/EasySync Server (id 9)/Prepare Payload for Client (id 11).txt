@@ -39,7 +39,6 @@ End If
 If [ $$debug_pull ]
 Show Custom Dialog [ Title: "Sync Tables"; Message: $sync_tables; Default Button: “OK”, Commit: “Yes” ]
 End If
-Show Custom Dialog [ Title: "Sync Tables"; Message: $sync_tables; Default Button: “OK”, Commit: “Yes” ]
 #
 #Initalize table info portion of the payload.
 Set Variable [ $table_info; Value:"" ]
@@ -703,27 +702,6 @@ Script:
       id: '70'
       name: End If
       StepText: End If
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Sync Tables"; Message: $sync_tables;
-        Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Sync Tables"'
-        DisplayCalculation:
-          Chunk: '"Sync Tables"'
-      Message:
-        Calculation: $sync_tables
-        DisplayCalculation:
-          Chunk: $sync_tables
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
     - enable: 'True'
       id: '89'
       name: Comment
