@@ -186,6 +186,11 @@ PrivilegesCatalog:
           name: --
           Access:
             value: NoAccess
+        - runFullAccess: 'False'
+          id: '36'
+          name: 'EasySync Server: Config: Create Log Entry'
+          Access:
+            value: NoAccess
         - name: '[Any New Script]'
           Access:
             value: NoAccess

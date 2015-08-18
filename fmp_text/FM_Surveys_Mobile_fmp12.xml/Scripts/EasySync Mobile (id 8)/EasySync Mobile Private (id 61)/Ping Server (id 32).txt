@@ -1,5 +1,10 @@
 #Ping Server:"Pings" the server to confirm that it is available, and (optionally) that the connection is fast enough.History:2014-04-18			Tim Dietrich (timdietrich@me.com)	Initial version.	This script was split from "Sync with Server" due to its increasing complexity.2014-04-20	Tim Dietrich (timdietrich@me.com)	Added code to allow the user to easily email their administrator if their device	isn't on the white list.	2014-04-23	Tim Dietrich (timdietrich@me.com)	"Get ( SystemIPAddress )" is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.
 #
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = "start script"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#
 Set Variable [ $$EasySync_Status; Value:"Testing Connection..." ]
 Refresh Object [ Object Name: "easysync_status" ]
 #
@@ -22,6 +27,7 @@ Close File [ “Hosted_Database” ]
 #
 If [ Get ( ScriptResult ) = -1 ]
 Show Custom Dialog [ Title: "Sync Error"; Message: "This device is not eligible for syncing. Do you want to email the Device ID (" & Get ( PersistentID ) & ") to your system administrator?"; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No” ]
+Close File [ “Hosted_Database” ]
 If [ Get ( LastMessageChoice ) = 1 ]
 Send Mail [ Send via E-mail Client; Subject: "Please add my device to the \"White List\""; Message: "My device cannot sync because it isn't on the \"white list.\"¶¶The device ID is: " & Get ( PersistentID ) & "¶¶Thank you." ]
 End If
@@ -58,13 +64,11 @@ Show Custom Dialog [ Title: "Notice"; Message: "This version of the solution is 
 End If
 End If
 #
-#How long did the ping take?
-If [ $$debug_ping ]
-Show Custom Dialog [ Title: "Ping Roundtrip Time"; Message: $ping_time & " Milliseconds"; Default Button: “OK”, Commit: “Yes” ]
-End If
-#
 #Was the ping response too slow?
 If [ $ping_time > $$max_ping_time ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 3 ;	~message = "Ping roundtrip time was slow: " & $ping_time & " Milliseconds"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
 If [ $$slow_connection_behavior = "warn" ]
 Show Custom Dialog [ Title: "Sync Error"; Message: "It appears that your connection to the server is slow. Would you like to continue with the sync, or cancel?"; Default Button: “Cancel”, Commit: “Yes”; Button 2: “Continue”, Commit: “No” ]
 If [ Get ( LastMessageChoice ) = 1 ]
@@ -73,9 +77,10 @@ Exit Script [ Result: 0 ]
 End If
 Else
 Show Custom Dialog [ Title: "Sync Error"; Message: "The connection to the server is too slow to sync. (Ping time was " & $ping_time & " ms.)"; Default Button: “OK”, Commit: “Yes” ]
-Close File [ “Hosted_Database” ]
 Exit Script [ Result: 0 ]
 End If
+Else If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Ping roundtrip time was ok: " & $ping_time & " Milliseconds"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 Exit Script [ Result: 1 ]
@@ -111,6 +116,73 @@ Script:
         Dietrich (timdietrich@me.com)\n\t\"Get ( SystemIPAddress )\" is now comma-delimited
         when passed as a param.\n\tThis resolves an issue that comes up if the client
         has multiple IPs."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -400,6 +472,16 @@ Script:
           DisplayCalculation:
             Chunk: '"No"'
         - CommitState: 'False'
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “Hosted_Database” ]
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: |-
+          fmnet:/your-server-address/FM_Surveys_Hosted
+          file:FM_Surveys_Hosted
     - enable: 'True'
       id: '68'
       name: If
@@ -774,47 +856,6 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#How long did the ping take?'
-      Text: How long did the ping take?
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$debug_ping ]
-      Calculation: $$debug_ping
-      DisplayCalculation:
-        Chunk: $$debug_ping
-    - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Ping Roundtrip Time"; Message: $ping_time
-        & " Milliseconds"; Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Ping Roundtrip Time"'
-        DisplayCalculation:
-          Chunk: '"Ping Roundtrip Time"'
-      Message:
-        Calculation: $ping_time & " Milliseconds"
-        DisplayCalculation:
-          Chunk: $ping_time & " Milliseconds"
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#Was the ping response too slow?'
       Text: Was the ping response too slow?
     - enable: 'True'
@@ -824,6 +865,68 @@ Script:
       Calculation: $ping_time > $$max_ping_time
       DisplayCalculation:
         Chunk: $ping_time > $$max_ping_time
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 3 ;\n\t~message = \"Ping roundtrip time was slow: \"
+        & $ping_time & \" Milliseconds\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \"
+        ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 3 ;\n\t~message = \"Ping roundtrip time
+        was slow: \" & $ping_time & \" Milliseconds\"\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 3 ;\n\t~message = \"Ping roundtrip time was slow: \"
+          & $ping_time & \" Milliseconds\"\n] ;\n\t\"$LogLevel = \" & ~logLevel &
+          \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
     - enable: 'True'
       id: '68'
       name: If
@@ -920,16 +1023,6 @@ Script:
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
-      id: '34'
-      name: Close File
-      StepText: Close File [ “Hosted_Database” ]
-      FileReference:
-        id: '1'
-        name: Hosted_Database
-        UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
-    - enable: 'True'
       id: '103'
       name: Exit Script
       StepText: 'Exit Script [ Result: 0 ]'
@@ -940,6 +1033,64 @@ Script:
       id: '70'
       name: End If
       StepText: End If
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Ping roundtrip time was ok: \"
+        & $ping_time & \" Milliseconds\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \"
+        ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Ping roundtrip time
+        was ok: \" & $ping_time & \" Milliseconds\"\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Ping roundtrip time was ok: \"
+          & $ping_time & \" Milliseconds\"\n] ;\n\t\"$LogLevel = \" & ~logLevel &
+          \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If

@@ -1,18 +1,23 @@
 #Push Payload:Handles the "push" phase of the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Added "timezone offset" to the settings portion of the payload.2014-04-19	Tim Dietrich (timdietrich@me.com)	Reflects shift to UTC timestamps.2014-04-21	Tim Dietrich (timdietrich@me.com)	Resolves issues with non-SQL compliant table names.2014-04-21	Tim Dietrich (timdietrich@me.com)	Added support for passing in a param of ES_Record_UUIDs so that a "partial push"	can be processed. See the sample "partial push" script for an example of how to put	the param together and how to handle the partial push in general.2014-04-23	Tim Dietrich (timdietrich@me.com)	"Get ( SystemIPAddress )" is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.2014-04-22	Tim Dietrich (timdietrich@me.com)	Begrudgingly added support for repeating fields.	Yeah, I know. Don't get me started.2014-04-30	Tim Dietrich (timdietrich@me.com)	Added support for the new "deletions" portion of the payload.	Now omitting global fields from the payload.2014-05-02	Tim Dietrich (timdietrich@me.com)	Modified the SELECT statement that gets the list of tables to be synced, so that the underscore	escaped. Thanks to Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for	reporting this bug.2014-05-04	Tim Dietrich (timdietrich@me.com)	Added support for Push/Pull-only tables.2014-10-19	Tim Dietrich (timdietrich@me.com)	Modified config check to support pull-only scenarios.
 #
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = "start script"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#
 #Note the push start time.
 Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
 #
 #Create the "last pull" portion of the payload.
 Set Variable [ $last_sync_info; Value:"<last_pull>¶" &Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) & ¶ & "</last_pull>" ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "Last Sync Info"; Message: $last_sync_info; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Last Sync Info: " & $last_sync_info] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Create the settings portion of the payload.
 Set Variable [ $settings_info; Value:"<settings>¶" &$$field_delimiter & "</setting>" & $$record_delimiter & "</setting>" & Get ( PersistentID ) & "</setting>" & $$client_version & "</setting>" & Substitute ( Get ( SystemIPAddress ); ¶; ", " ) & "</setting>" & Substitute ( Get ( SystemNICAddress ); ¶; ", " ) & "</setting>" & Get ( SystemPlatform ) & "</setting>" & Get ( SystemVersion ) & "</setting>" & Get ( Device ) & "</setting>" & Get ( NetworkProtocol ) & "</setting>" & Get ( NetworkType ) & "</setting>" & $$additional_push_info & "¶</settings>" ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "Settings Info"; Message: $settings_info; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Settings Info: " & $settings_info] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Get all of the tables that are to be pushed.
@@ -20,8 +25,8 @@ Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT * FROM FileMaker_Tables 
 If [ IsEmpty ( $sync_tables ) ]
 Exit Script [ Result: 1 & ¶ & "Push Phase Cancelled" & ¶ & "There are no tables configured for push." ]
 End If
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "Sync Tables"; Message: $sync_tables; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Sync Tables: " & $sync_tables] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Initalize table info portion of the payload.
@@ -41,8 +46,8 @@ Set Variable [ $sync_table; Value:Let ( [$t = GetValue ( $sync_tables ; $i );$t 
 #Note: Fields with an "EXCL_" prefix are excluded from the payload.
 #Note: We also exclude calculated fields and those stored as globals.
 Set Variable [ $sync_fields; Value:ExecuteSQL ( "SELECT FieldName, FieldReps FROM FileMaker_Fields WHERE ( TableName = ? ) AND ( ( FieldClass = 'Normal' ) OR ( FieldName LIKE 'B64_%' ) ) AND ( FieldName NOT LIKE 'EXCL_%' ) AND ( FieldName <> 'ES_Exclude' ) AND ( FieldType NOT LIKE 'global%')"; "|"; ¶; $sync_table ) ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "Fields in " & $sync_table; Message: $sync_fields; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Fields in " & $sync_table & ": " & $sync_fields] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Reformat the field names so that repetitions are considered.
@@ -60,8 +65,8 @@ End Loop
 Set Variable [ $f; Value:$f + 1 ]
 Exit Loop If [ $f > ValueCount ( $sync_fields ) ]
 End Loop
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "Reformatted Fields in " & $sync_table; Message: $fields; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Reformatted Fields in " & $sync_table & ": " & $fields] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Add this table's info to the running "table_info."
@@ -88,20 +93,20 @@ End Loop
 #
 #Add this table's fields to the SELECT statement.
 Set Variable [ $dyn_sql; Value:"SELECT " & $dyn_sql & ", '" & $$record_delimiter & "' FROM \\\"" & $sync_table & "\\\"" &" WHERE ( ES_UTC_Time > " & Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) & " ) AND ( COALESCE ( ES_Exclude, 0 ) = 0 )" ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "SELECT Statement for " & $sync_table; Message: $dyn_sql; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "SELECT Statement for " & $sync_table & ": " & $dyn_sql] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Wrap the SELECT statement in an ExecuteSQL call.
 Set Variable [ $dyn_esql; Value:"ExecuteSQL ( \"" & $dyn_sql & "\"; \"" & $$field_delimiter & "\"; \"\" )" ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "ExecuteSQL Statement for " & $sync_table; Message: $dyn_esql; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "ExecuteSQL Statement for " & $sync_table & ": " & $dyn_esql] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Evaluate the ExecuteSQL statement to get the actual data, and append it to the records.
 Set Variable [ $temp_recs; Value:Evaluate ( $dyn_esql  ) ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "Records From " & $sync_table; Message: $temp_recs; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Records From " & $sync_table & ": " & $temp_recs] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #If there are records in the current table to be pushed...
@@ -116,8 +121,8 @@ End Loop
 #
 #Check to see if any records have been deleted.
 Set Variable [ $deletions; Value:ExecuteSQL ( "SELECT ES_Deleted_Record_UUID, Created_TimeStamp_UTC FROM EasySync_Payloads WHERE ES_Deleted_Record_UUID IS NOT NULL"; "|"; ¶ ) ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "Deletions"; Message: $deletions; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Deletions: " & $deletions] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #If no data needs to be synced...
@@ -149,8 +154,8 @@ Set Variable [ $payload; Value:"<payload>¶" &$last_sync_info & ¶ & $settings_i
 #Note: We use this segmented approach to work around the PSoS script parameter's 1,000,000 character limit.
 #Special thanks to Kirk Bowman @ MightyData for the idea!
 Set Variable [ $num_segments; Value:Int ( Length ( $payload ) / $$max_push_segment_size ) + If ( Mod ( Length ( $payload ) ; $$max_push_segment_size ); 1; 0 ) ]
-If [ $$debug_push ]
-Show Custom Dialog [ Title: "# Segments"; Message: "Payload Size: " & Length ( $payload ) & ¶ & "Max Segment Size: " & $$max_push_segment_size & ¶ & "Number of Segments Being Sent: " & $num_segments; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = List (		"Payload Size: " & Length ( $payload ) ;		"Max Segment Size: " & $$max_push_segment_size ;		"Number of Segments Being Sent: " & $num_segments	)] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 Set Variable [ $payload_segment_ids; Value:"" ]
 Set Variable [ $i; Value:1 ]
@@ -164,8 +169,8 @@ Set Variable [ $payload_segment_ids; Value:$payload_segment_ids & If ( not IsEmp
 Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i > $num_segments ]
 End Loop
-If [ $debug ]
-Show Custom Dialog [ Title: "Payload Segment IDs"; Message: $payload_segment_ids; Default Button: “OK”, Commit: “Yes” ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Segment IDs: " & $payload_segment_ids] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Refresh sync status.
@@ -245,6 +250,73 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#Note the push start time.'
@@ -298,31 +370,58 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Last Sync Info"; Message: $last_sync_info;
-        Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Last Sync Info"'
-        DisplayCalculation:
-          Chunk: '"Last Sync Info"'
-      Message:
-        Calculation: $last_sync_info
-        DisplayCalculation:
-          Chunk: $last_sync_info
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Last Sync Info: \" & $last_sync_info\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Last Sync Info: \"
+        & $last_sync_info\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Last Sync Info: \" & $last_sync_info\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -405,31 +504,58 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Settings Info"; Message: $settings_info;
-        Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Settings Info"'
-        DisplayCalculation:
-          Chunk: '"Settings Info"'
-      Message:
-        Calculation: $settings_info
-        DisplayCalculation:
-          Chunk: $settings_info
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Settings Info: \" & $settings_info\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Settings Info: \" &
+        $settings_info\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Settings Info: \" & $settings_info\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -488,31 +614,58 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Sync Tables"; Message: $sync_tables;
-        Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Sync Tables"'
-        DisplayCalculation:
-          Chunk: '"Sync Tables"'
-      Message:
-        Calculation: $sync_tables
-        DisplayCalculation:
-          Chunk: $sync_tables
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Sync Tables: \" & $sync_tables\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Sync Tables: \" & $sync_tables\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Sync Tables: \" & $sync_tables\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -671,31 +824,60 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Fields in " & $sync_table; Message:
-        $sync_fields; Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Fields in " & $sync_table'
-        DisplayCalculation:
-          Chunk: '"Fields in " & $sync_table'
-      Message:
-        Calculation: $sync_fields
-        DisplayCalculation:
-          Chunk: $sync_fields
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Fields in \" & $sync_table & \":
+        \" & $sync_fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Fields in \" & $sync_table
+        & \": \" & $sync_fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+        \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \"
+        & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote
+        ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
+        \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
+        ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Fields in \" & $sync_table & \":
+          \" & $sync_fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+          = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -908,31 +1090,60 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Reformatted Fields in " & $sync_table;
-        Message: $fields; Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Reformatted Fields in " & $sync_table'
-        DisplayCalculation:
-          Chunk: '"Reformatted Fields in " & $sync_table'
-      Message:
-        Calculation: $fields
-        DisplayCalculation:
-          Chunk: $fields
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields in \" & $sync_table
+        & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields
+        in \" & $sync_table & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields in \" & $sync_table
+          & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+          = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -1225,31 +1436,60 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "SELECT Statement for " & $sync_table;
-        Message: $dyn_sql; Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"SELECT Statement for " & $sync_table'
-        DisplayCalculation:
-          Chunk: '"SELECT Statement for " & $sync_table'
-      Message:
-        Calculation: $dyn_sql
-        DisplayCalculation:
-          Chunk: $dyn_sql
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"SELECT Statement for \" & $sync_table
+        & \": \" & $dyn_sql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"SELECT Statement for
+        \" & $sync_table & \": \" & $dyn_sql\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"SELECT Statement for \" & $sync_table
+          & \": \" & $dyn_sql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+          \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -1282,31 +1522,60 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "ExecuteSQL Statement for " & $sync_table;
-        Message: $dyn_esql; Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"ExecuteSQL Statement for " & $sync_table'
-        DisplayCalculation:
-          Chunk: '"ExecuteSQL Statement for " & $sync_table'
-      Message:
-        Calculation: $dyn_esql
-        DisplayCalculation:
-          Chunk: $dyn_esql
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"ExecuteSQL Statement for \" & $sync_table
+        & \": \" & $dyn_esql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"ExecuteSQL Statement
+        for \" & $sync_table & \": \" & $dyn_esql\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"ExecuteSQL Statement for \" & $sync_table
+          & \": \" & $dyn_esql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+          \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -1340,31 +1609,60 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Records From " & $sync_table; Message:
-        $temp_recs; Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Records From " & $sync_table'
-        DisplayCalculation:
-          Chunk: '"Records From " & $sync_table'
-      Message:
-        Calculation: $temp_recs
-        DisplayCalculation:
-          Chunk: $temp_recs
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Records From \" & $sync_table &
+        \": \" & $temp_recs\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Records From \" & $sync_table
+        & \": \" & $temp_recs\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+        \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \"
+        & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote
+        ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
+        \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
+        ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Records From \" & $sync_table &
+          \": \" & $temp_recs\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+          \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -1482,31 +1780,58 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Deletions"; Message: $deletions; Default
-        Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Deletions"'
-        DisplayCalculation:
-          Chunk: '"Deletions"'
-      Message:
-        Calculation: $deletions
-        DisplayCalculation:
-          Chunk: $deletions
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Deletions: \" & $deletions\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Deletions: \" & $deletions\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Deletions: \" & $deletions\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -1775,39 +2100,67 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$debug_push ]
-      Calculation: $$debug_push
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $$debug_push
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: "Show Custom Dialog [ Title: \"# Segments\"; Message: \"Payload Size:
-        \" & Length ( $payload ) & ¶ & \n\"Max Segment Size: \" & $$max_push_segment_size
-        & ¶ & \n\"Number of Segments Being Sent: \" & $num_segments; Default Button:
-        “OK”, Commit: “Yes” ]"
-      Title:
-        Calculation: '"# Segments"'
-        DisplayCalculation:
-          Chunk: '"# Segments"'
-      Message:
-        Calculation: "\"Payload Size: \" & Length ( $payload ) & ¶ & \n\"Max Segment
-          Size: \" & $$max_push_segment_size & ¶ & \n\"Number of Segments Being Sent:
-          \" & $num_segments"
-        DisplayCalculation:
-          Chunk:
-          - '"Payload Size: " & '
-          - Length
-          - " ( $payload ) & ¶ & \n\"Max Segment Size: \" & $$max_push_segment_size
-            & ¶ & \n\"Number of Segments Being Sent: \" & $num_segments"
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = List (\n\t\t\"Payload Size: \" &
+        Length ( $payload ) ;\n\t\t\n\"Max Segment Size: \" & $$max_push_segment_size
+        ;\n\t\t\n\"Number of Segments Being Sent: \" & $num_segments\n\t)\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = List (\n\t\t\"Payload
+        Size: \" & Length ( $payload ) ;\n\t\t\n\"Max Segment Size: \" & $$max_push_segment_size
+        ;\n\t\t\n\"Number of Segments Being Sent: \" & $num_segments\n\t)\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = "
+        - List
+        - " (\n\t\t\"Payload Size: \" & "
+        - Length
+        - " ( $payload ) ;\n\t\t\n\"Max Segment Size: \" & $$max_push_segment_size
+          ;\n\t\t\n\"Number of Segments Being Sent: \" & $num_segments\n\t)\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -1953,31 +2306,59 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $debug ]
-      Calculation: $debug
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
       DisplayCalculation:
-        Chunk: $debug
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
-      id: '87'
-      name: Show Custom Dialog
-      StepText: 'Show Custom Dialog [ Title: "Payload Segment IDs"; Message: $payload_segment_ids;
-        Default Button: “OK”, Commit: “Yes” ]'
-      Title:
-        Calculation: '"Payload Segment IDs"'
-        DisplayCalculation:
-          Chunk: '"Payload Segment IDs"'
-      Message:
-        Calculation: $payload_segment_ids
-        DisplayCalculation:
-          Chunk: $payload_segment_ids
-      Buttons:
-        Button:
-        - CommitState: 'True'
-          Calculation: '"OK"'
-          DisplayCalculation:
-            Chunk: '"OK"'
-        - CommitState: 'False'
-        - CommitState: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Payload Segment IDs: \" & $payload_segment_ids\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Payload Segment IDs:
+        \" & $payload_segment_ids\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+        \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \"
+        & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote
+        ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
+        \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
+        ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Payload Segment IDs: \" & $payload_segment_ids\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If

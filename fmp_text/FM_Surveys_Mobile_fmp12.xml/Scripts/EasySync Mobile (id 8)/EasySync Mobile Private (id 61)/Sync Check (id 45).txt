@@ -1,5 +1,10 @@
 #Sync Check:Sends a list of all ES_Record_UUIDs, from all synced tables, to the server. The server runs that list up against its own list of ES_Record_UUIDs, and returns the difference. This script takes the "diff" and deletes the records. This rounds out the delete support. It helps to ensure that the mobile device doesn't have any records locally that it shouldn't have.Please note: Records flagged as "do not sync" (via the ES_Exclude field) are not included in the UUID list sent to the server. Therefore, they will not be deleted if they are not on the server.History:2014-05-01		Tim Dietrich (timdietrich@me.com)	Initial version.	2014-05-15	Tim Dietrich (timdietrich@me.com)	Delimiting the underscore used in the query that gets ES_ tables.2014-06-02	Tim Dietrich (timdietrich@me.com)	Properly escapes the ES_ table names.	Supports passing additional info to server (via $$additional_sync_check_info).
 #
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = "start script"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
@@ -150,6 +155,73 @@ Script:
         ES_ tables.\n\n2014-06-02\n\tTim Dietrich (timdietrich@me.com)\n\tProperly
         escapes the ES_ table names.\n\tSupports passing additional info to server
         (via $$additional_sync_check_info)."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Mobile: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment

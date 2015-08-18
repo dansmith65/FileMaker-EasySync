@@ -8,16 +8,15 @@ Set Variable [ $$ask_before_sync; Value:0 // 1 = Yes, 0 = No.  0 is the default.
 Set Variable [ $$commit_before_sync; Value:1 // Commit any unsaved records before the sync? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$show_successful_pushes; Value:0 // Let the user know that a push was successful? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$show_successful_pulls; Value:0 // Let the user know that a pull was successful? 1 = Yes, 0 = No.  0 is the default. ]
+Set Variable [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE; Value:4/*Determines the frequency that 'PluginChecker: Config: Create Log Entry' script is calledvalid values: 0-50	Disabled1	Error	The system is in distress, customers are probably being affected	(or will soon be) and the fix probably requires human intervention.	The "2AM rule" applies here- if you're on call, do you want to be	woken up at 2AM if this condition happens? If yes, then log it as	"error".2	Warn	An unexpected technical or business event happened, customers may be	affected, but probably no immediate human intervention is required. On	call people won't be called immediately, but support personnel will	want to review these issues asap to understand what the impact is.	Basically any issue that needs to be tracked but may not require	immediate intervention.3	Info	Things we want to see at high volume in case we need to forensically	analyze an issue. System lifecycle events (system start, stop) go here.	"Session" lifecycle events (login, logout, etc.) go here. Significant	boundary events should be considered as well (e.g. database calls,	remote API calls). Typical business exceptions can go here (e.g. login	failed due to bad credentials). Any other event you think you'll need	to see in production at high volume goes here.4	Debug	Just about everything that doesn't make the "info" cut. Any message	that is helpful in tracking the flow through the system and isolating	issues, especially during the development and QA phases. We use "debug"	level logs for entry/exit of most non-trivial methods and marking	interesting events and decision points inside methods.5	Trace	For extremely detailed and potentially high volume logs that you don't	typically want enabled even during normal development. Examples	include dumping a full object hierarchy, logging some state during	every iteration of a large loop, etc.*/ ]
 #
 #Server ping settings.
-Set Variable [ $$debug_ping; Value:0 // Display debug info during the ping? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$use_psos_during_ping; Value:1/* 1 = Yes, 0 = No.  1 is the default.Indicates whether the processing of the server "ping" should be done on the server (using "Perform Script on Server") or on the client (using "Perform Script").*/ ]
 Set Variable [ $$additional_ping_info; Value:""/*Additional information that is sent to the server during the "ping" process.*/ ]
 Set Variable [ $$max_ping_time; Value:5000/*The maximum amount of time, in milliseconds, that the ping process can take before the decision is made to disallow the sync. Set to a high value (ex: 999999) to disable this feature.*/ ]
 Set Variable [ $$slow_connection_behavior; Value:"warn"/*The action to take when the user's connection is determined to be slow (meaning that the ping process was slower than the "max ping time" setting.Options:• warn: The user is warned that the connection is slow, but is given the option to proceed anyway.• halt: The user is notified that the connection is slow, and the process is halted. (The user is not given the option to proceed.)*/ ]
 #
 #Push settings.
-Set Variable [ $$debug_push; Value:0 // Display debug info during the push? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$field_delimiter; Value:"</fld>" // The delimiter used between fields in the push payload. ]
 Set Variable [ $$record_delimiter; Value:"</rec>" // The delimiter used between records in the push payload. ]
 Set Variable [ $$use_psos_during_push; Value:1/* Indicates whether the processing of the "pushed" payload should be done on the server (using "Perform Script on Server") or on the client (using "Perform Script").*/ ]
@@ -25,7 +24,6 @@ Set Variable [ $$max_push_segment_size; Value:500000 // The maximum size of payl
 Set Variable [ $$additional_push_info; Value:""/*Additional information that is sent to the server during the "push" process.*/ ]
 #
 #Pull settings.
-Set Variable [ $$debug_pull; Value:0 // Display debug info during pull? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$delete_pull_payloads; Value:"Successful"/*Indicates the type of pull payloads that should be deleted.Options are: • Successful: Only successfully processed payloads are deleted. Recommended.• None: No pulled payloads are deleted.• All: All payloads are deleted.*/ ]
 Set Variable [ $$use_psos_during_pull; Value:1/* 1 = Yes, 0 = No.  1 is the default.Indicates whether the processing of the "pushed" payloads should be done on the server (using "Perform Script on Server") or on the client (using "Perform Script").*/ ]
 Set Variable [ $$max_pull_segment_size; Value:500000 // The maximum size of payload segments (# chars) to pull from the server. Do not set higher than 1,000,000. Recommended size is 500000. ]
@@ -37,7 +35,6 @@ Set Variable [ $$ask_before_deleting; Value:1// Confirm the deletion with the us
 Set Variable [ $$perform_sync_check; Value:1// Perform a sync check? 1 = Yes, 0 = No.  0 is the default.// If you are handling deletions using another method, then you should set this to 0. ]
 #
 #Sync-check settings.
-Set Variable [ $$debug_sync_check; Value:0 // Display debug info during sync check? 1 = Yes, 0 = No.  0 is the default. ]
 Set Variable [ $$use_psos_during_sync_check; Value:1/* 1 = Yes, 0 = No. 1 is the default.Indicates whether the processing of the "sync check" should be done on the server (using "Perform Script on Server") or on the client (using "Perform Script").*/ ]
 Set Variable [ $$additional_sync_check_info; Value:""/*Additional information that is sent to the server during the "sync check" process.*/ ]
 #
@@ -208,6 +205,95 @@ Script:
           Chunk: '1'
       Name: $$show_successful_pulls
     - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE; Value:4\n\n/*\nDetermines
+        the frequency that 'PluginChecker: Config: Create Log Entry' script is called\nvalid
+        values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe system is in distress, customers
+        are probably being affected\n\t(or will soon be) and the fix probably requires
+        human intervention.\n\tThe \"2AM rule\" applies here- if you're on call, do
+        you want to be\n\twoken up at 2AM if this condition happens? If yes, then
+        log it as\n\t\"error\".\n\n2\tWarn\n\tAn unexpected technical or business
+        event happened, customers may be\n\taffected, but probably no immediate human
+        intervention is required. On\n\tcall people won't be called immediately, but
+        support personnel will\n\twant to review these issues asap to understand what
+        the impact is.\n\tBasically any issue that needs to be tracked but may not
+        require\n\timmediate intervention.\n\n3\tInfo\n\tThings we want to see at
+        high volume in case we need to forensically\n\tanalyze an issue. System lifecycle
+        events (system start, stop) go here.\n\t\"Session\" lifecycle events (login,
+        logout, etc.) go here. Significant\n\tboundary events should be considered
+        as well (e.g. database calls,\n\tremote API calls). Typical business exceptions
+        can go here (e.g. login\n\tfailed due to bad credentials). Any other event
+        you think you'll need\n\tto see in production at high volume goes here.\n\n4\tDebug\n\tJust
+        about everything that doesn't make the \"info\" cut. Any message\n\tthat is
+        helpful in tracking the flow through the system and isolating\n\tissues, especially
+        during the development and QA phases. We use \"debug\"\n\tlevel logs for entry/exit
+        of most non-trivial methods and marking\n\tinteresting events and decision
+        points inside methods.\n\n5\tTrace\n\tFor extremely detailed and potentially
+        high volume logs that you don't\n\ttypically want enabled even during normal
+        development. Examples\n\tinclude dumping a full object hierarchy, logging
+        some state during\n\tevery iteration of a large loop, etc.\n*/ ]"
+      Value:
+        Calculation: "4\n\n/*\nDetermines the frequency that 'PluginChecker: Config:
+          Create Log Entry' script is called\nvalid values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe
+          system is in distress, customers are probably being affected\n\t(or will
+          soon be) and the fix probably requires human intervention.\n\tThe \"2AM
+          rule\" applies here- if you're on call, do you want to be\n\twoken up at
+          2AM if this condition happens? If yes, then log it as\n\t\"error\".\n\n2\tWarn\n\tAn
+          unexpected technical or business event happened, customers may be\n\taffected,
+          but probably no immediate human intervention is required. On\n\tcall people
+          won't be called immediately, but support personnel will\n\twant to review
+          these issues asap to understand what the impact is.\n\tBasically any issue
+          that needs to be tracked but may not require\n\timmediate intervention.\n\n3\tInfo\n\tThings
+          we want to see at high volume in case we need to forensically\n\tanalyze
+          an issue. System lifecycle events (system start, stop) go here.\n\t\"Session\"
+          lifecycle events (login, logout, etc.) go here. Significant\n\tboundary
+          events should be considered as well (e.g. database calls,\n\tremote API
+          calls). Typical business exceptions can go here (e.g. login\n\tfailed due
+          to bad credentials). Any other event you think you'll need\n\tto see in
+          production at high volume goes here.\n\n4\tDebug\n\tJust about everything
+          that doesn't make the \"info\" cut. Any message\n\tthat is helpful in tracking
+          the flow through the system and isolating\n\tissues, especially during the
+          development and QA phases. We use \"debug\"\n\tlevel logs for entry/exit
+          of most non-trivial methods and marking\n\tinteresting events and decision
+          points inside methods.\n\n5\tTrace\n\tFor extremely detailed and potentially
+          high volume logs that you don't\n\ttypically want enabled even during normal
+          development. Examples\n\tinclude dumping a full object hierarchy, logging
+          some state during\n\tevery iteration of a large loop, etc.\n*/"
+        DisplayCalculation:
+          Chunk: "4\n\n/*\nDetermines the frequency that 'PluginChecker: Config: Create
+            Log Entry' script is called\nvalid values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe
+            system is in distress, customers are probably being affected\n\t(or will
+            soon be) and the fix probably requires human intervention.\n\tThe \"2AM
+            rule\" applies here- if you're on call, do you want to be\n\twoken up
+            at 2AM if this condition happens? If yes, then log it as\n\t\"error\".\n\n2\tWarn\n\tAn
+            unexpected technical or business event happened, customers may be\n\taffected,
+            but probably no immediate human intervention is required. On\n\tcall people
+            won't be called immediately, but support personnel will\n\twant to review
+            these issues asap to understand what the impact is.\n\tBasically any issue
+            that needs to be tracked but may not require\n\timmediate intervention.\n\n3\tInfo\n\tThings
+            we want to see at high volume in case we need to forensically\n\tanalyze
+            an issue. System lifecycle events (system start, stop) go here.\n\t\"Session\"
+            lifecycle events (login, logout, etc.) go here. Significant\n\tboundary
+            events should be considered as well (e.g. database calls,\n\tremote API
+            calls). Typical business exceptions can go here (e.g. login\n\tfailed
+            due to bad credentials). Any other event you think you'll need\n\tto see
+            in production at high volume goes here.\n\n4\tDebug\n\tJust about everything
+            that doesn't make the \"info\" cut. Any message\n\tthat is helpful in
+            tracking the flow through the system and isolating\n\tissues, especially
+            during the development and QA phases. We use \"debug\"\n\tlevel logs for
+            entry/exit of most non-trivial methods and marking\n\tinteresting events
+            and decision points inside methods.\n\n5\tTrace\n\tFor extremely detailed
+            and potentially high volume logs that you don't\n\ttypically want enabled
+            even during normal development. Examples\n\tinclude dumping a full object
+            hierarchy, logging some state during\n\tevery iteration of a large loop,
+            etc.\n*/"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -216,23 +302,6 @@ Script:
       name: Comment
       StepText: '#Server ping settings.'
       Text: Server ping settings.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$debug_ping; Value:0 // Display debug info during
-        the ping? 1 = Yes, 0 = No.  0 is the default. ]
-      Value:
-        Calculation: 0 // Display debug info during the ping? 1 = Yes, 0 = No.  0
-          is the default.
-        DisplayCalculation:
-          Chunk:
-          - '0 '
-          - // Display debug info during the ping? 1 = Yes, 0 = No.  0 is the default.
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$debug_ping
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -379,23 +448,6 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $$debug_push; Value:0 // Display debug info during
-        the push? 1 = Yes, 0 = No.  0 is the default. ]
-      Value:
-        Calculation: 0 // Display debug info during the push? 1 = Yes, 0 = No.  0
-          is the default.
-        DisplayCalculation:
-          Chunk:
-          - '0 '
-          - // Display debug info during the push? 1 = Yes, 0 = No.  0 is the default.
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$debug_push
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
       StepText: Set Variable [ $$field_delimiter; Value:"</fld>" // The delimiter
         used between fields in the push payload. ]
       Value:
@@ -507,23 +559,6 @@ Script:
       name: Comment
       StepText: '#Pull settings.'
       Text: Pull settings.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$debug_pull; Value:0 // Display debug info during
-        pull? 1 = Yes, 0 = No.  0 is the default. ]
-      Value:
-        Calculation: 0 // Display debug info during pull? 1 = Yes, 0 = No.  0 is the
-          default.
-        DisplayCalculation:
-          Chunk:
-          - '0 '
-          - // Display debug info during pull? 1 = Yes, 0 = No.  0 is the default.
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$debug_pull
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -720,23 +755,6 @@ Script:
       name: Comment
       StepText: '#Sync-check settings.'
       Text: Sync-check settings.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$debug_sync_check; Value:0 // Display debug info during
-        sync check? 1 = Yes, 0 = No.  0 is the default. ]
-      Value:
-        Calculation: 0 // Display debug info during sync check? 1 = Yes, 0 = No.  0
-          is the default.
-        DisplayCalculation:
-          Chunk:
-          - '0 '
-          - // Display debug info during sync check? 1 = Yes, 0 = No.  0 is the default.
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$debug_sync_check
     - enable: 'True'
       id: '141'
       name: Set Variable
