@@ -1,0 +1,174 @@
+################################################################################
+#PURPOSE:
+#	Display a non-blocking message to the end user.
+#
+#PARAMETERS: (unencoded, single text parameter only)
+#	message
+#    
+#REVISIONS:
+#	2015-AUG-18	 Daniel Smith	- Created
+################################################################################
+#
+#
+Set Variable [ $$EasySync_Status; Value:Get ( ScriptParameter ) ]
+#
+#
+Refresh Window
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '67'
+  name: 'EasySync Client: Show Message'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#PURPOSE:'
+      Text: 'PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\tDisplay a non-blocking message to the end user."
+      Text: "\tDisplay a non-blocking message to the end user."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#PARAMETERS: (unencoded, single text parameter only)'
+      Text: 'PARAMETERS: (unencoded, single text parameter only)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\tmessage"
+      Text: "\tmessage"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    '
+      Text: '    '
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#REVISIONS:'
+      Text: 'REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t\n2015-AUG-18\t Daniel Smith\n\t- Created"
+      Text: "\t\n2015-AUG-18\t Daniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EasySync_Status; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EasySync_Status
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

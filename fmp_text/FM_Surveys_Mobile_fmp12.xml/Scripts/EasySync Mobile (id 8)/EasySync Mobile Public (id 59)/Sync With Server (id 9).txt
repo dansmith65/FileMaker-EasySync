@@ -1,5 +1,7 @@
 #Sync With Server:Manages the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	"Ping" process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the "deletion" phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to "Sync Check," code to clean up deleted record UUIDs, etc.	Also reflects move to a single "EasySync_Payloads" layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.2014-05-15		Tim Dietrich (timdietrich@me.com)	The last pull UTC is now captured prior to the pull itself, and only gets set if the pull	is successful. This prevents records that are in play on the servr while the payload is 	being processed on the mobile device from being excluded from future pulls.2014-10-19	Tim Dietrich (timdietrich@me.com)	Added configuration check. If no "ES" tables are setup, then the sync process is aborted.
 #
+Perform Script [ “EasySync Client: Show Message”; Parameter: "" /* clear message */ ]
+#
 #Check to see if there are ES tables configured for syncing.
 Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE 'ES\_%' )"; "</col>"; ¶ ) ]
 If [ IsEmpty ( $sync_tables ) ]
@@ -16,8 +18,8 @@ Set Error Capture [ On ]
 #
 #Display EasySync layout.
 Go to Layout [ "EasySync_Payloads" ]
-Set Variable [ $$EasySync_Status; Value:"EasySync firing up..." ]
 Refresh Window
+Perform Script [ “EasySync Client: Show Message”; Parameter: "EasySync firing up..." ]
 #
 #Load EasySync settings.
 Perform Script [ “EasySync Settings” ]
@@ -40,9 +42,7 @@ Exit Script [  ]
 End If
 End If
 #
-Set Variable [ $$EasySync_Status; Value:"Preparing to Sync..." ]
-Refresh Window
-//  Refresh Object [ Object Name: "easysync_status" ]
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Preparing to Sync..." ]
 #
 #Commit any unsaved changes.
 If [ $$commit_before_sync ]
@@ -55,8 +55,7 @@ Allow User Abort [ Off ]
 End If
 Set Error Capture [ On ]
 #
-Set Variable [ $$EasySync_Status; Value:"EasySync is go for launch..." ]
-Refresh Window
+Perform Script [ “EasySync Client: Show Message”; Parameter: "EasySync is go for launch..." ]
 #
 #If "ES_Last_Pull_UTC_Time" is not set...
 If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) ) ]
@@ -104,8 +103,7 @@ If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 End If
 #
-Set Variable [ $$EasySync_Status; Value:"Pulling Data from Server..." ]
-Refresh Object [ Object Name: "easysync_status" ]
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Pulling Data from Server..." ]
 #
 #Log the start of the pull process.
 Set Variable [ $pull_start_utc; Value:Get ( CurrentTimeUTCMilliseconds ) ]
@@ -142,7 +140,6 @@ End If
 Go to Layout [ original layout ]
 Show All Records
 Refresh Window
-Set Variable [ $$EasySync_Status; Value:"" ]
 Show Custom Dialog [ Title: "Sync Completed"; Message: Let ([e = Get ( CurrentTimeStamp ) - $start;e = If ( e ≤ 1 ; "Less than a second."; e )];"The sync process has completed. (Elapsed Time: " & e & ")"); Default Button: “OK”, Commit: “Yes” ]
 #
 Else
@@ -153,6 +150,8 @@ Close File [ “Hosted_Database” ]
 Go to Layout [ original layout ]
 #
 End If
+#
+Perform Script [ “EasySync Client: Show Message”; Parameter: "" /* clear message */ ]
 #
 
 
@@ -199,6 +198,21 @@ Script:
         excluded from future pulls.\n\n2014-10-19\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
         configuration check. If no \"ES\" tables are setup, then the sync process
         is aborted."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "" /*
+        clear message */ ]'
+      Calculation: '"" /* clear message */'
+      DisplayCalculation:
+        Chunk: '"" /* clear message */'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -345,19 +359,6 @@ Script:
         DisplayCalculation:
           Chunk: '"EasySync_Payloads"'
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"EasySync firing up..." ]
-      Value:
-        Calculation: '"EasySync firing up..."'
-        DisplayCalculation:
-          Chunk: '"EasySync firing up..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
       id: '80'
       name: Refresh Window
       StepText: Refresh Window
@@ -365,6 +366,17 @@ Script:
         state: 'False'
       FlushSQLData:
         state: 'False'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "EasySync
+        firing up..." ]'
+      Calculation: '"EasySync firing up..."'
+      DisplayCalculation:
+        Chunk: '"EasySync firing up..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -506,38 +518,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Preparing to Sync..." ]
-      Value:
-        Calculation: '"Preparing to Sync..."'
-        DisplayCalculation:
-          Chunk: '"Preparing to Sync..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
-    - enable: 'False'
-      id: '167'
-      name: Refresh Object
-      StepText: '//  Refresh Object [ Object Name: "easysync_status" ]'
-      ObjectName:
-        Calculation: '"easysync_status"'
-        DisplayCalculation:
-          Chunk: '"easysync_status"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Preparing
+        to Sync..." ]'
+      Calculation: '"Preparing to Sync..."'
+      DisplayCalculation:
+        Chunk: '"Preparing to Sync..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -618,27 +608,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"EasySync is go for launch..."
-        ]
-      Value:
-        Calculation: '"EasySync is go for launch..."'
-        DisplayCalculation:
-          Chunk: '"EasySync is go for launch..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "EasySync
+        is go for launch..." ]'
+      Calculation: '"EasySync is go for launch..."'
+      DisplayCalculation:
+        Chunk: '"EasySync is go for launch..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1067,31 +1046,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Pulling Data from Server..."
-        ]
-      Value:
-        Calculation: '"Pulling Data from Server..."'
-        DisplayCalculation:
-          Chunk: '"Pulling Data from Server..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '167'
-      name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: "easysync_status" ]'
-      ObjectName:
-        Calculation: '"easysync_status"'
-        DisplayCalculation:
-          Chunk: '"easysync_status"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Pulling
+        Data from Server..." ]'
+      Calculation: '"Pulling Data from Server..."'
+      DisplayCalculation:
+        Chunk: '"Pulling Data from Server..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1432,19 +1396,6 @@ Script:
       FlushSQLData:
         state: 'False'
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"" ]
-      Value:
-        Calculation: '""'
-        DisplayCalculation:
-          Chunk: '""'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
       id: '87'
       name: Show Custom Dialog
       StepText: |-
@@ -1540,6 +1491,21 @@ Script:
       id: '70'
       name: End If
       StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "" /*
+        clear message */ ]'
+      Calculation: '"" /* clear message */'
+      DisplayCalculation:
+        Chunk: '"" /* clear message */'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment

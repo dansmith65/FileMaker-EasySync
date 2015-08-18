@@ -9,9 +9,7 @@ Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
 #
-#Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:"Preparing sync check..." ]
-Refresh Object [ Object Name: "easysync_status" ]
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Preparing sync check..." ]
 #
 #Get all of the tables that are to be synced.
 Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE 'ES\_%'"; "|"; ¶ ) ]
@@ -39,9 +37,7 @@ If [ IsEmpty ( $UUIDs ) ]
 Exit Script [  ]
 End If
 #
-#Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:"Performing sync check with server..." ]
-Refresh Window
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Performing sync check with server..." ]
 #
 #Send list to Server for analysis. Server will return the diff.
 Perform Script [ “Config: Sync Check”; Parameter: $$additional_sync_check_info & ¶ & $UUIDs ]
@@ -60,12 +56,9 @@ Set Variable [ $diff; Value:Get ( ScriptResult ) ]
 #If there are records to be deleted...
 If [ not IsEmpty ( $diff ) ]
 #
-Set Variable [ $$EasySync_Status; Value:"Removing " & ValueCount ( $diff ) & "records that are no longer on the server..." ]
-Refresh Window
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Removing " & ValueCount ( $diff ) & "records that are no longer on the server..." ]
 #
-#Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:"Processing UUID diff..." ]
-Refresh Window
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Processing UUID diff..." ]
 #
 #It sure would be nice to have "DELETE" support in ExecuteSQL right about now. ;-)
 #
@@ -247,36 +240,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Refresh sync status.'
-      Text: Refresh sync status.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Preparing sync check..."
-        ]
-      Value:
-        Calculation: '"Preparing sync check..."'
-        DisplayCalculation:
-          Chunk: '"Preparing sync check..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '167'
-      name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: "easysync_status" ]'
-      ObjectName:
-        Calculation: '"easysync_status"'
-        DisplayCalculation:
-          Chunk: '"easysync_status"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Preparing
+        sync check..." ]'
+      Calculation: '"Preparing sync check..."'
+      DisplayCalculation:
+        Chunk: '"Preparing sync check..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -499,32 +472,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Refresh sync status.'
-      Text: Refresh sync status.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Performing sync check with
-        server..." ]
-      Value:
-        Calculation: '"Performing sync check with server..."'
-        DisplayCalculation:
-          Chunk: '"Performing sync check with server..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Performing
+        sync check with server..." ]'
+      Calculation: '"Performing sync check with server..."'
+      DisplayCalculation:
+        Chunk: '"Performing sync check with server..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -670,62 +627,35 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Removing " & ValueCount (
-        $diff ) & "records that are no longer on the server..." ]
-      Value:
-        Calculation: '"Removing " & ValueCount ( $diff ) & "records that are no longer
-          on the server..."'
-        DisplayCalculation:
-          Chunk:
-          - '"Removing " & '
-          - ValueCount
-          - ' ( $diff ) & "records that are no longer on the server..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Removing
+        " & ValueCount ( $diff ) & "records that are no longer on the server..." ]'
+      Calculation: '"Removing " & ValueCount ( $diff ) & "records that are no longer
+        on the server..."'
+      DisplayCalculation:
+        Chunk:
+        - '"Removing " & '
+        - ValueCount
+        - ' ( $diff ) & "records that are no longer on the server..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Refresh sync status.'
-      Text: Refresh sync status.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Processing UUID diff..."
-        ]
-      Value:
-        Calculation: '"Processing UUID diff..."'
-        DisplayCalculation:
-          Chunk: '"Processing UUID diff..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Processing
+        UUID diff..." ]'
+      Calculation: '"Processing UUID diff..."'
+      DisplayCalculation:
+        Chunk: '"Processing UUID diff..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment

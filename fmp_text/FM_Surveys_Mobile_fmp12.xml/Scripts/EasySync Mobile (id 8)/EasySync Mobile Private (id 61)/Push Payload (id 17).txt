@@ -130,9 +130,7 @@ If [ IsEmpty ( $records ) and IsEmpty ( $deletions ) ]
 Exit Script [ Result: 1 & ¶ & "Push Completed" & ¶ & "There is no data that needs to be pushed to the server." ]
 End If
 #
-#Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:"Pushing payload to server..." ]
-Refresh Window
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Pushing payload to server..." ]
 #
 #Wrap the records portion of the payload.
 If [ not IsEmpty ( $records ) ]
@@ -173,9 +171,7 @@ If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Segment IDs: " & $payload_segment_ids] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
-#Refresh sync status.
-Set Variable [ $$EasySync_Status; Value:"Server is processing payload..." ]
-Refresh Object [ Object Name: "easysync_status" ]
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Server is processing payload..." ]
 #
 #Process the payload.
 Perform Script [ “Config: Push Payload: Process”; Parameter: $payload_segment_ids ]
@@ -1878,32 +1874,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Refresh sync status.'
-      Text: Refresh sync status.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Pushing payload to server..."
-        ]
-      Value:
-        Calculation: '"Pushing payload to server..."'
-        DisplayCalculation:
-          Chunk: '"Pushing payload to server..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Pushing
+        payload to server..." ]'
+      Calculation: '"Pushing payload to server..."'
+      DisplayCalculation:
+        Chunk: '"Pushing payload to server..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -2368,36 +2348,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Refresh sync status.'
-      Text: Refresh sync status.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Server is processing payload..."
-        ]
-      Value:
-        Calculation: '"Server is processing payload..."'
-        DisplayCalculation:
-          Chunk: '"Server is processing payload..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '167'
-      name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: "easysync_status" ]'
-      ObjectName:
-        Calculation: '"easysync_status"'
-        DisplayCalculation:
-          Chunk: '"easysync_status"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Server
+        is processing payload..." ]'
+      Calculation: '"Server is processing payload..."'
+      DisplayCalculation:
+        Chunk: '"Server is processing payload..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment

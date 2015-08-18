@@ -5,8 +5,7 @@ Perform Script [ “EasySync Mobile: Config: Create Log Entry”; Parameter: Let
 End If
 #
 #
-Set Variable [ $$EasySync_Status; Value:"Testing Connection..." ]
-Refresh Object [ Object Name: "easysync_status" ]
+Perform Script [ “EasySync Client: Show Message”; Parameter: "Testing Connection..." ]
 #
 #Prepare the ping params.
 Set Variable [ $ping_params; Value:Get ( PersistentID ) & ¶ & $$client_version & ¶ & Substitute ( Get ( SystemIPAddress ); ¶; ", " ) & ¶ & Substitute ( Get ( SystemNICAddress ); ¶; ", " ) & ¶ & Get ( SystemPlatform ) & ¶ & Get ( SystemVersion ) & ¶ & Get ( Device ) & ¶ & Get ( NetworkProtocol ) & ¶ & Get ( NetworkType ) & If ( not IsEmpty ( $$additional_ping_info ); ¶ & $$additional_ping_info; "" ) ]
@@ -188,30 +187,16 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $$EasySync_Status; Value:"Testing Connection..." ]
-      Value:
-        Calculation: '"Testing Connection..."'
-        DisplayCalculation:
-          Chunk: '"Testing Connection..."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EasySync_Status
-    - enable: 'True'
-      id: '167'
-      name: Refresh Object
-      StepText: 'Refresh Object [ Object Name: "easysync_status" ]'
-      ObjectName:
-        Calculation: '"easysync_status"'
-        DisplayCalculation:
-          Chunk: '"easysync_status"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Show Message”; Parameter: "Testing
+        Connection..." ]'
+      Calculation: '"Testing Connection..."'
+      DisplayCalculation:
+        Chunk: '"Testing Connection..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Show Message'
     - enable: 'True'
       id: '89'
       name: Comment
