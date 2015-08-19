@@ -1,0 +1,296 @@
+################################################################################
+# PURPOSE:
+#    Allow consumer of this module to transform/pass log data to a log writter of their choosing.
+#
+# PARAMETERS:
+#    logLevel | number | 1-5 |
+#    message
+#    TimeStamp | UTC Milliseconds, stored as a Timestamp
+#    ScriptName
+#    ScriptParameter
+#    scriptStack | value list | optional | all script names that were running when an error occurred.
+#    
+#    error
+#    script.runtime
+#    
+# REVISIONS:
+#	2015-AUG-17	Daniel Smith	- Created
+################################################################################
+#
+#
+Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState ) ]
+Set Error Capture [ On ]
+#
+#
+Perform Script [ “Logger: Create Entry ( logData )” from file: “Log”; Parameter: Get ( ScriptParameter )& "$FileName = " & Quote ( Get ( FileName ) ) & " ;¶"& "$AccountName = " & Quote ( Get ( AccountName ) ) & " ;¶" ]
+#
+#
+If [ not $ErrorCaptureState ]
+Set Error Capture [ Off ]
+End If
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '66'
+  name: 'EasySync Client: Config: Create Log Entry'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Allow consumer of this module to transform/pass log data to
+        a log writter of their choosing.'
+      Text: '    Allow consumer of this module to transform/pass log data to a log
+        writter of their choosing.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    logLevel | number | 1-5 |'
+      Text: '    logLevel | number | 1-5 |'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    message'
+      Text: '    message'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    TimeStamp | UTC Milliseconds, stored as a Timestamp'
+      Text: '    TimeStamp | UTC Milliseconds, stored as a Timestamp'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    ScriptName'
+      Text: '    ScriptName'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    ScriptParameter'
+      Text: '    ScriptParameter'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    scriptStack | value list | optional | all script names that
+        were running when an error occurred.'
+      Text: '    scriptStack | value list | optional | all script names that were
+        running when an error occurred.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    '
+      Text: '    '
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    error'
+      Text: '    error'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    script.runtime'
+      Text: '    script.runtime'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    '
+      Text: '    '
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t\n2015-AUG-17\tDaniel Smith\n\t- Created"
+      Text: "\t\n2015-AUG-17\tDaniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState )
+        ]
+      Value:
+        Calculation: Get ( ErrorCaptureState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ErrorCaptureState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ErrorCaptureState
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )” from file: “Log”; Parameter: Get ( ScriptParameter )
+
+        & "$FileName = " & Quote ( Get ( FileName ) ) & " ;¶"
+        & "$AccountName = " & Quote ( Get ( AccountName ) ) & " ;¶" ]
+      FileReference:
+        id: '4'
+        name: Log
+        UniversalPathList: file:Log
+      Calculation: |-
+        Get ( ScriptParameter )
+
+        & "$FileName = " & Quote ( Get ( FileName ) ) & " ;¶"
+        & "$AccountName = " & Quote ( Get ( AccountName ) ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " )\n\n& \"$FileName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - FileName
+        - " ) ) & \" ;¶\"\n& \"$AccountName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - AccountName
+        - ' ) ) & " ;¶"'
+      Script:
+        id: '2'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $ErrorCaptureState ]
+      Calculation: not $ErrorCaptureState
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $ErrorCaptureState'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

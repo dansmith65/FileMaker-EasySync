@@ -1,0 +1,322 @@
+#Send Payload Segment to Client:Returns a payload segment to the client. This is used in cases where the pull payload is to large to return as a script result. In those cases, the client requests the payload in segments. Note:When the last segment has been requested, the payload record is deleted.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.
+#
+Set Error Capture [ On ]
+#
+If [ not IsEmpty ( Get ( ScriptParameter ) ) ]
+#
+#Get params.
+Set Variable [ $payload_uuid; Value:GetValue ( Get ( ScriptParameter ) ; 1 ) ]
+Set Variable [ $start_pos; Value:GetValue ( Get ( ScriptParameter ) ; 2 ) ]
+Set Variable [ $segment_size; Value:GetValue ( Get ( ScriptParameter ) ; 3 ) ]
+#
+#Get the payload.
+Go to Layout [ "EasySync_Payloads" ]
+Enter Find Mode [  ]
+Set Field By Name [ "EasySync_Payloads::ES_Payload_UUID"; $payload_uuid ]
+Perform Find [  ]
+If [ Get ( FoundCount ) ≠ 1 ]
+Exit Script [ Result: "" ]
+End If
+#
+#Get the segment.
+Set Variable [ $segment; Value:Middle ( Evaluate (  "EasySync_Payloads::Payload" ) ; $start_pos ; $segment_size ) ]
+#
+#If this is the last segment...
+If [ ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  "EasySync_Payloads::Payload" ) ) ) ]
+Delete Record/Request[ No dialog ]
+End If
+#
+Exit Script [ Result: $segment ]
+#
+Else
+Exit Script [ Result: "" ]
+End If
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '17'
+  name: 'EasySync Server: Pull: Return Segment'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Send Payload Segment to Client:\nReturns a payload segment to the
+        client. This is used in cases where the pull payload is to large to return
+        as a script result. In those cases, the client requests the payload in segments.
+        \n\nNote:\nWhen the last segment has been requested, the payload record is
+        deleted.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version."
+      Text: "Send Payload Segment to Client:\nReturns a payload segment to the client.
+        This is used in cases where the pull payload is to large to return as a script
+        result. In those cases, the client requests the payload in segments. \n\nNote:\nWhen
+        the last segment has been requested, the payload record is deleted.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( Get ( ScriptParameter ) ) ]
+      Calculation: not IsEmpty ( Get ( ScriptParameter ) )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' ) )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get params.'
+      Text: Get params.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload_uuid; Value:GetValue ( Get ( ScriptParameter
+        ) ; 1 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_uuid
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start_pos; Value:GetValue ( Get ( ScriptParameter
+        ) ; 2 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start_pos
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment_size; Value:GetValue ( Get ( ScriptParameter
+        ) ; 3 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 3 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 3 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment_size
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the payload.'
+      Text: Get the payload.
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ "EasySync_Payloads" ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        Calculation: '"EasySync_Payloads"'
+        DisplayCalculation:
+          Chunk: '"EasySync_Payloads"'
+    - enable: 'True'
+      id: '22'
+      name: Enter Find Mode
+      StepText: Enter Find Mode [  ]
+      Pause:
+        state: 'False'
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Payload_UUID"; $payload_uuid
+        ]
+      Result:
+        Calculation: $payload_uuid
+        DisplayCalculation:
+          Chunk: $payload_uuid
+      TargetName:
+        Calculation: '"EasySync_Payloads::ES_Payload_UUID"'
+        DisplayCalculation:
+          Chunk: '"EasySync_Payloads::ES_Payload_UUID"'
+    - enable: 'True'
+      id: '28'
+      name: Perform Find
+      StepText: Perform Find [  ]
+      Restore:
+        state: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ≠ 1 ]
+      Calculation: Get ( FoundCount ) ≠ 1
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' ) ≠ 1'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "" ]'
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the segment.'
+      Text: Get the segment.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment; Value:Middle ( Evaluate (  "EasySync_Payloads::Payload"
+        ) ; $start_pos ; $segment_size ) ]
+      Value:
+        Calculation: Middle ( Evaluate (  "EasySync_Payloads::Payload" ) ; $start_pos
+          ; $segment_size )
+        DisplayCalculation:
+          Chunk:
+          - Middle
+          - ' ( '
+          - Evaluate
+          - ' (  "EasySync_Payloads::Payload" ) ; $start_pos ; $segment_size )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If this is the last segment...'
+      Text: If this is the last segment...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  "EasySync_Payloads::Payload"
+        ) ) ) ]
+      Calculation: ( $start_pos + $segment_size ) ≥ ( Length ( Evaluate (  "EasySync_Payloads::Payload"
+        ) ) )
+      DisplayCalculation:
+        Chunk:
+        - '( $start_pos + $segment_size ) ≥ ( '
+        - Length
+        - ' ( '
+        - Evaluate
+        - ' (  "EasySync_Payloads::Payload" ) ) )'
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $segment ]'
+      Calculation: $segment
+      DisplayCalculation:
+        Chunk: $segment
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "" ]'
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

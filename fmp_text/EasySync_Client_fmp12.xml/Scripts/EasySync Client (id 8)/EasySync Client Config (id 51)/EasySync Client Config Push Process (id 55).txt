@@ -1,0 +1,161 @@
+#
+Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter ) ]
+#
+If [ $$use_psos_during_push ]
+#*** Remote Script: Process Payload from Client
+Perform Script on Server [ “EasySync Server: Push: Process Payload” from file: “Hosted_Database”; Parameter: $payload_segment_ids ][ Wait for completion ]
+End If
+#
+If [ not $$use_psos_during_pushor (	$$use_psos_during_push	and Get ( LastError ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */) ]
+#*** Remote Script: Process Payload from Client
+Perform Script [ “EasySync Server: Push: Process Payload” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
+End If
+#
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '55'
+  name: 'EasySync Client: Config: Push: Process'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter )
+        ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_segment_ids
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$use_psos_during_push ]
+      Calculation: $$use_psos_during_push
+      DisplayCalculation:
+        Chunk: $$use_psos_during_push
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#*** Remote Script: Process Payload from Client'
+      Text: '*** Remote Script: Process Payload from Client'
+    - enable: 'True'
+      id: '164'
+      name: Perform Script on Server
+      StepText: |-
+        Perform Script on Server [ “EasySync Server: Push: Process Payload” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
+        [ Wait for completion ]
+      WaitForCompletion:
+        state: 'True'
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: |-
+          fmnet:/your-server-address/EasySync_Server
+          file:EasySync_Server
+      Calculation: $payload_segment_ids
+      DisplayCalculation:
+        Chunk: $payload_segment_ids
+      Script:
+        id: '8'
+        name: 'EasySync Server: Push: Process Payload'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ not $$use_psos_during_push\nor (\n\t$$use_psos_during_push\n\tand
+        Get ( LastError ) = 3  /* Command is unavailable: assume the \"hosted\" file
+        is open locally */\n) ]"
+      Calculation: "not $$use_psos_during_push\nor (\n\t$$use_psos_during_push\n\tand
+        Get ( LastError ) = 3  /* Command is unavailable: assume the \"hosted\" file
+        is open locally */\n)"
+      DisplayCalculation:
+        Chunk:
+        - not
+        - |2
+           $$use_psos_during_push
+        - or
+        - " (\n\t$$use_psos_during_push\n\t"
+        - and
+        - type: NoRef
+          __content__: ' '
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */
+          )
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#*** Remote Script: Process Payload from Client'
+      Text: '*** Remote Script: Process Payload from Client'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Server: Push: Process Payload” from file:
+        “Hosted_Database”; Parameter: $payload_segment_ids ]'
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: |-
+          fmnet:/your-server-address/EasySync_Server
+          file:EasySync_Server
+      Calculation: $payload_segment_ids
+      DisplayCalculation:
+        Chunk: $payload_segment_ids
+      Script:
+        id: '8'
+        name: 'EasySync Server: Push: Process Payload'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,591 @@
+#EasySync Settings:Initializes all EasySync server settings.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18	Tim Dietrich (timdietrich@me.com)	Added support for client versioning.2014-04-20	Tim Dietrich (timdietrich@me.com)	Added record lock handling to "push" settings.2014-05-08	Tim Dietrich (timdietrich@me.com)	$$conflict_handling now defaults to "Recent."	Added support for $$min_syncable_client_version setting.
+#
+#General sync settings.
+Set Variable [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE; Value:4/*Determines the frequency that 'PluginChecker: Config: Create Log Entry' script is calledvalid values: 0-50	Disabled1	Error	The system is in distress, customers are probably being affected	(or will soon be) and the fix probably requires human intervention.	The "2AM rule" applies here- if you're on call, do you want to be	woken up at 2AM if this condition happens? If yes, then log it as	"error".2	Warn	An unexpected technical or business event happened, customers may be	affected, but probably no immediate human intervention is required. On	call people won't be called immediately, but support personnel will	want to review these issues asap to understand what the impact is.	Basically any issue that needs to be tracked but may not require	immediate intervention.3	Info	Things we want to see at high volume in case we need to forensically	analyze an issue. System lifecycle events (system start, stop) go here.	"Session" lifecycle events (login, logout, etc.) go here. Significant	boundary events should be considered as well (e.g. database calls,	remote API calls). Typical business exceptions can go here (e.g. login	failed due to bad credentials). Any other event you think you'll need	to see in production at high volume goes here.4	Debug	Just about everything that doesn't make the "info" cut. Any message	that is helpful in tracking the flow through the system and isolating	issues, especially during the development and QA phases. We use "debug"	level logs for entry/exit of most non-trivial methods and marking	interesting events and decision points inside methods.5	Trace	For extremely detailed and potentially high volume logs that you don't	typically want enabled even during normal development. Examples	include dumping a full object hierarchy, logging some state during	every iteration of a large loop, etc.*/ ]
+#
+#Ping Settings.
+Set Variable [ $$device_whitelist; Value:// Device whitelist. These device IDs are allowed to sync."" ]
+Set Variable [ $$device_blacklist; Value:// Device blacklist. These device IDs are not allowed to sync."" ]
+Set Variable [ $$device_wipelist; Value:// Device wipelist. These device IDs are not allowed to sync, and will be wiped of local data when they attempt to sync."" ]
+Set Variable [ $$current_client_version; Value:// The current version of the mobile client that the server supports.// Note: If you do not wish to use EasyDeploy, you can comment this out and hard code a value.ExecuteSQL ( "SELECT MAX ( Version ) FROM EasyDeploy"; ""; "" ) ]
+Set Variable [ $$min_syncable_client_version; Value:0/*The minimum version of the mobile client that is allowed to sync.Sync attempts from versions less than the specified version will be rejected.*/ ]
+Set Variable [ $$client_version_behavior; Value:If ( ExecuteSQL ( "SELECT Reject_Prior_Versions FROM EasyDeploy WHERE Version = ?"; ""; ""; $$current_client_version ) = "Yes"; "reject"; "warn" )/*The action to take when the version of the client that is syncing is not the most recent version.If you do not wish to use EasyDeploy, you can comment this out and hard code a value.Options:• reject: The sync attempt will be rejected.• warn: The sync attempt will be allowed, but the client will be notified that a new version exists.*/ ]
+#
+#Push settings.
+Set Variable [ $$conflict_handling; Value:"Recent"/*Options:Recent: The most recent change wins. This is the default option.Client: Client wins.Server: Server wins.*/ ]
+Set Variable [ $$record_lock_max_attempts; Value:3/*The maximum number of times that EasySync should try to set a field when a 301 ("Record is in use by another user") error is encountered. This is optional. The default value is 3.*/ ]
+Set Variable [ $$record_lock_attempt_pause; Value:1/*The number of seconds that EasySync should wait before making another attempt to update a record when a 301 error is encountered. This is optional. Default value is 1.*/ ]
+Set Variable [ $$delete_payloads; Value:"Successful"/*What type of payloads should be deleted?Options are: Successful - Delete successful payloads, but retain the others. This is the recommended setting.None - Don't delete any payloads.All - Delete all payloads, regardless of whether they are successfully processed or not.*/ ]
+#
+#Pull settings.
+Set Variable [ $$field_delimiter; Value:"</fld>" // The delimiter used between fields in the payload. ]
+Set Variable [ $$record_delimiter; Value:"</rec>" // The delimiter used between records in the payload. ]
+Set Variable [ $$sync_method; Value:"Merge"/*Options:• Replace: The remote device is wiped and replaced with the pulled payload's data.• Merge: The remote device's data is merged with the pulled payload's data.*/ ]
+Set Variable [ $$max_pull_payload_size; Value:500000 // The maximum size of a payload (# chars) to return to the client. If the payload exceeds this size, then the client will need to pull it as segments. ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '19'
+  name: 'EasySync Server: Config: Load'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#EasySync Settings:\nInitializes all EasySync server settings.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded support for client versioning.\n\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded record lock handling to \"push\" settings.\n\n2014-05-08\n\tTim
+        Dietrich (timdietrich@me.com)\n\t$$conflict_handling now defaults to \"Recent.\"\n\tAdded
+        support for $$min_syncable_client_version setting."
+      Text: "EasySync Settings:\nInitializes all EasySync server settings.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded support for client versioning.\n\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded record lock handling to \"push\" settings.\n\n2014-05-08\n\tTim
+        Dietrich (timdietrich@me.com)\n\t$$conflict_handling now defaults to \"Recent.\"\n\tAdded
+        support for $$min_syncable_client_version setting."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#General sync settings.'
+      Text: General sync settings.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE; Value:4\n\n/*\nDetermines
+        the frequency that 'PluginChecker: Config: Create Log Entry' script is called\nvalid
+        values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe system is in distress, customers
+        are probably being affected\n\t(or will soon be) and the fix probably requires
+        human intervention.\n\tThe \"2AM rule\" applies here- if you're on call, do
+        you want to be\n\twoken up at 2AM if this condition happens? If yes, then
+        log it as\n\t\"error\".\n\n2\tWarn\n\tAn unexpected technical or business
+        event happened, customers may be\n\taffected, but probably no immediate human
+        intervention is required. On\n\tcall people won't be called immediately, but
+        support personnel will\n\twant to review these issues asap to understand what
+        the impact is.\n\tBasically any issue that needs to be tracked but may not
+        require\n\timmediate intervention.\n\n3\tInfo\n\tThings we want to see at
+        high volume in case we need to forensically\n\tanalyze an issue. System lifecycle
+        events (system start, stop) go here.\n\t\"Session\" lifecycle events (login,
+        logout, etc.) go here. Significant\n\tboundary events should be considered
+        as well (e.g. database calls,\n\tremote API calls). Typical business exceptions
+        can go here (e.g. login\n\tfailed due to bad credentials). Any other event
+        you think you'll need\n\tto see in production at high volume goes here.\n\n4\tDebug\n\tJust
+        about everything that doesn't make the \"info\" cut. Any message\n\tthat is
+        helpful in tracking the flow through the system and isolating\n\tissues, especially
+        during the development and QA phases. We use \"debug\"\n\tlevel logs for entry/exit
+        of most non-trivial methods and marking\n\tinteresting events and decision
+        points inside methods.\n\n5\tTrace\n\tFor extremely detailed and potentially
+        high volume logs that you don't\n\ttypically want enabled even during normal
+        development. Examples\n\tinclude dumping a full object hierarchy, logging
+        some state during\n\tevery iteration of a large loop, etc.\n*/ ]"
+      Value:
+        Calculation: "4\n\n/*\nDetermines the frequency that 'PluginChecker: Config:
+          Create Log Entry' script is called\nvalid values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe
+          system is in distress, customers are probably being affected\n\t(or will
+          soon be) and the fix probably requires human intervention.\n\tThe \"2AM
+          rule\" applies here- if you're on call, do you want to be\n\twoken up at
+          2AM if this condition happens? If yes, then log it as\n\t\"error\".\n\n2\tWarn\n\tAn
+          unexpected technical or business event happened, customers may be\n\taffected,
+          but probably no immediate human intervention is required. On\n\tcall people
+          won't be called immediately, but support personnel will\n\twant to review
+          these issues asap to understand what the impact is.\n\tBasically any issue
+          that needs to be tracked but may not require\n\timmediate intervention.\n\n3\tInfo\n\tThings
+          we want to see at high volume in case we need to forensically\n\tanalyze
+          an issue. System lifecycle events (system start, stop) go here.\n\t\"Session\"
+          lifecycle events (login, logout, etc.) go here. Significant\n\tboundary
+          events should be considered as well (e.g. database calls,\n\tremote API
+          calls). Typical business exceptions can go here (e.g. login\n\tfailed due
+          to bad credentials). Any other event you think you'll need\n\tto see in
+          production at high volume goes here.\n\n4\tDebug\n\tJust about everything
+          that doesn't make the \"info\" cut. Any message\n\tthat is helpful in tracking
+          the flow through the system and isolating\n\tissues, especially during the
+          development and QA phases. We use \"debug\"\n\tlevel logs for entry/exit
+          of most non-trivial methods and marking\n\tinteresting events and decision
+          points inside methods.\n\n5\tTrace\n\tFor extremely detailed and potentially
+          high volume logs that you don't\n\ttypically want enabled even during normal
+          development. Examples\n\tinclude dumping a full object hierarchy, logging
+          some state during\n\tevery iteration of a large loop, etc.\n*/"
+        DisplayCalculation:
+          Chunk: "4\n\n/*\nDetermines the frequency that 'PluginChecker: Config: Create
+            Log Entry' script is called\nvalid values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe
+            system is in distress, customers are probably being affected\n\t(or will
+            soon be) and the fix probably requires human intervention.\n\tThe \"2AM
+            rule\" applies here- if you're on call, do you want to be\n\twoken up
+            at 2AM if this condition happens? If yes, then log it as\n\t\"error\".\n\n2\tWarn\n\tAn
+            unexpected technical or business event happened, customers may be\n\taffected,
+            but probably no immediate human intervention is required. On\n\tcall people
+            won't be called immediately, but support personnel will\n\twant to review
+            these issues asap to understand what the impact is.\n\tBasically any issue
+            that needs to be tracked but may not require\n\timmediate intervention.\n\n3\tInfo\n\tThings
+            we want to see at high volume in case we need to forensically\n\tanalyze
+            an issue. System lifecycle events (system start, stop) go here.\n\t\"Session\"
+            lifecycle events (login, logout, etc.) go here. Significant\n\tboundary
+            events should be considered as well (e.g. database calls,\n\tremote API
+            calls). Typical business exceptions can go here (e.g. login\n\tfailed
+            due to bad credentials). Any other event you think you'll need\n\tto see
+            in production at high volume goes here.\n\n4\tDebug\n\tJust about everything
+            that doesn't make the \"info\" cut. Any message\n\tthat is helpful in
+            tracking the flow through the system and isolating\n\tissues, especially
+            during the development and QA phases. We use \"debug\"\n\tlevel logs for
+            entry/exit of most non-trivial methods and marking\n\tinteresting events
+            and decision points inside methods.\n\n5\tTrace\n\tFor extremely detailed
+            and potentially high volume logs that you don't\n\ttypically want enabled
+            even during normal development. Examples\n\tinclude dumping a full object
+            hierarchy, logging some state during\n\tevery iteration of a large loop,
+            etc.\n*/"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EASYSYNC.SERVER.LOGLEVELTOWRITE
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Ping Settings.'
+      Text: Ping Settings.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$device_whitelist; Value:// Device whitelist. These device IDs are allowed to sync.
+        "" ]
+      Value:
+        Calculation: |-
+          // Device whitelist. These device IDs are allowed to sync.
+          ""
+        DisplayCalculation:
+          Chunk:
+          - |
+            // Device whitelist. These device IDs are allowed to sync.
+          - '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$device_whitelist
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$device_blacklist; Value:// Device blacklist. These device IDs are not allowed to sync.
+        "" ]
+      Value:
+        Calculation: |-
+          // Device blacklist. These device IDs are not allowed to sync.
+          ""
+        DisplayCalculation:
+          Chunk:
+          - |
+            // Device blacklist. These device IDs are not allowed to sync.
+          - '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$device_blacklist
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$device_wipelist; Value:// Device wipelist. These device IDs are not allowed to sync, and will be wiped of local data when they attempt to sync.
+        "" ]
+      Value:
+        Calculation: |-
+          // Device wipelist. These device IDs are not allowed to sync, and will be wiped of local data when they attempt to sync.
+          ""
+        DisplayCalculation:
+          Chunk:
+          - |
+            // Device wipelist. These device IDs are not allowed to sync, and will be wiped of local data when they attempt to sync.
+          - '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$device_wipelist
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$current_client_version; Value:// The current version of the mobile client that the server supports.
+        // Note: If you do not wish to use EasyDeploy, you can comment this out and hard code a value.
+        ExecuteSQL ( "SELECT MAX ( Version ) FROM EasyDeploy"; ""; "" ) ]
+      Value:
+        Calculation: |-
+          // The current version of the mobile client that the server supports.
+          // Note: If you do not wish to use EasyDeploy, you can comment this out and hard code a value.
+          ExecuteSQL ( "SELECT MAX ( Version ) FROM EasyDeploy"; ""; "" )
+        DisplayCalculation:
+          Chunk:
+          - |
+            // The current version of the mobile client that the server supports.
+          - |
+            // Note: If you do not wish to use EasyDeploy, you can comment this out and hard code a value.
+          - ExecuteSQL
+          - ' ( "SELECT MAX ( Version ) FROM EasyDeploy"; ""; "" )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$current_client_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$min_syncable_client_version; Value:0
+
+        /*
+
+        The minimum version of the mobile client that is allowed to sync.
+        Sync attempts from versions less than the specified version will be rejected.
+
+        */ ]
+      Value:
+        Calculation: |-
+          0
+
+          /*
+
+          The minimum version of the mobile client that is allowed to sync.
+          Sync attempts from versions less than the specified version will be rejected.
+
+          */
+        DisplayCalculation:
+          Chunk: |-
+            0
+
+            /*
+
+            The minimum version of the mobile client that is allowed to sync.
+            Sync attempts from versions less than the specified version will be rejected.
+
+            */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$min_syncable_client_version
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$client_version_behavior; Value:If ( ExecuteSQL ( "SELECT Reject_Prior_Versions FROM EasyDeploy WHERE Version = ?"; ""; ""; $$current_client_version ) = "Yes"; "reject"; "warn" )
+
+
+        /*
+
+        The action to take when the version of the client that is syncing is not the most recent version.
+
+        If you do not wish to use EasyDeploy, you can comment this out and hard code a value.
+
+        Options:
+        • reject: The sync attempt will be rejected.
+        • warn: The sync attempt will be allowed, but the client will be notified that a new version exists.
+
+        */ ]
+      Value:
+        Calculation: |-
+          If ( ExecuteSQL ( "SELECT Reject_Prior_Versions FROM EasyDeploy WHERE Version = ?"; ""; ""; $$current_client_version ) = "Yes"; "reject"; "warn" )
+
+
+          /*
+
+          The action to take when the version of the client that is syncing is not the most recent version.
+
+          If you do not wish to use EasyDeploy, you can comment this out and hard code a value.
+
+          Options:
+          • reject: The sync attempt will be rejected.
+          • warn: The sync attempt will be allowed, but the client will be notified that a new version exists.
+
+          */
+        DisplayCalculation:
+          Chunk:
+          - If
+          - ' ( '
+          - ExecuteSQL
+          - |2-
+             ( "SELECT Reject_Prior_Versions FROM EasyDeploy WHERE Version = ?"; ""; ""; $$current_client_version ) = "Yes"; "reject"; "warn" )
+
+
+            /*
+
+            The action to take when the version of the client that is syncing is not the most recent version.
+
+            If you do not wish to use EasyDeploy, you can comment this out and hard code a value.
+
+            Options:
+            • reject: The sync attempt will be rejected.
+            • warn: The sync attempt will be allowed, but the client will be notified that a new version exists.
+
+            */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$client_version_behavior
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Push settings.'
+      Text: Push settings.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$conflict_handling; Value:"Recent"
+
+        /*
+
+        Options:
+        Recent: The most recent change wins. This is the default option.
+        Client: Client wins.
+        Server: Server wins.
+
+        */ ]
+      Value:
+        Calculation: |-
+          "Recent"
+
+          /*
+
+          Options:
+          Recent: The most recent change wins. This is the default option.
+          Client: Client wins.
+          Server: Server wins.
+
+          */
+        DisplayCalculation:
+          Chunk: |-
+            "Recent"
+
+            /*
+
+            Options:
+            Recent: The most recent change wins. This is the default option.
+            Client: Client wins.
+            Server: Server wins.
+
+            */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$conflict_handling
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$record_lock_max_attempts; Value:3
+
+        /*
+
+        The maximum number of times that EasySync should try to set a field when a 301 ("Record is in use by another user") error is encountered. This is optional. The default value is 3.
+
+        */ ]
+      Value:
+        Calculation: |-
+          3
+
+          /*
+
+          The maximum number of times that EasySync should try to set a field when a 301 ("Record is in use by another user") error is encountered. This is optional. The default value is 3.
+
+          */
+        DisplayCalculation:
+          Chunk: |-
+            3
+
+            /*
+
+            The maximum number of times that EasySync should try to set a field when a 301 ("Record is in use by another user") error is encountered. This is optional. The default value is 3.
+
+            */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$record_lock_max_attempts
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$record_lock_attempt_pause; Value:1
+
+        /*
+
+        The number of seconds that EasySync should wait before making another attempt to update a record when a 301 error is encountered. This is optional. Default value is 1.
+
+        */ ]
+      Value:
+        Calculation: |-
+          1
+
+          /*
+
+          The number of seconds that EasySync should wait before making another attempt to update a record when a 301 error is encountered. This is optional. Default value is 1.
+
+          */
+        DisplayCalculation:
+          Chunk: |-
+            1
+
+            /*
+
+            The number of seconds that EasySync should wait before making another attempt to update a record when a 301 error is encountered. This is optional. Default value is 1.
+
+            */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$record_lock_attempt_pause
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $$delete_payloads; Value:\"Successful\"\n\n\n/*\n\nWhat
+        type of payloads should be deleted?\n\nOptions are: \nSuccessful - Delete
+        successful payloads, but retain the others. This is the recommended setting.\nNone
+        - Don't delete any payloads.\nAll - Delete all payloads, regardless of whether
+        they are successfully processed or not.\n\n*/ ]"
+      Value:
+        Calculation: "\"Successful\"\n\n\n/*\n\nWhat type of payloads should be deleted?\n\nOptions
+          are: \nSuccessful - Delete successful payloads, but retain the others. This
+          is the recommended setting.\nNone - Don't delete any payloads.\nAll - Delete
+          all payloads, regardless of whether they are successfully processed or not.\n\n*/"
+        DisplayCalculation:
+          Chunk: "\"Successful\"\n\n\n/*\n\nWhat type of payloads should be deleted?\n\nOptions
+            are: \nSuccessful - Delete successful payloads, but retain the others.
+            This is the recommended setting.\nNone - Don't delete any payloads.\nAll
+            - Delete all payloads, regardless of whether they are successfully processed
+            or not.\n\n*/"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$delete_payloads
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Pull settings.'
+      Text: Pull settings.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$field_delimiter; Value:"</fld>" // The delimiter
+        used between fields in the payload. ]
+      Value:
+        Calculation: '"</fld>" // The delimiter used between fields in the payload.'
+        DisplayCalculation:
+          Chunk:
+          - '"</fld>" '
+          - // The delimiter used between fields in the payload.
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$field_delimiter
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$record_delimiter; Value:"</rec>" // The delimiter
+        used between records in the payload. ]
+      Value:
+        Calculation: '"</rec>" // The delimiter used between records in the payload.'
+        DisplayCalculation:
+          Chunk:
+          - '"</rec>" '
+          - // The delimiter used between records in the payload.
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$record_delimiter
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $$sync_method; Value:"Merge"
+
+        /*
+
+        Options:
+
+        • Replace: The remote device is wiped and replaced with the pulled payload's data.
+        • Merge: The remote device's data is merged with the pulled payload's data.
+
+        */ ]
+      Value:
+        Calculation: |-
+          "Merge"
+
+          /*
+
+          Options:
+
+          • Replace: The remote device is wiped and replaced with the pulled payload's data.
+          • Merge: The remote device's data is merged with the pulled payload's data.
+
+          */
+        DisplayCalculation:
+          Chunk: |-
+            "Merge"
+
+            /*
+
+            Options:
+
+            • Replace: The remote device is wiped and replaced with the pulled payload's data.
+            • Merge: The remote device's data is merged with the pulled payload's data.
+
+            */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$sync_method
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$max_pull_payload_size; Value:500000 // The maximum
+        size of a payload (# chars) to return to the client. If the payload exceeds
+        this size, then the client will need to pull it as segments. ]
+      Value:
+        Calculation: 500000 // The maximum size of a payload (# chars) to return to
+          the client. If the payload exceeds this size, then the client will need
+          to pull it as segments.
+        DisplayCalculation:
+          Chunk:
+          - '500000 '
+          - // The maximum size of a payload (# chars) to return to the client. If
+            the payload exceeds this size, then the client will need to pull it as
+            segments.
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$max_pull_payload_size
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,509 @@
+#EasySync Delete Record:Handles the deletion of records in synced tables. Logs the UUID of the record that is to be deleted, and then deletes the record. The UUIDs of deleted records are stored in the EasySync_Payloads table, and then passed to the server during the next sync (at which point they are deleted from the server as well).Parameters:Position 1: The type of record to be deleted. "Record" or "Portal Row" are supported. This determines how the record itself is deleted (using either "Delete Record" or "Delete Portal Row"). This param is required.Position 2: The "ES_Record_UUID" of the record to be deleted. This param is required.Position 3: The word to use to describe the object to be deleted. ex: "Survey Document." This is an optional param.Note: Params should be passed as a return-delimited list.Example Calls: "Record¶" & Surveys::ES_Record_UUID & "¶survey""Portal Row¶" & Survey_Hobbies::ES_Record_UUID & "¶hobby"History:2014-04-30	Tim Dietrich (timdietrich@me.com)	Initial version. I tried to avoid having to require params for this, but haven't found a way 	to determine in what context the script has been called. In other words, I can't tell whether the 	script has been called in such a way that a record is to be deleted, or if a portal row is to be 	deleted. Additionally, in the case of a portal row, I can't determine what the the ES_Record_UUID.2014-05-05	Tim Dietrich (timdietrich@me.com)	Added step to load ES settings.
+#
+Allow User Abort [ Off ]
+Set Error Capture [ On ]
+#
+#Load EasySync Settings.
+Perform Script [ “EasySync Client: Config: Load” ]
+#
+#Check to see that at least 2 params have been passed.
+If [ ValueCount ( Get ( ScriptParameter ) ) < 2 ]
+Show Custom Dialog [ Title: "EasySync Configuration Error"; Message: "Calls to \"EasySync Delete Record\" require two parameters. See script header for details."; Default Button: “OK”, Commit: “Yes” ]
+Exit Script [  ]
+End If
+#
+#Get the params individually.
+Set Variable [ $record_type; Value:GetValue ( Get ( ScriptParameter ) ; 1 ) ]
+Set Variable [ $ES_Record_UUID; Value:GetValue ( Get ( ScriptParameter ) ; 2 ) ]
+Set Variable [ $object_name; Value:If ( ValueCount ( Get ( ScriptParameter ) ) = 3; GetValue ( Get ( ScriptParameter ) ; 3 ) ; If ( $record_type = "Portal Row"; "related record"; "record" ) ) ]
+#
+#If we're to ask the user to confirm the deletion...
+If [ $$ask_before_deleting ]
+Show Custom Dialog [ Title: "Delete " & $object_name & "?"; Message: "Do you really want to delete this " & $object_name & "?"; Default Button: “No”, Commit: “Yes”; Button 2: “Yes”, Commit: “No” ]
+If [ Get ( LastMessageChoice ) = 1 ]
+Exit Script [  ]
+End If
+End If
+#
+#Go to the EasySync layout.
+#Note that we do this in a new window so as not to lose the portal position, etc. that we were in.
+New Window [ Style: Document; Close: “Yes”; Minimize: “Yes”; Maximize: “Yes”; Zoom Control Area: “Yes”; Resize: “Yes” ]
+Go to Layout [ "EasySync_Payloads" ]
+If [ Get ( LastError ) ]
+Close Window [ Current Window ]
+Show Custom Dialog [ Title: "EasySync Configuration Error"; Message: "The \"EasySync_Payloads\" layout is missing."; Default Button: “OK”, Commit: “Yes” ]
+Exit Script [  ]
+End If
+#
+#Log the deletion.
+New Record/Request
+Set Field [ EasySync_Payloads::ES_Deleted_Record_UUID; $ES_Record_UUID ]
+Commit Records/Requests[ Skip data entry validation; No dialog ]
+Close Window [ Current Window ]
+#
+#
+#Delete the record or portal row.
+If [ $record_type = "record" ]
+Delete Record/Request[ No dialog ]
+Else
+Delete Portal Row[ No dialog ]
+End If
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '44'
+  name: 'EasySync Client: Delete Record'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#EasySync Delete Record:\nHandles the deletion of records in synced
+        tables. Logs the UUID of the record that is to be deleted, and then deletes
+        the record. The UUIDs of deleted records are stored in the EasySync_Payloads
+        table, and then passed to the server during the next sync (at which point
+        they are deleted from the server as well).\n\n\nParameters:\n\nPosition 1:
+        The type of record to be deleted. \"Record\" or \"Portal Row\" are supported.
+        This determines how the record itself is deleted (using either \"Delete Record\"
+        or \"Delete Portal Row\"). This param is required.\nPosition 2: The \"ES_Record_UUID\"
+        of the record to be deleted. This param is required.\nPosition 3: The word
+        to use to describe the object to be deleted. ex: \"Survey Document.\" This
+        is an optional param.\n\nNote: Params should be passed as a return-delimited
+        list.\n\nExample Calls: \n\"Record¶\" & Surveys::ES_Record_UUID & \"¶survey\"\n\"Portal
+        Row¶\" & Survey_Hobbies::ES_Record_UUID & \"¶hobby\"\n\n\nHistory:\n\n2014-04-30\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version. I tried to avoid having
+        to require params for this, but haven't found a way \n\tto determine in what
+        context the script has been called. In other words, I can't tell whether the
+        \n\tscript has been called in such a way that a record is to be deleted, or
+        if a portal row is to be \n\tdeleted. Additionally, in the case of a portal
+        row, I can't determine what the the ES_Record_UUID.\n\n2014-05-05\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded step to load ES settings.\n\n\n"
+      Text: "EasySync Delete Record:\nHandles the deletion of records in synced tables.
+        Logs the UUID of the record that is to be deleted, and then deletes the record.
+        The UUIDs of deleted records are stored in the EasySync_Payloads table, and
+        then passed to the server during the next sync (at which point they are deleted
+        from the server as well).\n\n\nParameters:\n\nPosition 1: The type of record
+        to be deleted. \"Record\" or \"Portal Row\" are supported. This determines
+        how the record itself is deleted (using either \"Delete Record\" or \"Delete
+        Portal Row\"). This param is required.\nPosition 2: The \"ES_Record_UUID\"
+        of the record to be deleted. This param is required.\nPosition 3: The word
+        to use to describe the object to be deleted. ex: \"Survey Document.\" This
+        is an optional param.\n\nNote: Params should be passed as a return-delimited
+        list.\n\nExample Calls: \n\"Record¶\" & Surveys::ES_Record_UUID & \"¶survey\"\n\"Portal
+        Row¶\" & Survey_Hobbies::ES_Record_UUID & \"¶hobby\"\n\n\nHistory:\n\n2014-04-30\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version. I tried to avoid having
+        to require params for this, but haven't found a way \n\tto determine in what
+        context the script has been called. In other words, I can't tell whether the
+        \n\tscript has been called in such a way that a record is to be deleted, or
+        if a portal row is to be \n\tdeleted. Additionally, in the case of a portal
+        row, I can't determine what the the ES_Record_UUID.\n\n2014-05-05\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded step to load ES settings.\n\n\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Load EasySync Settings.'
+      Text: Load EasySync Settings.
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Config: Load” ]'
+      Script:
+        id: '29'
+        name: 'EasySync Client: Config: Load'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Check to see that at least 2 params have been passed.'
+      Text: Check to see that at least 2 params have been passed.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ValueCount ( Get ( ScriptParameter ) ) < 2 ]
+      Calculation: ValueCount ( Get ( ScriptParameter ) ) < 2
+      DisplayCalculation:
+        Chunk:
+        - ValueCount
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' ) ) < 2'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "EasySync Configuration Error"; Message:
+        "Calls to \"EasySync Delete Record\" require two parameters. See script header
+        for details."; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"EasySync Configuration Error"'
+        DisplayCalculation:
+          Chunk: '"EasySync Configuration Error"'
+      Message:
+        Calculation: '"Calls to \"EasySync Delete Record\" require two parameters.
+          See script header for details."'
+        DisplayCalculation:
+          Chunk: '"Calls to \"EasySync Delete Record\" require two parameters. See
+            script header for details."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the params individually.'
+      Text: Get the params individually.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $record_type; Value:GetValue ( Get ( ScriptParameter
+        ) ; 1 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $record_type
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ES_Record_UUID; Value:GetValue ( Get ( ScriptParameter
+        ) ; 2 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 2 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 2 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ES_Record_UUID
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $object_name; Value:If ( ValueCount ( Get ( ScriptParameter
+        ) ) = 3; GetValue ( Get ( ScriptParameter ) ; 3 ) ; If ( $record_type = "Portal
+        Row"; "related record"; "record" ) ) ]
+      Value:
+        Calculation: If ( ValueCount ( Get ( ScriptParameter ) ) = 3; GetValue ( Get
+          ( ScriptParameter ) ; 3 ) ; If ( $record_type = "Portal Row"; "related record";
+          "record" ) )
+        DisplayCalculation:
+          Chunk:
+          - If
+          - ' ( '
+          - ValueCount
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ) = 3; '
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 3 ) ; '
+          - If
+          - ' ( $record_type = "Portal Row"; "related record"; "record" ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $object_name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If we''re to ask the user to confirm the deletion...'
+      Text: If we're to ask the user to confirm the deletion...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$ask_before_deleting ]
+      Calculation: $$ask_before_deleting
+      DisplayCalculation:
+        Chunk: $$ask_before_deleting
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Delete " & $object_name & "?"; Message:
+        "Do you really want to delete this " & $object_name & "?"; Default Button:
+        “No”, Commit: “Yes”; Button 2: “Yes”, Commit: “No” ]'
+      Title:
+        Calculation: '"Delete " & $object_name & "?"'
+        DisplayCalculation:
+          Chunk: '"Delete " & $object_name & "?"'
+      Message:
+        Calculation: '"Do you really want to delete this " & $object_name & "?"'
+        DisplayCalculation:
+          Chunk: '"Do you really want to delete this " & $object_name & "?"'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"No"'
+          DisplayCalculation:
+            Chunk: '"No"'
+        - CommitState: 'False'
+          Calculation: '"Yes"'
+          DisplayCalculation:
+            Chunk: '"Yes"'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastMessageChoice ) = 1 ]
+      Calculation: Get ( LastMessageChoice ) = 1
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 1'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Go to the EasySync layout.'
+      Text: Go to the EasySync layout.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note that we do this in a new window so as not to lose the portal
+        position, etc. that we were in.'
+      Text: Note that we do this in a new window so as not to lose the portal position,
+        etc. that we were in.
+    - enable: 'True'
+      id: '122'
+      name: New Window
+      StepText: 'New Window [ Style: Document; Close: “Yes”; Minimize: “Yes”; Maximize:
+        “Yes”; Zoom Control Area: “Yes”; Resize: “Yes” ]'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ "EasySync_Payloads" ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        Calculation: '"EasySync_Payloads"'
+        DisplayCalculation:
+          Chunk: '"EasySync_Payloads"'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastError ) ]
+      Calculation: Get ( LastError )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - ' )'
+    - enable: 'True'
+      id: '121'
+      name: Close Window
+      StepText: Close Window [ Current Window ]
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "EasySync Configuration Error"; Message:
+        "The \"EasySync_Payloads\" layout is missing."; Default Button: “OK”, Commit:
+        “Yes” ]'
+      Title:
+        Calculation: '"EasySync Configuration Error"'
+        DisplayCalculation:
+          Chunk: '"EasySync Configuration Error"'
+      Message:
+        Calculation: '"The \"EasySync_Payloads\" layout is missing."'
+        DisplayCalculation:
+          Chunk: '"The \"EasySync_Payloads\" layout is missing."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Log the deletion.'
+      Text: Log the deletion.
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ EasySync_Payloads::ES_Deleted_Record_UUID; $ES_Record_UUID
+        ]
+      Calculation: $ES_Record_UUID
+      DisplayCalculation:
+        Chunk: $ES_Record_UUID
+      Field:
+        table: EasySync_Payloads
+        id: '17'
+        name: ES_Deleted_Record_UUID
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ Skip data entry validation; No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'True'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '121'
+      name: Close Window
+      StepText: Close Window [ Current Window ]
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Delete the record or portal row.'
+      Text: Delete the record or portal row.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $record_type = "record" ]
+      Calculation: $record_type = "record"
+      DisplayCalculation:
+        Chunk: $record_type = "record"
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '104'
+      name: Delete Portal Row
+      StepText: |-
+        Delete Portal Row
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

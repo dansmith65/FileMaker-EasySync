@@ -326,8 +326,8 @@ Script:
         id: '1'
         name: Hosted_Database
         UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
+          fmnet:/your-server-address/EasySync_Server
+          file:EasySync_Server
       Calculation: $start & ¶ & $segment_size
       DisplayCalculation:
         Chunk: $start & ¶ & $segment_size
@@ -366,8 +366,8 @@ Script:
         id: '1'
         name: Hosted_Database
         UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
+          fmnet:/your-server-address/EasySync_Server
+          file:EasySync_Server
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
@@ -479,8 +479,8 @@ Script:
         id: '1'
         name: Hosted_Database
         UniversalPathList: |-
-          fmnet:/your-server-address/FM_Surveys_Hosted
-          file:FM_Surveys_Hosted
+          fmnet:/your-server-address/EasySync_Server
+          file:EasySync_Server
     - enable: 'True'
       id: '89'
       name: Comment

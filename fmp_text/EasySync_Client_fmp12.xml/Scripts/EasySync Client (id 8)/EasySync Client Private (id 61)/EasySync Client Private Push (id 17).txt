@@ -1,0 +1,2467 @@
+#Push Payload:Handles the "push" phase of the sync process.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Added "timezone offset" to the settings portion of the payload.2014-04-19	Tim Dietrich (timdietrich@me.com)	Reflects shift to UTC timestamps.2014-04-21	Tim Dietrich (timdietrich@me.com)	Resolves issues with non-SQL compliant table names.2014-04-21	Tim Dietrich (timdietrich@me.com)	Added support for passing in a param of ES_Record_UUIDs so that a "partial push"	can be processed. See the sample "partial push" script for an example of how to put	the param together and how to handle the partial push in general.2014-04-23	Tim Dietrich (timdietrich@me.com)	"Get ( SystemIPAddress )" is now comma-delimited when passed as a param.	This resolves an issue that comes up if the client has multiple IPs.2014-04-22	Tim Dietrich (timdietrich@me.com)	Begrudgingly added support for repeating fields.	Yeah, I know. Don't get me started.2014-04-30	Tim Dietrich (timdietrich@me.com)	Added support for the new "deletions" portion of the payload.	Now omitting global fields from the payload.2014-05-02	Tim Dietrich (timdietrich@me.com)	Modified the SELECT statement that gets the list of tables to be synced, so that the underscore	escaped. Thanks to Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for	reporting this bug.2014-05-04	Tim Dietrich (timdietrich@me.com)	Added support for Push/Pull-only tables.2014-10-19	Tim Dietrich (timdietrich@me.com)	Modified config check to support pull-only scenarios.
+#
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = "start script"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#
+#Note the push start time.
+Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
+#
+#Create the "last pull" portion of the payload.
+Set Variable [ $last_sync_info; Value:"<last_pull>¶" &Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) & ¶ & "</last_pull>" ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Last Sync Info: " & $last_sync_info] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#Create the settings portion of the payload.
+Set Variable [ $settings_info; Value:"<settings>¶" &$$field_delimiter & "</setting>" & $$record_delimiter & "</setting>" & Get ( PersistentID ) & "</setting>" & $$client_version & "</setting>" & Substitute ( Get ( SystemIPAddress ); ¶; ", " ) & "</setting>" & Substitute ( Get ( SystemNICAddress ); ¶; ", " ) & "</setting>" & Get ( SystemPlatform ) & "</setting>" & Get ( SystemVersion ) & "</setting>" & Get ( Device ) & "</setting>" & Get ( NetworkProtocol ) & "</setting>" & Get ( NetworkType ) & "</setting>" & $$additional_push_info & "¶</settings>" ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Settings Info: " & $settings_info] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#Get all of the tables that are to be pushed.
+Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE 'ES\_%' ) AND ( TableName NOT LIKE 'ES\_PULL\_%' )"; "</col>"; ¶ ) ]
+If [ IsEmpty ( $sync_tables ) ]
+Exit Script [ Result: 1 & ¶ & "Push Phase Cancelled" & ¶ & "There are no tables configured for push." ]
+End If
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Sync Tables: " & $sync_tables] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#Initalize table info portion of the payload.
+Set Variable [ $table_info; Value:"" ]
+#
+#Initalize records portion of the payload.
+Set Variable [ $records; Value:"" ]
+#
+#Loop over the tables to be synced...
+Set Variable [ $i; Value:1 ]
+Loop
+#
+#Get the table's name.
+Set Variable [ $sync_table; Value:Let ( [$t = GetValue ( $sync_tables ; $i );$t = Substitute ( $t; "</col>"; ¶ )];GetValue ( $t; 1 )) ]
+#
+#Get the names (and # of reps) of the fields in this table.
+#Note: Fields with an "EXCL_" prefix are excluded from the payload.
+#Note: We also exclude calculated fields and those stored as globals.
+Set Variable [ $sync_fields; Value:ExecuteSQL ( "SELECT FieldName, FieldReps FROM FileMaker_Fields WHERE ( TableName = ? ) AND ( ( FieldClass = 'Normal' ) OR ( FieldName LIKE 'B64_%' ) ) AND ( FieldName NOT LIKE 'EXCL_%' ) AND ( FieldName <> 'ES_Exclude' ) AND ( FieldType NOT LIKE 'global%')"; "|"; ¶; $sync_table ) ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Fields in " & $sync_table & ": " & $sync_fields] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#Reformat the field names so that repetitions are considered.
+Set Variable [ $fields; Value:$sync_table & "</field>" ]
+Set Variable [ $f; Value:1 ]
+Loop
+Set Variable [ $field_name; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 1 )) ]
+Set Variable [ $field_reps; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 2 )) ]
+Set Variable [ $r; Value:1 ]
+Loop
+Set Variable [ $fields; Value:$fields & $field_name & "[" & $r & "]</field>" ]
+Set Variable [ $r; Value:$r + 1 ]
+Exit Loop If [ $r > GetAsNumber ( $field_reps )// v1.2: $r > $field_reps ]
+End Loop
+Set Variable [ $f; Value:$f + 1 ]
+Exit Loop If [ $f > ValueCount ( $sync_fields ) ]
+End Loop
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Reformatted Fields in " & $sync_table & ": " & $fields] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#Add this table's info to the running "table_info."
+Set Variable [ $table_info; Value:If ( not IsEmpty ( $table_info ); $table_info & ¶; "" ) & $fields & "</table>" ]
+#
+#Loop over the fields in the table to create the fields portion of what will be the SELECT statement...
+Set Variable [ $dyn_sql; Value:"'" & $sync_table & "'" ]
+Set Variable [ $j; Value:1 ]
+Loop
+Set Variable [ $field_name; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 1 )) ]
+Set Variable [ $field_reps; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 2 )) ]
+#
+#Loop over the reps...
+Set Variable [ $r; Value:1 ]
+Loop
+Set Variable [ $dyn_sql; Value:$dyn_sql & ", '' || \\\"" & $field_name & "\\\"" & "[" & $r & "]" ]
+Set Variable [ $r; Value:$r + 1 ]
+Exit Loop If [ $r > GetAsNumber ( $field_reps )// v1.2: $r > $field_reps ]
+End Loop
+#
+Set Variable [ $j; Value:$j + 1 ]
+Exit Loop If [ $j > ValueCount ( $sync_fields ) ]
+End Loop
+#
+#Add this table's fields to the SELECT statement.
+Set Variable [ $dyn_sql; Value:"SELECT " & $dyn_sql & ", '" & $$record_delimiter & "' FROM \\\"" & $sync_table & "\\\"" &" WHERE ( ES_UTC_Time > " & Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) & " ) AND ( COALESCE ( ES_Exclude, 0 ) = 0 )" ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "SELECT Statement for " & $sync_table & ": " & $dyn_sql] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#Wrap the SELECT statement in an ExecuteSQL call.
+Set Variable [ $dyn_esql; Value:"ExecuteSQL ( \"" & $dyn_sql & "\"; \"" & $$field_delimiter & "\"; \"\" )" ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "ExecuteSQL Statement for " & $sync_table & ": " & $dyn_esql] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#Evaluate the ExecuteSQL statement to get the actual data, and append it to the records.
+Set Variable [ $temp_recs; Value:Evaluate ( $dyn_esql  ) ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Records From " & $sync_table & ": " & $temp_recs] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#If there are records in the current table to be pushed...
+If [ not IsEmpty ( $temp_recs ) ]
+Set Variable [ $records; Value:If ( not IsEmpty ( $records ); $records & ¶; "" ) & $temp_recs ]
+End If
+#
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
+#
+End Loop
+#
+#Check to see if any records have been deleted.
+Set Variable [ $deletions; Value:ExecuteSQL ( "SELECT ES_Deleted_Record_UUID, Created_TimeStamp_UTC FROM EasySync_Payloads WHERE ES_Deleted_Record_UUID IS NOT NULL"; "|"; ¶ ) ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Deletions: " & $deletions] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#If no data needs to be synced...
+If [ IsEmpty ( $records ) and IsEmpty ( $deletions ) ]
+Exit Script [ Result: 1 & ¶ & "Push Completed" & ¶ & "There is no data that needs to be pushed to the server." ]
+End If
+#
+Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Pushing payload to server..." ]
+#
+#Wrap the records portion of the payload.
+If [ not IsEmpty ( $records ) ]
+Set Variable [ $records; Value:"<records>" & ¶ & $records & ¶ & "</records>" ]
+End If
+#
+#Wrap the deletions portion of the payload.
+If [ not IsEmpty ( $deletions ) ]
+Set Variable [ $deletions; Value:"<deletions>" & ¶ & $deletions & ¶ & "</deletions>" ]
+End If
+#
+#Wrap the table info portion of the payload.
+Set Variable [ $table_info; Value:"<tables>" & ¶ & $table_info & ¶ & "</tables>" ]
+#
+#Put the payload together.
+Set Variable [ $payload; Value:"<payload>¶" &$last_sync_info & ¶ & $settings_info & ¶ & $table_info & ¶ & If ( not IsEmpty ( $records ); $records & ¶; "" ) &If ( not IsEmpty ( $deletions ); $deletions & ¶; "" ) &"</payload>" ]
+#
+#Pass the payload to the server.
+#Note: We use this segmented approach to work around the PSoS script parameter's 1,000,000 character limit.
+#Special thanks to Kirk Bowman @ MightyData for the idea!
+Set Variable [ $num_segments; Value:Int ( Length ( $payload ) / $$max_push_segment_size ) + If ( Mod ( Length ( $payload ) ; $$max_push_segment_size ); 1; 0 ) ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = List (		"Payload Size: " & Length ( $payload ) ;		"Max Segment Size: " & $$max_push_segment_size ;		"Number of Segments Being Sent: " & $num_segments	)] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+Set Variable [ $payload_segment_ids; Value:"" ]
+Set Variable [ $i; Value:1 ]
+Loop
+Set Variable [ $segment; Value:Middle ( $payload ; ( ( $i - 1 ) * $$max_push_segment_size ) + 1 ; $$max_push_segment_size ) ]
+Perform Script [ “EasySync Client: Config: Push: Send Segment”; Parameter: $segment ]
+If [ IsEmpty (  Get ( ScriptResult ) ) ]
+Exit Script [ Result: 0 & ¶ & "Sync Error" & ¶ & "Server did not receive payload segment " & $i & "." ]
+End If
+Set Variable [ $payload_segment_ids; Value:$payload_segment_ids & If ( not IsEmpty ( $payload_segment_ids ); ¶; "" ) & Get ( ScriptResult ) ]
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i > $num_segments ]
+End Loop
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Segment IDs: " & $payload_segment_ids] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Server is processing payload..." ]
+#
+#Process the payload.
+Perform Script [ “EasySync Client: Config: Push: Process”; Parameter: $payload_segment_ids ]
+#
+#Close the hosted file.
+Close File [ “Hosted_Database” ]
+#
+#Return the result to the caller.
+If [ Get ( ScriptResult ) = 0 ]
+Exit Script [ Result: 1 & ¶ & "Push Successful" & ¶ & "Local data has been successfully pushed to the server. (Elapsed Time: " & GetAsTime ( Get ( CurrentTimeStamp ) - $start ) & ")" ]
+Else
+Exit Script [ Result: 0 & ¶ & "Push Failed" & ¶ & "The attempt to push data to the server has failed. (The message received from the server was: \"" & Get ( ScriptResult ) & "\")" ]
+End If
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '17'
+  name: 'EasySync Client: Private: Push'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Push Payload:\nHandles the \"push\" phase of the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded \"timezone offset\" to the settings
+        portion of the payload.\n\n2014-04-19\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
+        shift to UTC timestamps.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tResolves
+        issues with non-SQL compliant table names.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for passing in a param of ES_Record_UUIDs so that a \"partial push\"\n\tcan
+        be processed. See the sample \"partial push\" script for an example of how
+        to put\n\tthe param together and how to handle the partial push in general.\n\n2014-04-23\n\tTim
+        Dietrich (timdietrich@me.com)\n\t\"Get ( SystemIPAddress )\" is now comma-delimited
+        when passed as a param.\n\tThis resolves an issue that comes up if the client
+        has multiple IPs.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tBegrudgingly
+        added support for repeating fields.\n\tYeah, I know. Don't get me started.\n\n2014-04-30\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded support for the new \"deletions\" portion
+        of the payload.\n\tNow omitting global fields from the payload.\n\n2014-05-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tModified the SELECT statement that gets the
+        list of tables to be synced, so that the underscore\n\tescaped. Thanks to
+        Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
+        this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAdded support
+        for Push/Pull-only tables.\n\n2014-10-19\n\tTim Dietrich (timdietrich@me.com)\n\tModified
+        config check to support pull-only scenarios.\n"
+      Text: "Push Payload:\nHandles the \"push\" phase of the sync process.\n\nHistory:\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded \"timezone offset\" to the settings
+        portion of the payload.\n\n2014-04-19\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
+        shift to UTC timestamps.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tResolves
+        issues with non-SQL compliant table names.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for passing in a param of ES_Record_UUIDs so that a \"partial push\"\n\tcan
+        be processed. See the sample \"partial push\" script for an example of how
+        to put\n\tthe param together and how to handle the partial push in general.\n\n2014-04-23\n\tTim
+        Dietrich (timdietrich@me.com)\n\t\"Get ( SystemIPAddress )\" is now comma-delimited
+        when passed as a param.\n\tThis resolves an issue that comes up if the client
+        has multiple IPs.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tBegrudgingly
+        added support for repeating fields.\n\tYeah, I know. Don't get me started.\n\n2014-04-30\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdded support for the new \"deletions\" portion
+        of the payload.\n\tNow omitting global fields from the payload.\n\n2014-05-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tModified the SELECT statement that gets the
+        list of tables to be synced, so that the underscore\n\tescaped. Thanks to
+        Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
+        this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAdded support
+        for Push/Pull-only tables.\n\n2014-10-19\n\tTim Dietrich (timdietrich@me.com)\n\tModified
+        config check to support pull-only scenarios.\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note the push start time.'
+      Text: Note the push start time.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
+      Value:
+        Calculation: Get ( CurrentTimeStamp )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeStamp
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Create the "last pull" portion of the payload.'
+      Text: Create the "last pull" portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $last_sync_info; Value:\"<last_pull>¶\" &\nEvaluate
+        ( \"EasySync_Payloads::ES_Last_Pull_UTC_Time\" ) & ¶ & \n\"</last_pull>\"
+        ]"
+      Value:
+        Calculation: "\"<last_pull>¶\" &\nEvaluate ( \"EasySync_Payloads::ES_Last_Pull_UTC_Time\"
+          ) & ¶ & \n\"</last_pull>\""
+        DisplayCalculation:
+          Chunk:
+          - |
+            "<last_pull>¶" &
+          - Evaluate
+          - " ( \"EasySync_Payloads::ES_Last_Pull_UTC_Time\" ) & ¶ & \n\"</last_pull>\""
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $last_sync_info
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Last Sync Info: \" & $last_sync_info\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Last Sync Info: \"
+        & $last_sync_info\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Last Sync Info: \" & $last_sync_info\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Create the settings portion of the payload.'
+      Text: Create the settings portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $settings_info; Value:\"<settings>¶\" &\n$$field_delimiter
+        & \"</setting>\" & \n$$record_delimiter & \"</setting>\" & \nGet ( PersistentID
+        ) & \"</setting>\" & \n$$client_version & \"</setting>\" & \nSubstitute (
+        Get ( SystemIPAddress ); ¶; \", \" ) & \"</setting>\" & \nSubstitute ( Get
+        ( SystemNICAddress ); ¶; \", \" ) & \"</setting>\" & \nGet ( SystemPlatform
+        ) & \"</setting>\" & \nGet ( SystemVersion ) & \"</setting>\" & \nGet ( Device
+        ) & \"</setting>\" & \nGet ( NetworkProtocol ) & \"</setting>\" & \nGet (
+        NetworkType ) & \"</setting>\" & \n$$additional_push_info & \n\"¶</settings>\"
+        ]"
+      Value:
+        Calculation: "\"<settings>¶\" &\n$$field_delimiter & \"</setting>\" & \n$$record_delimiter
+          & \"</setting>\" & \nGet ( PersistentID ) & \"</setting>\" & \n$$client_version
+          & \"</setting>\" & \nSubstitute ( Get ( SystemIPAddress ); ¶; \", \" ) &
+          \"</setting>\" & \nSubstitute ( Get ( SystemNICAddress ); ¶; \", \" ) &
+          \"</setting>\" & \nGet ( SystemPlatform ) & \"</setting>\" & \nGet ( SystemVersion
+          ) & \"</setting>\" & \nGet ( Device ) & \"</setting>\" & \nGet ( NetworkProtocol
+          ) & \"</setting>\" & \nGet ( NetworkType ) & \"</setting>\" & \n$$additional_push_info
+          & \n\"¶</settings>\""
+        DisplayCalculation:
+          Chunk:
+          - "\"<settings>¶\" &\n$$field_delimiter & \"</setting>\" & \n$$record_delimiter
+            & \"</setting>\" & \n"
+          - Get
+          - ' ( '
+          - PersistentID
+          - " ) & \"</setting>\" & \n$$client_version & \"</setting>\" & \n"
+          - Substitute
+          - ' ( '
+          - Get
+          - ' ( '
+          - SystemIPAddress
+          - " ); ¶; \", \" ) & \"</setting>\" & \n"
+          - Substitute
+          - ' ( '
+          - Get
+          - ' ( '
+          - SystemNICAddress
+          - " ); ¶; \", \" ) & \"</setting>\" & \n"
+          - Get
+          - ' ( '
+          - SystemPlatform
+          - " ) & \"</setting>\" & \n"
+          - Get
+          - ' ( '
+          - SystemVersion
+          - " ) & \"</setting>\" & \n"
+          - Get
+          - ' ( '
+          - Device
+          - " ) & \"</setting>\" & \n"
+          - Get
+          - ' ( '
+          - NetworkProtocol
+          - " ) & \"</setting>\" & \n"
+          - Get
+          - ' ( '
+          - NetworkType
+          - " ) & \"</setting>\" & \n$$additional_push_info & \n\"¶</settings>\""
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $settings_info
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Settings Info: \" & $settings_info\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Settings Info: \" &
+        $settings_info\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Settings Info: \" & $settings_info\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get all of the tables that are to be pushed.'
+      Text: Get all of the tables that are to be pushed.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT * FROM FileMaker_Tables
+        WHERE ( TableName LIKE 'ES\_%' ) AND ( TableName NOT LIKE 'ES\_PULL\_%' )";
+        "</col>"; ¶ ) ]
+      Value:
+        Calculation: ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName
+          LIKE 'ES\_%' ) AND ( TableName NOT LIKE 'ES\_PULL\_%' )"; "</col>"; ¶ )
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - ' ( "SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE ''ES\_%'' )
+            AND ( TableName NOT LIKE ''ES\_PULL\_%'' )"; "</col>"; ¶ )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_tables
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $sync_tables ) ]
+      Calculation: IsEmpty ( $sync_tables )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $sync_tables )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: 1 & ¶ & \n\"Push Phase Cancelled\" & ¶ & \n\"There
+        are no tables configured for push.\" ]"
+      Calculation: "1 & ¶ & \n\"Push Phase Cancelled\" & ¶ & \n\"There are no tables
+        configured for push.\""
+      DisplayCalculation:
+        Chunk: "1 & ¶ & \n\"Push Phase Cancelled\" & ¶ & \n\"There are no tables configured
+          for push.\""
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Sync Tables: \" & $sync_tables\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Sync Tables: \" & $sync_tables\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Sync Tables: \" & $sync_tables\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Initalize table info portion of the payload.'
+      Text: Initalize table info portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table_info; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Initalize records portion of the payload.'
+      Text: Initalize records portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $records; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the tables to be synced...'
+      Text: Loop over the tables to be synced...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the table''s name.'
+      Text: Get the table's name.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $sync_table; Value:Let ( \n[\n$t = GetValue ( $sync_tables
+        ; $i );\n$t = Substitute ( $t; \"</col>\"; ¶ )\n];\nGetValue ( $t; 1 )\n)
+        ]"
+      Value:
+        Calculation: "Let ( \n[\n$t = GetValue ( $sync_tables ; $i );\n$t = Substitute
+          ( $t; \"</col>\"; ¶ )\n];\nGetValue ( $t; 1 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\n$t = "
+          - GetValue
+          - " ( $sync_tables ; $i );\n$t = "
+          - Substitute
+          - |2
+             ( $t; "</col>"; ¶ )
+            ];
+          - GetValue
+          - |2-
+             ( $t; 1 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_table
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get the names (and # of reps) of the fields in this table.'
+      Text: 'Get the names (and # of reps) of the fields in this table.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: Fields with an "EXCL_" prefix are excluded from the payload.'
+      Text: 'Note: Fields with an "EXCL_" prefix are excluded from the payload.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: We also exclude calculated fields and those stored as globals.'
+      Text: 'Note: We also exclude calculated fields and those stored as globals.'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $sync_fields; Value:ExecuteSQL ( "SELECT FieldName,
+        FieldReps FROM FileMaker_Fields WHERE ( TableName = ? ) AND ( ( FieldClass
+        = 'Normal' ) OR ( FieldName LIKE 'B64_%' ) ) AND ( FieldName NOT LIKE 'EXCL_%'
+        ) AND ( FieldName <> 'ES_Exclude' ) AND ( FieldType NOT LIKE 'global%')";
+        "|"; ¶; $sync_table ) ]
+      Value:
+        Calculation: ExecuteSQL ( "SELECT FieldName, FieldReps FROM FileMaker_Fields
+          WHERE ( TableName = ? ) AND ( ( FieldClass = 'Normal' ) OR ( FieldName LIKE
+          'B64_%' ) ) AND ( FieldName NOT LIKE 'EXCL_%' ) AND ( FieldName <> 'ES_Exclude'
+          ) AND ( FieldType NOT LIKE 'global%')"; "|"; ¶; $sync_table )
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - ' ( "SELECT FieldName, FieldReps FROM FileMaker_Fields WHERE ( TableName
+            = ? ) AND ( ( FieldClass = ''Normal'' ) OR ( FieldName LIKE ''B64_%''
+            ) ) AND ( FieldName NOT LIKE ''EXCL_%'' ) AND ( FieldName <> ''ES_Exclude''
+            ) AND ( FieldType NOT LIKE ''global%'')"; "|"; ¶; $sync_table )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_fields
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Fields in \" & $sync_table & \":
+        \" & $sync_fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Fields in \" & $sync_table
+        & \": \" & $sync_fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+        \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \"
+        & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote
+        ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
+        \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
+        ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Fields in \" & $sync_table & \":
+          \" & $sync_fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+          = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Reformat the field names so that repetitions are considered.'
+      Text: Reformat the field names so that repetitions are considered.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $fields; Value:$sync_table & "</field>" ]
+      Value:
+        Calculation: $sync_table & "</field>"
+        DisplayCalculation:
+          Chunk: $sync_table & "</field>"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $fields
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $f; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $f
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_name; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+        list.\n];\nGetValue ( field_combo_list; 1 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $f );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 1 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $f ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; "|"; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 1 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_name
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_reps; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+        list.\n];\nGetValue ( field_combo_list; 2 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $f );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 2 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $f ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; "|"; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 2 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_reps
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $fields; Value:$fields & $field_name & "[" & $r & "]</field>"
+        ]
+      Value:
+        Calculation: $fields & $field_name & "[" & $r & "]</field>"
+        DisplayCalculation:
+          Chunk: $fields & $field_name & "[" & $r & "]</field>"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $fields
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:$r + 1 ]
+      Value:
+        Calculation: $r + 1
+        DisplayCalculation:
+          Chunk: $r + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: |-
+        Exit Loop If [ $r > GetAsNumber ( $field_reps )
+
+        // v1.2: $r > $field_reps ]
+      Calculation: |-
+        $r > GetAsNumber ( $field_reps )
+
+        // v1.2: $r > $field_reps
+      DisplayCalculation:
+        Chunk:
+        - '$r > '
+        - GetAsNumber
+        - |2+
+           ( $field_reps )
+
+        - '// v1.2: $r > $field_reps'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $f; Value:$f + 1 ]
+      Value:
+        Calculation: $f + 1
+        DisplayCalculation:
+          Chunk: $f + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $f
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $f > ValueCount ( $sync_fields ) ]
+      Calculation: $f > ValueCount ( $sync_fields )
+      DisplayCalculation:
+        Chunk:
+        - '$f > '
+        - ValueCount
+        - ' ( $sync_fields )'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields in \" & $sync_table
+        & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields
+        in \" & $sync_table & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields in \" & $sync_table
+          & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+          = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Add this table''s info to the running "table_info."'
+      Text: Add this table's info to the running "table_info."
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table_info; Value:If ( not IsEmpty ( $table_info );
+        $table_info & ¶; "" ) & $fields & "</table>" ]
+      Value:
+        Calculation: If ( not IsEmpty ( $table_info ); $table_info & ¶; "" ) & $fields
+          & "</table>"
+        DisplayCalculation:
+          Chunk:
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( $table_info ); $table_info & ¶; "" ) & $fields & "</table>"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the fields in the table to create the fields portion of
+        what will be the SELECT statement...'
+      Text: Loop over the fields in the table to create the fields portion of what
+        will be the SELECT statement...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dyn_sql; Value:"'" & $sync_table & "'" ]
+      Value:
+        Calculation: '"''" & $sync_table & "''"'
+        DisplayCalculation:
+          Chunk: '"''" & $sync_table & "''"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_sql
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $j; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $j
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_name; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+        list.\n];\nGetValue ( field_combo_list; 1 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $j );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 1 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $j ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; "|"; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 1 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_name
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $field_reps; Value:Let ( \n[\nfield_combo_raw = GetValue
+        ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+        list.\n];\nGetValue ( field_combo_list; 2 )\n) ]"
+      Value:
+        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $j );
+          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
+          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
+          list.\n];\nGetValue ( field_combo_list; 2 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( \n[\nfield_combo_raw = "
+          - GetValue
+          - ' ( $sync_fields ; $j ); '
+          - |
+            // The value pulled from the query. Example: Some_Field|5
+          - 'field_combo_list = '
+          - Substitute
+          - ' ( field_combo_raw; "|"; ¶ ) '
+          - |
+            // Convert the value to a value list.
+          - |
+            ];
+          - GetValue
+          - |2-
+             ( field_combo_list; 2 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $field_reps
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the reps...'
+      Text: Loop over the reps...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dyn_sql; Value:$dyn_sql & ", '' || \\\"" & $field_name
+        & "\\\"" & "[" & $r & "]" ]
+      Value:
+        Calculation: $dyn_sql & ", '' || \\\"" & $field_name & "\\\"" & "[" & $r &
+          "]"
+        DisplayCalculation:
+          Chunk: $dyn_sql & ", '' || \\\"" & $field_name & "\\\"" & "[" & $r & "]"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_sql
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $r; Value:$r + 1 ]
+      Value:
+        Calculation: $r + 1
+        DisplayCalculation:
+          Chunk: $r + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $r
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: |-
+        Exit Loop If [ $r > GetAsNumber ( $field_reps )
+
+        // v1.2: $r > $field_reps ]
+      Calculation: |-
+        $r > GetAsNumber ( $field_reps )
+
+        // v1.2: $r > $field_reps
+      DisplayCalculation:
+        Chunk:
+        - '$r > '
+        - GetAsNumber
+        - |2+
+           ( $field_reps )
+
+        - '// v1.2: $r > $field_reps'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $j; Value:$j + 1 ]
+      Value:
+        Calculation: $j + 1
+        DisplayCalculation:
+          Chunk: $j + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $j
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $j > ValueCount ( $sync_fields ) ]
+      Calculation: $j > ValueCount ( $sync_fields )
+      DisplayCalculation:
+        Chunk:
+        - '$j > '
+        - ValueCount
+        - ' ( $sync_fields )'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Add this table''s fields to the SELECT statement.'
+      Text: Add this table's fields to the SELECT statement.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dyn_sql; Value:\"SELECT \" & $dyn_sql & \", '\" &
+        $$record_delimiter & \n\"' FROM \\\\\\\"\" & $sync_table & \"\\\\\\\"\" &\n\"
+        WHERE ( ES_UTC_Time > \" & Evaluate ( \"EasySync_Payloads::ES_Last_Pull_UTC_Time\"
+        ) & \" ) AND ( COALESCE ( ES_Exclude, 0 ) = 0 )\" ]"
+      Value:
+        Calculation: "\"SELECT \" & $dyn_sql & \", '\" & $$record_delimiter & \n\"'
+          FROM \\\\\\\"\" & $sync_table & \"\\\\\\\"\" &\n\" WHERE ( ES_UTC_Time >
+          \" & Evaluate ( \"EasySync_Payloads::ES_Last_Pull_UTC_Time\" ) & \" ) AND
+          ( COALESCE ( ES_Exclude, 0 ) = 0 )\""
+        DisplayCalculation:
+          Chunk:
+          - "\"SELECT \" & $dyn_sql & \", '\" & $$record_delimiter & \n\"' FROM \\\\\\\"\"
+            & $sync_table & \"\\\\\\\"\" &\n\" WHERE ( ES_UTC_Time > \" & "
+          - Evaluate
+          - ' ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) & " ) AND ( COALESCE
+            ( ES_Exclude, 0 ) = 0 )"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_sql
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"SELECT Statement for \" & $sync_table
+        & \": \" & $dyn_sql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"SELECT Statement for
+        \" & $sync_table & \": \" & $dyn_sql\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"SELECT Statement for \" & $sync_table
+          & \": \" & $dyn_sql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+          \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wrap the SELECT statement in an ExecuteSQL call.'
+      Text: Wrap the SELECT statement in an ExecuteSQL call.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dyn_esql; Value:"ExecuteSQL ( \"" & $dyn_sql & "\";
+        \"" & $$field_delimiter & "\"; \"\" )" ]
+      Value:
+        Calculation: '"ExecuteSQL ( \"" & $dyn_sql & "\"; \"" & $$field_delimiter
+          & "\"; \"\" )"'
+        DisplayCalculation:
+          Chunk: '"ExecuteSQL ( \"" & $dyn_sql & "\"; \"" & $$field_delimiter & "\";
+            \"\" )"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dyn_esql
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"ExecuteSQL Statement for \" & $sync_table
+        & \": \" & $dyn_esql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"ExecuteSQL Statement
+        for \" & $sync_table & \": \" & $dyn_esql\n] ;\n\t\"$LogLevel = \" & ~logLevel
+        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
+        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
+        ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"ExecuteSQL Statement for \" & $sync_table
+          & \": \" & $dyn_esql\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+          \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Evaluate the ExecuteSQL statement to get the actual data, and append
+        it to the records.'
+      Text: Evaluate the ExecuteSQL statement to get the actual data, and append it
+        to the records.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $temp_recs; Value:Evaluate ( $dyn_esql  ) ]
+      Value:
+        Calculation: Evaluate ( $dyn_esql  )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $dyn_esql  )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $temp_recs
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Records From \" & $sync_table &
+        \": \" & $temp_recs\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Records From \" & $sync_table
+        & \": \" & $temp_recs\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+        \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \"
+        & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote
+        ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
+        \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
+        ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Records From \" & $sync_table &
+          \": \" & $temp_recs\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+          \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If there are records in the current table to be pushed...'
+      Text: If there are records in the current table to be pushed...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $temp_recs ) ]
+      Calculation: not IsEmpty ( $temp_recs )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $temp_recs )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $records; Value:If ( not IsEmpty ( $records ); $records
+        & ¶; "" ) & $temp_recs ]
+      Value:
+        Calculation: If ( not IsEmpty ( $records ); $records & ¶; "" ) & $temp_recs
+        DisplayCalculation:
+          Chunk:
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( $records ); $records & ¶; "" ) & $temp_recs'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
+      Calculation: $i > ValueCount ( $sync_tables )
+      DisplayCalculation:
+        Chunk:
+        - '$i > '
+        - ValueCount
+        - ' ( $sync_tables )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Check to see if any records have been deleted.'
+      Text: Check to see if any records have been deleted.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $deletions; Value:ExecuteSQL ( "SELECT ES_Deleted_Record_UUID,
+        Created_TimeStamp_UTC FROM EasySync_Payloads WHERE ES_Deleted_Record_UUID
+        IS NOT NULL"; "|"; ¶ ) ]
+      Value:
+        Calculation: ExecuteSQL ( "SELECT ES_Deleted_Record_UUID, Created_TimeStamp_UTC
+          FROM EasySync_Payloads WHERE ES_Deleted_Record_UUID IS NOT NULL"; "|"; ¶
+          )
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - ' ( "SELECT ES_Deleted_Record_UUID, Created_TimeStamp_UTC FROM EasySync_Payloads
+            WHERE ES_Deleted_Record_UUID IS NOT NULL"; "|"; ¶ )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $deletions
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Deletions: \" & $deletions\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Deletions: \" & $deletions\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Deletions: \" & $deletions\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If no data needs to be synced...'
+      Text: If no data needs to be synced...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $records ) and IsEmpty ( $deletions ) ]
+      Calculation: IsEmpty ( $records ) and IsEmpty ( $deletions )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $records ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $deletions )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: 1 & ¶ & \n\"Push Completed\" & ¶ & \n\"There
+        is no data that needs to be pushed to the server.\" ]"
+      Calculation: "1 & ¶ & \n\"Push Completed\" & ¶ & \n\"There is no data that needs
+        to be pushed to the server.\""
+      DisplayCalculation:
+        Chunk: "1 & ¶ & \n\"Push Completed\" & ¶ & \n\"There is no data that needs
+          to be pushed to the server.\""
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Config: Show Message”; Parameter:
+        "Pushing payload to server..." ]'
+      Calculation: '"Pushing payload to server..."'
+      DisplayCalculation:
+        Chunk: '"Pushing payload to server..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Config: Show Message'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wrap the records portion of the payload.'
+      Text: Wrap the records portion of the payload.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $records ) ]
+      Calculation: not IsEmpty ( $records )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $records )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $records; Value:"<records>" & ¶ & $records & ¶ & "</records>"
+        ]
+      Value:
+        Calculation: '"<records>" & ¶ & $records & ¶ & "</records>"'
+        DisplayCalculation:
+          Chunk: '"<records>" & ¶ & $records & ¶ & "</records>"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $records
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wrap the deletions portion of the payload.'
+      Text: Wrap the deletions portion of the payload.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $deletions ) ]
+      Calculation: not IsEmpty ( $deletions )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $deletions )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $deletions; Value:"<deletions>" & ¶ & $deletions &
+        ¶ & "</deletions>" ]
+      Value:
+        Calculation: '"<deletions>" & ¶ & $deletions & ¶ & "</deletions>"'
+        DisplayCalculation:
+          Chunk: '"<deletions>" & ¶ & $deletions & ¶ & "</deletions>"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $deletions
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Wrap the table info portion of the payload.'
+      Text: Wrap the table info portion of the payload.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $table_info; Value:"<tables>" & ¶ & $table_info & ¶
+        & "</tables>" ]
+      Value:
+        Calculation: '"<tables>" & ¶ & $table_info & ¶ & "</tables>"'
+        DisplayCalculation:
+          Chunk: '"<tables>" & ¶ & $table_info & ¶ & "</tables>"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $table_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Put the payload together.'
+      Text: Put the payload together.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $payload; Value:\"<payload>¶\" &\n$last_sync_info
+        & ¶ & \n$settings_info & ¶ & \n$table_info & ¶ & \nIf ( not IsEmpty ( $records
+        ); $records & ¶; \"\" ) &\nIf ( not IsEmpty ( $deletions ); $deletions & ¶;
+        \"\" ) &\n\"</payload>\" ]"
+      Value:
+        Calculation: "\"<payload>¶\" &\n$last_sync_info & ¶ & \n$settings_info & ¶
+          & \n$table_info & ¶ & \nIf ( not IsEmpty ( $records ); $records & ¶; \"\"
+          ) &\nIf ( not IsEmpty ( $deletions ); $deletions & ¶; \"\" ) &\n\"</payload>\""
+        DisplayCalculation:
+          Chunk:
+          - "\"<payload>¶\" &\n$last_sync_info & ¶ & \n$settings_info & ¶ & \n$table_info
+            & ¶ & \n"
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - |2
+             ( $records ); $records & ¶; "" ) &
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - |2-
+             ( $deletions ); $deletions & ¶; "" ) &
+            "</payload>"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Pass the payload to the server.'
+      Text: Pass the payload to the server.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: We use this segmented approach to work around the PSoS script
+        parameter''s 1,000,000 character limit.'
+      Text: 'Note: We use this segmented approach to work around the PSoS script parameter''s
+        1,000,000 character limit.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Special thanks to Kirk Bowman @ MightyData for the idea!'
+      Text: Special thanks to Kirk Bowman @ MightyData for the idea!
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $num_segments; Value:Int ( Length ( $payload ) / $$max_push_segment_size
+        ) + If ( Mod ( Length ( $payload ) ; $$max_push_segment_size ); 1; 0 ) ]
+      Value:
+        Calculation: Int ( Length ( $payload ) / $$max_push_segment_size ) + If (
+          Mod ( Length ( $payload ) ; $$max_push_segment_size ); 1; 0 )
+        DisplayCalculation:
+          Chunk:
+          - Int
+          - ' ( '
+          - Length
+          - ' ( $payload ) / $$max_push_segment_size ) + '
+          - If
+          - ' ( '
+          - Mod
+          - ' ( '
+          - Length
+          - ' ( $payload ) ; $$max_push_segment_size ); 1; 0 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $num_segments
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = List (\n\t\t\"Payload Size: \" &
+        Length ( $payload ) ;\n\t\t\n\"Max Segment Size: \" & $$max_push_segment_size
+        ;\n\t\t\n\"Number of Segments Being Sent: \" & $num_segments\n\t)\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = List (\n\t\t\"Payload
+        Size: \" & Length ( $payload ) ;\n\t\t\n\"Max Segment Size: \" & $$max_push_segment_size
+        ;\n\t\t\n\"Number of Segments Being Sent: \" & $num_segments\n\t)\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = "
+        - List
+        - " (\n\t\t\"Payload Size: \" & "
+        - Length
+        - " ( $payload ) ;\n\t\t\n\"Max Segment Size: \" & $$max_push_segment_size
+          ;\n\t\t\n\"Number of Segments Being Sent: \" & $num_segments\n\t)\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload_segment_ids; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_segment_ids
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment; Value:Middle ( $payload ; ( ( $i - 1 ) *
+        $$max_push_segment_size ) + 1 ; $$max_push_segment_size ) ]
+      Value:
+        Calculation: Middle ( $payload ; ( ( $i - 1 ) * $$max_push_segment_size )
+          + 1 ; $$max_push_segment_size )
+        DisplayCalculation:
+          Chunk:
+          - Middle
+          - ' ( $payload ; ( ( $i - 1 ) * $$max_push_segment_size ) + 1 ; $$max_push_segment_size
+            )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Config: Push: Send Segment”; Parameter:
+        $segment ]'
+      Calculation: $segment
+      DisplayCalculation:
+        Chunk: $segment
+      Script:
+        id: '54'
+        name: 'EasySync Client: Config: Push: Send Segment'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty (  Get ( ScriptResult ) ) ]
+      Calculation: IsEmpty (  Get ( ScriptResult ) )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' (  '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: 0 & ¶ & \n\"Sync Error\" & ¶ & \n\"Server did
+        not receive payload segment \" & $i & \".\" ]"
+      Calculation: "0 & ¶ & \n\"Sync Error\" & ¶ & \n\"Server did not receive payload
+        segment \" & $i & \".\""
+      DisplayCalculation:
+        Chunk: "0 & ¶ & \n\"Sync Error\" & ¶ & \n\"Server did not receive payload
+          segment \" & $i & \".\""
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload_segment_ids; Value:$payload_segment_ids &
+        If ( not IsEmpty ( $payload_segment_ids ); ¶; "" ) & Get ( ScriptResult )
+        ]
+      Value:
+        Calculation: $payload_segment_ids & If ( not IsEmpty ( $payload_segment_ids
+          ); ¶; "" ) & Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - '$payload_segment_ids & '
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( $payload_segment_ids ); ¶; "" ) & '
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_segment_ids
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i > $num_segments ]
+      Calculation: $i > $num_segments
+      DisplayCalculation:
+        Chunk: $i > $num_segments
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Payload Segment IDs: \" & $payload_segment_ids\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Payload Segment IDs:
+        \" & $payload_segment_ids\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
+        \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \"
+        & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote
+        ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
+        \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
+        ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Payload Segment IDs: \" & $payload_segment_ids\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Config: Show Message”; Parameter:
+        "Server is processing payload..." ]'
+      Calculation: '"Server is processing payload..."'
+      DisplayCalculation:
+        Chunk: '"Server is processing payload..."'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Config: Show Message'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Process the payload.'
+      Text: Process the payload.
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Config: Push: Process”; Parameter:
+        $payload_segment_ids ]'
+      Calculation: $payload_segment_ids
+      DisplayCalculation:
+        Chunk: $payload_segment_ids
+      Script:
+        id: '55'
+        name: 'EasySync Client: Config: Push: Process'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Close the hosted file.'
+      Text: Close the hosted file.
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “Hosted_Database” ]
+      FileReference:
+        id: '1'
+        name: Hosted_Database
+        UniversalPathList: |-
+          fmnet:/your-server-address/EasySync_Server
+          file:EasySync_Server
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Return the result to the caller.'
+      Text: Return the result to the caller.
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( ScriptResult ) = 0 ]
+      Calculation: Get ( ScriptResult ) = 0
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) = 0'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: 1 & ¶ & \n\"Push Successful\" & ¶ & \n\"Local
+        data has been successfully pushed to the server. (Elapsed Time: \" & GetAsTime
+        ( Get ( CurrentTimeStamp ) - $start ) & \")\" ]"
+      Calculation: "1 & ¶ & \n\"Push Successful\" & ¶ & \n\"Local data has been successfully
+        pushed to the server. (Elapsed Time: \" & GetAsTime ( Get ( CurrentTimeStamp
+        ) - $start ) & \")\""
+      DisplayCalculation:
+        Chunk:
+        - "1 & ¶ & \n\"Push Successful\" & ¶ & \n\"Local data has been successfully
+          pushed to the server. (Elapsed Time: \" & "
+        - GetAsTime
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeStamp
+        - ' ) - $start ) & ")"'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: 0 & ¶ & \n\"Push Failed\" & ¶ & \n\"The attempt
+        to push data to the server has failed. (The message received from the server
+        was: \\\"\" & Get ( ScriptResult ) & \"\\\")\" ]"
+      Calculation: "0 & ¶ & \n\"Push Failed\" & ¶ & \n\"The attempt to push data to
+        the server has failed. (The message received from the server was: \\\"\" &
+        Get ( ScriptResult ) & \"\\\")\""
+      DisplayCalculation:
+        Chunk:
+        - "0 & ¶ & \n\"Push Failed\" & ¶ & \n\"The attempt to push data to the server
+          has failed. (The message received from the server was: \\\"\" & "
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) & "\")"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

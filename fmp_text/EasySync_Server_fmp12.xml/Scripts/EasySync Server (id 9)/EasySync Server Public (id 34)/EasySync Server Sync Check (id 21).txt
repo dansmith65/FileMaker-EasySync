@@ -1,0 +1,678 @@
+#Sync Check:Receives list of UUIDs from synced table on the mobile device, compares it to those on the host, and returns the difference.History:2014-05-02		Tim Dietrich (timdietrich@me.com)	Initial version.2014-05-05		Tim Dietrich (timdietrich@me.com)	Added code so that excluded records (ES_Exclude = 1) are included in the DIFF.	In other words, we are forcing the mobile device to delete records that they are holding	that have been excluded since the last sync.2014-05-15	Tim Dietrich (timdietrich@me.com)	Delimiting the underscore used in the query that gets ES_ tables.2014-06-02	Tim Dietrich (timdietrich@me.com)	Properly escapes the ES_ table names.	Supports passing additional info (via $$additional_sync_check_info). 
+#
+#
+#
+##############################################################################
+#GET ADDITIONAL INFO AND UUIDS PASSED FROM MOBILE
+##############################################################################
+#
+#
+#
+Set Variable [ $additional_sync_check_info; Value:GetValue ( Get ( ScriptParameter ) ; 1 ) ]
+Set Variable [ $UUIDs_Mobile; Value:Right ( Get ( ScriptParameter ); Length (  Get ( ScriptParameter ) ) - Position ( Get ( ScriptParameter ); ¶ ; 1 ; 1 ) ) ]
+#
+#
+#
+##############################################################################
+#GET UUIDS ON HOST
+##############################################################################
+#
+#
+#
+#Get all of the tables that are to be synced.
+Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE 'ES\_%'"; "|"; ¶ ) ]
+#
+#Init the SELECT statement...
+Set Variable [ $select; Value:"" ]
+#
+#Loop over the ES tables...
+Set Variable [ $i; Value:1 ]
+Loop
+Set Variable [ $sync_table; Value:GetValue ( $sync_tables ; $i ) ]
+Set Variable [ $select; Value:$select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &"SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0" ]
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
+End Loop
+#
+#Create the ExecuteSQL call.
+Set Variable [ $executesql; Value:"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")" ]
+#
+#Execute the SELECT statement.
+Set Variable [ $UUIDs_Host; Value:Evaluate ( $executesql ) ]
+#
+#
+#
+##############################################################################
+#BEGIN UUID DIFF ANALYSIS
+##############################################################################
+#
+#
+#
+#Init the diff list.
+Set Variable [ $UUIDs_Diff; Value:"" ]
+#
+#Loop over UUIDs on mobile...
+Set Variable [ $i; Value:1 ]
+Loop
+#
+#If this UUID is not on the server...
+If [ ( not PatternCount ( $UUIDs_Host ; GetValue ( $UUIDs_Mobile ; $i ) ) ) ]
+#
+#Add it to the diff list.
+Set Variable [ $UUIDs_Diff; Value:$UUIDs_Diff & If ( not IsEmpty ( $UUIDs_Diff ); ¶; "" ) & GetValue ( $UUIDs_Mobile ; $i ) ]
+#
+End If
+#
+Set Variable [ $i; Value:$i + 1 ]
+Exit Loop If [ $i > ValueCount ( $UUIDs_Mobile ) ]
+#
+End Loop
+#
+#
+#
+##############################################################################
+#RETURN DIFF LIST TO MOBILE
+##############################################################################
+#
+#
+#
+Exit Script [ Result: $UUIDs_Diff ]
+#
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '21'
+  name: 'EasySync Server: Sync Check'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#Sync Check:\nReceives list of UUIDs from synced table on the mobile
+        device, compares it to those on the host, and returns the difference.\n\nHistory:\n\n2014-05-02\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-05-05\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded code so that excluded records (ES_Exclude =
+        1) are included in the DIFF.\n\tIn other words, we are forcing the mobile
+        device to delete records that they are holding\n\tthat have been excluded
+        since the last sync.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
+        the underscore used in the query that gets ES_ tables.\n\n2014-06-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tProperly escapes the ES_ table names.\n\tSupports
+        passing additional info (via $$additional_sync_check_info). "
+      Text: "Sync Check:\nReceives list of UUIDs from synced table on the mobile device,
+        compares it to those on the host, and returns the difference.\n\nHistory:\n\n2014-05-02\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-05-05\t\n\tTim Dietrich
+        (timdietrich@me.com)\n\tAdded code so that excluded records (ES_Exclude =
+        1) are included in the DIFF.\n\tIn other words, we are forcing the mobile
+        device to delete records that they are holding\n\tthat have been excluded
+        since the last sync.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tDelimiting
+        the underscore used in the query that gets ES_ tables.\n\n2014-06-02\n\tTim
+        Dietrich (timdietrich@me.com)\n\tProperly escapes the ES_ table names.\n\tSupports
+        passing additional info (via $$additional_sync_check_info). "
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#GET ADDITIONAL INFO AND UUIDS PASSED FROM MOBILE'
+      Text: GET ADDITIONAL INFO AND UUIDS PASSED FROM MOBILE
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $additional_sync_check_info; Value:GetValue ( Get (
+        ScriptParameter ) ; 1 ) ]
+      Value:
+        Calculation: GetValue ( Get ( ScriptParameter ) ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $additional_sync_check_info
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $UUIDs_Mobile; Value:Right ( Get ( ScriptParameter
+        ); Length (  Get ( ScriptParameter ) ) - Position ( Get ( ScriptParameter
+        ); ¶ ; 1 ; 1 ) ) ]
+      Value:
+        Calculation: Right ( Get ( ScriptParameter ); Length (  Get ( ScriptParameter
+          ) ) - Position ( Get ( ScriptParameter ); ¶ ; 1 ; 1 ) )
+        DisplayCalculation:
+          Chunk:
+          - Right
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); '
+          - Length
+          - ' (  '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) ) - '
+          - Position
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ); ¶ ; 1 ; 1 ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $UUIDs_Mobile
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#GET UUIDS ON HOST'
+      Text: GET UUIDS ON HOST
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Get all of the tables that are to be synced.'
+      Text: Get all of the tables that are to be synced.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT TableName
+        FROM FileMaker_Tables WHERE TableName LIKE 'ES\_%'"; "|"; ¶ ) ]
+      Value:
+        Calculation: ExecuteSQL ( "SELECT TableName FROM FileMaker_Tables WHERE TableName
+          LIKE 'ES\_%'"; "|"; ¶ )
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - ' ( "SELECT TableName FROM FileMaker_Tables WHERE TableName LIKE ''ES\_%''";
+            "|"; ¶ )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_tables
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Init the SELECT statement...'
+      Text: Init the SELECT statement...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $select; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $select
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over the ES tables...'
+      Text: Loop over the ES tables...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $sync_table; Value:GetValue ( $sync_tables ; $i ) ]
+      Value:
+        Calculation: GetValue ( $sync_tables ; $i )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $sync_tables ; $i )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sync_table
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $select; Value:$select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &
+        "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0" ]
+      Value:
+        Calculation: |-
+          $select & If ( not IsEmpty ( $select ); " UNION ALL "; "" ) &
+          "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0"
+        DisplayCalculation:
+          Chunk:
+          - '$select & '
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - |2-
+             ( $select ); " UNION ALL "; "" ) &
+            "SELECT ES_Record_UUID FROM \\\"" & $sync_table & "\\\" WHERE COALESCE ( ES_Exclude, 0 ) = 0"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $select
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
+      Calculation: $i > ValueCount ( $sync_tables )
+      DisplayCalculation:
+        Chunk:
+        - '$i > '
+        - ValueCount
+        - ' ( $sync_tables )'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Create the ExecuteSQL call.'
+      Text: Create the ExecuteSQL call.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $executesql; Value:"ExecuteSQL ( \"" & $select & "\";
+        \"\"; \"\")" ]
+      Value:
+        Calculation: '"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")"'
+        DisplayCalculation:
+          Chunk: '"ExecuteSQL ( \"" & $select & "\"; \"\"; \"\")"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $executesql
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Execute the SELECT statement.'
+      Text: Execute the SELECT statement.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $UUIDs_Host; Value:Evaluate ( $executesql ) ]
+      Value:
+        Calculation: Evaluate ( $executesql )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $executesql )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $UUIDs_Host
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#BEGIN UUID DIFF ANALYSIS'
+      Text: BEGIN UUID DIFF ANALYSIS
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Init the diff list.'
+      Text: Init the diff list.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $UUIDs_Diff; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $UUIDs_Diff
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Loop over UUIDs on mobile...'
+      Text: Loop over UUIDs on mobile...
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#If this UUID is not on the server...'
+      Text: If this UUID is not on the server...
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ( not PatternCount ( $UUIDs_Host ; GetValue ( $UUIDs_Mobile ;
+        $i ) ) ) ]
+      Calculation: ( not PatternCount ( $UUIDs_Host ; GetValue ( $UUIDs_Mobile ; $i
+        ) ) )
+      DisplayCalculation:
+        Chunk:
+        - '( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - PatternCount
+        - ' ( $UUIDs_Host ; '
+        - GetValue
+        - ' ( $UUIDs_Mobile ; $i ) ) )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Add it to the diff list.'
+      Text: Add it to the diff list.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $UUIDs_Diff; Value:$UUIDs_Diff & If ( not IsEmpty (
+        $UUIDs_Diff ); ¶; "" ) & GetValue ( $UUIDs_Mobile ; $i ) ]
+      Value:
+        Calculation: $UUIDs_Diff & If ( not IsEmpty ( $UUIDs_Diff ); ¶; "" ) & GetValue
+          ( $UUIDs_Mobile ; $i )
+        DisplayCalculation:
+          Chunk:
+          - '$UUIDs_Diff & '
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( $UUIDs_Diff ); ¶; "" ) & '
+          - GetValue
+          - ' ( $UUIDs_Mobile ; $i )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $UUIDs_Diff
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $i > ValueCount ( $UUIDs_Mobile ) ]
+      Calculation: $i > ValueCount ( $UUIDs_Mobile )
+      DisplayCalculation:
+        Chunk:
+        - '$i > '
+        - ValueCount
+        - ' ( $UUIDs_Mobile )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#RETURN DIFF LIST TO MOBILE'
+      Text: RETURN DIFF LIST TO MOBILE
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##############################################################################'
+      Text: '#############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $UUIDs_Diff ]'
+      Calculation: $UUIDs_Diff
+      DisplayCalculation:
+        Chunk: $UUIDs_Diff
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
