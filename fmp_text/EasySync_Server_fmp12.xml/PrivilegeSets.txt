@@ -98,7 +98,7 @@ PrivilegesCatalog:
         Script:
         - runFullAccess: 'False'
           id: '8'
-          name: 'EasySync Server: Push: Process Payload'
+          name: 'EasySync Server: Push: Process Payload ( payload_segment_ids )'
           Access:
             value: NoAccess
         - runFullAccess: 'False'
@@ -113,7 +113,7 @@ PrivilegesCatalog:
             value: NoAccess
         - runFullAccess: 'False'
           id: '11'
-          name: 'EasySync Server: Pull: Prepare Payload'
+          name: 'EasySync Server: Pull: Prepare Payload ( ... )'
           Access:
             value: NoAccess
         - runFullAccess: 'False'
@@ -138,7 +138,8 @@ PrivilegesCatalog:
             value: NoAccess
         - runFullAccess: 'False'
           id: '21'
-          name: 'EasySync Server: Sync Check'
+          name: 'EasySync Server: Sync Check ( additional_sync_check_info ; UUIDs_Mobile
+            )'
           Access:
             value: NoAccess
         - runFullAccess: 'True'

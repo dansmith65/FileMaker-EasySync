@@ -3,12 +3,12 @@ Set Variable [ $pull_params; Value:Get ( ScriptParameter ) ]
 #
 If [ $$use_psos_during_pull ]
 #*** Remote Script: Prepare Payload for Client
-Perform Script on Server [ “EasySync Server: Pull: Prepare Payload” from file: “Hosted_Database”; Parameter: $pull_params ][ Wait for completion ]
+Perform Script on Server [ “EasySync Server: Pull: Prepare Payload ( ... )” from file: “Hosted_Database”; Parameter: $pull_params ][ Wait for completion ]
 End If
 #
 If [ not $$use_psos_during_pullor (	$$use_psos_during_pull	and Get ( LastError ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */) ]
 #*** Remote Script: Prepare Payload for Client
-Perform Script [ “EasySync Server: Pull: Prepare Payload” from file: “Hosted_Database”; Parameter: $pull_params ]
+Perform Script [ “EasySync Server: Pull: Prepare Payload ( ... )” from file: “Hosted_Database”; Parameter: $pull_params ]
 End If
 #
 Exit Script [ Result: Get ( ScriptResult ) ]
@@ -64,7 +64,7 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “EasySync Server: Pull: Prepare Payload” from file: “Hosted_Database”; Parameter: $pull_params ]
+        Perform Script on Server [ “EasySync Server: Pull: Prepare Payload ( ... )” from file: “Hosted_Database”; Parameter: $pull_params ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
@@ -79,7 +79,7 @@ Script:
         Chunk: $pull_params
       Script:
         id: '11'
-        name: 'EasySync Server: Pull: Prepare Payload'
+        name: 'EasySync Server: Pull: Prepare Payload ( ... )'
     - enable: 'True'
       id: '70'
       name: End If
@@ -121,8 +121,8 @@ Script:
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “EasySync Server: Pull: Prepare Payload” from file:
-        “Hosted_Database”; Parameter: $pull_params ]'
+      StepText: 'Perform Script [ “EasySync Server: Pull: Prepare Payload ( ... )”
+        from file: “Hosted_Database”; Parameter: $pull_params ]'
       FileReference:
         id: '1'
         name: Hosted_Database
@@ -134,7 +134,7 @@ Script:
         Chunk: $pull_params
       Script:
         id: '11'
-        name: 'EasySync Server: Pull: Prepare Payload'
+        name: 'EasySync Server: Pull: Prepare Payload ( ... )'
     - enable: 'True'
       id: '70'
       name: End If

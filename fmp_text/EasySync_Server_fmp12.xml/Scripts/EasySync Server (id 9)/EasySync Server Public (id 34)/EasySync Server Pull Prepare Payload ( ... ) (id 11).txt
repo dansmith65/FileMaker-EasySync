@@ -1,45 +1,89 @@
-#Prepare Payload for Client:Processes a "pull" request from the client by building a pull package.History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-16			Tim Dietrich (timdietrich@me.com)	The push and pull timestamps are now being pushed by the client in a	SQL-friendly format, to avoid potential differences in timestamp formats	between the client and server.	2014-04-20	Tim Dietrich (timdietrich@me.com)	Mods to resolve "simultaneous sync" issues.2014-04-21	Tim Dietrich (timdietrich@me.com)	Resolves issues with non-SQL compliant table names.2014-04-22	Tim Dietrich (timdietrich@me.com)	Modified the code that determines what records to pull. Previously we tried to	prevent "round-tripping" the data that had just been pulled. That failed miserably,	especially for users syncing from multiple devices. It also caused sync issues	in cases were record changes were rejected due to the conflict resolution being	used. See the release notes for more info.2014-04-23	Tim Dietrich (timdietrich@me.com)	Added code to support the "initial sync" function of the EasySync demo database.	See " Here's the SELECT statement that is used to select the data for the payload" 	comment / code for details.	2014-04-22	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	When selecting records for inclusing, we now look at the ID of the device that last	updated the record so that we don't "round trip" the data that was just pushed.2014-04-28	Tim Dietrich (timdietrich@me.com)	Minor change to account for a user who has wiped / reset their mobile database.	Allows them to pull records that they last touched via that device.2014-05-02	Tim Dietrich (timdietrich@me.com)	Modified the SELECT statement that gets the list of tables to be synced, so that the underscore	escaped. Thanks to Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for	reporting this bug.2014-05-04	Tim Dietrich (timdietrich@me.com)	Addess support for Push/Pull-only tables.
+#################################################################################
+# PURPOSE:
+#    Processes a "pull" request from the client by building a pull package.
+#
+# CONTEXT: EasySync_Payloads
+#
+# PARAMETERS: (let notation format)
+#    miscellaneous client dataDaniel Smith: I'm not sure what these parameters are used for, yet
+#
+# RETURNS:
+#    $error | a dictionary containing error data
+#    $runtime | number of seconds this script was running (with millisecond precision)
+#    $payload_uuid | id of payload created
+#
+# VARIABLES:
+#
+# DEPENDENCIES:
+#
+# NOTES:
+#
+# REVISIONS:
+#    2015-08-21	 Daniel Smith dansmith65@gmail.com	- never return the payload; always save it	- always return let encoded result2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-16			Tim Dietrich (timdietrich@me.com)	The push and pull timestamps are now being pushed by the client in a	SQL-friendly format, to avoid potential differences in timestamp formats	between the client and server.	2014-04-20	Tim Dietrich (timdietrich@me.com)	Mods to resolve "simultaneous sync" issues.2014-04-21	Tim Dietrich (timdietrich@me.com)	Resolves issues with non-SQL compliant table names.2014-04-22	Tim Dietrich (timdietrich@me.com)	Modified the code that determines what records to pull. Previously we tried to	prevent "round-tripping" the data that had just been pulled. That failed miserably,	especially for users syncing from multiple devices. It also caused sync issues	in cases were record changes were rejected due to the conflict resolution being	used. See the release notes for more info.2014-04-23	Tim Dietrich (timdietrich@me.com)	Added code to support the "initial sync" function of the EasySync demo database.	See " Here's the SELECT statement that is used to select the data for the payload" 	comment / code for details.	2014-04-22	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	When selecting records for inclusing, we now look at the ID of the device that last	updated the record so that we don't "round trip" the data that was just pushed.2014-04-28	Tim Dietrich (timdietrich@me.com)	Minor change to account for a user who has wiped / reset their mobile database.	Allows them to pull records that they last touched via that device.2014-05-02	Tim Dietrich (timdietrich@me.com)	Modified the SELECT statement that gets the list of tables to be synced, so that the underscore	escaped. Thanks to Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for	reporting this bug.2014-05-04	Tim Dietrich (timdietrich@me.com)	Addess support for Push/Pull-only tables.
+#################################################################################
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+Set Variable [ $~script.errorType; Value:"Module: EasySync Server" ]
+#
+#
 #
 #Load settings.
 Perform Script [ “EasySync Server: Config: Load” ]
 #
-#Log the start time.
-Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
 #
+#
+If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 5 ]
+Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = "start script"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#
+#
+#
+#
+#
+Loop
+# single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+#================================================================================
+If [ /* assign script parameter to local variables */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptParameter )	& "! = \"\" ] ; \"\" )") ) ]
+Exit Loop If [ Let ( [	theErrorCode = 2 ;	theErrorDescription = "Invalid Parameter" ;	theErrorInfo = "An error occurred when evaluating the script parameter as let notation" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"MODIFY ENVIRONMENT" ]
+#================================================================================
 #Prevent the user from aborting, and we'll handle errors, so suppress those...
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
-#Get the parameters passed by the client.
-Set Variable [ $last_pull_utc; Value:GetValue ( Get ( ScriptParameter ); 1 ) ]
-Set Variable [ $last_push_utc; Value:GetValue ( Get ( ScriptParameter ); 2 ) ]
-Set Variable [ $client_persistent_id; Value:GetValue ( Get ( ScriptParameter ); 3 ) ]
-Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter ); 4 ) ]
-Set Variable [ $client_ip_address; Value:GetValue ( Get ( ScriptParameter ); 5 ) ]
-Set Variable [ $client_nic_address; Value:GetValue ( Get ( ScriptParameter ); 6 ) ]
-Set Variable [ $client_platform; Value:GetValue ( Get ( ScriptParameter ); 7 ) ]
-Set Variable [ $client_system_version; Value:GetValue ( Get ( ScriptParameter ); 8 ) ]
-Set Variable [ $client_device; Value:GetValue ( Get ( ScriptParameter ); 9 ) ]
-Set Variable [ $client_network_protocol; Value:GetValue ( Get ( ScriptParameter ); 10 ) ]
-Set Variable [ $client_network_type; Value:GetValue ( Get ( ScriptParameter ); 11 ) ]
-Set Variable [ $additional_settings; Value:GetValue ( Get ( ScriptParameter ); 12 ) ]
-If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
-Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Pull Params: " & Get ( ScriptParameter )] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
-End If
 #
-#Create the settings portion of the payload.
-Set Variable [ $settings_info; Value:"<settings>¶" &$$field_delimiter & "</setting>" & $$record_delimiter & "</setting>" & $$sync_method & ¶ & "</settings>" ]
 #
+#================================================================================
+Set Variable [ $~script.section; Value:"Get all of the tables that are to be synced." ]
+#================================================================================
 #Get all of the tables that are to be synced.
 Set Variable [ $sync_tables; Value:ExecuteSQL ( "SELECT * FROM FileMaker_Tables WHERE ( TableName LIKE 'ES\_%' ) AND ( TableName NOT LIKE 'ES\_PUSH\_%' )"; "</col>"; ¶ ) ]
 If [ IsEmpty ( $sync_tables ) ]
 Show Custom Dialog [ Title: "Sync Error"; Message: "There are no tables configured for syncing."; Default Button: “OK”, Commit: “Yes” ]
-Exit Script [  ]
+# TODO: determine what error code to use here(may want to revise the server's ping script before I do this)
+Exit Loop If [ Let ( [	theErrorCode = -1 ;	theErrorDescription = "No tables configured for syncing" ;	theErrorInfo = "" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
 End If
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Sync Tables: " & $sync_tables] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"Loop over the tables to be synced" ]
+#================================================================================
 #Initalize table info portion of the payload.
 Set Variable [ $table_info; Value:"" ]
 #
@@ -51,7 +95,7 @@ Set Variable [ $i; Value:1 ]
 Loop
 #
 #Get the table's name.
-Set Variable [ $sync_table; Value:Let ( [$t = GetValue ( $sync_tables ; $i );$t = Substitute ( $t; "</col>"; ¶ )];GetValue ( $t; 1 )) ]
+Set Variable [ $sync_table; Value:Let ( [	$t = GetValue ( $sync_tables ; $i );	$t = Substitute ( $t; "</col>"; ¶ )] ;	GetValue ( $t ; 1 )) ]
 #
 #Get the names (and # of reps) of the fields in this table.
 #Note that fields prefixed with "EXCL_" are excluded from the payload.
@@ -60,6 +104,8 @@ Set Variable [ $sync_fields; Value:ExecuteSQL ( "SELECT FieldName, FieldReps FRO
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Fields in " & $sync_table & ": " & $sync_fields] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
+#
+#
 #
 #Reformat the field names so that repetitions are considered.
 Set Variable [ $fields; Value:$sync_table & "</field>" ]
@@ -84,6 +130,7 @@ End If
 Set Variable [ $table_info; Value:If ( not IsEmpty ( $table_info ); $table_info & ¶; "" ) & $fields & "</table>" ]
 #
 #
+#
 #Loop over the fields in the table to create the fields portion of what will be the SELECT statement...
 Set Variable [ $dyn_sql; Value:"'" & $sync_table & "'" ]
 Set Variable [ $j; Value:1 ]
@@ -102,6 +149,8 @@ End Loop
 Set Variable [ $j; Value:$j + 1 ]
 Exit Loop If [ $j > ValueCount ( $sync_fields ) ]
 End Loop
+#
+#
 #
 #Add this table's fields to the SELECT statement.
 #Note: This is the SELECT statement that is used to select the data for the payload.
@@ -132,21 +181,18 @@ Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i > ValueCount ( $sync_tables ) ]
 #
 End Loop
+Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
 #
-#Wrap the records portion of the payload.
-Set Variable [ $records; Value:"<records>" & ¶ & $records & ¶ & "</records>" ]
 #
-#Wrap the table info portion of the payload.
-Set Variable [ $table_info; Value:"<tables>" & ¶ & $table_info & ¶ & "</tables>" ]
 #
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SAVE PAYLOAD" ]
+#================================================================================
 #Put the payload together.
-Set Variable [ $payload; Value:"<payload>¶" &$settings_info & ¶ & $table_info & ¶ & $records & ¶ & "</payload>" ]
-#
-#If the payload is small enough to send at one time...
-If [ Length ( $payload )  ≤ $$max_pull_payload_size ]
-#Return the payload to the client.
-Exit Script [ Result: $payload ]
-Else
+Set Variable [ $payload; Value:"<payload>¶" &	"<settings>¶" &		$$field_delimiter & "</setting>" &		$$record_delimiter & "</setting>" &		$$sync_method & ¶ &	"</settings>" & ¶ & 	"<tables>" & ¶ & $table_info & ¶ & "</tables>" & ¶ & 	"<records>" & ¶ & $records & ¶ & "</records>" & ¶ & "</payload>" ]
 #
 #Save payload.
 Go to Layout [ "EasySync_Payloads" ]
@@ -154,11 +200,38 @@ New Record/Request
 Set Field By Name [ "EasySync_Payloads::Payload"; $payload ]
 Set Field By Name [ "EasySync_Payloads::Payload_Type"; "Pull Payload" ]
 Commit Records/Requests[ No dialog ]
+Set Variable [ $payload_uuid; Value:Evaluate ( "EasySync_Payloads::ES_Payload_UUID" ) ]
 #
-#Return payload ID to the client.
-Exit Script [ Result: "Payload_UUID: " & Evaluate ( "EasySync_Payloads::ES_Payload_UUID" ) ]
 #
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+#================================================================================
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
+If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
+Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "exit script with error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$error = " & Quote ( $error ) & " ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
 End If
+Else
+If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
+End If
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$payload_uuid = " & Quote ( $payload_uuid ) & " ;¶" ]
 #
 
 
@@ -167,17 +240,124 @@ Script:
   includeInMenu: 'False'
   runFullAccess: 'False'
   id: '11'
-  name: 'EasySync Server: Pull: Prepare Payload'
+  name: 'EasySync Server: Pull: Prepare Payload ( ... )'
   StepList:
     Step:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#Prepare Payload for Client:\nProcesses a \"pull\" request from the
-        client by building a pull package.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich
-        (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim Dietrich
-        (timdietrich@me.com)\n\tThe push and pull timestamps are now being pushed
-        by the client in a\n\tSQL-friendly format, to avoid potential differences
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Processes a "pull" request from the client by building a pull
+        package.'
+      Text: '    Processes a "pull" request from the client by building a pull package.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CONTEXT: EasySync_Payloads'
+      Text: ' CONTEXT: EasySync_Payloads'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: (let notation format)'
+      Text: ' PARAMETERS: (let notation format)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #    miscellaneous client data
+
+        Daniel Smith: I'm not sure what these parameters are used for, yet
+      Text: |2-
+            miscellaneous client data
+
+        Daniel Smith: I'm not sure what these parameters are used for, yet
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $error | a dictionary containing error data'
+      Text: '    $error | a dictionary containing error data'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+      Text: '    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $payload_uuid | id of payload created'
+      Text: '    $payload_uuid | id of payload created'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# VARIABLES:'
+      Text: ' VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2015-08-21\t Daniel Smith dansmith65@gmail.com\n\t- never
+        return the payload; always save it\n\t- always return let encoded result\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tThe push and pull timestamps are now being
+        pushed by the client in a\n\tSQL-friendly format, to avoid potential differences
         in timestamp formats\n\tbetween the client and server.\n\t\n2014-04-20\n\tTim
         Dietrich (timdietrich@me.com)\n\tMods to resolve \"simultaneous sync\" issues.\n\n2014-04-21\n\tTim
         Dietrich (timdietrich@me.com)\n\tResolves issues with non-SQL compliant table
@@ -201,11 +381,11 @@ Script:
         Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
         this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAddess support
         for Push/Pull-only tables.\n\n"
-      Text: "Prepare Payload for Client:\nProcesses a \"pull\" request from the client
-        by building a pull package.\n\nHistory:\n\n2014-04-16\t\t\n\tTim Dietrich
-        (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim Dietrich
-        (timdietrich@me.com)\n\tThe push and pull timestamps are now being pushed
-        by the client in a\n\tSQL-friendly format, to avoid potential differences
+      Text: "    \n2015-08-21\t Daniel Smith dansmith65@gmail.com\n\t- never return
+        the payload; always save it\n\t- always return let encoded result\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-16\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tThe push and pull timestamps are now being
+        pushed by the client in a\n\tSQL-friendly format, to avoid potential differences
         in timestamp formats\n\tbetween the client and server.\n\t\n2014-04-20\n\tTim
         Dietrich (timdietrich@me.com)\n\tMods to resolve \"simultaneous sync\" issues.\n\n2014-04-21\n\tTim
         Dietrich (timdietrich@me.com)\n\tResolves issues with non-SQL compliant table
@@ -229,6 +409,51 @@ Script:
         Paul Jansen (of APJ Computing Solutions - http://www.apjuk.com/) for\n\treporting
         this bug.\n\n2014-05-04\n\tTim Dietrich (timdietrich@me.com)\n\tAddess support
         for Push/Pull-only tables.\n\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.errorType; Value:"Module: EasySync Server"
+        ]'
+      Value:
+        Calculation: '"Module: EasySync Server"'
+        DisplayCalculation:
+          Chunk: '"Module: EasySync Server"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.errorType
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -252,328 +477,39 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Log the start time.'
-      Text: Log the start time.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $start; Value:Get ( CurrentTimeStamp ) ]
-      Value:
-        Calculation: Get ( CurrentTimeStamp )
-        DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - CurrentTimeStamp
-          - ' )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $start
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Prevent the user from aborting, and we''ll handle errors, so suppress
-        those...'
-      Text: Prevent the user from aborting, and we'll handle errors, so suppress those...
-    - enable: 'True'
-      id: '85'
-      name: Allow User Abort
-      StepText: Allow User Abort [ Off ]
-      Set:
-        state: 'False'
-    - enable: 'True'
-      id: '86'
-      name: Set Error Capture
-      StepText: Set Error Capture [ On ]
-      Set:
-        state: 'True'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Get the parameters passed by the client.'
-      Text: Get the parameters passed by the client.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $last_pull_utc; Value:GetValue ( Get ( ScriptParameter
-        ); 1 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 1 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 1 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $last_pull_utc
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $last_push_utc; Value:GetValue ( Get ( ScriptParameter
-        ); 2 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 2 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 2 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $last_push_utc
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_persistent_id; Value:GetValue ( Get ( ScriptParameter
-        ); 3 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 3 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 3 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_persistent_id
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_version; Value:GetValue ( Get ( ScriptParameter
-        ); 4 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 4 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 4 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_version
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_ip_address; Value:GetValue ( Get ( ScriptParameter
-        ); 5 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 5 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 5 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_ip_address
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_nic_address; Value:GetValue ( Get ( ScriptParameter
-        ); 6 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 6 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 6 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_nic_address
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_platform; Value:GetValue ( Get ( ScriptParameter
-        ); 7 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 7 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 7 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_platform
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_system_version; Value:GetValue ( Get ( ScriptParameter
-        ); 8 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 8 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 8 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_system_version
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_device; Value:GetValue ( Get ( ScriptParameter
-        ); 9 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 9 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 9 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_device
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_network_protocol; Value:GetValue ( Get ( ScriptParameter
-        ); 10 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 10 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 10 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_network_protocol
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $client_network_type; Value:GetValue ( Get ( ScriptParameter
-        ); 11 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 11 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 11 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $client_network_type
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $additional_settings; Value:GetValue ( Get ( ScriptParameter
-        ); 12 ) ]
-      Value:
-        Calculation: GetValue ( Get ( ScriptParameter ); 12 )
-        DisplayCalculation:
-          Chunk:
-          - GetValue
-          - ' ( '
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' ); 12 )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $additional_settings
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
-      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
+      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 5 ]
+      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 5
       DisplayCalculation:
-        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
+        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 5
     - enable: 'True'
       id: '1'
       name: Perform Script
       StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
-        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Pull Params: \" & Get ( ScriptParameter
-        )\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" &
-        Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
-        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
-      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Pull Params: \" & Get
-        ( ScriptParameter )\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
-        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
-        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+        Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
       DisplayCalculation:
         Chunk:
         - Let
-        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Pull Params: \" & "
-        - Get
-        - ' ( '
-        - ScriptParameter
-        - " )\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage =
-          \" & "
+        - " ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
         - Quote
         - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
         - Quote
@@ -612,29 +548,255 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Create the settings portion of the payload.'
-      Text: Create the settings portion of the payload.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: "Set Variable [ $settings_info; Value:\"<settings>¶\" &\n$$field_delimiter
-        & \"</setting>\" & $$record_delimiter & \"</setting>\" & $$sync_method & ¶
-        & \n\"</settings>\" ]"
-      Value:
-        Calculation: "\"<settings>¶\" &\n$$field_delimiter & \"</setting>\" & $$record_delimiter
-          & \"</setting>\" & $$sync_method & ¶ & \n\"</settings>\""
-        DisplayCalculation:
-          Chunk: "\"<settings>¶\" &\n$$field_delimiter & \"</setting>\" & $$record_delimiter
-            & \"</setting>\" & $$sync_method & ¶ & \n\"</settings>\""
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $settings_info
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# single-pass loop for error trapping'
+      Text: ' single-pass loop for error trapping'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+      Value:
+        Calculation: '"ASSIGN PARAMETERS"'
+        DisplayCalculation:
+          Chunk: '"ASSIGN PARAMETERS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* assign script parameter to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) ) ]"
+      Calculation: "/* assign script parameter to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* assign script parameter to local variables */
+
+        - EvaluationError
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& "
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription
+        = \"Invalid Parameter\" ;\n\ttheErrorInfo = \"An error occurred when evaluating
+        the script parameter as let notation\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription = \"Invalid
+        Parameter\" ;\n\ttheErrorInfo = \"An error occurred when evaluating the script
+        parameter as let notation\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+        = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode =
+        \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription
+        ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription = \"Invalid Parameter\"
+          ;\n\ttheErrorInfo = \"An error occurred when evaluating the script parameter
+          as let notation\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+          = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"MODIFY ENVIRONMENT" ]
+      Value:
+        Calculation: '"MODIFY ENVIRONMENT"'
+        DisplayCalculation:
+          Chunk: '"MODIFY ENVIRONMENT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Prevent the user from aborting, and we''ll handle errors, so suppress
+        those...'
+      Text: Prevent the user from aborting, and we'll handle errors, so suppress those...
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"Get all of the tables that
+        are to be synced." ]
+      Value:
+        Calculation: '"Get all of the tables that are to be synced."'
+        DisplayCalculation:
+          Chunk: '"Get all of the tables that are to be synced."'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
@@ -690,9 +852,82 @@ Script:
         - CommitState: 'False'
         - CommitState: 'False'
     - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: Exit Script [  ]
+      id: '89'
+      name: Comment
+      StepText: |-
+        # TODO: determine what error code to use here
+
+        (may want to revise the server's ping script before I do this)
+      Text: |2-
+         TODO: determine what error code to use here
+
+        (may want to revise the server's ping script before I do this)
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription
+        = \"No tables configured for syncing\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"No tables
+        configured for syncing\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"No tables configured
+          for syncing\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+          ;\n\t\n\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
     - enable: 'True'
       id: '70'
       name: End If
@@ -760,6 +995,42 @@ Script:
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"Loop over the tables to be
+        synced" ]
+      Value:
+        Calculation: '"Loop over the tables to be synced"'
+        DisplayCalculation:
+          Chunk: '"Loop over the tables to be synced"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
@@ -838,25 +1109,23 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $sync_table; Value:Let ( \n[\n$t = GetValue ( $sync_tables
-        ; $i );\n$t = Substitute ( $t; \"</col>\"; ¶ )\n];\nGetValue ( $t; 1 )\n)
-        ]"
+      StepText: "Set Variable [ $sync_table; Value:Let ( [\n\t$t = GetValue ( $sync_tables
+        ; $i );\n\t$t = Substitute ( $t; \"</col>\"; ¶ )\n] ;\n\tGetValue ( $t ; 1
+        )\n) ]"
       Value:
-        Calculation: "Let ( \n[\n$t = GetValue ( $sync_tables ; $i );\n$t = Substitute
-          ( $t; \"</col>\"; ¶ )\n];\nGetValue ( $t; 1 )\n)"
+        Calculation: "Let ( [\n\t$t = GetValue ( $sync_tables ; $i );\n\t$t = Substitute
+          ( $t; \"</col>\"; ¶ )\n] ;\n\tGetValue ( $t ; 1 )\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - " ( \n[\n$t = "
+          - " ( [\n\t$t = "
           - GetValue
-          - " ( $sync_tables ; $i );\n$t = "
+          - " ( $sync_tables ; $i );\n\t$t = "
           - Substitute
-          - |2
-             ( $t; "</col>"; ¶ )
-            ];
+          - " ( $t; \"</col>\"; ¶ )\n] ;\n\t"
           - GetValue
           - |2-
-             ( $t; 1 )
+             ( $t ; 1 )
             )
       Repetition:
         Calculation: '1'
@@ -968,6 +1237,14 @@ Script:
       id: '70'
       name: End If
       StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1276,6 +1553,10 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
       StepText: '#Loop over the fields in the table to create the fields portion of
         what will be the SELECT statement...'
       Text: Loop over the fields in the table to create the fields portion of what
@@ -1490,6 +1771,14 @@ Script:
       id: '73'
       name: End Loop
       StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1883,55 +2172,72 @@ Script:
       name: End Loop
       StepText: End Loop
     - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /**\n * An error occurred in the above loop\n *\n
+        * assign error info to local variables\n * then evaluate the errorCode as
+        a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t&
+        \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * An error occurred in the above loop\n *\n * assign error
+        info to local variables\n * then evaluate the errorCode as a Boolean\n * \n
+        */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\"
+        ] ; \\\"$errorCode\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * An error occurred in the above loop\n *\n * assign error info to
+          local variables\n * then evaluate the errorCode as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Wrap the records portion of the payload.'
-      Text: Wrap the records portion of the payload.
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $records; Value:"<records>" & ¶ & $records & ¶ & "</records>"
-        ]
+      StepText: Set Variable [ $~script.section; Value:"SAVE PAYLOAD" ]
       Value:
-        Calculation: '"<records>" & ¶ & $records & ¶ & "</records>"'
+        Calculation: '"SAVE PAYLOAD"'
         DisplayCalculation:
-          Chunk: '"<records>" & ¶ & $records & ¶ & "</records>"'
+          Chunk: '"SAVE PAYLOAD"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $records
+      Name: $~script.section
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Wrap the table info portion of the payload.'
-      Text: Wrap the table info portion of the payload.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $table_info; Value:"<tables>" & ¶ & $table_info & ¶
-        & "</tables>" ]
-      Value:
-        Calculation: '"<tables>" & ¶ & $table_info & ¶ & "</tables>"'
-        DisplayCalculation:
-          Chunk: '"<tables>" & ¶ & $table_info & ¶ & "</tables>"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $table_info
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1940,53 +2246,27 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $payload; Value:\"<payload>¶\" &\n$settings_info &
-        ¶ & \n$table_info & ¶ & \n$records & ¶ & \n\"</payload>\" ]"
+      StepText: "Set Variable [ $payload; Value:\"<payload>¶\" &\n\t\"<settings>¶\"
+        &\n\t\t$$field_delimiter & \"</setting>\" &\n\t\t$$record_delimiter & \"</setting>\"
+        &\n\t\t$$sync_method & ¶ &\n\t\"</settings>\" & ¶ & \n\t\"<tables>\" & ¶ &
+        $table_info & ¶ & \"</tables>\" & ¶ & \n\t\"<records>\" & ¶ & $records & ¶
+        & \"</records>\" & ¶ & \n\"</payload>\" ]"
       Value:
-        Calculation: "\"<payload>¶\" &\n$settings_info & ¶ & \n$table_info & ¶ & \n$records
+        Calculation: "\"<payload>¶\" &\n\t\"<settings>¶\" &\n\t\t$$field_delimiter
+          & \"</setting>\" &\n\t\t$$record_delimiter & \"</setting>\" &\n\t\t$$sync_method
+          & ¶ &\n\t\"</settings>\" & ¶ & \n\t\"<tables>\" & ¶ & $table_info & ¶ &
+          \"</tables>\" & ¶ & \n\t\"<records>\" & ¶ & $records & ¶ & \"</records>\"
           & ¶ & \n\"</payload>\""
         DisplayCalculation:
-          Chunk: "\"<payload>¶\" &\n$settings_info & ¶ & \n$table_info & ¶ & \n$records
-            & ¶ & \n\"</payload>\""
+          Chunk: "\"<payload>¶\" &\n\t\"<settings>¶\" &\n\t\t$$field_delimiter & \"</setting>\"
+            &\n\t\t$$record_delimiter & \"</setting>\" &\n\t\t$$sync_method & ¶ &\n\t\"</settings>\"
+            & ¶ & \n\t\"<tables>\" & ¶ & $table_info & ¶ & \"</tables>\" & ¶ & \n\t\"<records>\"
+            & ¶ & $records & ¶ & \"</records>\" & ¶ & \n\"</payload>\""
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
       Name: $payload
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If the payload is small enough to send at one time...'
-      Text: If the payload is small enough to send at one time...
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ Length ( $payload )  ≤ $$max_pull_payload_size ]
-      Calculation: Length ( $payload )  ≤ $$max_pull_payload_size
-      DisplayCalculation:
-        Chunk:
-        - Length
-        - ' ( $payload )  ≤ $$max_pull_payload_size'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Return the payload to the client.'
-      Text: Return the payload to the client.
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: $payload ]'
-      Calculation: $payload
-      DisplayCalculation:
-        Chunk: $payload
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
     - enable: 'True'
       id: '89'
       name: Comment
@@ -2048,34 +2328,344 @@ Script:
       ESSForceCommit:
         state: 'False'
     - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $payload_uuid; Value:Evaluate ( "EasySync_Payloads::ES_Payload_UUID"
+        ) ]
+      Value:
+        Calculation: Evaluate ( "EasySync_Payloads::ES_Payload_UUID" )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( "EasySync_Payloads::ES_Payload_UUID" )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $payload_uuid
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Return payload ID to the client.'
-      Text: Return payload ID to the client.
+      StepText: '#'
     - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: "Payload_UUID: " & Evaluate ( "EasySync_Payloads::ES_Payload_UUID"
-        ) ]'
-      Calculation: '"Payload_UUID: " & Evaluate ( "EasySync_Payloads::ES_Payload_UUID"
-        )'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# end single-pass loop for error trapping'
+      Text: ' end single-pass loop for error trapping'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+      Value:
+        Calculation: '"HANDLE ERROR"'
+        DisplayCalculation:
+          Chunk: '"HANDLE ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /**\n * assign error info to local variables\n * then evaluate
+        the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * assign error info to local variables\n * then evaluate
+        the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) )"
       DisplayCalculation:
         Chunk:
-        - '"Payload_UUID: " & '
+        - "/**\n * assign error info to local variables\n * then evaluate the errorCode
+          as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
         - Evaluate
-        - ' ( "EasySync_Payloads::ES_Payload_UUID" )'
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
+      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error = \" & Quote ( $error ) & \" ;¶\"\n\t&
+        \"$runtime = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error
+        = \" & Quote ( $error ) & \" ;¶\"\n\t& \"$runtime = \" & GetAsNumber ( $~script.runtime
+        ) & \" ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error = \" & "
+        - Quote
+        - " ( $error ) & \" ;¶\"\n\t& \"$runtime = \" & "
+        - GetAsNumber
+        - |2-
+           ( $~script.runtime ) & " ;¶"
+          )
+      Script:
+        id: '36'
+        name: 'EasySync Server: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
       StepText: End If
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without error\"\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without
+        error\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without error\"\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime = \" & "
+        - GetAsNumber
+        - |2-
+           ( $~script.runtime ) & " ;¶"
+          )
+      Script:
+        id: '36'
+        name: 'EasySync Server: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
+        & "$payload_uuid = " & Quote ( $payload_uuid ) & " ;¶" ]
+      Calculation: |-
+        "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
+        & "$payload_uuid = " & Quote ( $payload_uuid ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - '"$error = " & '
+        - Quote
+        - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
+        - GetAsNumber
+        - " ( $~script.runtime ) & \" ;¶\"\n& \"$payload_uuid = \" & "
+        - Quote
+        - ' ( $payload_uuid ) & " ;¶"'
     - enable: 'True'
       id: '89'
       name: Comment

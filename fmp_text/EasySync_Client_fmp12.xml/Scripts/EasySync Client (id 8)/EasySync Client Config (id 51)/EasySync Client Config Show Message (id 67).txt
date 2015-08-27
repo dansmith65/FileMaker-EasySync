@@ -13,6 +13,7 @@
 Set Variable [ $$EasySync_Status; Value:Get ( ScriptParameter ) ]
 #
 #
+//  Refresh Object [ Object Name: "easysync_status" ]
 Refresh Window
 #
 #
@@ -111,6 +112,18 @@ Script:
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'False'
+      id: '167'
+      name: Refresh Object
+      StepText: '//  Refresh Object [ Object Name: "easysync_status" ]'
+      ObjectName:
+        Calculation: '"easysync_status"'
+        DisplayCalculation:
+          Chunk: '"easysync_status"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
     - enable: 'True'
       id: '80'
       name: Refresh Window

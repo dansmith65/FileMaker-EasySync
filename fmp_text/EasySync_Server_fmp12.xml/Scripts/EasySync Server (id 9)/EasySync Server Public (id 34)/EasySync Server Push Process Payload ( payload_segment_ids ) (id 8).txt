@@ -1,34 +1,85 @@
-#Process Payload from Client:Processes a payload that has been pushed by the client.Script Results:Positive response codes greater than 10000 indicate success, and the value is the UTC timestamp recorded on the server when the process began. See below for details.Positive response codes less than 10000 indicate a FileMaker error.-1 No payload segments were found.-2.x Payload segment "x" is missing.-3 Payload is malformed.-4 Missing payload settings.-5 Missing table information.-6 No records. (Note: As of Beta 10, we allow for payloads that do not have records.)History:2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Changes to reflect move to UTC.	More granular error codes added.2014-04-20	Tim Dietrich (timdietrich@me.com)	Modifications to resolve "simultaneous sync" issue, support for record lock handling, etc.2014-04-21	Tim Dietrich (timdietrich@me.com)	We're now only setting fields that have actually changed.2014-04-22	Tim Dietrich (timdietrich@me.com)	Now searching for the closing "</records>" tag using -1 as the start position	so that we're searching for the tag from the end of the payload.	Thanks to Daniel Smith (@FMweetbicks) for the suggestion.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	Added a variable that allows auto-enter calcs for "ES_UTC_Time" and "ES_Device_ID" to be	overwritten during the sync process.2014-05-03	Tim Dietrich (timdietrich@me.com)	Fixed bug that was causing the client's ES_UTC_Time from being pulled when processing	a record. Thanks to Paul Jansen at APJ Computing Solutions for finding this one. Good catch!2014-05-08	Tim Dietrich (timdietrich@me.com)	Optimized code that gets the next record.2014-05-15	Tim Dietrich (timdietrich@me.com)	Eliminated the need to copy the records portion of the payload to a distinct $records variable.	This should help to reduce the memory needed to process the payload, and should also slightly	increase performance.2014-06-02	Tim Dietrich (timdietrich@me.com)	Eliminates the empty find request when processing deletions.	Resolves bug enountered where, when a record is deleted, an additional record in the last	ES_ layout was also deleted.
+#################################################################################
+# PURPOSE:
+#    Processes a payload that has been pushed by the client.
 #
-#Load settings.
+# CONTEXT: EasySync_Payloads
+#
+# PARAMETERS: (let notation format)
+#    $payload_segment_ids | value list | of payload id's containing the data to process
+#
+# RETURNS:
+#    $error | a dictionary containing error data
+#    $runtime | number of seconds this script was running (with millisecond precision)
+#
+# VARIABLES:
+#
+# DEPENDENCIES:
+#
+# NOTES:
+#
+# REVISIONS:
+#    2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Changes to reflect move to UTC.	More granular error codes added.2014-04-20	Tim Dietrich (timdietrich@me.com)	Modifications to resolve "simultaneous sync" issue, support for record lock handling, etc.2014-04-21	Tim Dietrich (timdietrich@me.com)	We're now only setting fields that have actually changed.2014-04-22	Tim Dietrich (timdietrich@me.com)	Now searching for the closing "</records>" tag using -1 as the start position	so that we're searching for the tag from the end of the payload.	Thanks to Daniel Smith (@FMweetbicks) for the suggestion.2014-04-24	Tim Dietrich (timdietrich@me.com)	Added support for repeating fields.2014-04-28	Tim Dietrich (timdietrich@me.com)	Added a variable that allows auto-enter calcs for "ES_UTC_Time" and "ES_Device_ID" to be	overwritten during the sync process.2014-05-03	Tim Dietrich (timdietrich@me.com)	Fixed bug that was causing the client's ES_UTC_Time from being pulled when processing	a record. Thanks to Paul Jansen at APJ Computing Solutions for finding this one. Good catch!2014-05-08	Tim Dietrich (timdietrich@me.com)	Optimized code that gets the next record.2014-05-15	Tim Dietrich (timdietrich@me.com)	Eliminated the need to copy the records portion of the payload to a distinct $records variable.	This should help to reduce the memory needed to process the payload, and should also slightly	increase performance.2014-06-02	Tim Dietrich (timdietrich@me.com)	Eliminates the empty find request when processing deletions.	Resolves bug enountered where, when a record is deleted, an additional record in the last	ES_ layout was also deleted.
+#################################################################################
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+Set Variable [ $~script.errorType; Value:"Module: EasySync Server" ]
+#
+#
+#
+#
+Loop
+# single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+#================================================================================
+If [ /* assign script parameter to local variables */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptParameter )	& "! = \"\" ] ; \"\" )") ) ]
+Exit Loop If [ Let ( [	theErrorCode = 2 ;	theErrorDescription = "Invalid Parameter" ;	theErrorInfo = "An error occurred when evaluating the script parameter as let notation" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+End If
+If [ IsEmpty ( $payload_segment_ids ) ]
+Exit Loop If [ Let ( [	theErrorCode = 2 ;	theErrorDescription = "Invalid Parameter" ;	theErrorInfo = "payload_segment_ids parameter was empty" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"LOAD SETTINGS" ]
+#================================================================================
 Perform Script [ “EasySync Server: Config: Load” ]
+Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
 #
-#Allow auto-enter calcs for "ES_UTC_Time" and "ES_Device_ID" to be overwritten during the sync process.
-Set Variable [ $script_override; Value:1 // Used to override auto-enter calculations. ]
 #
-#Prevent the user from aborting, and we'll handle errors, so suppress those...
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+#================================================================================
+Set Variable [ $script_override; Value:1 /* Allow auto-enter calcs for "ES_UTC_Time" and "ES_Device_ID" to be overwritten during the sync process. */ ]
+Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState ) ]
+Set Variable [ $AllowAbortState; Value:Get ( AllowAbortState ) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"MODIFY ENVIRONMENT" ]
+#================================================================================
 Allow User Abort [ Off ]
 Set Error Capture [ On ]
 #
-#Go to the Payload worksheet.
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"MODIFY CONTEXT" ]
+#================================================================================
 Go to Layout [ "EasySync_Payloads" ]
 #
 #
 #
-##############################################################################
-#BEGIN PAYLOAD CONSOLIDATION
-##############################################################################
-#
-#
-#
+#================================================================================
+Set Variable [ $~script.section; Value:"PAYLOAD CONSOLIDATION" ]
+#================================================================================
 #Create the consolidated payload based on the specified segment IDs.
-Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter ) ]
-If [ IsEmpty ( $payload_segment_ids ) ]
-If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
-Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "Sync Error: no Payload Segment IDs received."] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
-End If
-Exit Script [ Result: -1 ]
-End If
 Set Variable [ $i; Value:1 ]
 Set Variable [ $payload ]
 Loop
@@ -36,16 +87,15 @@ Enter Find Mode [  ]
 Set Field By Name [ "EasySync_Payloads::ES_Payload_UUID"; GetValue ( $payload_segment_ids ; $i ) ]
 Perform Find [  ]
 If [ Get ( FoundCount ) <> 1 ]
-If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
-Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "Sync Error: missing Payload Segment ID " & GetValue ( $payload_segment_ids ; $i )] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
-End If
-Exit Script [ Result: -2 & "." & $i ]
+# TODO: determine what error code to use here
+Exit Loop If [ Let ( [	theErrorCode = -1 ;	theErrorDescription = "missing Payload Segment ID " & GetValue ( $payload_segment_ids ; $i ) ;	theErrorInfo = "" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$i = " & Quote ( $i ) & " ;¶"] ;	True) ]
 End If
 Set Variable [ $payload; Value:$payload & EasySync_Payloads::Payload ]
 Delete Record/Request[ No dialog ]
 Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i > ValueCount ( $payload_segment_ids ) ]
 End Loop
+Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
 New Record/Request
 Set Field By Name [ "EasySync_Payloads::Payload"; $payload ]
 Set Field By Name [ "EasySync_Payloads::Payload_Type"; "Push Payload" ]
@@ -56,48 +106,35 @@ End If
 #
 #
 #
-##############################################################################
-#BEGIN PAYLOAD EVALUATION
-##############################################################################
-#
-#
-#
+#================================================================================
+Set Variable [ $~script.section; Value:"PAYLOAD EVALUATION" ]
+#================================================================================
 #Is the payload well-formed?
 If [ PatternCount ( $payload ; "<payload>" ) ≠ 1or PatternCount ( $payload ; "</payload>" ) ≠ 1or PatternCount ( $payload ; "<last_pull>" ) ≠ 1or PatternCount ( $payload ; "</last_pull>" ) ≠ 1or PatternCount ( $payload ; "<settings>" ) ≠ 1or PatternCount ( $payload ; "</settings>" ) ≠ 1or PatternCount ( $payload ; "<tables>" ) ≠ 1or PatternCount ( $payload ; "</tables>" ) ≠ 1or PatternCount ( $payload ; "<records>" ) ≠ PatternCount ( $payload ; "</records>" )or PatternCount ( $payload ; "<deletions>" ) ≠ PatternCount ( $payload ; "</deletions>" )or ( PatternCount ( $payload ; "<records>" ) = 0 and PatternCount ( $payload ; "<deletions>" ) = 0 ) ]
-If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
-Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "Sync Error: payload is malformed."] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
-End If
-If [ $$delete_payloads = "All" ]
-Delete Record/Request[ No dialog ]
-End If
-Exit Script [ Result: -3 ]
+# TODO: determine what error code to use here
+Exit Loop If [ Let ( [	theErrorCode = -1 ;	theErrorDescription = "Payload is malformed" ;	theErrorInfo = "" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$i = " & Quote ( $i ) & " ;¶"] ;	True) ]
 End If
 #
 #
 #
-##############################################################################
-#BEGIN PAYLOAD HEADER UNPACKING
-##############################################################################
-#
-#
-#
+#================================================================================
+Set Variable [ $~script.section; Value:"PAYLOAD HEADER UNPACKING" ]
+#================================================================================
 #Get the client's last pull time from the payload.
 #Note: This is an integer representing the UTC time that the client last peformed a pull. It is used for conflict resolution.
-Set Variable [ $last_pull_utc; Value:Let ( [beginning = Position ( $payload ; "<last_pull>¶" ; 1 ; 1 ) + 11;end = Position ( $payload ; "¶</last_pull>" ; 1 ; 1 );last_pull = Middle ( $payload ; beginning ; end - beginning );last_pull = Trim ( last_pull )];last_pull) ]
+Set Variable [ $last_pull_utc; Value:Let ( [	beginning = Position ( $payload ; "<last_pull>¶" ; 1 ; 1 ) + 11;	end = Position ( $payload ; "¶</last_pull>" ; beginning ; 1 );	last_pull = Middle ( $payload ; beginning ; end - beginning );	last_pull = Trim ( last_pull )] ;	last_pull) ]
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Last Pull: " & $last_pull_utc] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Get the payload settings.
-Set Variable [ $settings; Value:Let ( [beginning = Position ( $payload ; "<settings>¶" ; 1 ; 1 ) + 11;end = Position ( $payload ; "¶</settings>" ; 1 ; 1 );settings = Middle ( $payload ; beginning ; end - beginning );settings = Trim ( settings )];settings) ]
+Set Variable [ $settings; Value:Let ( [	beginning = Position ( $payload ; "<settings>¶" ; 1 ; 1 ) + 11;	end = Position ( $payload ; "¶</settings>" ; beginning ; 1 );	settings = Middle ( $payload ; beginning ; end - beginning );	settings = Trim ( settings )] ;	settings) ]
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Settings: " & $settings] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 If [ IsEmpty ( $settings ) ]
-If [ $$delete_payloads = "All" ]
-Delete Record/Request[ No dialog ]
-End If
-Exit Script [ Result: -4 ]
+# TODO: determine what error code to use here
+Exit Loop If [ Let ( [	theErrorCode = -1 ;	theErrorDescription = "Missing payload settings" ;	theErrorInfo = "" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
 End If
 Set Variable [ $field_delimiter; Value:GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 1 ) ]
 Set Variable [ $record_delimiter; Value:GetValue ( Substitute ( $settings ; "</setting>" ; ¶ ) ; 2 ) ]
@@ -114,16 +151,11 @@ Set Variable [ $additional_settings; Value:GetValue ( Substitute ( $settings ; "
 #
 #
 #
-##############################################################################
-#BEGIN RECORD PROCESSING
-##############################################################################
-#
-#
-#
+#================================================================================
+Set Variable [ $~script.section; Value:"RECORD PROCESSING" ]
+#================================================================================
 #If there are records in the payload...
 If [ PatternCount ( $payload; $record_delimiter ) > 1// not IsEmpty ( $records ) ]
-#
-#Note: There's no need to get the table information from the payload if we don't have records to process - so that code has moved here.
 #
 #Get the table info from the payload.
 Set Variable [ $tables; Value:Let ( [beginning = Position ( $payload ; "<tables>¶" ; 1 ; 1 ) + 9;end = Position ( $payload ; "¶</tables>" ; 1 ; 1 );tables = Middle ( $payload ; beginning ; end - beginning );tables = Trim ( tables );tables = Substitute ( tables ; "<table>" ; "" );tables = Substitute ( tables ; "</table>" ; "" )];tables) ]
@@ -131,10 +163,8 @@ If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Tables: " & $tables] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 If [ IsEmpty ( $tables ) ]
-If [ $$delete_payloads = "All" ]
-Delete Record/Request[ No dialog ]
-End If
-Exit Script [ Result: -5 ]
+# TODO: determine what error code to use here
+Exit Loop If [ Let ( [	theErrorCode = -1 ;	theErrorDescription = "Missing table information" ;	theErrorInfo = "" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
 End If
 #
 #Create field name value lists for each table.
@@ -157,7 +187,7 @@ Set Variable [ $previous_start; Value:0 ]
 Loop
 #
 #Get the record, formatted as a return-delimited value list.
-Set Variable [ $record; Value:Let ( [ // Note: The "+1" in the "beginning calc" is to account for the default carriage return imposed by ExectueSQL.beginning = If ( $previous_start > 0; Position ( $payload ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; "<records>¶"; 1; 1 ) + 10 );end = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 );$previous_start = end;record = Middle ( $payload ; beginning ; end - beginning );// Encode CRLFs that might be found in Base64-encoded container data.// This makes it easier to treat the fields as a return-delimited value list.record = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ; "[[CRLF]]" );// Encode any remaining newline characters.record = Substitute ( record ; ¶ ; "[[BR]]" );record = Substitute ( record ; $field_delimiter ; ¶ )];record) ]
+Set Variable [ $record; Value:Let ( [	 // Note: The "+1" in the "beginning calc" is to account for the default carriage return imposed by ExectueSQL.	beginning = If ( $previous_start > 0 ;		Position ( $payload ; $record_delimiter ; $previous_start ; 1 )			+ Length ( $record_delimiter ) + 1		;		Position ( $payload; "<records>¶"; 1; 1 ) + 10	) ;	end = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 );	$previous_start = end;	record = Middle ( $payload ; beginning ; end - beginning );	// Encode CRLFs that might be found in Base64-encoded container data.	// This makes it easier to treat the fields as a return-delimited value list.	record = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ; "[[CRLF]]" );	// Encode any remaining newline characters.	record = Substitute ( record ; ¶ ; "[[BR]]" );	record = Substitute ( record ; $field_delimiter ; ¶ )] ;	record) ]
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Record " & $i] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$record = " & Quote ( $record ) & " ;¶") ]
 End If
@@ -175,13 +205,13 @@ Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let
 End If
 #
 #Get the ES_Record_UUID value of this record.
-Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" custom function.// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/// Thanks Kevin!Let( [theList = $field_names;theValue = "ES_Record_UUID[1]";pLp = ¶ & theList & ¶ ;pVp = ¶ & theValue & ¶ ;thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;theSegment = Left ( pLp ; thePos ) ;theValPos = PatternCount ( theSegment ; ¶ )] ;GetValue ( $record ; theValPos )) ]
+Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" custom function.// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/// Thanks Kevin!Let( [	theList = $field_names;	theValue = "ES_Record_UUID[1]";	pLp = ¶ & theList & ¶ ;	pVp = ¶ & theValue & ¶ ;	thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;	theSegment = Left ( pLp ; thePos ) ;	theValPos = PatternCount ( theSegment ; ¶ )] ;	GetValue ( $record ; theValPos )) ]
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "ES_Record_UUID for Payload Record " & $i & ": " & $ES_Record_UUID] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
 #Get the client's ES_UTC_Time value of this record.
-Set Variable [ $ES_UTC_Time_Client; Value:Let( [theList = $field_names;theValue = "ES_UTC_Time[1]";pLp = ¶ & theList & ¶ ;pVp = ¶ & theValue & ¶ ;thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;theSegment = Left ( pLp ; thePos ) ;theValPos = PatternCount ( theSegment ; ¶ )] ;GetValue ( $record ; theValPos )) ]
+Set Variable [ $ES_UTC_Time_Client; Value:Let( [	theList = $field_names;	theValue = "ES_UTC_Time[1]";	pLp = ¶ & theList & ¶ ;	pVp = ¶ & theValue & ¶ ;	thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;	theSegment = Left ( pLp ; thePos ) ;	theValPos = PatternCount ( theSegment ; ¶ )] ;	GetValue ( $record ; theValPos )) ]
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "ES_UTC_Time for Payload Record " & $i & ": " & $ES_UTC_Time_Client] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
@@ -239,7 +269,7 @@ End If
 #If this is not a container...
 If [ Left ( $field_name ; 4 ) ≠ "B64_" ]
 #Get the value of the field.
-Set Variable [ $field_value; Value:Let ([value = If ( $field_name ≠ "ES_Device_ID[1]"; GetValue ( $record ; $f ); $client_persistent_id );value = Substitute ( value ; "[[BR]]" ; ¶ )];value) ]
+Set Variable [ $field_value; Value:Let ( [	value = If ( $field_name ≠ "ES_Device_ID[1]"; GetValue ( $record ; $f ); $client_persistent_id );	value = Substitute ( value ; "[[BR]]" ; ¶ )] ;	value) ]
 Else
 #Get the real name of the container field.
 Set Variable [ $field_name; Value:Right ( $field_name; Length ( $field_name ) - 4 ) ]
@@ -248,7 +278,7 @@ Set Variable [ $field_value; Value:GetValue ( $record ; $f ) ]
 #If the container field isn't empty...
 If [ not IsEmpty ( $field_value ) ]
 #Decode it.
-Set Variable [ $field_value; Value:Let ([value = $field_value;value = Substitute ( value ; "</b64>"; "" );fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );encoded = Substitute ( encoded ; "[[CRLF]]" ; Char ( 13 ) & Char ( 10 ) );decoded = Base64Decode ( encoded; fileNameWithExtension )];decoded) ]
+Set Variable [ $field_value; Value:Let ( [	value = $field_value;	value = Substitute ( value ; "</b64>"; "" );	fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );	encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );	encoded = Substitute ( encoded ; "[[CRLF]]" ; Char ( 13 ) & Char ( 10 ) );	decoded = Base64Decode ( encoded; fileNameWithExtension )] ;	decoded) ]
 End If
 End If
 #
@@ -281,21 +311,7 @@ End Loop
 #
 #If we could not set the field...
 If [ $LastError ≠ 0 ]
-#Rollback the changes.
-Revert Record/Request[ No dialog ]
-If [ $$delete_payloads = "All" ]
-Delete Record/Request[ No dialog ]
-End If
-#
-#Let's try to give the developer some help with common errors...
-If [ $LastError = 106 // Table is missing ]
-Set Variable [ $LastError; Value:"Table " & $table_name & " is missing. FileMaker Error Code 106." ]
-Else If [ $LastError = 102 // Field is missing ]
-Set Variable [ $LastError; Value:"Field " & $field_name & " is missing. FileMaker Error Code 102." ]
-End If
-#
-#Return the Error info to the caller.
-Exit Script [ Result: $LastError ]
+Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "when setting field: " & $table_name & "::" & $field_name ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
 End If
 #
 End If
@@ -305,6 +321,7 @@ Exit Loop If [ $f > ValueCount ( $field_names ) ]
 #
 End Loop
 #End loop that sets the fields.
+Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
 #
 End If
 #End "If we are to update the record."
@@ -314,35 +331,24 @@ Exit Loop If [ $i > ( PatternCount ( $payload; $record_delimiter ) - 1 ) ]
 #
 End Loop
 #End loop over the records.
+Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
 #
 #Try to commit the transaction.
 Commit Records/Requests[ No dialog ]
-#
-#If an error has occurred...
-Set Variable [ $LastError; Value:Get ( LastError ) ]
-If [ $LastError ≠ 0 ]
-#Rollback the changes.
-Revert Record/Request[ No dialog ]
-If [ $$delete_payloads = "All" ]
-Delete Record/Request[ No dialog ]
-End If
-#Return the Error info to the caller.
-Exit Script [ Result: $LastError ]
-End If
+Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after commit record step" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
 #
 End If
 #End "If there are records in the payload..."
 #
 #
 #
-##############################################################################
-#BEGIN DELETIONS PROCESSING
-##############################################################################
 #
 #
-#
+#================================================================================
+Set Variable [ $~script.section; Value:"DELETIONS PROCESSING" ]
+#================================================================================
 #Get the deletions from the payload.
-Set Variable [ $deletions; Value:Let ( [beginning = Position ( $payload ; "<deletions>¶" ; 1 ; 1 ) + 12;end = Position ( $payload ; "¶</deletions>" ; -1 ; 1 );deletions = Middle ( $payload ; beginning ; end - beginning );records = Trim ( deletions )];deletions) ]
+Set Variable [ $deletions; Value:Let ( [	beginning = Position ( $payload ; "<deletions>¶" ; 1 ; 1 ) + 12;	end = Position ( $payload ; "¶</deletions>" ; Length ( $payload ) ; -1 );	deletions = Middle ( $payload ; beginning ; end - beginning );	records = Trim ( deletions )] ;	deletions) ]
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Deletions: " & $deletions] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
@@ -350,16 +356,11 @@ End If
 #If there are deletions in the payload...
 If [ not IsEmpty ( $deletions ) ]
 #
-#It sure would be nice to have "DELETE" support in ExecuteSQL right about now. ;-)
-#
-#Get a list of the layouts.
-Set Variable [ $layouts; Value:LayoutNames ( Get ( FileName ) ) ]
-#
 #Loop over ES layouts to process deletions...
+Set Variable [ $layouts; Value:LayoutNames ( ""  /* empty string uses the current file */ ) ]
 Set Variable [ $l; Value:1 ]
 Loop
 #
-#Get the next layout.
 Set Variable [ $layout; Value:GetValue ( $layouts ; $l ) ]
 #
 #If this is a layout based on a sync table ("ES_")...
@@ -395,6 +396,7 @@ Exit Loop If [ $d > ValueCount ( $deletions ) ]
 New Record/Request
 #
 End Loop
+Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
 Perform Find [  ]
 #
 #Delete the records.
@@ -409,27 +411,55 @@ Exit Loop If [ $l > ValueCount ( $layouts ) ]
 #
 End Loop
 #End "Loop over ES layouts to process deletions..."
+Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
 #
 End If
 #
 #
 #
-##############################################################################
-#BEGIN CLEAN-UP
-##############################################################################
-#
-#
-#
-#Delete the payload.
-If [ $$delete_payloads = "All" or $$delete_payloads = "Successful" ]
+#================================================================================
+Set Variable [ $~script.section; Value:"CLEANUP" ]
+#================================================================================
+If [ $$delete_payloads = "Successful" ]
 Go to Layout [ "EasySync_Payloads" ]
 Delete Record/Request[ No dialog ]
 End If
 #
-#Return the success code to the caller. (A zero indicates that no problems were encountered during the process.)
-Exit Script [ Result: 0 ]
 #
 #
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+#================================================================================
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
+Revert Record/Request[ No dialog ]
+If [ $$delete_payloads = "All" ]
+Go to Layout [ "EasySync_Payloads" ]
+Delete Record/Request[ No dialog ]
+End If
+If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
+Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "exit script with error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$error = " & Quote ( $error ) & " ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
+End If
+Else
+If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
+End If
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶" ]
 #
 
 
@@ -438,74 +468,24 @@ Script:
   includeInMenu: 'False'
   runFullAccess: 'False'
   id: '8'
-  name: 'EasySync Server: Push: Process Payload'
+  name: 'EasySync Server: Push: Process Payload ( payload_segment_ids )'
   StepList:
     Step:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#Process Payload from Client:\nProcesses a payload that has been
-        pushed by the client.\n\nScript Results:\nPositive response codes greater
-        than 10000 indicate success, and the value is the UTC timestamp recorded on
-        the server when the process began. See below for details.\nPositive response
-        codes less than 10000 indicate a FileMaker error.\n-1 No payload segments
-        were found.\n-2.x Payload segment \"x\" is missing.\n-3 Payload is malformed.\n-4
-        Missing payload settings.\n-5 Missing table information.\n-6 No records. (Note:
-        As of Beta 10, we allow for payloads that do not have records.)\n\n\nHistory:\n\n2014-04-16\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tChanges to reflect move to UTC.\n\tMore granular
-        error codes added.\n\n2014-04-20\n\tTim Dietrich (timdietrich@me.com)\n\tModifications
-        to resolve \"simultaneous sync\" issue, support for record lock handling,
-        etc.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tWe're now only
-        setting fields that have actually changed.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tNow
-        searching for the closing \"</records>\" tag using -1 as the start position\n\tso
-        that we're searching for the tag from the end of the payload.\n\tThanks to
-        Daniel Smith (@FMweetbicks) for the suggestion.\n\n2014-04-24\n\tTim Dietrich
-        (timdietrich@me.com)\n\tAdded support for repeating fields.\n\n2014-04-28\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded a variable that allows auto-enter calcs
-        for \"ES_UTC_Time\" and \"ES_Device_ID\" to be\n\toverwritten during the sync
-        process.\n\n2014-05-03\n\tTim Dietrich (timdietrich@me.com)\n\tFixed bug that
-        was causing the client's ES_UTC_Time from being pulled when processing\n\ta
-        record. Thanks to Paul Jansen at APJ Computing Solutions for finding this
-        one. Good catch!\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
-        code that gets the next record.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tEliminated
-        the need to copy the records portion of the payload to a distinct $records
-        variable.\n\tThis should help to reduce the memory needed to process the payload,
-        and should also slightly\n\tincrease performance.\n\n2014-06-02\n\tTim Dietrich
-        (timdietrich@me.com)\n\tEliminates the empty find request when processing
-        deletions.\n\tResolves bug enountered where, when a record is deleted, an
-        additional record in the last\n\tES_ layout was also deleted.\n"
-      Text: "Process Payload from Client:\nProcesses a payload that has been pushed
-        by the client.\n\nScript Results:\nPositive response codes greater than 10000
-        indicate success, and the value is the UTC timestamp recorded on the server
-        when the process began. See below for details.\nPositive response codes less
-        than 10000 indicate a FileMaker error.\n-1 No payload segments were found.\n-2.x
-        Payload segment \"x\" is missing.\n-3 Payload is malformed.\n-4 Missing payload
-        settings.\n-5 Missing table information.\n-6 No records. (Note: As of Beta
-        10, we allow for payloads that do not have records.)\n\n\nHistory:\n\n2014-04-16\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tInitial version.\n\n2014-04-18\t\t\n\tTim
-        Dietrich (timdietrich@me.com)\n\tChanges to reflect move to UTC.\n\tMore granular
-        error codes added.\n\n2014-04-20\n\tTim Dietrich (timdietrich@me.com)\n\tModifications
-        to resolve \"simultaneous sync\" issue, support for record lock handling,
-        etc.\n\n2014-04-21\n\tTim Dietrich (timdietrich@me.com)\n\tWe're now only
-        setting fields that have actually changed.\n\n2014-04-22\n\tTim Dietrich (timdietrich@me.com)\n\tNow
-        searching for the closing \"</records>\" tag using -1 as the start position\n\tso
-        that we're searching for the tag from the end of the payload.\n\tThanks to
-        Daniel Smith (@FMweetbicks) for the suggestion.\n\n2014-04-24\n\tTim Dietrich
-        (timdietrich@me.com)\n\tAdded support for repeating fields.\n\n2014-04-28\n\tTim
-        Dietrich (timdietrich@me.com)\n\tAdded a variable that allows auto-enter calcs
-        for \"ES_UTC_Time\" and \"ES_Device_ID\" to be\n\toverwritten during the sync
-        process.\n\n2014-05-03\n\tTim Dietrich (timdietrich@me.com)\n\tFixed bug that
-        was causing the client's ES_UTC_Time from being pulled when processing\n\ta
-        record. Thanks to Paul Jansen at APJ Computing Solutions for finding this
-        one. Good catch!\n\n2014-05-08\n\tTim Dietrich (timdietrich@me.com)\n\tOptimized
-        code that gets the next record.\n\n2014-05-15\n\tTim Dietrich (timdietrich@me.com)\n\tEliminated
-        the need to copy the records portion of the payload to a distinct $records
-        variable.\n\tThis should help to reduce the memory needed to process the payload,
-        and should also slightly\n\tincrease performance.\n\n2014-06-02\n\tTim Dietrich
-        (timdietrich@me.com)\n\tEliminates the empty find request when processing
-        deletions.\n\tResolves bug enountered where, when a record is deleted, an
-        additional record in the last\n\tES_ layout was also deleted.\n"
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Processes a payload that has been pushed by the client.'
+      Text: '    Processes a payload that has been pushed by the client.'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -513,8 +493,442 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Load settings.'
-      Text: Load settings.
+      StepText: '# CONTEXT: EasySync_Payloads'
+      Text: ' CONTEXT: EasySync_Payloads'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: (let notation format)'
+      Text: ' PARAMETERS: (let notation format)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $payload_segment_ids | value list | of payload id''s containing
+        the data to process'
+      Text: '    $payload_segment_ids | value list | of payload id''s containing the
+        data to process'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $error | a dictionary containing error data'
+      Text: '    $error | a dictionary containing error data'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+      Text: '    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# VARIABLES:'
+      Text: ' VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tChanges
+        to reflect move to UTC.\n\tMore granular error codes added.\n\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tModifications to resolve \"simultaneous sync\"
+        issue, support for record lock handling, etc.\n\n2014-04-21\n\tTim Dietrich
+        (timdietrich@me.com)\n\tWe're now only setting fields that have actually changed.\n\n2014-04-22\n\tTim
+        Dietrich (timdietrich@me.com)\n\tNow searching for the closing \"</records>\"
+        tag using -1 as the start position\n\tso that we're searching for the tag
+        from the end of the payload.\n\tThanks to Daniel Smith (@FMweetbicks) for
+        the suggestion.\n\n2014-04-24\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        a variable that allows auto-enter calcs for \"ES_UTC_Time\" and \"ES_Device_ID\"
+        to be\n\toverwritten during the sync process.\n\n2014-05-03\n\tTim Dietrich
+        (timdietrich@me.com)\n\tFixed bug that was causing the client's ES_UTC_Time
+        from being pulled when processing\n\ta record. Thanks to Paul Jansen at APJ
+        Computing Solutions for finding this one. Good catch!\n\n2014-05-08\n\tTim
+        Dietrich (timdietrich@me.com)\n\tOptimized code that gets the next record.\n\n2014-05-15\n\tTim
+        Dietrich (timdietrich@me.com)\n\tEliminated the need to copy the records portion
+        of the payload to a distinct $records variable.\n\tThis should help to reduce
+        the memory needed to process the payload, and should also slightly\n\tincrease
+        performance.\n\n2014-06-02\n\tTim Dietrich (timdietrich@me.com)\n\tEliminates
+        the empty find request when processing deletions.\n\tResolves bug enountered
+        where, when a record is deleted, an additional record in the last\n\tES_ layout
+        was also deleted.\n"
+      Text: "    \n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tChanges
+        to reflect move to UTC.\n\tMore granular error codes added.\n\n2014-04-20\n\tTim
+        Dietrich (timdietrich@me.com)\n\tModifications to resolve \"simultaneous sync\"
+        issue, support for record lock handling, etc.\n\n2014-04-21\n\tTim Dietrich
+        (timdietrich@me.com)\n\tWe're now only setting fields that have actually changed.\n\n2014-04-22\n\tTim
+        Dietrich (timdietrich@me.com)\n\tNow searching for the closing \"</records>\"
+        tag using -1 as the start position\n\tso that we're searching for the tag
+        from the end of the payload.\n\tThanks to Daniel Smith (@FMweetbicks) for
+        the suggestion.\n\n2014-04-24\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        support for repeating fields.\n\n2014-04-28\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        a variable that allows auto-enter calcs for \"ES_UTC_Time\" and \"ES_Device_ID\"
+        to be\n\toverwritten during the sync process.\n\n2014-05-03\n\tTim Dietrich
+        (timdietrich@me.com)\n\tFixed bug that was causing the client's ES_UTC_Time
+        from being pulled when processing\n\ta record. Thanks to Paul Jansen at APJ
+        Computing Solutions for finding this one. Good catch!\n\n2014-05-08\n\tTim
+        Dietrich (timdietrich@me.com)\n\tOptimized code that gets the next record.\n\n2014-05-15\n\tTim
+        Dietrich (timdietrich@me.com)\n\tEliminated the need to copy the records portion
+        of the payload to a distinct $records variable.\n\tThis should help to reduce
+        the memory needed to process the payload, and should also slightly\n\tincrease
+        performance.\n\n2014-06-02\n\tTim Dietrich (timdietrich@me.com)\n\tEliminates
+        the empty find request when processing deletions.\n\tResolves bug enountered
+        where, when a record is deleted, an additional record in the last\n\tES_ layout
+        was also deleted.\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.errorType; Value:"Module: EasySync Server"
+        ]'
+      Value:
+        Calculation: '"Module: EasySync Server"'
+        DisplayCalculation:
+          Chunk: '"Module: EasySync Server"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.errorType
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# single-pass loop for error trapping'
+      Text: ' single-pass loop for error trapping'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+      Value:
+        Calculation: '"ASSIGN PARAMETERS"'
+        DisplayCalculation:
+          Chunk: '"ASSIGN PARAMETERS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* assign script parameter to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) ) ]"
+      Calculation: "/* assign script parameter to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* assign script parameter to local variables */
+
+        - EvaluationError
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& "
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription
+        = \"Invalid Parameter\" ;\n\ttheErrorInfo = \"An error occurred when evaluating
+        the script parameter as let notation\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription = \"Invalid
+        Parameter\" ;\n\ttheErrorInfo = \"An error occurred when evaluating the script
+        parameter as let notation\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+        = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode =
+        \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription
+        ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription = \"Invalid Parameter\"
+          ;\n\ttheErrorInfo = \"An error occurred when evaluating the script parameter
+          as let notation\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+          = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $payload_segment_ids ) ]
+      Calculation: IsEmpty ( $payload_segment_ids )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $payload_segment_ids )'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription
+        = \"Invalid Parameter\" ;\n\ttheErrorInfo = \"payload_segment_ids parameter
+        was empty\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription ) &
+        \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription = \"Invalid
+        Parameter\" ;\n\ttheErrorInfo = \"payload_segment_ids parameter was empty\"
+        ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error = \"$errorType = \"
+        & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode &
+        \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription ) & \"
+        ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = 2 ;\n\ttheErrorDescription = \"Invalid Parameter\"
+          ;\n\ttheErrorInfo = \"payload_segment_ids parameter was empty\" ;\n\ttheErrorType
+          = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"LOAD SETTINGS" ]
+      Value:
+        Calculation: '"LOAD SETTINGS"'
+        DisplayCalculation:
+          Chunk: '"LOAD SETTINGS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '1'
       name: Perform Script
@@ -523,42 +937,203 @@ Script:
         id: '19'
         name: 'EasySync Server: Config: Load'
     - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
+        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
+        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+        = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType )
+        & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
+        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
+        the description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+        = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType )
+        & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " ( [\n\t\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
+          description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+          = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Allow auto-enter calcs for "ES_UTC_Time" and "ES_Device_ID" to be
-        overwritten during the sync process.'
-      Text: Allow auto-enter calcs for "ES_UTC_Time" and "ES_Device_ID" to be overwritten
-        during the sync process.
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $script_override; Value:1 // Used to override auto-enter
-        calculations. ]
+      StepText: Set Variable [ $~script.section; Value:"SET VARIABLES" ]
       Value:
-        Calculation: 1 // Used to override auto-enter calculations.
+        Calculation: '"SET VARIABLES"'
         DisplayCalculation:
-          Chunk:
-          - '1 '
-          - // Used to override auto-enter calculations.
+          Chunk: '"SET VARIABLES"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $script_override; Value:1 \n\n/* Allow auto-enter
+        calcs for \"ES_UTC_Time\" and \"ES_Device_ID\" to be overwritten during the
+        sync process. */ ]"
+      Value:
+        Calculation: "1 \n\n/* Allow auto-enter calcs for \"ES_UTC_Time\" and \"ES_Device_ID\"
+          to be overwritten during the sync process. */"
+        DisplayCalculation:
+          Chunk: "1 \n\n/* Allow auto-enter calcs for \"ES_UTC_Time\" and \"ES_Device_ID\"
+            to be overwritten during the sync process. */"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
       Name: $script_override
     - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState )
+        ]
+      Value:
+        Calculation: Get ( ErrorCaptureState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ErrorCaptureState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ErrorCaptureState
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $AllowAbortState; Value:Get ( AllowAbortState ) ]
+      Value:
+        Calculation: Get ( AllowAbortState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - AllowAbortState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $AllowAbortState
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Prevent the user from aborting, and we''ll handle errors, so suppress
-        those...'
-      Text: Prevent the user from aborting, and we'll handle errors, so suppress those...
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"MODIFY ENVIRONMENT" ]
+      Value:
+        Calculation: '"MODIFY ENVIRONMENT"'
+        DisplayCalculation:
+          Chunk: '"MODIFY ENVIRONMENT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '85'
       name: Allow User Abort
@@ -578,8 +1153,34 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Go to the Payload worksheet.'
-      Text: Go to the Payload worksheet.
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"MODIFY CONTEXT" ]
+      Value:
+        Calculation: '"MODIFY CONTEXT"'
+        DisplayCalculation:
+          Chunk: '"MODIFY CONTEXT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '6'
       name: Go to Layout
@@ -605,134 +1206,31 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"PAYLOAD CONSOLIDATION" ]
+      Value:
+        Calculation: '"PAYLOAD CONSOLIDATION"'
+        DisplayCalculation:
+          Chunk: '"PAYLOAD CONSOLIDATION"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#BEGIN PAYLOAD CONSOLIDATION'
-      Text: BEGIN PAYLOAD CONSOLIDATION
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#Create the consolidated payload based on the specified segment IDs.'
       Text: Create the consolidated payload based on the specified segment IDs.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter )
-        ]
-      Value:
-        Calculation: Get ( ScriptParameter )
-        DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - ScriptParameter
-          - ' )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $payload_segment_ids
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ IsEmpty ( $payload_segment_ids ) ]
-      Calculation: IsEmpty ( $payload_segment_ids )
-      DisplayCalculation:
-        Chunk:
-        - IsEmpty
-        - ' ( $payload_segment_ids )'
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
-      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
-      DisplayCalculation:
-        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
-    - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
-        Let ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: no Payload Segment
-        IDs received.\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
-        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
-        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
-      Calculation: "Let ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: no Payload
-        Segment IDs received.\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t&
-        \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \"
-        & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote
-        ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
-        \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
-        ) & \" ) ;¶\"\n)"
-      DisplayCalculation:
-        Chunk:
-        - Let
-        - " ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: no Payload Segment
-          IDs received.\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
-          = \" & "
-        - Quote
-        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptName
-        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
-        - Quote
-        - ' ( '
-        - GetAsTimestamp
-        - ' ( '
-        - Get
-        - ' ( '
-        - CurrentTimeUTCMilliseconds
-        - |2-
-           ) / 1000 ) ) & " ) ;¶"
-          )
-      Script:
-        id: '36'
-        name: 'EasySync Server: Config: Create Log Entry'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: -1 ]'
-      Calculation: '-1'
-      DisplayCalculation:
-        Chunk: '-1'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -800,40 +1298,62 @@ Script:
         - FoundCount
         - ' ) <> 1'
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
-      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
-      DisplayCalculation:
-        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
+      id: '89'
+      name: Comment
+      StepText: '# TODO: determine what error code to use here'
+      Text: ' TODO: determine what error code to use here'
     - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
-        Let ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: missing Payload Segment
-        ID \" & GetValue ( $payload_segment_ids ; $i )\n] ;\n\t\"$LogLevel = \" &
-        ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t&
-        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter
-        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
-        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
-        ) ) & \" ) ;¶\"\n) ]"
-      Calculation: "Let ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: missing
-        Payload Segment ID \" & GetValue ( $payload_segment_ids ; $i )\n] ;\n\t\"$LogLevel
-        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
-        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
-        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
-        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
-        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription
+        = \"missing Payload Segment ID \" & GetValue ( $payload_segment_ids ; $i )
+        ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+        = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode =
+        \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription
+        ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n\n\t& \"$i = \" & Quote ( $i ) & \"
+        ;¶\"\n] ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"missing
+        Payload Segment ID \" & GetValue ( $payload_segment_ids ; $i ) ;\n\ttheErrorInfo
+        = \"\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription ) &
+        \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n\n\t& \"$i = \" & Quote ( $i ) & \"
+        ;¶\"\n] ;\n\tTrue\n)"
       DisplayCalculation:
         Chunk:
         - Let
-        - " ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: missing Payload Segment
-          ID \" & "
+        - " ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"missing Payload
+          Segment ID \" & "
         - GetValue
-        - " ( $payload_segment_ids ; $i )\n] ;\n\t\"$LogLevel = \" & ~logLevel & \"
-          ;¶\"\n\t& \"$logMessage = \" & "
+        - " ( $payload_segment_ids ; $i ) ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType
+          = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & "
         - Quote
-        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
         - Quote
         - ' ( '
         - Get
@@ -845,31 +1365,15 @@ Script:
         - Get
         - ' ( '
         - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
         - Quote
-        - ' ( '
-        - GetAsTimestamp
-        - ' ( '
-        - Get
-        - ' ( '
-        - CurrentTimeUTCMilliseconds
+        - " ( $~script.section ) & \" ;¶\"\n\n\t& \"$i = \" & "
+        - Quote
+        - " ( $i ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
         - |2-
-           ) / 1000 ) ) & " ) ;¶"
+
           )
-      Script:
-        id: '36'
-        name: 'EasySync Server: Config: Create Log Entry'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: -2 & "." & $i ]'
-      Calculation: -2 & "." & $i
-      DisplayCalculation:
-        Chunk: -2 & "." & $i
     - enable: 'True'
       id: '70'
       name: End If
@@ -929,6 +1433,26 @@ Script:
       id: '73'
       name: End Loop
       StepText: End Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /**\n * An error occurred in the above loop\n *\n
+        * assign error info to local variables\n * then evaluate the errorCode as
+        a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t&
+        \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * An error occurred in the above loop\n *\n * assign error
+        info to local variables\n * then evaluate the errorCode as a Boolean\n * \n
+        */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\"
+        ] ; \\\"$errorCode\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * An error occurred in the above loop\n *\n * assign error info to
+          local variables\n * then evaluate the errorCode as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
     - enable: 'True'
       id: '7'
       name: New Record/Request
@@ -1048,30 +1572,26 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"PAYLOAD EVALUATION" ]
+      Value:
+        Calculation: '"PAYLOAD EVALUATION"'
+        DisplayCalculation:
+          Chunk: '"PAYLOAD EVALUATION"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#BEGIN PAYLOAD EVALUATION'
-      Text: BEGIN PAYLOAD EVALUATION
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1177,35 +1697,58 @@ Script:
         - PatternCount
         - ' ( $payload ; "<deletions>" ) = 0 )'
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
-      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
-      DisplayCalculation:
-        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
+      id: '89'
+      name: Comment
+      StepText: '# TODO: determine what error code to use here'
+      Text: ' TODO: determine what error code to use here'
     - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
-        Let ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: payload is malformed.\"\n]
-        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
-        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
-        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
-      Calculation: "Let ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: payload
-        is malformed.\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
-        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
-        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n)"
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription
+        = \"Payload is malformed\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n\n\t&
+        \"$i = \" & Quote ( $i ) & \" ;¶\"\n] ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Payload
+        is malformed\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n\n\t&
+        \"$i = \" & Quote ( $i ) & \" ;¶\"\n] ;\n\tTrue\n)"
       DisplayCalculation:
         Chunk:
         - Let
-        - " ( [\n\t~logLevel = 2 ;\n\t~message = \"Sync Error: payload is malformed.\"\n]
-          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - " ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Payload is malformed\"
+          ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+          = \"$errorType = \" & "
         - Quote
-        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
         - Quote
         - ' ( '
         - Get
@@ -1217,50 +1760,15 @@ Script:
         - Get
         - ' ( '
         - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
         - Quote
-        - ' ( '
-        - GetAsTimestamp
-        - ' ( '
-        - Get
-        - ' ( '
-        - CurrentTimeUTCMilliseconds
+        - " ( $~script.section ) & \" ;¶\"\n\n\t& \"$i = \" & "
+        - Quote
+        - " ( $i ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
         - |2-
-           ) / 1000 ) ) & " ) ;¶"
+
           )
-      Script:
-        id: '36'
-        name: 'EasySync Server: Config: Create Log Entry'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$delete_payloads = "All" ]
-      Calculation: $$delete_payloads = "All"
-      DisplayCalculation:
-        Chunk: $$delete_payloads = "All"
-    - enable: 'True'
-      id: '9'
-      name: Delete Record/Request
-      StepText: |-
-        Delete Record/Request
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: -3 ]'
-      Calculation: '-3'
-      DisplayCalculation:
-        Chunk: '-3'
     - enable: 'True'
       id: '70'
       name: End If
@@ -1280,30 +1788,27 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"PAYLOAD HEADER UNPACKING"
+        ]
+      Value:
+        Calculation: '"PAYLOAD HEADER UNPACKING"'
+        DisplayCalculation:
+          Chunk: '"PAYLOAD HEADER UNPACKING"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#BEGIN PAYLOAD HEADER UNPACKING'
-      Text: BEGIN PAYLOAD HEADER UNPACKING
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1319,31 +1824,28 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $last_pull_utc; Value:Let ( \n[\nbeginning = Position
-        ( $payload ; \"<last_pull>¶\" ; 1 ; 1 ) + 11;\nend = Position ( $payload ;
-        \"¶</last_pull>\" ; 1 ; 1 );\nlast_pull = Middle ( $payload ; beginning ;
-        end - beginning );\nlast_pull = Trim ( last_pull )\n];\nlast_pull\n) ]"
+      StepText: "Set Variable [ $last_pull_utc; Value:Let ( [\n\tbeginning = Position
+        ( $payload ; \"<last_pull>¶\" ; 1 ; 1 ) + 11;\n\tend = Position ( $payload
+        ; \"¶</last_pull>\" ; beginning ; 1 );\n\tlast_pull = Middle ( $payload ;
+        beginning ; end - beginning );\n\tlast_pull = Trim ( last_pull )\n] ;\n\tlast_pull\n)
+        ]"
       Value:
-        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<last_pull>¶\"
-          ; 1 ; 1 ) + 11;\nend = Position ( $payload ; \"¶</last_pull>\" ; 1 ; 1 );\nlast_pull
-          = Middle ( $payload ; beginning ; end - beginning );\nlast_pull = Trim (
-          last_pull )\n];\nlast_pull\n)"
+        Calculation: "Let ( [\n\tbeginning = Position ( $payload ; \"<last_pull>¶\"
+          ; 1 ; 1 ) + 11;\n\tend = Position ( $payload ; \"¶</last_pull>\" ; beginning
+          ; 1 );\n\tlast_pull = Middle ( $payload ; beginning ; end - beginning );\n\tlast_pull
+          = Trim ( last_pull )\n] ;\n\tlast_pull\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - " ( \n[\nbeginning = "
+          - " ( [\n\tbeginning = "
           - Position
-          - " ( $payload ; \"<last_pull>¶\" ; 1 ; 1 ) + 11;\nend = "
+          - " ( $payload ; \"<last_pull>¶\" ; 1 ; 1 ) + 11;\n\tend = "
           - Position
-          - " ( $payload ; \"¶</last_pull>\" ; 1 ; 1 );\nlast_pull = "
+          - " ( $payload ; \"¶</last_pull>\" ; beginning ; 1 );\n\tlast_pull = "
           - Middle
-          - " ( $payload ; beginning ; end - beginning );\nlast_pull = "
+          - " ( $payload ; beginning ; end - beginning );\n\tlast_pull = "
           - Trim
-          - |2-
-             ( last_pull )
-            ];
-            last_pull
-            )
+          - " ( last_pull )\n] ;\n\tlast_pull\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1420,31 +1922,27 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $settings; Value:Let ( \n[\nbeginning = Position (
-        $payload ; \"<settings>¶\" ; 1 ; 1 ) + 11;\nend = Position ( $payload ; \"¶</settings>\"
-        ; 1 ; 1 );\nsettings = Middle ( $payload ; beginning ; end - beginning );\nsettings
-        = Trim ( settings )\n];\nsettings\n) ]"
+      StepText: "Set Variable [ $settings; Value:Let ( [\n\tbeginning = Position (
+        $payload ; \"<settings>¶\" ; 1 ; 1 ) + 11;\n\tend = Position ( $payload ;
+        \"¶</settings>\" ; beginning ; 1 );\n\tsettings = Middle ( $payload ; beginning
+        ; end - beginning );\n\tsettings = Trim ( settings )\n] ;\n\tsettings\n) ]"
       Value:
-        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<settings>¶\"
-          ; 1 ; 1 ) + 11;\nend = Position ( $payload ; \"¶</settings>\" ; 1 ; 1 );\nsettings
-          = Middle ( $payload ; beginning ; end - beginning );\nsettings = Trim (
-          settings )\n];\nsettings\n)"
+        Calculation: "Let ( [\n\tbeginning = Position ( $payload ; \"<settings>¶\"
+          ; 1 ; 1 ) + 11;\n\tend = Position ( $payload ; \"¶</settings>\" ; beginning
+          ; 1 );\n\tsettings = Middle ( $payload ; beginning ; end - beginning );\n\tsettings
+          = Trim ( settings )\n] ;\n\tsettings\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - " ( \n[\nbeginning = "
+          - " ( [\n\tbeginning = "
           - Position
-          - " ( $payload ; \"<settings>¶\" ; 1 ; 1 ) + 11;\nend = "
+          - " ( $payload ; \"<settings>¶\" ; 1 ; 1 ) + 11;\n\tend = "
           - Position
-          - " ( $payload ; \"¶</settings>\" ; 1 ; 1 );\nsettings = "
+          - " ( $payload ; \"¶</settings>\" ; beginning ; 1 );\n\tsettings = "
           - Middle
-          - " ( $payload ; beginning ; end - beginning );\nsettings = "
+          - " ( $payload ; beginning ; end - beginning );\n\tsettings = "
           - Trim
-          - |2-
-             ( settings )
-            ];
-            settings
-            )
+          - " ( settings )\n] ;\n\tsettings\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1519,31 +2017,76 @@ Script:
         - IsEmpty
         - ' ( $settings )'
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$delete_payloads = "All" ]
-      Calculation: $$delete_payloads = "All"
+      id: '89'
+      name: Comment
+      StepText: '# TODO: determine what error code to use here'
+      Text: ' TODO: determine what error code to use here'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription
+        = \"Missing payload settings\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Missing
+        payload settings\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n)"
       DisplayCalculation:
-        Chunk: $$delete_payloads = "All"
-    - enable: 'True'
-      id: '9'
-      name: Delete Record/Request
-      StepText: |-
-        Delete Record/Request
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: -4 ]'
-      Calculation: '-4'
-      DisplayCalculation:
-        Chunk: '-4'
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Missing payload
+          settings\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+          ;\n\t\n\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
     - enable: 'True'
       id: '70'
       name: End If
@@ -1779,30 +2322,26 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"RECORD PROCESSING" ]
+      Value:
+        Calculation: '"RECORD PROCESSING"'
+        DisplayCalculation:
+          Chunk: '"RECORD PROCESSING"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#BEGIN RECORD PROCESSING'
-      Text: BEGIN RECORD PROCESSING
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1826,17 +2365,6 @@ Script:
            ( $payload; $record_delimiter ) > 1
 
         - // not IsEmpty ( $records )
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Note: There''s no need to get the table information from the payload
-        if we don''t have records to process - so that code has moved here.'
-      Text: 'Note: There''s no need to get the table information from the payload
-        if we don''t have records to process - so that code has moved here.'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1954,31 +2482,76 @@ Script:
         - IsEmpty
         - ' ( $tables )'
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$delete_payloads = "All" ]
-      Calculation: $$delete_payloads = "All"
+      id: '89'
+      name: Comment
+      StepText: '# TODO: determine what error code to use here'
+      Text: ' TODO: determine what error code to use here'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription
+        = \"Missing table information\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Missing
+        table information\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n)"
       DisplayCalculation:
-        Chunk: $$delete_payloads = "All"
-    - enable: 'True'
-      id: '9'
-      name: Delete Record/Request
-      StepText: |-
-        Delete Record/Request
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: -5 ]'
-      Calculation: '-5'
-      DisplayCalculation:
-        Chunk: '-5'
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Missing table information\"
+          ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+          = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
     - enable: 'True'
       id: '70'
       name: End If
@@ -2213,75 +2786,73 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $record; Value:Let ( \n[\n // Note: The \"+1\" in
+      StepText: "Set Variable [ $record; Value:Let ( [\n\t // Note: The \"+1\" in
         the \"beginning calc\" is to account for the default carriage return imposed
-        by ExectueSQL.\nbeginning = If ( $previous_start > 0; Position ( $payload
-        ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter )
-        + 1; Position ( $payload; \"<records>¶\"; 1; 1 ) + 10 );\nend = Position (
-        $payload ; $record_delimiter ; 1 ; $i + 1 );\n$previous_start = end;\nrecord
-        = Middle ( $payload ; beginning ; end - beginning );\n// Encode CRLFs that
-        might be found in Base64-encoded container data.\n// This makes it easier
-        to treat the fields as a return-delimited value list.\nrecord = Substitute
-        ( record ; Char ( 13 ) & Char ( 10 ) ; \"[[CRLF]]\" );\n// Encode any remaining
-        newline characters.\nrecord = Substitute ( record ; ¶ ; \"[[BR]]\" );\nrecord
-        = Substitute ( record ; $field_delimiter ; ¶ )\n];\nrecord\n) ]"
+        by ExectueSQL.\n\tbeginning = If ( $previous_start > 0 ;\n\t\tPosition ( $payload
+        ; $record_delimiter ; $previous_start ; 1 )\n\t\t\t+ Length ( $record_delimiter
+        ) + 1\n\t\t;\n\t\tPosition ( $payload; \"<records>¶\"; 1; 1 ) + 10\n\t) ;\n\tend
+        = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 );\n\t$previous_start
+        = end;\n\trecord = Middle ( $payload ; beginning ; end - beginning );\n\t//
+        Encode CRLFs that might be found in Base64-encoded container data.\n\t// This
+        makes it easier to treat the fields as a return-delimited value list.\n\trecord
+        = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ; \"[[CRLF]]\" );\n\t//
+        Encode any remaining newline characters.\n\trecord = Substitute ( record ;
+        ¶ ; \"[[BR]]\" );\n\trecord = Substitute ( record ; $field_delimiter ; ¶ )\n]
+        ;\n\trecord\n) ]"
       Value:
-        Calculation: "Let ( \n[\n // Note: The \"+1\" in the \"beginning calc\" is
-          to account for the default carriage return imposed by ExectueSQL.\nbeginning
-          = If ( $previous_start > 0; Position ( $payload ; $record_delimiter ; $previous_start
-          ; 1 ) + Length ( $record_delimiter ) + 1; Position ( $payload; \"<records>¶\";
-          1; 1 ) + 10 );\nend = Position ( $payload ; $record_delimiter ; 1 ; $i +
-          1 );\n$previous_start = end;\nrecord = Middle ( $payload ; beginning ; end
-          - beginning );\n// Encode CRLFs that might be found in Base64-encoded container
-          data.\n// This makes it easier to treat the fields as a return-delimited
-          value list.\nrecord = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ;
-          \"[[CRLF]]\" );\n// Encode any remaining newline characters.\nrecord = Substitute
-          ( record ; ¶ ; \"[[BR]]\" );\nrecord = Substitute ( record ; $field_delimiter
-          ; ¶ )\n];\nrecord\n)"
+        Calculation: "Let ( [\n\t // Note: The \"+1\" in the \"beginning calc\" is
+          to account for the default carriage return imposed by ExectueSQL.\n\tbeginning
+          = If ( $previous_start > 0 ;\n\t\tPosition ( $payload ; $record_delimiter
+          ; $previous_start ; 1 )\n\t\t\t+ Length ( $record_delimiter ) + 1\n\t\t;\n\t\tPosition
+          ( $payload; \"<records>¶\"; 1; 1 ) + 10\n\t) ;\n\tend = Position ( $payload
+          ; $record_delimiter ; 1 ; $i + 1 );\n\t$previous_start = end;\n\trecord
+          = Middle ( $payload ; beginning ; end - beginning );\n\t// Encode CRLFs
+          that might be found in Base64-encoded container data.\n\t// This makes it
+          easier to treat the fields as a return-delimited value list.\n\trecord =
+          Substitute ( record ; Char ( 13 ) & Char ( 10 ) ; \"[[CRLF]]\" );\n\t//
+          Encode any remaining newline characters.\n\trecord = Substitute ( record
+          ; ¶ ; \"[[BR]]\" );\n\trecord = Substitute ( record ; $field_delimiter ;
+          ¶ )\n] ;\n\trecord\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - " ( \n[\n "
+          - " ( [\n\t "
           - |
             // Note: The "+1" in the "beginning calc" is to account for the default carriage return imposed by ExectueSQL.
-          - 'beginning = '
+          - "\tbeginning = "
           - If
-          - ' ( $previous_start > 0; '
+          - " ( $previous_start > 0 ;\n\t\t"
           - Position
-          - ' ( $payload ; $record_delimiter ; $previous_start ; 1 ) + '
+          - " ( $payload ; $record_delimiter ; $previous_start ; 1 )\n\t\t\t+ "
           - Length
-          - ' ( $record_delimiter ) + 1; '
+          - " ( $record_delimiter ) + 1\n\t\t;\n\t\t"
           - Position
-          - " ( $payload; \"<records>¶\"; 1; 1 ) + 10 );\nend = "
+          - " ( $payload; \"<records>¶\"; 1; 1 ) + 10\n\t) ;\n\tend = "
           - Position
-          - " ( $payload ; $record_delimiter ; 1 ; $i + 1 );\n$previous_start = end;\nrecord
-            = "
+          - " ( $payload ; $record_delimiter ; 1 ; $i + 1 );\n\t$previous_start =
+            end;\n\trecord = "
           - Middle
-          - |2
-             ( $payload ; beginning ; end - beginning );
+          - " ( $payload ; beginning ; end - beginning );\n\t"
           - |
             // Encode CRLFs that might be found in Base64-encoded container data.
+          - type: NoRef
+            __content__: "\t"
           - |
             // This makes it easier to treat the fields as a return-delimited value list.
-          - 'record = '
+          - "\trecord = "
           - Substitute
           - ' ( record ; '
           - Char
           - ' ( 13 ) & '
           - Char
-          - |2
-             ( 10 ) ; "[[CRLF]]" );
+          - " ( 10 ) ; \"[[CRLF]]\" );\n\t"
           - |
             // Encode any remaining newline characters.
-          - 'record = '
+          - "\trecord = "
           - Substitute
-          - " ( record ; ¶ ; \"[[BR]]\" );\nrecord = "
+          - " ( record ; ¶ ; \"[[BR]]\" );\n\trecord = "
           - Substitute
-          - |2-
-             ( record ; $field_delimiter ; ¶ )
-            ];
-            record
-            )
+          - " ( record ; $field_delimiter ; ¶ )\n] ;\n\trecord\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -2537,39 +3108,20 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: |-
-        Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" custom function.
-        // See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/
-        // Thanks Kevin!
-
-        Let( [
-        theList = $field_names;
-        theValue = "ES_Record_UUID[1]";
-        pLp = ¶ & theList & ¶ ;
-        pVp = ¶ & theValue & ¶ ;
-        thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
-        theSegment = Left ( pLp ; thePos ) ;
-        theValPos = PatternCount ( theSegment ; ¶ )
-        ] ;
-        GetValue ( $record ; theValPos )
-        ) ]
+      StepText: "Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY
+        large part on Kevin Frank's \"ValuePosition ( theList ; theValue )\" custom
+        function.\n// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/\n//
+        Thanks Kevin!\n\nLet( [\n\ttheList = $field_names;\n\ttheValue = \"ES_Record_UUID[1]\";\n\tpLp
+        = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = Position ( pLp
+        ; pVp ; 1 ; 1 ) ;\n\ttheSegment = Left ( pLp ; thePos ) ;\n\ttheValPos = PatternCount
+        ( theSegment ; ¶ )\n] ;\n\tGetValue ( $record ; theValPos )\n) ]"
       Value:
-        Calculation: |-
-          // Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" custom function.
-          // See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/
-          // Thanks Kevin!
-
-          Let( [
-          theList = $field_names;
-          theValue = "ES_Record_UUID[1]";
-          pLp = ¶ & theList & ¶ ;
-          pVp = ¶ & theValue & ¶ ;
-          thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
-          theSegment = Left ( pLp ; thePos ) ;
-          theValPos = PatternCount ( theSegment ; ¶ )
-          ] ;
-          GetValue ( $record ; theValPos )
-          )
+        Calculation: "// Note: This is based in VERY large part on Kevin Frank's \"ValuePosition
+          ( theList ; theValue )\" custom function.\n// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/\n//
+          Thanks Kevin!\n\nLet( [\n\ttheList = $field_names;\n\ttheValue = \"ES_Record_UUID[1]\";\n\tpLp
+          = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = Position ( pLp
+          ; pVp ; 1 ; 1 ) ;\n\ttheSegment = Left ( pLp ; thePos ) ;\n\ttheValPos =
+          PatternCount ( theSegment ; ¶ )\n] ;\n\tGetValue ( $record ; theValPos )\n)"
         DisplayCalculation:
           Chunk:
           - |
@@ -2582,16 +3134,14 @@ Script:
             __content__: |2+
 
           - Let
-          - "( [\ntheList = $field_names;\ntheValue = \"ES_Record_UUID[1]\";\npLp
-            = ¶ & theList & ¶ ;\npVp = ¶ & theValue & ¶ ;\nthePos = "
+          - "( [\n\ttheList = $field_names;\n\ttheValue = \"ES_Record_UUID[1]\";\n\tpLp
+            = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = "
           - Position
-          - " ( pLp ; pVp ; 1 ; 1 ) ;\ntheSegment = "
+          - " ( pLp ; pVp ; 1 ; 1 ) ;\n\ttheSegment = "
           - Left
-          - " ( pLp ; thePos ) ;\ntheValPos = "
+          - " ( pLp ; thePos ) ;\n\ttheValPos = "
           - PatternCount
-          - |2
-             ( theSegment ; ¶ )
-            ] ;
+          - " ( theSegment ; ¶ )\n] ;\n\t"
           - GetValue
           - |2-
              ( $record ; theValPos )
@@ -2675,44 +3225,27 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: |-
-        Set Variable [ $ES_UTC_Time_Client; Value:Let( [
-        theList = $field_names;
-        theValue = "ES_UTC_Time[1]";
-        pLp = ¶ & theList & ¶ ;
-        pVp = ¶ & theValue & ¶ ;
-        thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
-        theSegment = Left ( pLp ; thePos ) ;
-        theValPos = PatternCount ( theSegment ; ¶ )
-        ] ;
-        GetValue ( $record ; theValPos )
-        ) ]
+      StepText: "Set Variable [ $ES_UTC_Time_Client; Value:Let( [\n\ttheList = $field_names;\n\ttheValue
+        = \"ES_UTC_Time[1]\";\n\tpLp = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶
+        ;\n\tthePos = Position ( pLp ; pVp ; 1 ; 1 ) ;\n\ttheSegment = Left ( pLp
+        ; thePos ) ;\n\ttheValPos = PatternCount ( theSegment ; ¶ )\n] ;\n\tGetValue
+        ( $record ; theValPos )\n) ]"
       Value:
-        Calculation: |-
-          Let( [
-          theList = $field_names;
-          theValue = "ES_UTC_Time[1]";
-          pLp = ¶ & theList & ¶ ;
-          pVp = ¶ & theValue & ¶ ;
-          thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
-          theSegment = Left ( pLp ; thePos ) ;
-          theValPos = PatternCount ( theSegment ; ¶ )
-          ] ;
-          GetValue ( $record ; theValPos )
-          )
+        Calculation: "Let( [\n\ttheList = $field_names;\n\ttheValue = \"ES_UTC_Time[1]\";\n\tpLp
+          = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = Position ( pLp
+          ; pVp ; 1 ; 1 ) ;\n\ttheSegment = Left ( pLp ; thePos ) ;\n\ttheValPos =
+          PatternCount ( theSegment ; ¶ )\n] ;\n\tGetValue ( $record ; theValPos )\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - "( [\ntheList = $field_names;\ntheValue = \"ES_UTC_Time[1]\";\npLp = ¶
-            & theList & ¶ ;\npVp = ¶ & theValue & ¶ ;\nthePos = "
+          - "( [\n\ttheList = $field_names;\n\ttheValue = \"ES_UTC_Time[1]\";\n\tpLp
+            = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = "
           - Position
-          - " ( pLp ; pVp ; 1 ; 1 ) ;\ntheSegment = "
+          - " ( pLp ; pVp ; 1 ; 1 ) ;\n\ttheSegment = "
           - Left
-          - " ( pLp ; thePos ) ;\ntheValPos = "
+          - " ( pLp ; thePos ) ;\n\ttheValPos = "
           - PatternCount
-          - |2
-             ( theSegment ; ¶ )
-            ] ;
+          - " ( theSegment ; ¶ )\n] ;\n\t"
           - GetValue
           - |2-
              ( $record ; theValPos )
@@ -3234,37 +3767,23 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: |-
-        Set Variable [ $field_value; Value:Let (
-        [
-        value = If ( $field_name ≠ "ES_Device_ID[1]"; GetValue ( $record ; $f ); $client_persistent_id );
-        value = Substitute ( value ; "[[BR]]" ; ¶ )
-        ];
-        value
-        ) ]
+      StepText: "Set Variable [ $field_value; Value:Let ( [\n\tvalue = If ( $field_name
+        ≠ \"ES_Device_ID[1]\"; GetValue ( $record ; $f ); $client_persistent_id );\n\tvalue
+        = Substitute ( value ; \"[[BR]]\" ; ¶ )\n] ;\n\tvalue\n) ]"
       Value:
-        Calculation: |-
-          Let (
-          [
-          value = If ( $field_name ≠ "ES_Device_ID[1]"; GetValue ( $record ; $f ); $client_persistent_id );
-          value = Substitute ( value ; "[[BR]]" ; ¶ )
-          ];
-          value
-          )
+        Calculation: "Let ( [\n\tvalue = If ( $field_name ≠ \"ES_Device_ID[1]\"; GetValue
+          ( $record ; $f ); $client_persistent_id );\n\tvalue = Substitute ( value
+          ; \"[[BR]]\" ; ¶ )\n] ;\n\tvalue\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - " (\n[\nvalue = "
+          - " ( [\n\tvalue = "
           - If
           - ' ( $field_name ≠ "ES_Device_ID[1]"; '
           - GetValue
-          - " ( $record ; $f ); $client_persistent_id );\nvalue = "
+          - " ( $record ; $f ); $client_persistent_id );\n\tvalue = "
           - Substitute
-          - |2-
-             ( value ; "[[BR]]" ; ¶ )
-            ];
-            value
-            )
+          - " ( value ; \"[[BR]]\" ; ¶ )\n] ;\n\tvalue\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -3342,55 +3861,39 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: |-
-        Set Variable [ $field_value; Value:Let (
-        [
-        value = $field_value;
-        value = Substitute ( value ; "</b64>"; "" );
-        fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );
-        encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );
-        encoded = Substitute ( encoded ; "[[CRLF]]" ; Char ( 13 ) & Char ( 10 ) );
-        decoded = Base64Decode ( encoded; fileNameWithExtension )
-        ];
-        decoded
-        ) ]
+      StepText: "Set Variable [ $field_value; Value:Let ( [\n\tvalue = $field_value;\n\tvalue
+        = Substitute ( value ; \"</b64>\"; \"\" );\n\tfileNameWithExtension = GetValue
+        ( Substitute ( value ; \"<b64>\"; \"¶\" ); 1 );\n\tencoded = Substitute (
+        value; fileNameWithExtension & \"<b64>\"; \"\" );\n\tencoded = Substitute
+        ( encoded ; \"[[CRLF]]\" ; Char ( 13 ) & Char ( 10 ) );\n\tdecoded = Base64Decode
+        ( encoded; fileNameWithExtension )\n] ;\n\tdecoded\n) ]"
       Value:
-        Calculation: |-
-          Let (
-          [
-          value = $field_value;
-          value = Substitute ( value ; "</b64>"; "" );
-          fileNameWithExtension = GetValue ( Substitute ( value ; "<b64>"; "¶" ); 1 );
-          encoded = Substitute ( value; fileNameWithExtension & "<b64>"; "" );
-          encoded = Substitute ( encoded ; "[[CRLF]]" ; Char ( 13 ) & Char ( 10 ) );
-          decoded = Base64Decode ( encoded; fileNameWithExtension )
-          ];
-          decoded
-          )
+        Calculation: "Let ( [\n\tvalue = $field_value;\n\tvalue = Substitute ( value
+          ; \"</b64>\"; \"\" );\n\tfileNameWithExtension = GetValue ( Substitute (
+          value ; \"<b64>\"; \"¶\" ); 1 );\n\tencoded = Substitute ( value; fileNameWithExtension
+          & \"<b64>\"; \"\" );\n\tencoded = Substitute ( encoded ; \"[[CRLF]]\" ;
+          Char ( 13 ) & Char ( 10 ) );\n\tdecoded = Base64Decode ( encoded; fileNameWithExtension
+          )\n] ;\n\tdecoded\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - " (\n[\nvalue = $field_value;\nvalue = "
+          - " ( [\n\tvalue = $field_value;\n\tvalue = "
           - Substitute
-          - " ( value ; \"</b64>\"; \"\" );\nfileNameWithExtension = "
+          - " ( value ; \"</b64>\"; \"\" );\n\tfileNameWithExtension = "
           - GetValue
           - ' ( '
           - Substitute
-          - " ( value ; \"<b64>\"; \"¶\" ); 1 );\nencoded = "
+          - " ( value ; \"<b64>\"; \"¶\" ); 1 );\n\tencoded = "
           - Substitute
-          - " ( value; fileNameWithExtension & \"<b64>\"; \"\" );\nencoded = "
+          - " ( value; fileNameWithExtension & \"<b64>\"; \"\" );\n\tencoded = "
           - Substitute
           - ' ( encoded ; "[[CRLF]]" ; '
           - Char
           - ' ( 13 ) & '
           - Char
-          - " ( 10 ) );\ndecoded = "
+          - " ( 10 ) );\n\tdecoded = "
           - Base64Decode
-          - |2-
-             ( encoded; fileNameWithExtension )
-            ];
-            decoded
-            )
+          - " ( encoded; fileNameWithExtension )\n] ;\n\tdecoded\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -3611,114 +4114,84 @@ Script:
       DisplayCalculation:
         Chunk: $LastError ≠ 0
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Rollback the changes.'
-      Text: Rollback the changes.
-    - enable: 'True'
-      id: '51'
-      name: Revert Record/Request
-      StepText: |-
-        Revert Record/Request
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$delete_payloads = "All" ]
-      Calculation: $$delete_payloads = "All"
-      DisplayCalculation:
-        Chunk: $$delete_payloads = "All"
-    - enable: 'True'
-      id: '9'
-      name: Delete Record/Request
-      StepText: |-
-        Delete Record/Request
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Let''s try to give the developer some help with common errors...'
-      Text: Let's try to give the developer some help with common errors...
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $LastError = 106 // Table is missing ]
-      Calculation: $LastError = 106 // Table is missing
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
+        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
+        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"when setting
+        field: \" & $table_name & \"::\" & $field_name ;\n\t\ttheErrorType = \"Fmp\"
+        ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription = \"
+        & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
+        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
+        the description of this error code)\" ;\n\t\ttheErrorInfo = \"when setting
+        field: \" & $table_name & \"::\" & $field_name ;\n\t\ttheErrorType = \"Fmp\"
+        ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription = \"
+        & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
       DisplayCalculation:
         Chunk:
-        - '$LastError = 106 '
-        - // Table is missing
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $LastError; Value:"Table " & $table_name & " is missing.
-        FileMaker Error Code 106." ]
-      Value:
-        Calculation: '"Table " & $table_name & " is missing. FileMaker Error Code
-          106."'
-        DisplayCalculation:
-          Chunk: '"Table " & $table_name & " is missing. FileMaker Error Code 106."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $LastError
-    - enable: 'True'
-      id: '125'
-      name: Else If
-      StepText: Else If [ $LastError = 102 // Field is missing ]
-      Calculation: $LastError = 102 // Field is missing
-      DisplayCalculation:
-        Chunk:
-        - '$LastError = 102 '
-        - // Field is missing
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $LastError; Value:"Field " & $field_name & " is missing.
-        FileMaker Error Code 102." ]
-      Value:
-        Calculation: '"Field " & $field_name & " is missing. FileMaker Error Code
-          102."'
-        DisplayCalculation:
-          Chunk: '"Field " & $field_name & " is missing. FileMaker Error Code 102."'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $LastError
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Return the Error info to the caller.'
-      Text: Return the Error info to the caller.
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: $LastError ]'
-      Calculation: $LastError
-      DisplayCalculation:
-        Chunk: $LastError
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " ( [\n\t\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
+          description of this error code)\" ;\n\t\ttheErrorInfo = \"when setting field:
+          \" & $table_name & \"::\" & $field_name ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error
+          = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
     - enable: 'True'
       id: '70'
       name: End If
@@ -3771,6 +4244,26 @@ Script:
       name: Comment
       StepText: '#End loop that sets the fields.'
       Text: End loop that sets the fields.
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /**\n * An error occurred in the above loop\n *\n
+        * assign error info to local variables\n * then evaluate the errorCode as
+        a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t&
+        \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * An error occurred in the above loop\n *\n * assign error
+        info to local variables\n * then evaluate the errorCode as a Boolean\n * \n
+        */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\"
+        ] ; \\\"$errorCode\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * An error occurred in the above loop\n *\n * assign error info to
+          local variables\n * then evaluate the errorCode as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -3826,6 +4319,26 @@ Script:
       StepText: '#End loop over the records.'
       Text: End loop over the records.
     - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /**\n * An error occurred in the above loop\n *\n
+        * assign error info to local variables\n * then evaluate the errorCode as
+        a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t&
+        \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * An error occurred in the above loop\n *\n * assign error
+        info to local variables\n * then evaluate the errorCode as a Boolean\n * \n
+        */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\"
+        ] ; \\\"$errorCode\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * An error occurred in the above loop\n *\n * assign error info to
+          local variables\n * then evaluate the errorCode as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -3847,86 +4360,82 @@ Script:
       ESSForceCommit:
         state: 'False'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If an error has occurred...'
-      Text: If an error has occurred...
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $LastError; Value:Get ( LastError ) ]
-      Value:
-        Calculation: Get ( LastError )
-        DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - LastError
-          - ' )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $LastError
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $LastError ≠ 0 ]
-      Calculation: $LastError ≠ 0
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
+        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
+        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"after commit
+        record step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription )
+        & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
+        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
+        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
+        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
+        the description of this error code)\" ;\n\t\ttheErrorInfo = \"after commit
+        record step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription )
+        & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
+        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
+        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
       DisplayCalculation:
-        Chunk: $LastError ≠ 0
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Rollback the changes.'
-      Text: Rollback the changes.
-    - enable: 'True'
-      id: '51'
-      name: Revert Record/Request
-      StepText: |-
-        Revert Record/Request
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$delete_payloads = "All" ]
-      Calculation: $$delete_payloads = "All"
-      DisplayCalculation:
-        Chunk: $$delete_payloads = "All"
-    - enable: 'True'
-      id: '9'
-      name: Delete Record/Request
-      StepText: |-
-        Delete Record/Request
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Return the Error info to the caller.'
-      Text: Return the Error info to the caller.
-    - enable: 'True'
-      id: '103'
-      name: Exit Script
-      StepText: 'Exit Script [ Result: $LastError ]'
-      Calculation: $LastError
-      DisplayCalculation:
-        Chunk: $LastError
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+        Chunk:
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " ( [\n\t\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
+          description of this error code)\" ;\n\t\ttheErrorInfo = \"after commit record
+          step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+          = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -3955,21 +4464,6 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#BEGIN DELETIONS PROCESSING'
-      Text: BEGIN DELETIONS PROCESSING
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#'
     - enable: 'True'
       id: '89'
@@ -3978,7 +4472,26 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#'
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"DELETIONS PROCESSING" ]
+      Value:
+        Calculation: '"DELETIONS PROCESSING"'
+        DisplayCalculation:
+          Chunk: '"DELETIONS PROCESSING"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '89'
       name: Comment
@@ -3987,31 +4500,30 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $deletions; Value:Let ( \n[\nbeginning = Position
-        ( $payload ; \"<deletions>¶\" ; 1 ; 1 ) + 12;\nend = Position ( $payload ;
-        \"¶</deletions>\" ; -1 ; 1 );\ndeletions = Middle ( $payload ; beginning ;
-        end - beginning );\nrecords = Trim ( deletions )\n];\ndeletions\n) ]"
+      StepText: "Set Variable [ $deletions; Value:Let ( [\n\tbeginning = Position
+        ( $payload ; \"<deletions>¶\" ; 1 ; 1 ) + 12;\n\tend = Position ( $payload
+        ; \"¶</deletions>\" ; Length ( $payload ) ; -1 );\n\tdeletions = Middle (
+        $payload ; beginning ; end - beginning );\n\trecords = Trim ( deletions )\n]
+        ;\n\tdeletions\n) ]"
       Value:
-        Calculation: "Let ( \n[\nbeginning = Position ( $payload ; \"<deletions>¶\"
-          ; 1 ; 1 ) + 12;\nend = Position ( $payload ; \"¶</deletions>\" ; -1 ; 1
-          );\ndeletions = Middle ( $payload ; beginning ; end - beginning );\nrecords
-          = Trim ( deletions )\n];\ndeletions\n)"
+        Calculation: "Let ( [\n\tbeginning = Position ( $payload ; \"<deletions>¶\"
+          ; 1 ; 1 ) + 12;\n\tend = Position ( $payload ; \"¶</deletions>\" ; Length
+          ( $payload ) ; -1 );\n\tdeletions = Middle ( $payload ; beginning ; end
+          - beginning );\n\trecords = Trim ( deletions )\n] ;\n\tdeletions\n)"
         DisplayCalculation:
           Chunk:
           - Let
-          - " ( \n[\nbeginning = "
+          - " ( [\n\tbeginning = "
           - Position
-          - " ( $payload ; \"<deletions>¶\" ; 1 ; 1 ) + 12;\nend = "
+          - " ( $payload ; \"<deletions>¶\" ; 1 ; 1 ) + 12;\n\tend = "
           - Position
-          - " ( $payload ; \"¶</deletions>\" ; -1 ; 1 );\ndeletions = "
+          - ' ( $payload ; "¶</deletions>" ; '
+          - Length
+          - " ( $payload ) ; -1 );\n\tdeletions = "
           - Middle
-          - " ( $payload ; beginning ; end - beginning );\nrecords = "
+          - " ( $payload ; beginning ; end - beginning );\n\trecords = "
           - Trim
-          - |2-
-             ( deletions )
-            ];
-            deletions
-            )
+          - " ( deletions )\n] ;\n\tdeletions\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -4104,47 +4616,24 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#It sure would be nice to have "DELETE" support in ExecuteSQL right
-        about now. ;-)'
-      Text: It sure would be nice to have "DELETE" support in ExecuteSQL right about
-        now. ;-)
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Get a list of the layouts.'
-      Text: Get a list of the layouts.
+      StepText: '#Loop over ES layouts to process deletions...'
+      Text: Loop over ES layouts to process deletions...
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $layouts; Value:LayoutNames ( Get ( FileName ) ) ]
+      StepText: Set Variable [ $layouts; Value:LayoutNames ( ""  /* empty string uses
+        the current file */ ) ]
       Value:
-        Calculation: LayoutNames ( Get ( FileName ) )
+        Calculation: LayoutNames ( ""  /* empty string uses the current file */ )
         DisplayCalculation:
           Chunk:
           - LayoutNames
-          - ' ( '
-          - Get
-          - ' ( '
-          - FileName
-          - ' ) )'
+          - ' ( ""  /* empty string uses the current file */ )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
       Name: $layouts
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Loop over ES layouts to process deletions...'
-      Text: Loop over ES layouts to process deletions...
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -4166,11 +4655,6 @@ Script:
       id: '89'
       name: Comment
       StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Get the next layout.'
-      Text: Get the next layout.
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -4463,6 +4947,26 @@ Script:
       name: End Loop
       StepText: End Loop
     - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /**\n * An error occurred in the above loop\n *\n
+        * assign error info to local variables\n * then evaluate the errorCode as
+        a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t&
+        \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * An error occurred in the above loop\n *\n * assign error
+        info to local variables\n * then evaluate the errorCode as a Boolean\n * \n
+        */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\"
+        ] ; \\\"$errorCode\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * An error occurred in the above loop\n *\n * assign error info to
+          local variables\n * then evaluate the errorCode as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
+    - enable: 'True'
       id: '28'
       name: Perform Find
       StepText: Perform Find [  ]
@@ -4549,6 +5053,26 @@ Script:
       StepText: '#End "Loop over ES layouts to process deletions..."'
       Text: End "Loop over ES layouts to process deletions..."
     - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /**\n * An error occurred in the above loop\n *\n
+        * assign error info to local variables\n * then evaluate the errorCode as
+        a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t&
+        \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * An error occurred in the above loop\n *\n * assign error
+        info to local variables\n * then evaluate the errorCode as a Boolean\n * \n
+        */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\"
+        ] ; \\\"$errorCode\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * An error occurred in the above loop\n *\n * assign error info to
+          local variables\n * then evaluate the errorCode as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -4571,46 +5095,33 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"CLEANUP" ]
+      Value:
+        Calculation: '"CLEANUP"'
+        DisplayCalculation:
+          Chunk: '"CLEANUP"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#BEGIN CLEAN-UP'
-      Text: BEGIN CLEAN-UP
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '##############################################################################'
-      Text: '#############################################################################'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Delete the payload.'
-      Text: Delete the payload.
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $$delete_payloads = "All" or $$delete_payloads = "Successful"
-        ]
-      Calculation: $$delete_payloads = "All" or $$delete_payloads = "Successful"
+      StepText: If [ $$delete_payloads = "Successful" ]
+      Calculation: $$delete_payloads = "Successful"
       DisplayCalculation:
-        Chunk:
-        - '$$delete_payloads = "All" '
-        - or
-        - ' $$delete_payloads = "Successful"'
+        Chunk: $$delete_payloads = "Successful"
     - enable: 'True'
       id: '6'
       name: Go to Layout
@@ -4642,25 +5153,357 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Return the success code to the caller. (A zero indicates that no
-        problems were encountered during the process.)'
-      Text: Return the success code to the caller. (A zero indicates that no problems
-        were encountered during the process.)
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# end single-pass loop for error trapping'
+      Text: ' end single-pass loop for error trapping'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+      Value:
+        Calculation: '"HANDLE ERROR"'
+        DisplayCalculation:
+          Chunk: '"HANDLE ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /**\n * assign error info to local variables\n * then evaluate
+        the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+      Calculation: "/**\n * assign error info to local variables\n * then evaluate
+        the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * assign error info to local variables\n * then evaluate the errorCode
+          as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
+          )\"\n) )"
+    - enable: 'True'
+      id: '51'
+      name: Revert Record/Request
+      StepText: |-
+        Revert Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$delete_payloads = "All" ]
+      Calculation: $$delete_payloads = "All"
+      DisplayCalculation:
+        Chunk: $$delete_payloads = "All"
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ "EasySync_Payloads" ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        id: '0'
+        name: ''
+        Calculation: '"EasySync_Payloads"'
+        DisplayCalculation:
+          Chunk: '"EasySync_Payloads"'
+    - enable: 'True'
+      id: '9'
+      name: Delete Record/Request
+      StepText: |-
+        Delete Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2 ]
+      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 2
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error = \" & Quote ( $error ) & \" ;¶\"\n\t&
+        \"$runtime = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error
+        = \" & Quote ( $error ) & \" ;¶\"\n\t& \"$runtime = \" & GetAsNumber ( $~script.runtime
+        ) & \" ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error = \" & "
+        - Quote
+        - " ( $error ) & \" ;¶\"\n\t& \"$runtime = \" & "
+        - GetAsNumber
+        - |2-
+           ( $~script.runtime ) & " ;¶"
+          )
+      Script:
+        id: '36'
+        name: 'EasySync Server: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without error\"\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without
+        error\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without error\"\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime = \" & "
+        - GetAsNumber
+        - |2-
+           ( $~script.runtime ) & " ;¶"
+          )
+      Script:
+        id: '36'
+        name: 'EasySync Server: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
     - enable: 'True'
       id: '103'
       name: Exit Script
-      StepText: 'Exit Script [ Result: 0 ]'
-      Calculation: '0'
+      StepText: |-
+        Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶" ]
+      Calculation: |-
+        "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
       DisplayCalculation:
-        Chunk: '0'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+        Chunk:
+        - '"$error = " & '
+        - Quote
+        - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
+        - GetAsNumber
+        - ' ( $~script.runtime ) & " ;¶"'
     - enable: 'True'
       id: '89'
       name: Comment

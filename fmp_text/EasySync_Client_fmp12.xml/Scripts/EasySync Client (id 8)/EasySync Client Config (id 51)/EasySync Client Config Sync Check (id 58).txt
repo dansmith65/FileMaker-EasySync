@@ -3,12 +3,12 @@ Set Variable [ $params; Value:Get ( ScriptParameter ) ]
 #
 If [ $$use_psos_during_sync_check ]
 #*** Remote Script: Send Payload Segment to Client
-Perform Script on Server [ “EasySync Server: Sync Check” from file: “Hosted_Database”; Parameter: $params ][ Wait for completion ]
+Perform Script on Server [ “EasySync Server: Sync Check ( additional_sync_check_info ; UUIDs_Mobile )” from file: “Hosted_Database”; Parameter: $params ][ Wait for completion ]
 End If
 #
 If [ not $$use_psos_during_sync_checkor (	$$use_psos_during_sync_check	and Get ( LastError ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */) ]
 #*** Remote Script: Send Payload Segment to Client
-Perform Script [ “EasySync Server: Sync Check” from file: “Hosted_Database”; Parameter: $params ]
+Perform Script [ “EasySync Server: Sync Check ( additional_sync_check_info ; UUIDs_Mobile )” from file: “Hosted_Database”; Parameter: $params ]
 End If
 #
 Exit Script [ Result: Get ( ScriptResult ) ]
@@ -64,7 +64,7 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “EasySync Server: Sync Check” from file: “Hosted_Database”; Parameter: $params ]
+        Perform Script on Server [ “EasySync Server: Sync Check ( additional_sync_check_info ; UUIDs_Mobile )” from file: “Hosted_Database”; Parameter: $params ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
@@ -79,7 +79,8 @@ Script:
         Chunk: $params
       Script:
         id: '21'
-        name: 'EasySync Server: Sync Check'
+        name: 'EasySync Server: Sync Check ( additional_sync_check_info ; UUIDs_Mobile
+          )'
     - enable: 'True'
       id: '70'
       name: End If
@@ -121,8 +122,8 @@ Script:
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “EasySync Server: Sync Check” from file: “Hosted_Database”;
-        Parameter: $params ]'
+      StepText: 'Perform Script [ “EasySync Server: Sync Check ( additional_sync_check_info
+        ; UUIDs_Mobile )” from file: “Hosted_Database”; Parameter: $params ]'
       FileReference:
         id: '1'
         name: Hosted_Database
@@ -134,7 +135,8 @@ Script:
         Chunk: $params
       Script:
         id: '21'
-        name: 'EasySync Server: Sync Check'
+        name: 'EasySync Server: Sync Check ( additional_sync_check_info ; UUIDs_Mobile
+          )'
     - enable: 'True'
       id: '70'
       name: End If

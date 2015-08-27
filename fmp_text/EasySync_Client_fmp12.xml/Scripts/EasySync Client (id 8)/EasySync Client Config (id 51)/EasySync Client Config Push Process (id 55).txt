@@ -3,12 +3,12 @@ Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter ) ]
 #
 If [ $$use_psos_during_push ]
 #*** Remote Script: Process Payload from Client
-Perform Script on Server [ “EasySync Server: Push: Process Payload” from file: “Hosted_Database”; Parameter: $payload_segment_ids ][ Wait for completion ]
+Perform Script on Server [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ][ Wait for completion ]
 End If
 #
 If [ not $$use_psos_during_pushor (	$$use_psos_during_push	and Get ( LastError ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */) ]
 #*** Remote Script: Process Payload from Client
-Perform Script [ “EasySync Server: Push: Process Payload” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
+Perform Script [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
 End If
 #
 Exit Script [ Result: Get ( ScriptResult ) ]
@@ -65,7 +65,7 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “EasySync Server: Push: Process Payload” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
+        Perform Script on Server [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
@@ -80,7 +80,7 @@ Script:
         Chunk: $payload_segment_ids
       Script:
         id: '8'
-        name: 'EasySync Server: Push: Process Payload'
+        name: 'EasySync Server: Push: Process Payload ( payload_segment_ids )'
     - enable: 'True'
       id: '70'
       name: End If
@@ -122,8 +122,8 @@ Script:
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “EasySync Server: Push: Process Payload” from file:
-        “Hosted_Database”; Parameter: $payload_segment_ids ]'
+      StepText: 'Perform Script [ “EasySync Server: Push: Process Payload ( payload_segment_ids
+        )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]'
       FileReference:
         id: '1'
         name: Hosted_Database
@@ -135,7 +135,7 @@ Script:
         Chunk: $payload_segment_ids
       Script:
         id: '8'
-        name: 'EasySync Server: Push: Process Payload'
+        name: 'EasySync Server: Push: Process Payload ( payload_segment_ids )'
     - enable: 'True'
       id: '70'
       name: End If
