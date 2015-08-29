@@ -118,23 +118,6 @@ End If
 #
 #
 #================================================================================
-Set Variable [ $~script.section; Value:"SET LAST PUSH AND PULL TIMES" ]
-#================================================================================
-#If "ES_Last_Pull_UTC_Time" is not set...
-If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) ) ]
-Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; 0 ]
-Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after set field: EasySync_Payloads::ES_Last_Pull_UTC_Time" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
-End If
-#
-#If "ES_Last_Push_UTC_Time" is not set...
-If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Push_UTC_Time" ) ) ]
-Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; 0 ]
-Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after set field: EasySync_Payloads::ES_Last_Push_UTC_Time" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
-End If
-#
-#
-#
-#================================================================================
 Set Variable [ $~script.section; Value:"PUSH" ]
 #================================================================================
 #Push data to the server.
@@ -149,14 +132,9 @@ Else If [ $errorCode ]
 Exit Loop If [ /* subscript error has been saved to local variable(s) */Let ( [	/* add the current script's name to a list of scripts that triggered this error */	~scriptStack = List (		Get ( ScriptName ) ;		If ( IsEmpty ( $scriptStack ) ;			/* start the stack off with the script's name that triggered the error */			$ScriptName ;			$scriptStack		)	) ;	/* append this data to the error */	$error =		$error		& "$scriptStack = " & Quote ( ~scriptStack ) & " ;¶"] ;	True) ]
 End If
 #
-#
 #Show the push result to the user.
 If [ $$show_successful_pushes ]
 Show Custom Dialog [ Title: "Push Successful"; Message: "Local data has been successfully pushed to the server. (Elapsed Time: " & GetAsTime ( $runtime ) & ")"; Default Button: “OK”, Commit: “Yes” ]
-End If
-#
-If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Push was successfull"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$ScriptResult = " & Quote ( Get ( ScriptResult ) ) & " ;¶") ]
 End If
 #
 #If, during the ping process, it was found that the solution is out of date...
@@ -167,10 +145,6 @@ Perform Script [ “Upgrade Solution” ]
 Halt Script
 End If
 End If
-#
-#Update the "last push" time.
-Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; Get ( CurrentTimeUTCMilliseconds ) ]
-Commit Records/Requests[ Skip data entry validation; No dialog ]
 #
 #Clean up any "deleted record UUID" payload records...
 Enter Find Mode [  ]
@@ -185,11 +159,6 @@ End If
 #================================================================================
 Set Variable [ $~script.section; Value:"PULL" ]
 #================================================================================
-Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Pulling Data from Server..." ]
-#
-#Log the start of the pull process.
-Set Variable [ $pull_start_utc; Value:Get ( CurrentTimeUTCMilliseconds ) ]
-#
 #Pull data from the server.
 Perform Script [ “EasySync Client: Private: Pull” ]
 If [ Get ( LastError ) ]
@@ -202,20 +171,14 @@ Else If [ $errorCode ]
 Exit Loop If [ /* subscript error has been saved to local variable(s) */Let ( [	/* add the current script's name to a list of scripts that triggered this error */	~scriptStack = List (		Get ( ScriptName ) ;		If ( IsEmpty ( $scriptStack ) ;			/* start the stack off with the script's name that triggered the error */			$ScriptName ;			$scriptStack		)	) ;	/* append this data to the error */	$error =		$error		& "$scriptStack = " & Quote ( ~scriptStack ) & " ;¶"] ;	True) ]
 End If
 #
-#If the pull process was also successful...
-If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Pull was successfull"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$ScriptResult = " & Quote ( Get ( ScriptResult ) ) & " ;¶") ]
-End If
-#Update the "last pull" time.
-Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; $pull_start_utc ]
-#Set a timestamp as well, for use by the UI to show the "last sync."
-Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; Get ( CurrentTimeStamp ) ]
-Commit Records/Requests[ Skip data entry validation; No dialog ]
-#
 #Show the pull result to the user.
 If [ $$show_successful_pulls ]
 Show Custom Dialog [ Title: "Pull Success"; Message: "Remote data has been successfully pulled from the server. (Elapsed Time: " & GetAsTime ( $runtime ) & ")"; Default Button: “OK”, Commit: “Yes” ]
 End If
+#
+#Set a timestamp as well, for use by the UI to show the "last sync."
+Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; Get ( CurrentTimeStamp ) ]
+Commit Records/Requests[ Skip data entry validation; No dialog ]
 #
 #If the pull was successful, and if we are to perform a sync check...
 If [ $$perform_sync_check ]
@@ -1896,272 +1859,6 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $~script.section; Value:"SET LAST PUSH AND PULL TIMES"
-        ]
-      Value:
-        Calculation: '"SET LAST PUSH AND PULL TIMES"'
-        DisplayCalculation:
-          Chunk: '"SET LAST PUSH AND PULL TIMES"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $~script.section
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#================================================================================'
-      Text: ================================================================================
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If "ES_Last_Pull_UTC_Time" is not set...'
-      Text: If "ES_Last_Pull_UTC_Time" is not set...
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time"
-        ) ) ]
-      Calculation: IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time"
-        ) )
-      DisplayCalculation:
-        Chunk:
-        - IsEmpty
-        - ' ( '
-        - Evaluate
-        - ' ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" ) )'
-    - enable: 'True'
-      id: '147'
-      name: Set Field By Name
-      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; 0
-        ]
-      Result:
-        Calculation: '0'
-        DisplayCalculation:
-          Chunk: '0'
-      TargetName:
-        Calculation: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
-        DisplayCalculation:
-          Chunk: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
-    - enable: 'True'
-      id: '72'
-      name: Exit Loop If
-      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
-        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
-        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"after set
-        field: EasySync_Payloads::ES_Last_Pull_UTC_Time\" ;\n\t\ttheErrorType = \"Fmp\"
-        ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t&
-        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription = \"
-        & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
-        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
-        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
-        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
-        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
-      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
-        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
-        the description of this error code)\" ;\n\t\ttheErrorInfo = \"after set field:
-        EasySync_Payloads::ES_Last_Pull_UTC_Time\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error
-        = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode
-        = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription
-        ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
-        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
-        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
-        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
-        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
-      DisplayCalculation:
-        Chunk:
-        - If
-        - ' ( '
-        - Get
-        - ' ( '
-        - LastError
-        - " ) ;\n\t"
-        - Let
-        - " ( [\n\t\ttheErrorCode = "
-        - Get
-        - ' ( '
-        - LastError
-        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
-          description of this error code)\" ;\n\t\ttheErrorInfo = \"after set field:
-          EasySync_Payloads::ES_Last_Pull_UTC_Time\" ;\n\t\ttheErrorType = \"Fmp\"
-          ;\n\t\t\n\t\t$error = \"$errorType = \" & "
-        - Quote
-        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
-          ;¶\"\n\t\t& \"$errorDescription = \" & "
-        - Quote
-        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
-        - If
-        - ' ( '
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( theErrorInfo ) '
-        - and
-        - type: NoRef
-          __content__: ' '
-        - GetAsBoolean
-        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
-        - Quote
-        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptName
-        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
-        - Quote
-        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
-        - 'True'
-        - "\n\t)\n)"
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If "ES_Last_Push_UTC_Time" is not set...'
-      Text: If "ES_Last_Push_UTC_Time" is not set...
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Push_UTC_Time"
-        ) ) ]
-      Calculation: IsEmpty ( Evaluate ( "EasySync_Payloads::ES_Last_Push_UTC_Time"
-        ) )
-      DisplayCalculation:
-        Chunk:
-        - IsEmpty
-        - ' ( '
-        - Evaluate
-        - ' ( "EasySync_Payloads::ES_Last_Push_UTC_Time" ) )'
-    - enable: 'True'
-      id: '147'
-      name: Set Field By Name
-      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; 0
-        ]
-      Result:
-        Calculation: '0'
-        DisplayCalculation:
-          Chunk: '0'
-      TargetName:
-        Calculation: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
-        DisplayCalculation:
-          Chunk: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
-    - enable: 'True'
-      id: '72'
-      name: Exit Loop If
-      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
-        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
-        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"after set
-        field: EasySync_Payloads::ES_Last_Push_UTC_Time\" ;\n\t\ttheErrorType = \"Fmp\"
-        ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t&
-        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription = \"
-        & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
-        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
-        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
-        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
-        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
-      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
-        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
-        the description of this error code)\" ;\n\t\ttheErrorInfo = \"after set field:
-        EasySync_Payloads::ES_Last_Push_UTC_Time\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error
-        = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode
-        = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription
-        ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
-        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
-        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
-        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
-        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
-      DisplayCalculation:
-        Chunk:
-        - If
-        - ' ( '
-        - Get
-        - ' ( '
-        - LastError
-        - " ) ;\n\t"
-        - Let
-        - " ( [\n\t\ttheErrorCode = "
-        - Get
-        - ' ( '
-        - LastError
-        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
-          description of this error code)\" ;\n\t\ttheErrorInfo = \"after set field:
-          EasySync_Payloads::ES_Last_Push_UTC_Time\" ;\n\t\ttheErrorType = \"Fmp\"
-          ;\n\t\t\n\t\t$error = \"$errorType = \" & "
-        - Quote
-        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
-          ;¶\"\n\t\t& \"$errorDescription = \" & "
-        - Quote
-        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
-        - If
-        - ' ( '
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( theErrorInfo ) '
-        - and
-        - type: NoRef
-          __content__: ' '
-        - GetAsBoolean
-        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
-        - Quote
-        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptName
-        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
-        - Quote
-        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
-        - 'True'
-        - "\n\t)\n)"
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#================================================================================'
-      Text: ================================================================================
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
       StepText: Set Variable [ $~script.section; Value:"PUSH" ]
       Value:
         Calculation: '"PUSH"'
@@ -2528,10 +2225,6 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#Show the push result to the user.'
       Text: Show the push result to the user.
     - enable: 'True'
@@ -2568,77 +2261,6 @@ Script:
             Chunk: '"OK"'
         - CommitState: 'False'
         - CommitState: 'False'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
-      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
-      DisplayCalculation:
-        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
-    - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
-        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Push was successfull\"\n] ;\n\t\"$LogLevel
-        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
-        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
-        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
-        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
-        ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$ScriptResult = \" & Quote ( Get ( ScriptResult
-        ) ) & \" ;¶\"\n) ]"
-      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Push was successfull\"\n]
-        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
-        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
-        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$ScriptResult
-        = \" & Quote ( Get ( ScriptResult ) ) & \" ;¶\"\n)"
-      DisplayCalculation:
-        Chunk:
-        - Let
-        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Push was successfull\"\n] ;\n\t\"$LogLevel
-          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
-        - Quote
-        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptName
-        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
-        - Quote
-        - ' ( '
-        - GetAsTimestamp
-        - ' ( '
-        - Get
-        - ' ( '
-        - CurrentTimeUTCMilliseconds
-        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$ScriptResult = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptResult
-        - |2-
-           ) ) & " ;¶"
-          )
-      Script:
-        id: '66'
-        name: 'EasySync Client: Config: Create Log Entry'
     - enable: 'True'
       id: '70'
       name: End If
@@ -2718,44 +2340,6 @@ Script:
       id: '70'
       name: End If
       StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Update the "last push" time.'
-      Text: Update the "last push" time.
-    - enable: 'True'
-      id: '147'
-      name: Set Field By Name
-      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Push_UTC_Time"; Get
-        ( CurrentTimeUTCMilliseconds ) ]
-      Result:
-        Calculation: Get ( CurrentTimeUTCMilliseconds )
-        DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - CurrentTimeUTCMilliseconds
-          - ' )'
-      TargetName:
-        Calculation: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
-        DisplayCalculation:
-          Chunk: '"EasySync_Payloads::ES_Last_Push_UTC_Time"'
-    - enable: 'True'
-      id: '75'
-      name: Commit Records/Requests
-      StepText: |-
-        Commit Records/Requests
-        [ Skip data entry validation; No dialog ]
-      NoInteract:
-        state: 'True'
-      Option:
-        state: 'True'
-      ESSForceCommit:
-        state: 'False'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -2848,48 +2432,6 @@ Script:
       name: Comment
       StepText: '#================================================================================'
       Text: ================================================================================
-    - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: 'Perform Script [ “EasySync Client: Config: Show Message”; Parameter:
-        "Pulling Data from Server..." ]'
-      Calculation: '"Pulling Data from Server..."'
-      DisplayCalculation:
-        Chunk: '"Pulling Data from Server..."'
-      Script:
-        id: '67'
-        name: 'EasySync Client: Config: Show Message'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Log the start of the pull process.'
-      Text: Log the start of the pull process.
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $pull_start_utc; Value:Get ( CurrentTimeUTCMilliseconds
-        ) ]
-      Value:
-        Calculation: Get ( CurrentTimeUTCMilliseconds )
-        DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - CurrentTimeUTCMilliseconds
-          - ' )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $pull_start_utc
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -3241,134 +2783,6 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#If the pull process was also successful...'
-      Text: If the pull process was also successful...
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
-      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
-      DisplayCalculation:
-        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
-    - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
-        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Pull was successfull\"\n] ;\n\t\"$LogLevel
-        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
-        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
-        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
-        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
-        ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$ScriptResult = \" & Quote ( Get ( ScriptResult
-        ) ) & \" ;¶\"\n) ]"
-      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Pull was successfull\"\n]
-        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
-        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
-        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$ScriptResult
-        = \" & Quote ( Get ( ScriptResult ) ) & \" ;¶\"\n)"
-      DisplayCalculation:
-        Chunk:
-        - Let
-        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Pull was successfull\"\n] ;\n\t\"$LogLevel
-          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
-        - Quote
-        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptName
-        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
-        - Quote
-        - ' ( '
-        - GetAsTimestamp
-        - ' ( '
-        - Get
-        - ' ( '
-        - CurrentTimeUTCMilliseconds
-        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$ScriptResult = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptResult
-        - |2-
-           ) ) & " ;¶"
-          )
-      Script:
-        id: '66'
-        name: 'EasySync Client: Config: Create Log Entry'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Update the "last pull" time.'
-      Text: Update the "last pull" time.
-    - enable: 'True'
-      id: '147'
-      name: Set Field By Name
-      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Pull_UTC_Time"; $pull_start_utc
-        ]
-      Result:
-        Calculation: $pull_start_utc
-        DisplayCalculation:
-          Chunk: $pull_start_utc
-      TargetName:
-        Calculation: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
-        DisplayCalculation:
-          Chunk: '"EasySync_Payloads::ES_Last_Pull_UTC_Time"'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Set a timestamp as well, for use by the UI to show the "last sync."'
-      Text: Set a timestamp as well, for use by the UI to show the "last sync."
-    - enable: 'True'
-      id: '147'
-      name: Set Field By Name
-      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; Get (
-        CurrentTimeStamp ) ]
-      Result:
-        Calculation: Get ( CurrentTimeStamp )
-        DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - CurrentTimeStamp
-          - ' )'
-      TargetName:
-        Calculation: '"EasySync_Payloads::ES_Last_Full_Sync"'
-        DisplayCalculation:
-          Chunk: '"EasySync_Payloads::ES_Last_Full_Sync"'
-    - enable: 'True'
-      id: '75'
-      name: Commit Records/Requests
-      StepText: |-
-        Commit Records/Requests
-        [ Skip data entry validation; No dialog ]
-      NoInteract:
-        state: 'True'
-      Option:
-        state: 'True'
-      ESSForceCommit:
-        state: 'False'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
       StepText: '#Show the pull result to the user.'
       Text: Show the pull result to the user.
     - enable: 'True'
@@ -3409,6 +2823,44 @@ Script:
       id: '70'
       name: End If
       StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Set a timestamp as well, for use by the UI to show the "last sync."'
+      Text: Set a timestamp as well, for use by the UI to show the "last sync."
+    - enable: 'True'
+      id: '147'
+      name: Set Field By Name
+      StepText: Set Field By Name [ "EasySync_Payloads::ES_Last_Full_Sync"; Get (
+        CurrentTimeStamp ) ]
+      Result:
+        Calculation: Get ( CurrentTimeStamp )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeStamp
+          - ' )'
+      TargetName:
+        Calculation: '"EasySync_Payloads::ES_Last_Full_Sync"'
+        DisplayCalculation:
+          Chunk: '"EasySync_Payloads::ES_Last_Full_Sync"'
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ Skip data entry validation; No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'True'
+      ESSForceCommit:
+        state: 'False'
     - enable: 'True'
       id: '89'
       name: Comment

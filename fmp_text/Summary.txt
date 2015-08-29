@@ -1,8 +1,8 @@
             Summary file:  Summary.xml                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-            Summary path:  /Volumes/E/Users/Daniel/GitHub/FMEasySync/dev/fmp_ddr                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+            Summary path:  /Volumes/E/Users/Daniel/GitHub/FileMaker-EasySync/dev/fmp_ddr                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
    FileMaker Pro version:  13.0v9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-           Creation Date:  2015-08-26                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-           Creation Time:  5:40:21 PM                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+           Creation Date:  2015-08-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+           Creation Time:  5:00:11 PM                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 
                    Report   BaseTables  Tables  Relationships  Accounts  Privileges  ExtendedPrivileges  FileAccess  Layouts  Scripts  ValueLists  CustomFunctions  FileReferences  CustomMenuSets  CustomMenus
                    ------   ----------  ------  -------------  --------  ----------  ------------------  ----------  -------  -------  ----------  ---------------  --------------  --------------  -----------
@@ -12,14 +12,14 @@
 
 ---
 FMPReport:
-  creationTime: 5:40:21 PM
-  creationDate: '2015-08-26'
+  creationTime: 5:00:11 PM
+  creationDate: '2015-08-28'
   type: Summary
   version: 13.0v9
   File:
   - link: .//EasyDeploy_fmp12.xml
     name: EasyDeploy.fmp12
-    path: E:\Users\Daniel\GitHub\FMEasySync\dev\
+    path: E:\Users\Daniel\GitHub\FileMaker-EasySync\dev\
     BaseTables:
       count: '1'
     Tables:
@@ -50,7 +50,7 @@ FMPReport:
       count: '0'
   - link: .//EasySync_Client_fmp12.xml
     name: EasySync_Client.fmp12
-    path: E:\Users\Daniel\GitHub\FMEasySync\dev\
+    path: E:\Users\Daniel\GitHub\FileMaker-EasySync\dev\
     BaseTables:
       count: '5'
     Tables:
@@ -81,7 +81,7 @@ FMPReport:
       count: '0'
   - link: .//EasySync_Server_fmp12.xml
     name: EasySync_Server.fmp12
-    path: E:\Users\Daniel\GitHub\FMEasySync\dev\
+    path: E:\Users\Daniel\GitHub\FileMaker-EasySync\dev\
     BaseTables:
       count: '5'
     Tables:
