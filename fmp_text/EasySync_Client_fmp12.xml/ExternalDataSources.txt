@@ -1,6 +1,6 @@
        id  File Reference             Path List                
        --  --------------             ---------                
-        1  Hosted_Database            fmnet:/your-server-address/EasySync_Server file:EasySync_Server
+        1  EasySync_Server            fmnet:/your-server-address/EasySync_Server file:EasySync_Server
         4  Log                        file:Log                 
 
        id  ODBC Source                DSN                        Link                     
@@ -13,7 +13,7 @@ ExternalDataSourcesCatalog:
   - link: EasySync_Server_fmp12.xml
     id: '1'
     pathList: fmnet:/your-server-address/EasySync_Server file:EasySync_Server
-    name: Hosted_Database
+    name: EasySync_Server
   - id: '4'
     pathList: file:Log
     name: Log

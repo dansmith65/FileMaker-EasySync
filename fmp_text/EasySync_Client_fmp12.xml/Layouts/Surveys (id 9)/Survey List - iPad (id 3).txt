@@ -73,13 +73,13 @@ Layout:
       Calculation: "/**\n * Offset UTC timestamp for current users timezone.\n *\n
         */\n\nLet ( [\n\t~timezoneOffset =  GetAsTime (\n\t\tGet ( CurrentTimeStamp
         )\n\t\t- Floor ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )\n\t) ;\n\t$layout.lastPush
-        = If ( not IsEmpty ( EasySync_Payloads::ES_Last_Push_UTC_Time ) ;\n\t\tGetAsTimestamp
+        = If ( EasySync_Payloads::ES_Last_Push_UTC_Time ≤ 0 ;\n\t\t\"never\" ;\n\t\tGetAsTimestamp
         ( Round (\n\t\t\tGetAsTimestamp ( EasySync_Payloads::ES_Last_Push_UTC_Time
         / 1000 )\n\t\t\t\t+ ~timezoneOffset\n\t\t\t;\n\t\t\t0\n\t\t) )\n\t) ;\n\t$layout.lastPull
-        = If ( not IsEmpty ( EasySync_Payloads::ES_Last_Pull_UTC_Time ) ;\n\t\tGetAsTimestamp
+        = If ( EasySync_Payloads::ES_Last_Pull_UTC_Time ≤ 0 ;\n\t\t\"never\" ;\n\t\tGetAsTimestamp
         ( Round (\n\t\t\tGetAsTimestamp ( EasySync_Payloads::ES_Last_Pull_UTC_Time
         / 1000 )\n\t\t\t\t+ ~timezoneOffset\n\t\t\t;\n\t\t\t0\n\t\t) )\n\t)\n] ;\n\t\"Last
-        Push: \" & $layout.lastPush\n\t& ¶ & \n\t\"Last Pull: \" & $layout.lastPull\n)"
+        Push: \" & $layout.lastPush\n\t& ¶ & \n\t\"Last Pull:  \" & $layout.lastPull\n)"
       DisplayCalculation:
         Chunk:
         - "/**\r\n * Offset UTC timestamp for current users timezone.\r\n *\r\n */\r\n\r\n"
@@ -99,17 +99,12 @@ Layout:
         - " ) / 1000 )\r\n\t) ;\r\n\t$layout.lastPush = "
         - If
         - ' ( '
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( '
         - type: FieldRef
           Field:
             table: EasySync_Payloads
             id: '14'
             name: ES_Last_Push_UTC_Time
-        - " ) ;\r\n\t\t"
+        - " ≤ 0 ;\r\n\t\t\"never\" ;\r\n\t\t"
         - GetAsTimestamp
         - ' ( '
         - Round
@@ -125,17 +120,12 @@ Layout:
           ;\r\n\t$layout.lastPull = "
         - If
         - ' ( '
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsEmpty
-        - ' ( '
         - type: FieldRef
           Field:
             table: EasySync_Payloads
             id: '15'
             name: ES_Last_Pull_UTC_Time
-        - " ) ;\r\n\t\t"
+        - " ≤ 0 ;\r\n\t\t\"never\" ;\r\n\t\t"
         - GetAsTimestamp
         - ' ( '
         - Round
@@ -149,7 +139,7 @@ Layout:
             name: ES_Last_Pull_UTC_Time
         - " / 1000 )\r\n\t\t\t\t+ ~timezoneOffset\r\n\t\t\t;\r\n\t\t\t0\r\n\t\t) )\r\n\t)\r\n]
           ;\r\n\t\"Last Push: \" & $layout.lastPush\r\n\t& ¶ & \r\n\t\"Last Pull:
-          \" & $layout.lastPull\r\n)"
+          \ \" & $layout.lastPull\r\n)"
     TextObj:
       flags: '2'
       ExtendedAttributes:
@@ -290,10 +280,11 @@ Layout:
                   pmString: ' PM'
                   ampmString: ''
               Styles:
-                LocalCSS: "\nself\n{\n\tline-height: 0.75line;\n}\n"
+                LocalCSS: "\nself\n{\n\tline-height: 0.75line;\n\t-fm-tab-stops: 86.4
+                  left;\n}\n"
               CharacterStyleVector:
                 Style:
-                  Data: "Last Push: <<$layout.lastPush>>\r\rLast Pull: <<$layout.lastPull>>"
+                  Data: "Last Push:\t<<$layout.lastPush>>\r\rLast Pull:\t<<$layout.lastPull>>"
                   CharacterStyle:
                     mask: '32695'
                     Font_family: arial,sans-serif
@@ -302,7 +293,7 @@ Layout:
                     Color: '#707070'
               ParagraphStyleVector:
                 Style:
-                  Data: "Last Push: <<$layout.lastPush>>\r\rLast Pull: <<$layout.lastPull>>"
+                  Data: "Last Push:\t<<$layout.lastPush>>\r\rLast Pull:\t<<$layout.lastPull>>"
                   ParagraphStyle:
                     mask: '0'
                     __content__: |2+
@@ -571,12 +562,12 @@ Layout:
         enable: 'True'
         id: '1'
         name: Perform Script
-        StepText: 'Perform Script [ “EasySync Client: Sync” ]'
+        StepText: 'Perform Script [ “EasySync Client: Button: Sync” ]'
         CurrentScript:
           value: Pause
         Script:
           id: '9'
-          name: 'EasySync Client: Sync'
+          name: 'EasySync Client: Button: Sync'
   - type: GroupButton
     key: '37'
     LabelKey: '0'

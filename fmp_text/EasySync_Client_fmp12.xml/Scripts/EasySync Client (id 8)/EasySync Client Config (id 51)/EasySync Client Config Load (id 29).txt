@@ -37,6 +37,8 @@ Set Variable [ $$perform_sync_check; Value:1// Perform a sync check? 1 = Yes, 0 
 Set Variable [ $$use_psos_during_sync_check; Value:1/* 1 = Yes, 0 = No. 1 is the default.Indicates whether the processing of the "sync check" should be done on the server (using "Perform Script on Server") or on the client (using "Perform Script").*/ ]
 Set Variable [ $$additional_sync_check_info; Value:""/*Additional information that is sent to the server during the "sync check" process.*/ ]
 #
+Set Variable [ $$EASYSYNC.SETTINGS.LOADED; Value:True ]
+#
 
 
 ---
@@ -790,6 +792,23 @@ Script:
         DisplayCalculation:
           Chunk: '1'
       Name: $$additional_sync_check_info
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$EASYSYNC.SETTINGS.LOADED; Value:True ]
+      Value:
+        Calculation: 'True'
+        DisplayCalculation:
+          Chunk: 'True'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$EASYSYNC.SETTINGS.LOADED
     - enable: 'True'
       id: '89'
       name: Comment

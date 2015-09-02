@@ -45,7 +45,7 @@ End Loop
 #================================================================================
 Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
 #================================================================================
-If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
+If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "exit script with error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$error = " & Quote ( $error ) & " ;¶") ]
 End If
@@ -583,10 +583,10 @@ Script:
       name: If
       StepText: "If [ /**\n * assign error info to local variables\n * then evaluate
         the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
-        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) ) ]"
       Calculation: "/**\n * assign error info to local variables\n * then evaluate
         the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
-        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) )"
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) )"
       DisplayCalculation:
         Chunk:
         - "/**\n * assign error info to local variables\n * then evaluate the errorCode
@@ -594,8 +594,8 @@ Script:
         - GetAsBoolean
         - ' ( '
         - Evaluate
-        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
-          )\"\n) )"
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n)
+          )"
     - enable: 'True'
       id: '68'
       name: If

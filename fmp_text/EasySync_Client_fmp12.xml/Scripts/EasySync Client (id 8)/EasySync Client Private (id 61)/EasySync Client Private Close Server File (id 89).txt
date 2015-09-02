@@ -1,0 +1,56 @@
+#
+#
+If [ not $$EASYSYNC.SERVER.VISIBLE ]
+Close File [ “EasySync_Server” ]
+End If
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '89'
+  name: 'EasySync Client: Private: Close Server File'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $$EASYSYNC.SERVER.VISIBLE ]
+      Calculation: not $$EASYSYNC.SERVER.VISIBLE
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $$EASYSYNC.SERVER.VISIBLE'
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “EasySync_Server” ]
+      FileReference:
+        id: '1'
+        name: EasySync_Server
+        UniversalPathList: |-
+          fmnet:/your-server-address/EasySync_Server
+          file:EasySync_Server
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

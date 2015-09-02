@@ -60,13 +60,15 @@ Go to Layout [ $layout ]
 Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after Go to Layout: " & $layout ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"		& "$layouts = " & Quote ( $layouts ) & " ;¶"		& "$i = " & Quote ( $I ) & " ;¶"	] ;		True	)) ]
 #
 Show All Records
+If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after Delete All Records on Layout: " & $layout ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"		& "$layouts = " & Quote ( $layouts ) & " ;¶"		& "$i = " & Quote ( $I ) & " ;¶"	] ;		True	)) ]
+End If
 End If
 #
 End Loop
 # following step disabled because there are no steps between it and the end of the single-pass loop, if additional steps are ever added, it should be enabled
-//  Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
+//  Exit Loop If [ /** * An error occurred in the above loop * * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
 #
 #
 #
@@ -99,7 +101,7 @@ End If
 #================================================================================
 Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
 #================================================================================
-If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
+If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "exit script with error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$error = " & Quote ( $error ) & " ;¶") ]
 End If
@@ -637,6 +639,17 @@ Script:
       name: Show All Records
       StepText: Show All Records
     - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
       id: '10'
       name: Delete All Records
       StepText: |-
@@ -733,6 +746,10 @@ Script:
       name: End If
       StepText: End If
     - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -755,11 +772,11 @@ Script:
       StepText: "//  Exit Loop If [ /**\n * An error occurred in the above loop\n
         *\n * assign error info to local variables\n * then evaluate the errorCode
         as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t&
-        \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+        \"! = \\\"\\\" ] ; $errorCode )\"\n) ) ]"
       Calculation: "/**\n * An error occurred in the above loop\n *\n * assign error
         info to local variables\n * then evaluate the errorCode as a Boolean\n * \n
         */\n\nGetAsBoolean ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\"
-        ] ; \\\"$errorCode\\\" )\"\n) )"
+        ] ; $errorCode )\"\n) )"
       DisplayCalculation:
         Chunk:
         - "/**\n * An error occurred in the above loop\n *\n * assign error info to
@@ -767,8 +784,8 @@ Script:
         - GetAsBoolean
         - ' ( '
         - Evaluate
-        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
-          )\"\n) )"
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n)
+          )"
     - enable: 'True'
       id: '89'
       name: Comment
@@ -947,10 +964,10 @@ Script:
       name: If
       StepText: "If [ /**\n * assign error info to local variables\n * then evaluate
         the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
-        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) ) ]"
       Calculation: "/**\n * assign error info to local variables\n * then evaluate
         the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
-        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) )"
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) )"
       DisplayCalculation:
         Chunk:
         - "/**\n * assign error info to local variables\n * then evaluate the errorCode
@@ -958,8 +975,8 @@ Script:
         - GetAsBoolean
         - ' ( '
         - Evaluate
-        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
-          )\"\n) )"
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n)
+          )"
     - enable: 'True'
       id: '68'
       name: If

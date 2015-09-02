@@ -128,7 +128,8 @@ PrivilegesCatalog:
             value: NoAccess
         - runFullAccess: 'False'
           id: '17'
-          name: 'EasySync Server: Pull: Return Segment'
+          name: 'EasySync Server: Pull: Return Segment ( payload_uuid ; start_pos
+            ; segment_size )'
           Access:
             value: NoAccess
         - runFullAccess: 'False'

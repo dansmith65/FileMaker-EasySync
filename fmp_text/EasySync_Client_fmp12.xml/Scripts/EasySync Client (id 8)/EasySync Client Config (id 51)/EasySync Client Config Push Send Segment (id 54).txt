@@ -3,12 +3,12 @@ Set Variable [ $segment; Value:Get ( ScriptParameter ) ]
 #
 If [ $$use_psos_during_push ]
 #*** Remote Script: Receive Payload Segment from Client
-Perform Script on Server [ “EasySync Server: Push: Receive Segment” from file: “Hosted_Database”; Parameter: $segment ][ Wait for completion ]
+Perform Script on Server [ “EasySync Server: Push: Receive Segment” from file: “EasySync_Server”; Parameter: $segment ][ Wait for completion ]
 End If
 #
 If [ not $$use_psos_during_pushor (	$$use_psos_during_push	and Get ( LastError ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */) ]
 #*** Remote Script: Receive Payload Segment from Client
-Perform Script [ “EasySync Server: Push: Receive Segment” from file: “Hosted_Database”; Parameter: $segment ]
+Perform Script [ “EasySync Server: Push: Receive Segment” from file: “EasySync_Server”; Parameter: $segment ]
 End If
 #
 Exit Script [ Result: Get ( ScriptResult ) ]
@@ -64,13 +64,13 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “EasySync Server: Push: Receive Segment” from file: “Hosted_Database”; Parameter: $segment ]
+        Perform Script on Server [ “EasySync Server: Push: Receive Segment” from file: “EasySync_Server”; Parameter: $segment ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
       FileReference:
         id: '1'
-        name: Hosted_Database
+        name: EasySync_Server
         UniversalPathList: |-
           fmnet:/your-server-address/EasySync_Server
           file:EasySync_Server
@@ -122,10 +122,10 @@ Script:
       id: '1'
       name: Perform Script
       StepText: 'Perform Script [ “EasySync Server: Push: Receive Segment” from file:
-        “Hosted_Database”; Parameter: $segment ]'
+        “EasySync_Server”; Parameter: $segment ]'
       FileReference:
         id: '1'
-        name: Hosted_Database
+        name: EasySync_Server
         UniversalPathList: |-
           fmnet:/your-server-address/EasySync_Server
           file:EasySync_Server

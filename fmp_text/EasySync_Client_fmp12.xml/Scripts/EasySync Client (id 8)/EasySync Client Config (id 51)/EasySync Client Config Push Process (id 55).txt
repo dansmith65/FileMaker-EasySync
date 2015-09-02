@@ -3,12 +3,12 @@ Set Variable [ $payload_segment_ids; Value:Get ( ScriptParameter ) ]
 #
 If [ $$use_psos_during_push ]
 #*** Remote Script: Process Payload from Client
-Perform Script on Server [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ][ Wait for completion ]
+Perform Script on Server [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “EasySync_Server”; Parameter: $payload_segment_ids ][ Wait for completion ]
 End If
 #
 If [ not $$use_psos_during_pushor (	$$use_psos_during_push	and Get ( LastError ) = 3  /* Command is unavailable: assume the "hosted" file is open locally */) ]
 #*** Remote Script: Process Payload from Client
-Perform Script [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
+Perform Script [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “EasySync_Server”; Parameter: $payload_segment_ids ]
 End If
 #
 Exit Script [ Result: Get ( ScriptResult ) ]
@@ -65,13 +65,13 @@ Script:
       id: '164'
       name: Perform Script on Server
       StepText: |-
-        Perform Script on Server [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]
+        Perform Script on Server [ “EasySync Server: Push: Process Payload ( payload_segment_ids )” from file: “EasySync_Server”; Parameter: $payload_segment_ids ]
         [ Wait for completion ]
       WaitForCompletion:
         state: 'True'
       FileReference:
         id: '1'
-        name: Hosted_Database
+        name: EasySync_Server
         UniversalPathList: |-
           fmnet:/your-server-address/EasySync_Server
           file:EasySync_Server
@@ -123,10 +123,10 @@ Script:
       id: '1'
       name: Perform Script
       StepText: 'Perform Script [ “EasySync Server: Push: Process Payload ( payload_segment_ids
-        )” from file: “Hosted_Database”; Parameter: $payload_segment_ids ]'
+        )” from file: “EasySync_Server”; Parameter: $payload_segment_ids ]'
       FileReference:
         id: '1'
-        name: Hosted_Database
+        name: EasySync_Server
         UniversalPathList: |-
           fmnet:/your-server-address/EasySync_Server
           file:EasySync_Server

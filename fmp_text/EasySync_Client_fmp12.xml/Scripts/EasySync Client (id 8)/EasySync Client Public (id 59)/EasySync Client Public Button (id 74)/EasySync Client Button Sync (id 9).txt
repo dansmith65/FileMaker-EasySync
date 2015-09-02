@@ -1,17 +1,29 @@
 #################################################################################
 # PURPOSE:
-#    Remove all local data in any of the tables being synced, as well as the EasySync table itself.
+#    Full sync then show the result.
 #
-# CONTEXT: Global
+# CONTEXT: EasySync_Payloads
 #
 # PARAMETERS: none
 #
 # RETURNS:
-#    nothing; this script is mean to be called from a button, so a return result is not necessary
+#    $error | a dictionary containing error data
+#    $runtime | number of seconds this script was running (with millisecond precision)
+#
+# VARIABLES:
+#
+# DEPENDENCIES:
+#
+# NOTES:
 #
 # REVISIONS:
-#    2015-AUG-25 Daniel Smith dansmith65@gmail.com	- split the old Utilities script into separate scripts
+#    2014-04-16			Tim Dietrich (timdietrich@me.com)	Initial version.2014-04-18			Tim Dietrich (timdietrich@me.com)	Reflects move to UTC time.	"Ping" process has been split into a separate script.2014-04-24			Tim Dietrich (timdietrich@me.com)	Adds support for the "deletion" phase of the sync process.2014-05-01			Tim Dietrich (timdietrich@me.com)	Reflects new delete support strategy. 	Includes call to "Sync Check," code to clean up deleted record UUIDs, etc.	Also reflects move to a single "EasySync_Payloads" layout.	Refresh Window script steps replaced with Refresh Object steps.	Minor changes to UI and status messages.2014-05-15		Tim Dietrich (timdietrich@me.com)	The last pull UTC is now captured prior to the pull itself, and only gets set if the pull	is successful. This prevents records that are in play on the servr while the payload is 	being processed on the mobile device from being excluded from future pulls.2014-10-19	Tim Dietrich (timdietrich@me.com)	Added configuration check. If no "ES" tables are setup, then the sync process is aborted.
 #################################################################################
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+Set Variable [ $~script.errorType; Value:"Module: EasySync Client" ]
+#
+#
+#
 #
 #
 #
@@ -21,7 +33,10 @@ Loop
 #
 #
 #
-Perform Script [ “EasySync Client: API: Wipe” ]
+#================================================================================
+Set Variable [ $~script.section; Value:"CALL API SCRIPT" ]
+#================================================================================
+Perform Script [ “EasySync Client: API: Sync” ]
 If [ Get ( LastError ) ]
 Exit Loop If [ Let ( [	theErrorCode = Get ( LastError ) ;	theErrorDescription = "FileMaker Error" ;	theErrorInfo = "section: " & $~script.section & ". Make sure the perform script step calls the correct script and the user has permission to run it." ;	theErrorType = "Fmp" ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
 Else If [ /* assign script result to local variables */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
@@ -41,20 +56,36 @@ End Loop
 #
 #
 #
-Refresh Window
 #
 #
 #
 #================================================================================
 Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
 #================================================================================
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
 If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
+If [ $errorCode = 1 ]
+#User canceled action
+Else
+If [ not $messageShown ]
 Show Custom Dialog [ Title: "ERROR"; Message: List (	"type: " & $errorType ;	"code: " & $errorCode ;	"description: " & $errorDescription ;	If ( not IsEmpty ( $errorInfo ) ;		"info: " & $errorInfo	)); Default Button: “Cancel”, Commit: “Yes” ]
+End If
+End If
+#
+Else
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 3 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
+End If
+#Refresh UI.
+Show All Records
+Refresh Window
+Show Custom Dialog [ Title: "Sync Completed"; Message: Let ([e = ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ;e = If ( e ≤ 1 ; "Less than a second."; e )];"The sync process has completed. (Elapsed Time: " & e & ")"); Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 #
 #
-Exit Script [  ]
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶" ]
 #
 
 
@@ -62,8 +93,8 @@ Exit Script [  ]
 Script:
   includeInMenu: 'False'
   runFullAccess: 'False'
-  id: '81'
-  name: 'EasySync Client: Button: Wipe'
+  id: '9'
+  name: 'EasySync Client: Button: Sync'
   StepList:
     Step:
     - enable: 'True'
@@ -79,10 +110,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#    Remove all local data in any of the tables being synced, as
-        well as the EasySync table itself.'
-      Text: '    Remove all local data in any of the tables being synced, as well
-        as the EasySync table itself.'
+      StepText: '#    Full sync then show the result.'
+      Text: '    Full sync then show the result.'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -90,8 +119,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '# CONTEXT: Global'
-      Text: ' CONTEXT: Global'
+      StepText: '# CONTEXT: EasySync_Payloads'
+      Text: ' CONTEXT: EasySync_Payloads'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -113,10 +142,42 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#    nothing; this script is mean to be called from a button, so
-        a return result is not necessary'
-      Text: '    nothing; this script is mean to be called from a button, so a return
-        result is not necessary'
+      StepText: '#    $error | a dictionary containing error data'
+      Text: '    $error | a dictionary containing error data'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+      Text: '    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# VARIABLES:'
+      Text: ' VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -129,15 +190,85 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: "#    \n2015-AUG-25 Daniel Smith dansmith65@gmail.com\n\t- split the
-        old Utilities script into separate scripts"
-      Text: "    \n2015-AUG-25 Daniel Smith dansmith65@gmail.com\n\t- split the old
-        Utilities script into separate scripts"
+      StepText: "#    \n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
+        move to UTC time.\n\t\"Ping\" process has been split into a separate script.\n\n2014-04-24\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdds support for the \"deletion\" phase of
+        the sync process.\n\n2014-05-01\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
+        new delete support strategy. \n\tIncludes call to \"Sync Check,\" code to
+        clean up deleted record UUIDs, etc.\n\tAlso reflects move to a single \"EasySync_Payloads\"
+        layout.\n\tRefresh Window script steps replaced with Refresh Object steps.\n\tMinor
+        changes to UI and status messages.\n\n2014-05-15\t\n\tTim Dietrich (timdietrich@me.com)\n\tThe
+        last pull UTC is now captured prior to the pull itself, and only gets set
+        if the pull\n\tis successful. This prevents records that are in play on the
+        servr while the payload is \n\tbeing processed on the mobile device from being
+        excluded from future pulls.\n\n2014-10-19\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        configuration check. If no \"ES\" tables are setup, then the sync process
+        is aborted."
+      Text: "    \n2014-04-16\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tInitial
+        version.\n\n2014-04-18\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
+        move to UTC time.\n\t\"Ping\" process has been split into a separate script.\n\n2014-04-24\t\t\n\tTim
+        Dietrich (timdietrich@me.com)\n\tAdds support for the \"deletion\" phase of
+        the sync process.\n\n2014-05-01\t\t\n\tTim Dietrich (timdietrich@me.com)\n\tReflects
+        new delete support strategy. \n\tIncludes call to \"Sync Check,\" code to
+        clean up deleted record UUIDs, etc.\n\tAlso reflects move to a single \"EasySync_Payloads\"
+        layout.\n\tRefresh Window script steps replaced with Refresh Object steps.\n\tMinor
+        changes to UI and status messages.\n\n2014-05-15\t\n\tTim Dietrich (timdietrich@me.com)\n\tThe
+        last pull UTC is now captured prior to the pull itself, and only gets set
+        if the pull\n\tis successful. This prevents records that are in play on the
+        servr while the payload is \n\tbeing processed on the mobile device from being
+        excluded from future pulls.\n\n2014-10-19\n\tTim Dietrich (timdietrich@me.com)\n\tAdded
+        configuration check. If no \"ES\" tables are setup, then the sync process
+        is aborted."
     - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#################################################################################'
       Text: '################################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.errorType; Value:"Module: EasySync Client"
+        ]'
+      Value:
+        Calculation: '"Module: EasySync Client"'
+        DisplayCalculation:
+          Chunk: '"Module: EasySync Client"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.errorType
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -177,12 +308,35 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"CALL API SCRIPT" ]
+      Value:
+        Calculation: '"CALL API SCRIPT"'
+        DisplayCalculation:
+          Chunk: '"CALL API SCRIPT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “EasySync Client: API: Wipe” ]'
+      StepText: 'Perform Script [ “EasySync Client: API: Sync” ]'
       Script:
-        id: '80'
-        name: 'EasySync Client: API: Wipe'
+        id: '87'
+        name: 'EasySync Client: API: Sync'
     - enable: 'True'
       id: '68'
       name: If
@@ -561,14 +715,6 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '80'
-      name: Refresh Window
-      StepText: Refresh Window
-      Option:
-        state: 'False'
-      FlushSQLData:
-        state: 'False'
-    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -604,6 +750,25 @@ Script:
       StepText: '#================================================================================'
       Text: ================================================================================
     - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
       id: '68'
       name: If
       StepText: "If [ /**\n * assign error info to local variables\n * then evaluate
@@ -621,6 +786,31 @@ Script:
         - Evaluate
         - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n)
           )"
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $errorCode = 1 ]
+      Calculation: $errorCode = 1
+      DisplayCalculation:
+        Chunk: $errorCode = 1
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#User canceled action'
+      Text: User canceled action
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $messageShown ]
+      Calculation: not $messageShown
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $messageShown'
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
@@ -661,9 +851,147 @@ Script:
       name: End If
       StepText: End If
     - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 3
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 3 ;\n\t~message = \"exit script without error\"\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 3 ;\n\t~message = \"exit script without
+        error\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 3 ;\n\t~message = \"exit script without error\"\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime = \" & "
+        - GetAsNumber
+        - |2-
+           ( $~script.runtime ) & " ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Refresh UI.'
+      Text: Refresh UI.
+    - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: |-
+        Show Custom Dialog [ Title: "Sync Completed"; Message: Let (
+        [
+        e = ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ;
+        e = If ( e ≤ 1 ; "Less than a second."; e )
+        ];
+        "The sync process has completed. (Elapsed Time: " & e & ")"
+        ); Default Button: “OK”, Commit: “Yes” ]
+      Title:
+        Calculation: '"Sync Completed"'
+        DisplayCalculation:
+          Chunk: '"Sync Completed"'
+      Message:
+        Calculation: |-
+          Let (
+          [
+          e = ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ;
+          e = If ( e ≤ 1 ; "Less than a second."; e )
+          ];
+          "The sync process has completed. (Elapsed Time: " & e & ")"
+          )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " (\n[\ne = ( "
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - " ) - $~script.start ) / 1000 ;\ne = "
+          - If
+          - |2-
+             ( e ≤ 1 ; "Less than a second."; e )
+            ];
+            "The sync process has completed. (Elapsed Time: " & e & ")"
+            )
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
     - enable: 'True'
       id: '89'
       name: Comment
@@ -672,10 +1000,63 @@ Script:
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
     - enable: 'True'
       id: '103'
       name: Exit Script
-      StepText: Exit Script [  ]
+      StepText: |-
+        Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶" ]
+      Calculation: |-
+        "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - '"$error = " & '
+        - Quote
+        - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
+        - GetAsNumber
+        - ' ( $~script.runtime ) & " ;¶"'
     - enable: 'True'
       id: '89'
       name: Comment

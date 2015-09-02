@@ -48,7 +48,7 @@ Refresh Window
 #================================================================================
 Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
 #================================================================================
-If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"$errorCode\" )") ) ]
+If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
 Show Custom Dialog [ Title: "ERROR"; Message: List (	"type: " & $errorType ;	"code: " & $errorCode ;	"description: " & $errorDescription ;	If ( not IsEmpty ( $errorInfo ) ;		"info: " & $errorInfo	)); Default Button: “Cancel”, Commit: “Yes” ]
 End If
 #
@@ -608,10 +608,10 @@ Script:
       name: If
       StepText: "If [ /**\n * assign error info to local variables\n * then evaluate
         the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
-        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) ) ]"
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) ) ]"
       Calculation: "/**\n * assign error info to local variables\n * then evaluate
         the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
-        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\" )\"\n) )"
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) )"
       DisplayCalculation:
         Chunk:
         - "/**\n * assign error info to local variables\n * then evaluate the errorCode
@@ -619,8 +619,8 @@ Script:
         - GetAsBoolean
         - ' ( '
         - Evaluate
-        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"$errorCode\\\"
-          )\"\n) )"
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n)
+          )"
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog

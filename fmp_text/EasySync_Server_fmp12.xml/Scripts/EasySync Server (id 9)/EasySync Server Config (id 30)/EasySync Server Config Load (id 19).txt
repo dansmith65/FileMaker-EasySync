@@ -2,7 +2,6 @@
 #
 #General sync settings.
 Set Variable [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE; Value:4/*Determines the frequency that 'PluginChecker: Config: Create Log Entry' script is calledvalid values: 0-50	Disabled1	Error	The system is in distress, customers are probably being affected	(or will soon be) and the fix probably requires human intervention.	The "2AM rule" applies here- if you're on call, do you want to be	woken up at 2AM if this condition happens? If yes, then log it as	"error".2	Warn	An unexpected technical or business event happened, customers may be	affected, but probably no immediate human intervention is required. On	call people won't be called immediately, but support personnel will	want to review these issues asap to understand what the impact is.	Basically any issue that needs to be tracked but may not require	immediate intervention.3	Info	Things we want to see at high volume in case we need to forensically	analyze an issue. System lifecycle events (system start, stop) go here.	"Session" lifecycle events (login, logout, etc.) go here. Significant	boundary events should be considered as well (e.g. database calls,	remote API calls). Typical business exceptions can go here (e.g. login	failed due to bad credentials). Any other event you think you'll need	to see in production at high volume goes here.4	Debug	Just about everything that doesn't make the "info" cut. Any message	that is helpful in tracking the flow through the system and isolating	issues, especially during the development and QA phases. We use "debug"	level logs for entry/exit of most non-trivial methods and marking	interesting events and decision points inside methods.5	Trace	For extremely detailed and potentially high volume logs that you don't	typically want enabled even during normal development. Examples	include dumping a full object hierarchy, logging some state during	every iteration of a large loop, etc.*/ ]
-Set Variable [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE; Value:2/*Determines the frequency that 'PluginChecker: Config: Create Log Entry' script is calledvalid values: 0-50	Disabled1	Error	The system is in distress, customers are probably being affected	(or will soon be) and the fix probably requires human intervention.	The "2AM rule" applies here- if you're on call, do you want to be	woken up at 2AM if this condition happens? If yes, then log it as	"error".2	Warn	An unexpected technical or business event happened, customers may be	affected, but probably no immediate human intervention is required. On	call people won't be called immediately, but support personnel will	want to review these issues asap to understand what the impact is.	Basically any issue that needs to be tracked but may not require	immediate intervention.3	Info	Things we want to see at high volume in case we need to forensically	analyze an issue. System lifecycle events (system start, stop) go here.	"Session" lifecycle events (login, logout, etc.) go here. Significant	boundary events should be considered as well (e.g. database calls,	remote API calls). Typical business exceptions can go here (e.g. login	failed due to bad credentials). Any other event you think you'll need	to see in production at high volume goes here.4	Debug	Just about everything that doesn't make the "info" cut. Any message	that is helpful in tracking the flow through the system and isolating	issues, especially during the development and QA phases. We use "debug"	level logs for entry/exit of most non-trivial methods and marking	interesting events and decision points inside methods.5	Trace	For extremely detailed and potentially high volume logs that you don't	typically want enabled even during normal development. Examples	include dumping a full object hierarchy, logging some state during	every iteration of a large loop, etc.*/ ]
 #
 #Ping Settings.
 Set Variable [ $$device_whitelist; Value:// Device whitelist. These device IDs are allowed to sync."" ]
@@ -116,95 +115,6 @@ Script:
           some state during\n\tevery iteration of a large loop, etc.\n*/"
         DisplayCalculation:
           Chunk: "4\n\n/*\nDetermines the frequency that 'PluginChecker: Config: Create
-            Log Entry' script is called\nvalid values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe
-            system is in distress, customers are probably being affected\n\t(or will
-            soon be) and the fix probably requires human intervention.\n\tThe \"2AM
-            rule\" applies here- if you're on call, do you want to be\n\twoken up
-            at 2AM if this condition happens? If yes, then log it as\n\t\"error\".\n\n2\tWarn\n\tAn
-            unexpected technical or business event happened, customers may be\n\taffected,
-            but probably no immediate human intervention is required. On\n\tcall people
-            won't be called immediately, but support personnel will\n\twant to review
-            these issues asap to understand what the impact is.\n\tBasically any issue
-            that needs to be tracked but may not require\n\timmediate intervention.\n\n3\tInfo\n\tThings
-            we want to see at high volume in case we need to forensically\n\tanalyze
-            an issue. System lifecycle events (system start, stop) go here.\n\t\"Session\"
-            lifecycle events (login, logout, etc.) go here. Significant\n\tboundary
-            events should be considered as well (e.g. database calls,\n\tremote API
-            calls). Typical business exceptions can go here (e.g. login\n\tfailed
-            due to bad credentials). Any other event you think you'll need\n\tto see
-            in production at high volume goes here.\n\n4\tDebug\n\tJust about everything
-            that doesn't make the \"info\" cut. Any message\n\tthat is helpful in
-            tracking the flow through the system and isolating\n\tissues, especially
-            during the development and QA phases. We use \"debug\"\n\tlevel logs for
-            entry/exit of most non-trivial methods and marking\n\tinteresting events
-            and decision points inside methods.\n\n5\tTrace\n\tFor extremely detailed
-            and potentially high volume logs that you don't\n\ttypically want enabled
-            even during normal development. Examples\n\tinclude dumping a full object
-            hierarchy, logging some state during\n\tevery iteration of a large loop,
-            etc.\n*/"
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $$EASYSYNC.SERVER.LOGLEVELTOWRITE
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: "Set Variable [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE; Value:2\n\n/*\nDetermines
-        the frequency that 'PluginChecker: Config: Create Log Entry' script is called\nvalid
-        values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe system is in distress, customers
-        are probably being affected\n\t(or will soon be) and the fix probably requires
-        human intervention.\n\tThe \"2AM rule\" applies here- if you're on call, do
-        you want to be\n\twoken up at 2AM if this condition happens? If yes, then
-        log it as\n\t\"error\".\n\n2\tWarn\n\tAn unexpected technical or business
-        event happened, customers may be\n\taffected, but probably no immediate human
-        intervention is required. On\n\tcall people won't be called immediately, but
-        support personnel will\n\twant to review these issues asap to understand what
-        the impact is.\n\tBasically any issue that needs to be tracked but may not
-        require\n\timmediate intervention.\n\n3\tInfo\n\tThings we want to see at
-        high volume in case we need to forensically\n\tanalyze an issue. System lifecycle
-        events (system start, stop) go here.\n\t\"Session\" lifecycle events (login,
-        logout, etc.) go here. Significant\n\tboundary events should be considered
-        as well (e.g. database calls,\n\tremote API calls). Typical business exceptions
-        can go here (e.g. login\n\tfailed due to bad credentials). Any other event
-        you think you'll need\n\tto see in production at high volume goes here.\n\n4\tDebug\n\tJust
-        about everything that doesn't make the \"info\" cut. Any message\n\tthat is
-        helpful in tracking the flow through the system and isolating\n\tissues, especially
-        during the development and QA phases. We use \"debug\"\n\tlevel logs for entry/exit
-        of most non-trivial methods and marking\n\tinteresting events and decision
-        points inside methods.\n\n5\tTrace\n\tFor extremely detailed and potentially
-        high volume logs that you don't\n\ttypically want enabled even during normal
-        development. Examples\n\tinclude dumping a full object hierarchy, logging
-        some state during\n\tevery iteration of a large loop, etc.\n*/ ]"
-      Value:
-        Calculation: "2\n\n/*\nDetermines the frequency that 'PluginChecker: Config:
-          Create Log Entry' script is called\nvalid values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe
-          system is in distress, customers are probably being affected\n\t(or will
-          soon be) and the fix probably requires human intervention.\n\tThe \"2AM
-          rule\" applies here- if you're on call, do you want to be\n\twoken up at
-          2AM if this condition happens? If yes, then log it as\n\t\"error\".\n\n2\tWarn\n\tAn
-          unexpected technical or business event happened, customers may be\n\taffected,
-          but probably no immediate human intervention is required. On\n\tcall people
-          won't be called immediately, but support personnel will\n\twant to review
-          these issues asap to understand what the impact is.\n\tBasically any issue
-          that needs to be tracked but may not require\n\timmediate intervention.\n\n3\tInfo\n\tThings
-          we want to see at high volume in case we need to forensically\n\tanalyze
-          an issue. System lifecycle events (system start, stop) go here.\n\t\"Session\"
-          lifecycle events (login, logout, etc.) go here. Significant\n\tboundary
-          events should be considered as well (e.g. database calls,\n\tremote API
-          calls). Typical business exceptions can go here (e.g. login\n\tfailed due
-          to bad credentials). Any other event you think you'll need\n\tto see in
-          production at high volume goes here.\n\n4\tDebug\n\tJust about everything
-          that doesn't make the \"info\" cut. Any message\n\tthat is helpful in tracking
-          the flow through the system and isolating\n\tissues, especially during the
-          development and QA phases. We use \"debug\"\n\tlevel logs for entry/exit
-          of most non-trivial methods and marking\n\tinteresting events and decision
-          points inside methods.\n\n5\tTrace\n\tFor extremely detailed and potentially
-          high volume logs that you don't\n\ttypically want enabled even during normal
-          development. Examples\n\tinclude dumping a full object hierarchy, logging
-          some state during\n\tevery iteration of a large loop, etc.\n*/"
-        DisplayCalculation:
-          Chunk: "2\n\n/*\nDetermines the frequency that 'PluginChecker: Config: Create
             Log Entry' script is called\nvalid values: 0-5\n\n0\tDisabled\n\n1\tError\n\tThe
             system is in distress, customers are probably being affected\n\t(or will
             soon be) and the fix probably requires human intervention.\n\tThe \"2AM

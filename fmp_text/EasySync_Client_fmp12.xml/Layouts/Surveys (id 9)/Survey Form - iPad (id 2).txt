@@ -1607,8 +1607,8 @@ Layout:
                 enable: 'True'
                 id: '1'
                 name: Perform Script
-                StepText: 'Perform Script [ “EasySync Client: Delete Record”; Parameter:
-                  "Record¶" & Surveys::ES_Record_UUID & "¶survey" ]'
+                StepText: 'Perform Script [ “EasySync Client: Button: Delete Record”;
+                  Parameter: "Record¶" & Surveys::ES_Record_UUID & "¶survey" ]'
                 CurrentScript:
                   value: Pause
                 Calculation: '"Record¶" & Surveys::ES_Record_UUID & "¶survey"'
@@ -1623,7 +1623,7 @@ Layout:
                   - ' & "¶survey"'
                 Script:
                   id: '44'
-                  name: 'EasySync Client: Delete Record'
+                  name: 'EasySync Client: Button: Delete Record'
             HideCondition:
               Calculation: Surveys::<Field Missing>
               DisplayCalculation: 
@@ -2398,7 +2398,7 @@ Layout:
                     enable: 'True'
                     id: '1'
                     name: Perform Script
-                    StepText: 'Perform Script [ “EasySync Client: Delete Record”;
+                    StepText: 'Perform Script [ “EasySync Client: Button: Delete Record”;
                       Parameter: "Portal Row¶" & Survey_Hobbies::ES_Record_UUID &
                       "¶hobby" ]'
                     CurrentScript:
@@ -2416,7 +2416,7 @@ Layout:
                       - ' & "¶hobby"'
                     Script:
                       id: '44'
-                      name: 'EasySync Client: Delete Record'
+                      name: 'EasySync Client: Button: Delete Record'
                 HideCondition:
                   Calculation: IsEmpty ( Survey_Hobbies::Survey_Hobby_ID )
                   DisplayCalculation:
@@ -2944,7 +2944,7 @@ Layout:
                     enable: 'True'
                     id: '1'
                     name: Perform Script
-                    StepText: 'Perform Script [ “EasySync Client: Delete Record”;
+                    StepText: 'Perform Script [ “EasySync Client: Button: Delete Record”;
                       Parameter: "Portal Row¶" & Survey_Documents::ES_Record_UUID
                       & "¶document" ]'
                     CurrentScript:
@@ -2962,7 +2962,7 @@ Layout:
                       - ' & "¶document"'
                     Script:
                       id: '44'
-                      name: 'EasySync Client: Delete Record'
+                      name: 'EasySync Client: Button: Delete Record'
                 HideCondition:
                   Calculation: IsEmpty ( Survey_Documents::Survey_Document_ID )
                   DisplayCalculation:

@@ -1,0 +1,1785 @@
+#################################################################################
+# PURPOSE:
+#    Create and pull a sync payload from the server.
+#
+# CONTEXT: EasySync_Payloads
+#
+# PARAMETERS: none
+#
+# RETURNS:
+#    $error | a dictionary containing error data
+#    $runtime | number of seconds this script was running (with millisecond precision)
+#    $nothingToPull | boolean | True if no errors were encounted and there were no changes to pull from to the server.
+#
+# VARIABLES:
+#
+# DEPENDENCIES:
+#
+# NOTES:
+#
+# REVISIONS:
+#	2015-AUG-28 Daniel Smith dansmith65@gmail.com	- Created
+#################################################################################
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+Set Variable [ $~script.errorType; Value:"Module: EasySync Client" ]
+#
+#
+#
+#
+#
+#
+Loop
+# single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"LOAD SETTINGS" ]
+#================================================================================
+If [ not $$EASYSYNC.SETTINGS.LOADED ]
+Perform Script [ “EasySync Client: Config: Load” ]
+Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
+End If
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+#NOTE: this must exist after settings have been loaded, otherwise the logleveltowrite variable won't be set
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = "start script"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+#================================================================================
+Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState ) ]
+Set Variable [ $AllowAbortState; Value:Get ( AllowAbortState ) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"MODIFY ENVIRONMENT" ]
+#================================================================================
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4// Allow aborts in debug mode. ]
+Allow User Abort [ On ]
+Else
+Allow User Abort [ Off ]
+End If
+Set Error Capture [ On ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"MODIFY CONTEXT" ]
+#================================================================================
+Go to Layout [ "EasySync_Payloads" ]
+Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after Go to Layout step" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
+Enter Browse Mode
+Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after Enter Browse Mode step" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
+If [ Get ( WindowMode ) ≠ 0  /* Browse mode */ ]
+Exit Loop If [ Let ( [	theErrorCode = 6 ;	theErrorDescription = "Invalid window mode" ;	theErrorInfo = "was not in Browse mode, even after Enter Browse Mode step; possibly because of layout script triggers" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+End If
+Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "" /* clear message */ ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CALL PRIVATE SCRIPT" ]
+#================================================================================
+Perform Script [ “EasySync Client: Private: Pull” ]
+If [ Get ( LastError ) ]
+Exit Loop If [ Let ( [	theErrorCode = Get ( LastError ) ;	theErrorDescription = "FileMaker Error" ;	theErrorInfo = "section: " & $~script.section & ". Make sure the perform script step calls the correct script and the user has permission to run it." ;	theErrorType = "Fmp" ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+Else If [ /* assign script result to local variables */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
+Exit Loop If [ Let ( [	theErrorCode = 19 ;	theErrorDescription = "Invalid script result " ;	theErrorInfo = "section: " & $~script.section ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$ScriptResult = " & Quote ( Get ( ScriptResult ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+Else If [ /* assign subscript error info to local variables */EvaluationError ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; \"\" )") ) ]
+Exit Loop If [ Let ( [	theErrorCode = 19 ;	theErrorDescription = "Invalid script result " ;	theErrorInfo = "section: " & $~script.section & ". $error could not be evaluated.";	theErrorInfo = "after performing script: '" & $~script.subscript & "'. $error could not be evaluated." ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$ScriptResult = " & Quote ( Get ( ScriptResult ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+Else If [ $errorCode ]
+Exit Loop If [ /* subscript error has been saved to local variable(s) */Let ( [	/* add the current script's name to a list of scripts that triggered this error */	~scriptStack = List (		Get ( ScriptName ) ;		If ( IsEmpty ( $scriptStack ) ;			/* start the stack off with the script's name that triggered the error */			$ScriptName ;			$scriptStack		)	) ;	/* append this data to the error */	$error =		$error		& "$scriptStack = " & Quote ( ~scriptStack ) & " ;¶"] ;	True) ]
+End If
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"RESTORE CONTEXT" ]
+#================================================================================
+Go to Layout [ original layout ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"RESTORE ENVIRONMENT" ]
+#================================================================================
+If [ not $ErrorCaptureState ]
+Set Error Capture [ Off ]
+End If
+If [ $AllowAbortState ]
+Allow User Abort [ On ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+#================================================================================
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
+If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "exit script with error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$error = " & Quote ( $error ) & " ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
+End If
+Else If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶" ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '85'
+  name: 'EasySync Client: API: Pull'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Create and pull a sync payload from the server.'
+      Text: '    Create and pull a sync payload from the server.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CONTEXT: EasySync_Payloads'
+      Text: ' CONTEXT: EasySync_Payloads'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $error | a dictionary containing error data'
+      Text: '    $error | a dictionary containing error data'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+      Text: '    $runtime | number of seconds this script was running (with millisecond
+        precision)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $nothingToPull | boolean | True if no errors were encounted
+        and there were no changes to pull from to the server.'
+      Text: '    $nothingToPull | boolean | True if no errors were encounted and there
+        were no changes to pull from to the server.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# VARIABLES:'
+      Text: ' VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t\n2015-AUG-28 Daniel Smith dansmith65@gmail.com\n\t- Created"
+      Text: "\t\n2015-AUG-28 Daniel Smith dansmith65@gmail.com\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.errorType; Value:"Module: EasySync Client"
+        ]'
+      Value:
+        Calculation: '"Module: EasySync Client"'
+        DisplayCalculation:
+          Chunk: '"Module: EasySync Client"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.errorType
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# single-pass loop for error trapping'
+      Text: ' single-pass loop for error trapping'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"LOAD SETTINGS" ]
+      Value:
+        Calculation: '"LOAD SETTINGS"'
+        DisplayCalculation:
+          Chunk: '"LOAD SETTINGS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $$EASYSYNC.SETTINGS.LOADED ]
+      Calculation: not $$EASYSYNC.SETTINGS.LOADED
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $$EASYSYNC.SETTINGS.LOADED'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Config: Load” ]'
+      Script:
+        id: '29'
+        name: 'EasySync Client: Config: Load'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
+        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
+        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+        = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType )
+        & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
+        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
+        the description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+        = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType )
+        & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " ( [\n\t\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
+          description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+          = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#NOTE: this must exist after settings have been loaded, otherwise
+        the logleveltowrite variable won''t be set'
+      Text: 'NOTE: this must exist after settings have been loaded, otherwise the
+        logleveltowrite variable won''t be set'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 5 ;\n\t~message = \"start script\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - |2-
+           ) / 1000 ) ) & " ) ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+      Value:
+        Calculation: '"SET VARIABLES"'
+        DisplayCalculation:
+          Chunk: '"SET VARIABLES"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState )
+        ]
+      Value:
+        Calculation: Get ( ErrorCaptureState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ErrorCaptureState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ErrorCaptureState
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $AllowAbortState; Value:Get ( AllowAbortState ) ]
+      Value:
+        Calculation: Get ( AllowAbortState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - AllowAbortState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $AllowAbortState
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"MODIFY ENVIRONMENT" ]
+      Value:
+        Calculation: '"MODIFY ENVIRONMENT"'
+        DisplayCalculation:
+          Chunk: '"MODIFY ENVIRONMENT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+
+        // Allow aborts in debug mode. ]
+      Calculation: |-
+        $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+
+        // Allow aborts in debug mode.
+      DisplayCalculation:
+        Chunk:
+        - |+
+          $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+
+        - // Allow aborts in debug mode.
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"MODIFY CONTEXT" ]
+      Value:
+        Calculation: '"MODIFY CONTEXT"'
+        DisplayCalculation:
+          Chunk: '"MODIFY CONTEXT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ "EasySync_Payloads" ]
+      LayoutDestination:
+        value: LayoutNameByCalc
+      Layout:
+        id: '0'
+        name: ''
+        Calculation: '"EasySync_Payloads"'
+        DisplayCalculation:
+          Chunk: '"EasySync_Payloads"'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
+        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
+        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"after Go
+        to Layout step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription )
+        & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
+        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
+        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
+        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
+        the description of this error code)\" ;\n\t\ttheErrorInfo = \"after Go to
+        Layout step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription )
+        & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
+        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
+        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " ( [\n\t\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
+          description of this error code)\" ;\n\t\ttheErrorInfo = \"after Go to Layout
+          step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+          = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '55'
+      name: Enter Browse Mode
+      StepText: Enter Browse Mode
+      Pause:
+        state: 'False'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
+        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
+        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"after Enter
+        Browse Mode step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription )
+        & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
+        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
+        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
+        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
+        the description of this error code)\" ;\n\t\ttheErrorInfo = \"after Enter
+        Browse Mode step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+        = \" & Quote ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode
+        & \" ;¶\"\n\t\t& \"$errorDescription = \" & Quote ( theErrorDescription )
+        & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t&
+        \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter
+        = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " ( [\n\t\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
+          description of this error code)\" ;\n\t\ttheErrorInfo = \"after Enter Browse
+          Mode step\" ;\n\t\ttheErrorType = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType
+          = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( WindowMode ) ≠ 0  /* Browse mode */ ]
+      Calculation: Get ( WindowMode ) ≠ 0  /* Browse mode */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - WindowMode
+        - ' ) ≠ 0  /* Browse mode */'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = 6 ;\n\ttheErrorDescription
+        = \"Invalid window mode\" ;\n\ttheErrorInfo = \"was not in Browse mode, even
+        after Enter Browse Mode step; possibly because of layout script triggers\"
+        ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error = \"$errorType = \"
+        & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode &
+        \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription ) & \"
+        ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = 6 ;\n\ttheErrorDescription = \"Invalid
+        window mode\" ;\n\ttheErrorInfo = \"was not in Browse mode, even after Enter
+        Browse Mode step; possibly because of layout script triggers\" ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = 6 ;\n\ttheErrorDescription = \"Invalid window mode\"
+          ;\n\ttheErrorInfo = \"was not in Browse mode, even after Enter Browse Mode
+          step; possibly because of layout script triggers\" ;\n\ttheErrorType = $~script.errorType
+          ;\n\t\n\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Config: Show Message”; Parameter:
+        "" /* clear message */ ]'
+      Calculation: '"" /* clear message */'
+      DisplayCalculation:
+        Chunk: '"" /* clear message */'
+      Script:
+        id: '67'
+        name: 'EasySync Client: Config: Show Message'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"CALL PRIVATE SCRIPT" ]
+      Value:
+        Calculation: '"CALL PRIVATE SCRIPT"'
+        DisplayCalculation:
+          Chunk: '"CALL PRIVATE SCRIPT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: Private: Pull” ]'
+      Script:
+        id: '18'
+        name: 'EasySync Client: Private: Pull'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastError ) ]
+      Calculation: Get ( LastError )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - ' )'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = Get ( LastError ) ;\n\ttheErrorDescription
+        = \"FileMaker Error\" ;\n\ttheErrorInfo = \"section: \" & $~script.section
+        & \". Make sure the perform script step calls the correct script and the user
+        has permission to run it.\" ;\n\ttheErrorType = \"Fmp\" ;\n\t\n\t$error =
+        \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \"
+        & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription
+        ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = Get ( LastError ) ;\n\ttheErrorDescription
+        = \"FileMaker Error\" ;\n\ttheErrorInfo = \"section: \" & $~script.section
+        & \". Make sure the perform script step calls the correct script and the user
+        has permission to run it.\" ;\n\ttheErrorType = \"Fmp\" ;\n\t\n\t$error =
+        \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \"
+        & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription
+        ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
+        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\ttheErrorDescription = \"FileMaker Error\" ;\n\ttheErrorInfo = \"section:
+          \" & $~script.section & \". Make sure the perform script step calls the
+          correct script and the user has permission to run it.\" ;\n\ttheErrorType
+          = \"Fmp\" ;\n\t\n\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ /* assign script result to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) ) ]"
+      Calculation: "/* assign script result to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* assign script result to local variables */
+
+        - EvaluationError
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& "
+        - Get
+        - ' ( '
+        - ScriptResult
+        - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = 19 ;\n\ttheErrorDescription
+        = \"Invalid script result \" ;\n\ttheErrorInfo = \"section: \" & $~script.section
+        ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error = \"$errorType = \"
+        & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode &
+        \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription ) & \"
+        ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
+        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
+        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
+        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$ScriptResult = \" &
+        Quote ( Get ( ScriptResult ) ) & \" ;¶\"\n\t& \"$~script.section = \" & Quote
+        ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = 19 ;\n\ttheErrorDescription = \"Invalid
+        script result \" ;\n\ttheErrorInfo = \"section: \" & $~script.section ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$ScriptResult = \" & Quote ( Get ( ScriptResult ) ) & \" ;¶\"\n\t&
+        \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = 19 ;\n\ttheErrorDescription = \"Invalid script result
+          \" ;\n\ttheErrorInfo = \"section: \" & $~script.section ;\n\ttheErrorType
+          = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptResult = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ /* assign subscript error info to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"\\\"
+        )\"\n) ) ]"
+      Calculation: "/* assign subscript error info to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"\\\"
+        )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* assign subscript error info to local variables */
+
+        - EvaluationError
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n)
+          )"
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = 19 ;\n\ttheErrorDescription
+        = \"Invalid script result \" ;\n\ttheErrorInfo = \"section: \" & $~script.section
+        & \". $error could not be evaluated.\";\n\ttheErrorInfo = \"after performing
+        script: '\" & $~script.subscript & \"'. $error could not be evaluated.\" ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$ScriptResult = \" & Quote ( Get ( ScriptResult ) ) & \" ;¶\"\n\t&
+        \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)
+        ]"
+      Calculation: "Let ( [\n\ttheErrorCode = 19 ;\n\ttheErrorDescription = \"Invalid
+        script result \" ;\n\ttheErrorInfo = \"section: \" & $~script.section & \".
+        $error could not be evaluated.\";\n\ttheErrorInfo = \"after performing script:
+        '\" & $~script.subscript & \"'. $error could not be evaluated.\" ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$ScriptResult = \" & Quote ( Get ( ScriptResult ) ) & \" ;¶\"\n\t&
+        \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = 19 ;\n\ttheErrorDescription = \"Invalid script result
+          \" ;\n\ttheErrorInfo = \"section: \" & $~script.section & \". $error could
+          not be evaluated.\";\n\ttheErrorInfo = \"after performing script: '\" &
+          $~script.subscript & \"'. $error could not be evaluated.\" ;\n\ttheErrorType
+          = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptResult = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $errorCode ]
+      Calculation: $errorCode
+      DisplayCalculation:
+        Chunk: $errorCode
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /* subscript error has been saved to local variable(s)
+        */\n\nLet ( [\n\t/* add the current script's name to a list of scripts that
+        triggered this error */\n\t~scriptStack = List (\n\t\tGet ( ScriptName ) ;\n\t\tIf
+        ( IsEmpty ( $scriptStack ) ;\n\t\t\t/* start the stack off with the script's
+        name that triggered the error */\n\t\t\t$ScriptName ;\n\t\t\t$scriptStack\n\t\t)\n\t)
+        ;\n\n\t/* append this data to the error */\n\t$error =\n\t\t$error\n\t\t&
+        \"$scriptStack = \" & Quote ( ~scriptStack ) & \" ;¶\"\n] ;\n\tTrue\n) ]"
+      Calculation: "/* subscript error has been saved to local variable(s) */\n\nLet
+        ( [\n\t/* add the current script's name to a list of scripts that triggered
+        this error */\n\t~scriptStack = List (\n\t\tGet ( ScriptName ) ;\n\t\tIf (
+        IsEmpty ( $scriptStack ) ;\n\t\t\t/* start the stack off with the script's
+        name that triggered the error */\n\t\t\t$ScriptName ;\n\t\t\t$scriptStack\n\t\t)\n\t)
+        ;\n\n\t/* append this data to the error */\n\t$error =\n\t\t$error\n\t\t&
+        \"$scriptStack = \" & Quote ( ~scriptStack ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* subscript error has been saved to local variable(s) */
+
+        - Let
+        - " ( [\n\t/* add the current script's name to a list of scripts that triggered
+          this error */\n\t~scriptStack = "
+        - List
+        - " (\n\t\t"
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ;\n\t\t"
+        - If
+        - ' ( '
+        - IsEmpty
+        - " ( $scriptStack ) ;\n\t\t\t/* start the stack off with the script's name
+          that triggered the error */\n\t\t\t$ScriptName ;\n\t\t\t$scriptStack\n\t\t)\n\t)
+          ;\n\n\t/* append this data to the error */\n\t$error =\n\t\t$error\n\t\t&
+          \"$scriptStack = \" & "
+        - Quote
+        - " ( ~scriptStack ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# end single-pass loop for error trapping'
+      Text: ' end single-pass loop for error trapping'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"RESTORE CONTEXT" ]
+      Value:
+        Calculation: '"RESTORE CONTEXT"'
+        DisplayCalculation:
+          Chunk: '"RESTORE CONTEXT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ original layout ]
+      LayoutDestination:
+        value: OriginalLayout
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"RESTORE ENVIRONMENT" ]
+      Value:
+        Calculation: '"RESTORE ENVIRONMENT"'
+        DisplayCalculation:
+          Chunk: '"RESTORE ENVIRONMENT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $ErrorCaptureState ]
+      Calculation: not $ErrorCaptureState
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $ErrorCaptureState'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $AllowAbortState ]
+      Calculation: $AllowAbortState
+      DisplayCalculation:
+        Chunk: $AllowAbortState
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+      Value:
+        Calculation: '"HANDLE ERROR"'
+        DisplayCalculation:
+          Chunk: '"HANDLE ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /**\n * assign error info to local variables\n * then evaluate
+        the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) ) ]"
+      Calculation: "/**\n * assign error info to local variables\n * then evaluate
+        the errorCode as a Boolean\n * \n */\n\nGetAsBoolean ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - "/**\n * assign error info to local variables\n * then evaluate the errorCode
+          as a Boolean\n * \n */\n\n"
+        - GetAsBoolean
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n)
+          )"
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n] ;\n\t\"$LogLevel
+        = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
+        \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t&
+        \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t&
+        \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds
+        ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error = \" & Quote ( $error ) & \" ;¶\"\n\t&
+        \"$runtime = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error
+        = \" & Quote ( $error ) & \" ;¶\"\n\t& \"$runtime = \" & GetAsNumber ( $~script.runtime
+        ) & \" ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 2 ;\n\t~message = \"exit script with error\"\n] ;\n\t\"$LogLevel
+          = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$error = \" & "
+        - Quote
+        - " ( $error ) & \" ;¶\"\n\t& \"$runtime = \" & "
+        - GetAsNumber
+        - |2-
+           ( $~script.runtime ) & " ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without error\"\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without
+        error\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without error\"\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime = \" & "
+        - GetAsNumber
+        - |2-
+           ( $~script.runtime ) & " ;¶"
+          )
+      Script:
+        id: '66'
+        name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
+        & "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶" ]
+      Calculation: |-
+        "$error = " & Quote ( $error ) & " ;¶"
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
+        & "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - '"$error = " & '
+        - Quote
+        - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
+        - GetAsNumber
+        - " ( $~script.runtime ) & \" ;¶\"\n& \"$nothingToPull = \" & "
+        - GetAsBoolean
+        - ( $nothingToPull ) & " ;¶"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

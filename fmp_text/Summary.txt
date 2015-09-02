@@ -1,19 +1,19 @@
             Summary file:  Summary.xml                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
             Summary path:  /Volumes/E/Users/Daniel/GitHub/FileMaker-EasySync/dev/fmp_ddr                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
    FileMaker Pro version:  13.0v9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-           Creation Date:  2015-08-28                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-           Creation Time:  5:00:11 PM                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+           Creation Date:  2015-09-02                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+           Creation Time:  3:16:35 PM                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 
                    Report   BaseTables  Tables  Relationships  Accounts  Privileges  ExtendedPrivileges  FileAccess  Layouts  Scripts  ValueLists  CustomFunctions  FileReferences  CustomMenuSets  CustomMenus
                    ------   ----------  ------  -------------  --------  ----------  ------------------  ----------  -------  -------  ----------  ---------------  --------------  --------------  -----------
         EasyDeploy.fmp12  1           1       0              3         3           6                   0           1        3        6           0                1               0               0            
-   EasySync_Client.fmp12  5           9       6              4         3           6                   0           7        31       6           0                2               0               0            
+   EasySync_Client.fmp12  5           9       6              4         3           6                   0           7        39       6           0                2               0               0            
    EasySync_Server.fmp12  5           9       6              5         4           6                   0           7        12       4           0                1               0               0            
 
 ---
 FMPReport:
-  creationTime: 5:00:11 PM
-  creationDate: '2015-08-28'
+  creationTime: 3:16:35 PM
+  creationDate: '2015-09-02'
   type: Summary
   version: 13.0v9
   File:
@@ -68,7 +68,7 @@ FMPReport:
     Layouts:
       count: '7'
     Scripts:
-      count: '31'
+      count: '39'
     ValueLists:
       count: '6'
     CustomFunctions:
