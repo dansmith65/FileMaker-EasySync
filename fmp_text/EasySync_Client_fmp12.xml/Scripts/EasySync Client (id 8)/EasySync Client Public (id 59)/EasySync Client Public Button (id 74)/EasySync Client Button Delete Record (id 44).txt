@@ -35,9 +35,9 @@ Loop
 #================================================================================
 Set Variable [ $~script.section; Value:"LOAD SETTINGS" ]
 #================================================================================
+If [ not $$EASYSYNC.CLIENT.SETTING.LOADED ]
 Perform Script [ “EasySync Client: Config: Load” ]
-If [ Get ( LastError ) ]
-Exit Loop If [ Let ( [	theErrorCode = Get ( LastError ) ;	theErrorDescription = "FileMaker Error" ;	theErrorInfo = "section: " & $~script.section & ". Make sure the perform script step calls the correct script and the user has permission to run it." ;	theErrorType = "Fmp" ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
 End If
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 5 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = "start script"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
@@ -380,6 +380,15 @@ Script:
       StepText: '#================================================================================'
       Text: ================================================================================
     - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $$EASYSYNC.CLIENT.SETTING.LOADED ]
+      Calculation: not $$EASYSYNC.CLIENT.SETTING.LOADED
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $$EASYSYNC.CLIENT.SETTING.LOADED'
+    - enable: 'True'
       id: '1'
       name: Perform Script
       StepText: 'Perform Script [ “EasySync Client: Config: Load” ]'
@@ -387,57 +396,51 @@ Script:
         id: '29'
         name: 'EasySync Client: Config: Load'
     - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ Get ( LastError ) ]
-      Calculation: Get ( LastError )
-      DisplayCalculation:
-        Chunk:
-        - Get
-        - ' ( '
-        - LastError
-        - ' )'
-    - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = Get ( LastError ) ;\n\ttheErrorDescription
-        = \"FileMaker Error\" ;\n\ttheErrorInfo = \"section: \" & $~script.section
-        & \". Make sure the perform script step calls the correct script and the user
-        has permission to run it.\" ;\n\ttheErrorType = \"Fmp\" ;\n\t\n\t$error =
-        \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \"
-        & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription
-        ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
-        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
-        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
-        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
-        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n) ]"
-      Calculation: "Let ( [\n\ttheErrorCode = Get ( LastError ) ;\n\ttheErrorDescription
-        = \"FileMaker Error\" ;\n\ttheErrorInfo = \"section: \" & $~script.section
-        & \". Make sure the perform script step calls the correct script and the user
-        has permission to run it.\" ;\n\ttheErrorType = \"Fmp\" ;\n\t\n\t$error =
-        \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \"
-        & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" & Quote ( theErrorDescription
-        ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode
-        ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName
-        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
-        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$~script.section = \"
-        & Quote ( $~script.section ) & \" ;¶\"\n] ;\n\tTrue\n)"
+      StepText: "Exit Loop If [ If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode
+        = Get ( LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation
+        for the description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+        = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType )
+        & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If ( Get ( LastError ) ;\n\tLet ( [\n\t\ttheErrorCode = Get (
+        LastError ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for
+        the description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+        = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & Quote ( theErrorType )
+        & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & Quote ( Get ( ScriptName )
+        ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & Quote ( $~script.section )
+        & \" ;¶\"\n\t] ;\n\t\tTrue\n\t)\n)"
       DisplayCalculation:
         Chunk:
-        - Let
-        - " ( [\n\ttheErrorCode = "
+        - If
+        - ' ( '
         - Get
         - ' ( '
         - LastError
-        - " ) ;\n\ttheErrorDescription = \"FileMaker Error\" ;\n\ttheErrorInfo = \"section:
-          \" & $~script.section & \". Make sure the perform script step calls the
-          correct script and the user has permission to run it.\" ;\n\ttheErrorType
-          = \"Fmp\" ;\n\t\n\t$error = \"$errorType = \" & "
+        - " ) ;\n\t"
+        - Let
+        - " ( [\n\t\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\ttheErrorDescription = \"(see FileMaker documentation for the
+          description of this error code)\" ;\n\t\ttheErrorInfo = \"\" ;\n\t\ttheErrorType
+          = \"Fmp\" ;\n\t\t\n\t\t$error = \"$errorType = \" & "
         - Quote
-        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
-          ;¶\"\n\t& \"$errorDescription = \" & "
+        - " ( theErrorType ) & \" ;¶\"\n\t\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t\t& \"$errorDescription = \" & "
         - Quote
-        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - " ( theErrorDescription ) & \" ;¶\"\n\t\t& "
         - If
         - ' ( '
         - not
@@ -449,27 +452,25 @@ Script:
         - type: NoRef
           __content__: ' '
         - GetAsBoolean
-        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - " ( theErrorCode ) ;\n\t\t\t\"$errorInfo = \" & "
         - Quote
-        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - " ( theErrorInfo ) & \" ;¶\"\n\t\t)\n\t\t& \"$ScriptName = \" & "
         - Quote
         - ' ( '
         - Get
         - ' ( '
         - ScriptName
-        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - " ) ) & \" ;¶\"\n\t\t& \"$ScriptParameter = \" & "
         - Quote
         - ' ( '
         - Get
         - ' ( '
         - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - " ) ) & \" ;¶\"\n\t\t& \"$~script.section = \" & "
         - Quote
-        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - " ( $~script.section ) & \" ;¶\"\n\t] ;\n\t\t"
         - 'True'
-        - |2-
-
-          )
+        - "\n\t)\n)"
     - enable: 'True'
       id: '70'
       name: End If

@@ -34,7 +34,7 @@ Loop
 #================================================================================
 Set Variable [ $~script.section; Value:"LOAD SETTINGS" ]
 #================================================================================
-If [ not $$EASYSYNC.SETTINGS.LOADED ]
+If [ not $$EASYSYNC.CLIENT.SETTING.LOADED ]
 Perform Script [ “EasySync Client: Config: Load” ]
 Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	] ;		True	)) ]
 End If
@@ -280,12 +280,12 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ not $$EASYSYNC.SETTINGS.LOADED ]
-      Calculation: not $$EASYSYNC.SETTINGS.LOADED
+      StepText: If [ not $$EASYSYNC.CLIENT.SETTING.LOADED ]
+      Calculation: not $$EASYSYNC.CLIENT.SETTING.LOADED
       DisplayCalculation:
         Chunk:
         - not
-        - ' $$EASYSYNC.SETTINGS.LOADED'
+        - ' $$EASYSYNC.CLIENT.SETTING.LOADED'
     - enable: 'True'
       id: '1'
       name: Perform Script
