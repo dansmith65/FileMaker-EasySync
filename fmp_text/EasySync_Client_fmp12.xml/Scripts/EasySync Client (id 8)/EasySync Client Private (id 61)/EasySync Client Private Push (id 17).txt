@@ -167,12 +167,9 @@ If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Deletions: " & $deletions] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
 #
-#If no data needs to be synced...
 If [ IsEmpty ( $records ) and IsEmpty ( $deletions ) ]
 Set Variable [ $nothingToPush; Value:True ]
-Exit Loop If [ True ]
-End If
-#
+Else
 #Create payload header (everything that isn't the record data/id's to delete)
 Set Variable [ $payload_header; Value:/* last_sync_info */"<last_pull>¶"	& Evaluate ( "EasySync_Payloads::ES_Last_Pull_UTC_Time" )& "¶</last_pull>"& ¶/* settings_info */& "<settings>¶"	& $$field_delimiter & "</setting>"	& $$record_delimiter & "</setting>"	& Get ( PersistentID ) & "</setting>"	& $$client_version & "</setting>"	& Substitute ( Get ( SystemIPAddress ); ¶; ", " ) & "</setting>"	& Substitute ( Get ( SystemNICAddress ); ¶; ", " ) & "</setting>"	& Get ( SystemPlatform ) & "</setting>"	& Get ( SystemVersion ) & "</setting>"	& Get ( Device ) & "</setting>"	& Get ( NetworkProtocol ) & "</setting>"	& Get ( NetworkType ) & "</setting>"	& $$additional_push_info& "¶</settings>"& ¶/* table_info */& "<tables>¶"	& $table_info& "¶</tables>" ]
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
@@ -182,6 +179,8 @@ End If
 #Put the payload together.
 Set Variable [ $payload; Value:"<payload>¶"	& $payload_header & ¶	& If ( not IsEmpty ( $records ) ;		"<records>" & ¶ & $records & ¶ & "</records>¶"	)	& If ( not IsEmpty ( $deletions ) ;		"<deletions>" & ¶ & $deletions & ¶ & "</deletions>¶"	)& "¶</payload>" ]
 #
+End If
+#
 #
 #
 #================================================================================
@@ -189,6 +188,7 @@ Set Variable [ $~script.section; Value:"SEND PAYLOAD TO SERVER" ]
 #Note: We use this segmented approach to work around the PSoS script parameter's 1,000,000 character limit.
 #Special thanks to Kirk Bowman @ MightyData for the idea!
 #================================================================================
+If [ not $nothingToPush ]
 Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Pushing payload to server..." ]
 Set Variable [ $payload_length; Value:Length ( $payload ) ]
 Set Variable [ $num_segments; Value:Int ( $payload_length / $$max_push_segment_size )+ If ( Mod ( $payload_length ; $$max_push_segment_size ) ;	1 ;	0) ]
@@ -218,12 +218,14 @@ Exit Loop If [ /** * An error occurred in the above loop * * assign error info t
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Segment IDs: " & $payload_segment_ids] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
+End If
 #
 #
 #
 #================================================================================
 Set Variable [ $~script.section; Value:"PROCESS PAYLOAD" ]
 #================================================================================
+If [ not $nothingToPush ]
 Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Server is processing payload..." ]
 Perform Script [ “EasySync Client: Config: Push: Process”; Parameter: "$payload_segment_ids = " & Quote ( $payload_segment_ids ) & " ;¶" ]
 If [ Get ( LastError ) ]
@@ -234,6 +236,7 @@ Else If [ /* assign subscript error info to local variables */EvaluationError ( 
 Exit Loop If [ Let ( [	theErrorCode = 19 ;	theErrorDescription = "Invalid script result " ;	theErrorInfo = "section: " & $~script.section & ". $error could not be evaluated.";	theErrorInfo = "after performing script: '" & $~script.subscript & "'. $error could not be evaluated." ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$ScriptResult = " & Quote ( Get ( ScriptResult ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
 Else If [ $errorCode ]
 Exit Loop If [ /* subscript error has been saved to local variable(s) */Let ( [	/* add the current script's name to a list of scripts that triggered this error */	~scriptStack = List (		Get ( ScriptName ) ;		If ( IsEmpty ( $scriptStack ) ;			/* start the stack off with the script's name that triggered the error */			$ScriptName ;			$scriptStack		)	) ;	/* append this data to the error */	$error =		$error		& "$scriptStack = " & Quote ( ~scriptStack ) & " ;¶"] ;	True) ]
+End If
 End If
 #
 #
@@ -259,6 +262,7 @@ Set Variable [ $~script.section; Value:"CLEAN UP LOCALLY LOGGED DELETIONS" ]
 # errors in this section don't affect the sync, only the cleanup, so they will be logged but not reported in the script result
 #================================================================================
 Loop
+#single-pass loop for error trapping
 #
 Enter Find Mode [  ]
 Set Field [ EasySync_Payloads::ES_Deleted_Record_UUID; "@*" ]
@@ -269,6 +273,7 @@ Delete All Records[ No dialog ]
 Exit Loop If [ If ( Get ( LastError ) ;	Let ( [		theErrorCode = Get ( LastError ) ;		theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;		theErrorInfo = "after delete all records step" ;		theErrorType = "Fmp" ;				$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"		& "$errorCode = " & theErrorCode & " ;¶"		& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"		& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;			"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"		)		& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"		& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"		& "$FoundCount = " & Get ( FoundCount ) & " ;¶"	] ;		True	)) ]
 End If
 #
+#end single-pass loop for error trapping
 Exit Loop If [ True ]
 End Loop
 If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
@@ -2211,11 +2216,6 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If no data needs to be synced...'
-      Text: If no data needs to be synced...
-    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ IsEmpty ( $records ) and IsEmpty ( $deletions ) ]
@@ -2243,20 +2243,9 @@ Script:
           Chunk: '1'
       Name: $nothingToPush
     - enable: 'True'
-      id: '72'
-      name: Exit Loop If
-      StepText: Exit Loop If [ True ]
-      Calculation: 'True'
-      DisplayCalculation:
-        Chunk: 'True'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      id: '69'
+      name: Else
+      StepText: Else
     - enable: 'True'
       id: '89'
       name: Comment
@@ -2445,6 +2434,14 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -2487,6 +2484,15 @@ Script:
       name: Comment
       StepText: '#================================================================================'
       Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $nothingToPush ]
+      Calculation: not $nothingToPush
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $nothingToPush'
     - enable: 'True'
       id: '1'
       name: Perform Script
@@ -3130,6 +3136,10 @@ Script:
       name: End If
       StepText: End If
     - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -3164,6 +3174,15 @@ Script:
       name: Comment
       StepText: '#================================================================================'
       Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $nothingToPush ]
+      Calculation: not $nothingToPush
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $nothingToPush'
     - enable: 'True'
       id: '1'
       name: Perform Script
@@ -3523,6 +3542,10 @@ Script:
       name: End If
       StepText: End If
     - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -3823,6 +3846,11 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
+      StepText: '#single-pass loop for error trapping'
+      Text: single-pass loop for error trapping
+    - enable: 'True'
+      id: '89'
+      name: Comment
       StepText: '#'
     - enable: 'True'
       id: '22'
@@ -4036,6 +4064,11 @@ Script:
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#end single-pass loop for error trapping'
+      Text: end single-pass loop for error trapping
     - enable: 'True'
       id: '72'
       name: Exit Loop If

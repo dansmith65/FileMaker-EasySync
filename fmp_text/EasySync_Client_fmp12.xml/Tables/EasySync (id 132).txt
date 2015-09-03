@@ -17,7 +17,7 @@
 ---
 BaseTable:
   id: '132'
-  records: '0'
+  records: '2'
   name: EasySync
   FieldCatalog:
     Field:

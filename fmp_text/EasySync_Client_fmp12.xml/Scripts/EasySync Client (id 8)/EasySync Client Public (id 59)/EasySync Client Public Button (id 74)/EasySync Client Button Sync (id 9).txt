@@ -79,7 +79,7 @@ End If
 #Refresh UI.
 Show All Records
 Refresh Window
-Show Custom Dialog [ Title: "Sync Completed"; Message: Let ([e = ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ;e = If ( e ≤ 1 ; "Less than a second."; e )];"The sync process has completed. (Elapsed Time: " & e & ")"); Default Button: “OK”, Commit: “Yes” ]
+Show Custom Dialog [ Title: "Sync Completed"; Message: "The sync process has completed. (Elapsed Time: " & GetAsTime ( $~script.runtime ) & ")"; Default Button: “OK”, Commit: “Yes” ]
 End If
 #
 #
@@ -945,41 +945,21 @@ Script:
     - enable: 'True'
       id: '87'
       name: Show Custom Dialog
-      StepText: |-
-        Show Custom Dialog [ Title: "Sync Completed"; Message: Let (
-        [
-        e = ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ;
-        e = If ( e ≤ 1 ; "Less than a second."; e )
-        ];
-        "The sync process has completed. (Elapsed Time: " & e & ")"
-        ); Default Button: “OK”, Commit: “Yes” ]
+      StepText: 'Show Custom Dialog [ Title: "Sync Completed"; Message: "The sync
+        process has completed. (Elapsed Time: " & GetAsTime ( $~script.runtime ) &
+        ")"; Default Button: “OK”, Commit: “Yes” ]'
       Title:
         Calculation: '"Sync Completed"'
         DisplayCalculation:
           Chunk: '"Sync Completed"'
       Message:
-        Calculation: |-
-          Let (
-          [
-          e = ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ;
-          e = If ( e ≤ 1 ; "Less than a second."; e )
-          ];
-          "The sync process has completed. (Elapsed Time: " & e & ")"
-          )
+        Calculation: '"The sync process has completed. (Elapsed Time: " & GetAsTime
+          ( $~script.runtime ) & ")"'
         DisplayCalculation:
           Chunk:
-          - Let
-          - " (\n[\ne = ( "
-          - Get
-          - ' ( '
-          - CurrentTimeUTCMilliseconds
-          - " ) - $~script.start ) / 1000 ;\ne = "
-          - If
-          - |2-
-             ( e ≤ 1 ; "Less than a second."; e )
-            ];
-            "The sync process has completed. (Elapsed Time: " & e & ")"
-            )
+          - '"The sync process has completed. (Elapsed Time: " & '
+          - GetAsTime
+          - ' ( $~script.runtime ) & ")"'
       Buttons:
         Button:
         - CommitState: 'True'
