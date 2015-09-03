@@ -23,7 +23,7 @@
     29   ES_Device_ID                Text             Normal                                                              
     26   ES_Account                  Text             Normal            The account name that last updated this record.   
     24   ES_Exclude                  Number           Normal            If set to 1, then this particular record will not be synced.
-    30   Some_Global_A               Text             Normal            Used to confirm that globals are not pushed to the server.
+    30   Global                      Text             Normal            Used to confirm that globals are not pushed to the server.
 
 
 ---
@@ -849,7 +849,7 @@ BaseTable:
     - id: '30'
       dataType: Text
       fieldType: Normal
-      name: Some_Global_A
+      name: Global
       Comment: Used to confirm that globals are not pushed to the server.
       AutoEnter:
         allowEditing: 'True'

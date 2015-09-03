@@ -24,7 +24,7 @@
     22   ES_Exclude                  Number           Normal            Exclude this record when creating the payload to deliver to the mobile user?
     26   EXCL_Salary                 Number           Normal            An example of a field that will be excluded from payloads (because of the "EXCL_" prefix).
     30   Repeater                    Text             Normal                                                              
-    32   Some_Global_B               Text             Normal            Used to confirm that globals are not pulled from the server.
+    32   Global                      Text             Normal            Used to confirm that globals are not pulled from the server.
 
 
 ---
@@ -890,7 +890,7 @@ BaseTable:
     - id: '32'
       dataType: Text
       fieldType: Normal
-      name: Some_Global_B
+      name: Global
       Comment: Used to confirm that globals are not pulled from the server.
       AutoEnter:
         allowEditing: 'True'
