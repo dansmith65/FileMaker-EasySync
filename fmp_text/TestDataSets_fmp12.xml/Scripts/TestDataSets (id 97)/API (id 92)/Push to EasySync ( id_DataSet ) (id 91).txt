@@ -166,8 +166,14 @@ If [ Get ( LastError ) = 101/* this table is not supposed to have any records, s
 Else
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
-Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_EasySync::ES_Payload_UUIDSource field 2 import to Client_EasySync::Creator_AccountSource field 3 import to Client_EasySync::Created_TimeStampSource field 4 import to Client_EasySync::PayloadSource field 5 import to Client_EasySync::Payload_TypeSource field 6 import to Client_EasySync::ES_Child_Record_UUIDSource field 7 import to Client_EasySync::ES_Parent_Payload_UUIDSource field 8 import to Client_EasySync::ES_Last_Push_UTC_TimeSource field 9 import to Client_EasySync::ES_Last_Pull_UTC_TimeSource field 10 import to Client_EasySync::ES_Last_Full_SyncSource field 11 import to Client_EasySync::Created_TimeStamp_UTCSource field 12 import to Client_EasySync::ES_Deleted_Record_UUID ][ No dialog ]
-Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+Set Field [ Client_EasySync::ES_Last_Full_Sync; ESY__EasySync::ES_Last_Full_Sync ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Set Field [ Client_EasySync::ES_Last_Pull_UTC_Time; ESY__EasySync::ES_Last_Pull_UTC_Time ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Set Field [ Client_EasySync::ES_Last_Push_UTC_Time; ESY__EasySync::ES_Last_Push_UTC_Time ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 End If
 #
 #
@@ -281,8 +287,14 @@ If [ Get ( LastError ) = 101/* this table is not supposed to have any records, s
 Else
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
-Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_EasySync::ES_Payload_UUIDSource field 2 import to Server_EasySync::Creator_AccountSource field 3 import to Server_EasySync::Created_TimeStampSource field 4 import to Server_EasySync::PayloadSource field 5 import to Server_EasySync::Payload_TypeSource field 6 import to Server_EasySync::ES_Child_Record_UUIDSource field 7 import to Server_EasySync::ES_Parent_Payload_UUIDSource field 8 import to Server_EasySync::ES_Last_Push_UTC_TimeSource field 9 import to Server_EasySync::ES_Last_Pull_UTC_TimeSource field 10 import to Server_EasySync::ES_Last_Full_SyncSource field 11 import to Server_EasySync::Created_TimeStamp_UTCSource field 12 import to Server_EasySync::ES_Deleted_Record_UUID ][ No dialog ]
-Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+Set Field [ Server_EasySync::ES_Last_Full_Sync; ESY__EasySync::ES_Last_Full_Sync ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Set Field [ Server_EasySync::ES_Last_Pull_UTC_Time; ESY__EasySync::ES_Last_Pull_UTC_Time ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Set Field [ Server_EasySync::ES_Last_Push_UTC_Time; ESY__EasySync::ES_Last_Push_UTC_Time ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 End If
 #
 #
@@ -2219,112 +2231,29 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '35'
-      name: Import Records
-      StepText: |-
-        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_EasySync::ES_Payload_UUID
-        Source field 2 import to Client_EasySync::Creator_Account
-        Source field 3 import to Client_EasySync::Created_TimeStamp
-        Source field 4 import to Client_EasySync::Payload
-        Source field 5 import to Client_EasySync::Payload_Type
-        Source field 6 import to Client_EasySync::ES_Child_Record_UUID
-        Source field 7 import to Client_EasySync::ES_Parent_Payload_UUID
-        Source field 8 import to Client_EasySync::ES_Last_Push_UTC_Time
-        Source field 9 import to Client_EasySync::ES_Last_Pull_UTC_Time
-        Source field 10 import to Client_EasySync::ES_Last_Full_Sync
-        Source field 11 import to Client_EasySync::Created_TimeStamp_UTC
-        Source field 12 import to Client_EasySync::ES_Deleted_Record_UUID ]
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-      Restore:
-        state: 'True'
-      DataSourceType:
-        value: File
-      Profile:
-        table: '1065093'
-        FirstRowIsData: 'False'
-        DataType: FMPR
-        List:
-          id: '1065093'
-          BaseTable: '133'
-          Size: '14'
-          InputField:
-          - id: '1'
-          - id: '2'
-          - id: '3'
-          - id: '4'
-          - id: '11'
-          - id: '12'
-          - id: '13'
-          - id: '15'
-          - id: '16'
-          - id: '17'
-          - id: '18'
-          - id: '19'
-          - id: '20'
-          - id: '21'
-      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
-      ImportOptions:
-        CharacterSet: Windows
-        PreserveContainer: 'False'
-        AutoEnter: 'False'
-        SplitRepetitions: 'False'
-        method: Add
-      Table:
-        id: '1065103'
-        name: Client_EasySync
-      TargetFields:
-        Field:
-        - map: Import
-          id: '1'
-          name: ES_Payload_UUID
-        - map: Import
-          id: '2'
-          name: Creator_Account
-        - map: Import
-          id: '3'
-          name: Created_TimeStamp
-        - map: Import
-          id: '4'
-          name: Payload
-        - map: Import
-          id: '11'
-          name: Payload_Type
-        - map: Import
-          id: '12'
-          name: ES_Child_Record_UUID
-        - map: Import
-          id: '13'
-          name: ES_Parent_Payload_UUID
-        - map: Import
-          id: '14'
-          name: ES_Last_Push_UTC_Time
-        - map: Import
-          id: '15'
-          name: ES_Last_Pull_UTC_Time
-        - map: Import
-          id: '16'
-          name: ES_Last_Full_Sync
-        - map: Import
-          id: '18'
-          name: Created_TimeStamp_UTC
-        - map: Import
-          id: '17'
-          name: ES_Deleted_Record_UUID
-        - map: DoNotImport
-          id: '0'
-          name: ''
-        - map: DoNotImport
-          id: '0'
-          name: ''
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ Client_EasySync::ES_Last_Full_Sync; ESY__EasySync::ES_Last_Full_Sync
+        ]
+      Calculation: ESY__EasySync::ES_Last_Full_Sync
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: ESY__EasySync
+            id: '17'
+            name: ES_Last_Full_Sync
+      Field:
+        table: Client_EasySync
+        id: '16'
+        name: ES_Last_Full_Sync
     - enable: 'True'
       id: '72'
       name: Exit Loop If
       StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
-        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
       Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
-        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
       DisplayCalculation:
         Chunk:
         - If
@@ -2336,7 +2265,91 @@ Script:
         - Let
         - " (\n\t\t$error = "
         - ErrorFmpGetLast
-        - " ( \"after import\" ) ;\n\t\t"
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ Client_EasySync::ES_Last_Pull_UTC_Time; ESY__EasySync::ES_Last_Pull_UTC_Time
+        ]
+      Calculation: ESY__EasySync::ES_Last_Pull_UTC_Time
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: ESY__EasySync
+            id: '16'
+            name: ES_Last_Pull_UTC_Time
+      Field:
+        table: Client_EasySync
+        id: '15'
+        name: ES_Last_Pull_UTC_Time
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ Client_EasySync::ES_Last_Push_UTC_Time; ESY__EasySync::ES_Last_Push_UTC_Time
+        ]
+      Calculation: ESY__EasySync::ES_Last_Push_UTC_Time
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: ESY__EasySync
+            id: '15'
+            name: ES_Last_Push_UTC_Time
+      Field:
+        table: Client_EasySync
+        id: '14'
+        name: ES_Last_Push_UTC_Time
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
         - 'True'
         - "\n\t)\n)"
     - enable: 'True'
@@ -3840,112 +3853,29 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '35'
-      name: Import Records
-      StepText: |-
-        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_EasySync::ES_Payload_UUID
-        Source field 2 import to Server_EasySync::Creator_Account
-        Source field 3 import to Server_EasySync::Created_TimeStamp
-        Source field 4 import to Server_EasySync::Payload
-        Source field 5 import to Server_EasySync::Payload_Type
-        Source field 6 import to Server_EasySync::ES_Child_Record_UUID
-        Source field 7 import to Server_EasySync::ES_Parent_Payload_UUID
-        Source field 8 import to Server_EasySync::ES_Last_Push_UTC_Time
-        Source field 9 import to Server_EasySync::ES_Last_Pull_UTC_Time
-        Source field 10 import to Server_EasySync::ES_Last_Full_Sync
-        Source field 11 import to Server_EasySync::Created_TimeStamp_UTC
-        Source field 12 import to Server_EasySync::ES_Deleted_Record_UUID ]
-        [ No dialog ]
-      NoInteract:
-        state: 'True'
-      Restore:
-        state: 'True'
-      DataSourceType:
-        value: File
-      Profile:
-        table: '1065093'
-        FirstRowIsData: 'False'
-        DataType: FMPR
-        List:
-          id: '1065093'
-          BaseTable: '133'
-          Size: '14'
-          InputField:
-          - id: '1'
-          - id: '2'
-          - id: '3'
-          - id: '4'
-          - id: '11'
-          - id: '12'
-          - id: '13'
-          - id: '15'
-          - id: '16'
-          - id: '17'
-          - id: '18'
-          - id: '19'
-          - id: '20'
-          - id: '21'
-      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
-      ImportOptions:
-        CharacterSet: Windows
-        PreserveContainer: 'False'
-        AutoEnter: 'False'
-        SplitRepetitions: 'False'
-        method: Add
-      Table:
-        id: '1065107'
-        name: Server_EasySync
-      TargetFields:
-        Field:
-        - map: Import
-          id: '1'
-          name: ES_Payload_UUID
-        - map: Import
-          id: '2'
-          name: Creator_Account
-        - map: Import
-          id: '3'
-          name: Created_TimeStamp
-        - map: Import
-          id: '4'
-          name: Payload
-        - map: Import
-          id: '11'
-          name: Payload_Type
-        - map: Import
-          id: '12'
-          name: ES_Child_Record_UUID
-        - map: Import
-          id: '13'
-          name: ES_Parent_Payload_UUID
-        - map: Import
-          id: '15'
-          name: ES_Last_Push_UTC_Time
-        - map: Import
-          id: '16'
-          name: ES_Last_Pull_UTC_Time
-        - map: Import
-          id: '17'
-          name: ES_Last_Full_Sync
-        - map: Import
-          id: '18'
-          name: Created_TimeStamp_UTC
-        - map: Import
-          id: '19'
-          name: ES_Deleted_Record_UUID
-        - map: DoNotImport
-          id: '0'
-          name: ''
-        - map: DoNotImport
-          id: '0'
-          name: ''
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ Server_EasySync::ES_Last_Full_Sync; ESY__EasySync::ES_Last_Full_Sync
+        ]
+      Calculation: ESY__EasySync::ES_Last_Full_Sync
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: ESY__EasySync
+            id: '17'
+            name: ES_Last_Full_Sync
+      Field:
+        table: Server_EasySync
+        id: '17'
+        name: ES_Last_Full_Sync
     - enable: 'True'
       id: '72'
       name: Exit Loop If
       StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
-        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
       Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
-        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
       DisplayCalculation:
         Chunk:
         - If
@@ -3957,7 +3887,91 @@ Script:
         - Let
         - " (\n\t\t$error = "
         - ErrorFmpGetLast
-        - " ( \"after import\" ) ;\n\t\t"
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ Server_EasySync::ES_Last_Pull_UTC_Time; ESY__EasySync::ES_Last_Pull_UTC_Time
+        ]
+      Calculation: ESY__EasySync::ES_Last_Pull_UTC_Time
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: ESY__EasySync
+            id: '16'
+            name: ES_Last_Pull_UTC_Time
+      Field:
+        table: Server_EasySync
+        id: '16'
+        name: ES_Last_Pull_UTC_Time
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ Server_EasySync::ES_Last_Push_UTC_Time; ESY__EasySync::ES_Last_Push_UTC_Time
+        ]
+      Calculation: ESY__EasySync::ES_Last_Push_UTC_Time
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: ESY__EasySync
+            id: '15'
+            name: ES_Last_Push_UTC_Time
+      Field:
+        table: Server_EasySync
+        id: '15'
+        name: ES_Last_Push_UTC_Time
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
         - 'True'
         - "\n\t)\n)"
     - enable: 'True'
