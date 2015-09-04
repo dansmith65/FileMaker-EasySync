@@ -1,0 +1,29 @@
+     Layout name:  Server_EasySync          
+              id:  21                       
+           Table:  Server_EasySync          
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '21'
+  name: Server_EasySync
+  Table:
+    id: '1065107'
+    name: Server_EasySync
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'False'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

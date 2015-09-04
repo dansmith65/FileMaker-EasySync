@@ -1,0 +1,72 @@
+/* SQLTable ( fieldForTableNameOrTableName )
+
+PURPOSE:
+Quote a table name for use in a FileMaker SQL statement. Prevent hard-coding it's value.
+
+PARAMETERS:
+fieldForTableNameOrTableName (field, txt) field, fully-qualified field name, or table occurence name to extract table occurence from.
+
+DEPENDENCIES:
+FileMaker Pro 10+
+
+REVISIONS:
+2011-JUL-01	- Created by Dan Smith dansmith65@gmail.com
+2012-AUG-10	- allow parameter to be a field or table name, change parameter name accordingly
+####################################################################################################*/
+
+Let (
+[
+	~tableName = If(
+		IsValid( GetFieldName( fieldForTableNameOrTableName ) ) ;
+		GetFieldName( fieldForTableNameOrTableName ) ;
+		fieldForTableNameOrTableName 
+	) ;
+	~tableNameOnly = GetValue( Substitute( ~tableName ; "::" ; ¶ ) ; 1 )
+] ;
+	Quote ( ~tableNameOnly )
+)
+
+---
+CustomFunction:
+  id: '79'
+  functionArity: '1'
+  visible: 'True'
+  parameters: fieldForTableNameOrTableName
+  name: SQLTable
+  Calculation: "/* SQLTable ( fieldForTableNameOrTableName )\n\nPURPOSE:\nQuote a
+    table name for use in a FileMaker SQL statement. Prevent hard-coding it's value.\n\nPARAMETERS:\nfieldForTableNameOrTableName
+    (field, txt) field, fully-qualified field name, or table occurence name to extract
+    table occurence from.\n\nDEPENDENCIES:\nFileMaker Pro 10+\n\nREVISIONS:\n2011-JUL-01\t-
+    Created by Dan Smith dansmith65@gmail.com\n2012-AUG-10\t- allow parameter to be
+    a field or table name, change parameter name accordingly\n####################################################################################################*/\n\nLet
+    (\n[\n\t~tableName = If(\n\t\tIsValid( GetFieldName( fieldForTableNameOrTableName
+    ) ) ;\n\t\tGetFieldName( fieldForTableNameOrTableName ) ;\n\t\tfieldForTableNameOrTableName
+    \n\t) ;\n\t~tableNameOnly = GetValue( Substitute( ~tableName ; \"::\" ; ¶ ) ;
+    1 )\n] ;\n\tQuote ( ~tableNameOnly )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/* SQLTable ( fieldForTableNameOrTableName )\n\nPURPOSE:\nQuote a table name
+      for use in a FileMaker SQL statement. Prevent hard-coding it's value.\n\nPARAMETERS:\nfieldForTableNameOrTableName
+      (field, txt) field, fully-qualified field name, or table occurence name to extract
+      table occurence from.\n\nDEPENDENCIES:\nFileMaker Pro 10+\n\nREVISIONS:\n2011-JUL-01\t-
+      Created by Dan Smith dansmith65@gmail.com\n2012-AUG-10\t- allow parameter to
+      be a field or table name, change parameter name accordingly\n####################################################################################################*/\n\n"
+    - Let
+    - " (\n[\n\t~tableName = "
+    - If
+    - "(\n\t\t"
+    - IsValid
+    - '( '
+    - GetFieldName
+    - "( fieldForTableNameOrTableName ) ) ;\n\t\t"
+    - GetFieldName
+    - "( fieldForTableNameOrTableName ) ;\n\t\tfieldForTableNameOrTableName \n\t)
+      ;\n\t~tableNameOnly = "
+    - GetValue
+    - '( '
+    - Substitute
+    - "( ~tableName ; \"::\" ; ¶ ) ; 1 )\n] ;\n\t"
+    - Quote
+    - |2-
+       ( ~tableNameOnly )
+      )

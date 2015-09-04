@@ -1,0 +1,149 @@
+/**
+ * ============================================================================
+ * ScriptOptionalParameterList ( scriptNameToParse )
+ *
+ * RETURNS:
+ *		Return-delimited list of optional parameters for scriptNameToParse.
+ *
+ * PARAMETERS:
+ *		scriptNameToParse: text to parse as the script name, will use the
+ *			output of Get ( ScriptName ) if this parameter is empty
+ *
+ * DEPENDENCIES: none
+ * 
+ * NOTES:
+ *		 This function assumes that the script name conforms to the FileMakerStandards.org naming convention for scripts: http://filemakerstandards.org/display/cs/Script+naming
+ *
+ * HISTORY:
+ *		CREATED on 2012-11-15 by Daniel Smith dansmith65@gmail.com
+ *			- used #AssignScriptParameters by Jeremy Bante <http://scr.im/jbante>
+ *			  as a starting point for this script
+ * ============================================================================
+ */
+
+Let ( [
+	~scriptNameToParse = If ( IsEmpty ( scriptNameToParse ) ; Get ( ScriptName ) ; scriptNameToParse ) ;
+	~BEGIN = "{"; //character marking beginning of named parameters
+	~DELIMITER = ";"; //character delimiting between named parameters
+	~END = "}"; //character marking ending of optional parameters
+
+	~scriptNameToParse = Substitute ( ~scriptNameToParse ; ["¶" ; ""] ; [" " ; ""] );
+	~beginParameters = Position ( ~scriptNameToParse ; ~BEGIN ; 1 ; 1 );
+	~endParameters = Position ( ~scriptNameToParse ; ~END ; 1 ; 1 );
+	~endParameters = Case ( not ~endParameters ; Length ( ~scriptNameToParse ) ; ~endParameters );
+	~parameters =
+		Middle (
+			~scriptNameToParse ;
+			~beginParameters + 1 ;
+			~endParameters - ~beginParameters - 1
+		);
+	~parameters =
+		Substitute (
+			Trim ( ~parameters ) & "☠";
+			[ ~DELIMITER & "☠" ; "" ]; //remove possible erroneous trailing delimiter
+			[ "☠" ; "" ];
+			[ ~DELIMITER ; "¶" ]
+		)
+] ;
+	If (
+		~beginParameters and Length ( ~parameters ); //script name specifies parameters
+		~parameters & "¶"
+	)
+)
+
+---
+CustomFunction:
+  id: '71'
+  functionArity: '1'
+  visible: 'True'
+  parameters: scriptNameToParse
+  name: ScriptOptionalParameterList
+  Calculation: "/**\n * ============================================================================\n
+    * ScriptOptionalParameterList ( scriptNameToParse )\n *\n * RETURNS:\n *\t\tReturn-delimited
+    list of optional parameters for scriptNameToParse.\n *\n * PARAMETERS:\n *\t\tscriptNameToParse:
+    text to parse as the script name, will use the\n *\t\t\toutput of Get ( ScriptName
+    ) if this parameter is empty\n *\n * DEPENDENCIES: none\n * \n * NOTES:\n *\t\t
+    This function assumes that the script name conforms to the FileMakerStandards.org
+    naming convention for scripts: http://filemakerstandards.org/display/cs/Script+naming\n
+    *\n * HISTORY:\n *\t\tCREATED on 2012-11-15 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- used #AssignScriptParameters by Jeremy Bante <http://scr.im/jbante>\n
+    *\t\t\t  as a starting point for this script\n * ============================================================================\n
+    */\n\nLet ( [\n\t~scriptNameToParse = If ( IsEmpty ( scriptNameToParse ) ; Get
+    ( ScriptName ) ; scriptNameToParse ) ;\n\t~BEGIN = \"{\"; //character marking
+    beginning of named parameters\n\t~DELIMITER = \";\"; //character delimiting between
+    named parameters\n\t~END = \"}\"; //character marking ending of optional parameters\n\n\t~scriptNameToParse
+    = Substitute ( ~scriptNameToParse ; [\"¶\" ; \"\"] ; [\" \" ; \"\"] );\n\t~beginParameters
+    = Position ( ~scriptNameToParse ; ~BEGIN ; 1 ; 1 );\n\t~endParameters = Position
+    ( ~scriptNameToParse ; ~END ; 1 ; 1 );\n\t~endParameters = Case ( not ~endParameters
+    ; Length ( ~scriptNameToParse ) ; ~endParameters );\n\t~parameters =\n\t\tMiddle
+    (\n\t\t\t~scriptNameToParse ;\n\t\t\t~beginParameters + 1 ;\n\t\t\t~endParameters
+    - ~beginParameters - 1\n\t\t);\n\t~parameters =\n\t\tSubstitute (\n\t\t\tTrim
+    ( ~parameters ) & \"☠\";\n\t\t\t[ ~DELIMITER & \"☠\" ; \"\" ]; //remove possible
+    erroneous trailing delimiter\n\t\t\t[ \"☠\" ; \"\" ];\n\t\t\t[ ~DELIMITER ; \"¶\"
+    ]\n\t\t)\n] ;\n\tIf (\n\t\t~beginParameters and Length ( ~parameters ); //script
+    name specifies parameters\n\t\t~parameters & \"¶\"\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * ScriptOptionalParameterList ( scriptNameToParse )\n *\n * RETURNS:\n *\t\tReturn-delimited
+      list of optional parameters for scriptNameToParse.\n *\n * PARAMETERS:\n *\t\tscriptNameToParse:
+      text to parse as the script name, will use the\n *\t\t\toutput of Get ( ScriptName
+      ) if this parameter is empty\n *\n * DEPENDENCIES: none\n * \n * NOTES:\n *\t\t
+      This function assumes that the script name conforms to the FileMakerStandards.org
+      naming convention for scripts: http://filemakerstandards.org/display/cs/Script+naming\n
+      *\n * HISTORY:\n *\t\tCREATED on 2012-11-15 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- used #AssignScriptParameters by Jeremy Bante <http://scr.im/jbante>\n
+      *\t\t\t  as a starting point for this script\n * ============================================================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\t~scriptNameToParse = "
+    - If
+    - ' ( '
+    - IsEmpty
+    - ' ( scriptNameToParse ) ; '
+    - Get
+    - ' ( '
+    - ScriptName
+    - " ) ; scriptNameToParse ) ;\n\t~BEGIN = \"{\"; "
+    - |
+      //character marking beginning of named parameters
+    - "\t~DELIMITER = \";\"; "
+    - |
+      //character delimiting between named parameters
+    - "\t~END = \"}\"; "
+    - |
+      //character marking ending of optional parameters
+    - "\n\t~scriptNameToParse = "
+    - Substitute
+    - " ( ~scriptNameToParse ; [\"¶\" ; \"\"] ; [\" \" ; \"\"] );\n\t~beginParameters
+      = "
+    - Position
+    - " ( ~scriptNameToParse ; ~BEGIN ; 1 ; 1 );\n\t~endParameters = "
+    - Position
+    - " ( ~scriptNameToParse ; ~END ; 1 ; 1 );\n\t~endParameters = "
+    - Case
+    - ' ( '
+    - not
+    - ' ~endParameters ; '
+    - Length
+    - " ( ~scriptNameToParse ) ; ~endParameters );\n\t~parameters =\n\t\t"
+    - Middle
+    - " (\n\t\t\t~scriptNameToParse ;\n\t\t\t~beginParameters + 1 ;\n\t\t\t~endParameters
+      - ~beginParameters - 1\n\t\t);\n\t~parameters =\n\t\t"
+    - Substitute
+    - " (\n\t\t\t"
+    - Trim
+    - " ( ~parameters ) & \"☠\";\n\t\t\t[ ~DELIMITER & \"☠\" ; \"\" ]; "
+    - |
+      //remove possible erroneous trailing delimiter
+    - "\t\t\t[ \"☠\" ; \"\" ];\n\t\t\t[ ~DELIMITER ; \"¶\" ]\n\t\t)\n] ;\n\t"
+    - If
+    - " (\n\t\t~beginParameters "
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Length
+    - ' ( ~parameters ); '
+    - |
+      //script name specifies parameters
+    - "\t\t~parameters & \"¶\"\n\t)\n)"

@@ -1,0 +1,74 @@
+    id  Name                       Print?    Export?     Manage Ext'd?    Override?     Disconnect?   Password?     Menus     Records            Layouts      (Creation)   ValueLists    (Creation)   Scripts           (Creation)  Description                                                           
+    --  ----                       ------    -------     -------------    ---------     -----------   ---------     -----     -------            -------      ----------   ----------    ----------   -------           ----------  -----------                                                           
+     1  [Full Access]              True      True        True             True          False         True          All       CreateEditDelete   Modifiable   True         Modifiable    True         Modifiable        True        access to everything                                                  
+     2  [Data Entry Only]          True      True        False            False         True          True          All       CreateEditDelete   ViewOnly     False        ViewOnly      False        ExecutableOnly    False       write access to all records, no design access                         
+     3  [Read-Only Access]         True      True        False            False         True          True          All       ViewOnly           ViewOnly     False        ViewOnly      False        ExecutableOnly    False       read access to all records, no design access, write access to all global fields
+
+
+---
+PrivilegesCatalog:
+  PrivilegeSet:
+  - comment: access to everything
+    id: '1'
+    allowModifyPassword: 'True'
+    managedExtended: 'True'
+    menu: All
+    idleDisconnect: 'False'
+    overrideValidationWarning: 'True'
+    exporting: 'True'
+    printing: 'True'
+    name: '[Full Access]'
+    Records:
+      value: CreateEditDelete
+    Layouts:
+      value: Modifiable
+      allowCreation: 'True'
+    ValueLists:
+      value: Modifiable
+      allowCreation: 'True'
+    Scripts:
+      value: Modifiable
+      allowCreation: 'True'
+  - comment: write access to all records, no design access
+    id: '2'
+    allowModifyPassword: 'True'
+    managedExtended: 'False'
+    menu: All
+    idleDisconnect: 'True'
+    overrideValidationWarning: 'False'
+    exporting: 'True'
+    printing: 'True'
+    name: '[Data Entry Only]'
+    Records:
+      value: CreateEditDelete
+    Layouts:
+      value: ViewOnly
+      allowCreation: 'False'
+    ValueLists:
+      value: ViewOnly
+      allowCreation: 'False'
+    Scripts:
+      value: ExecutableOnly
+      allowCreation: 'False'
+  - comment: read access to all records, no design access, write access to all global
+      fields
+    id: '3'
+    allowModifyPassword: 'True'
+    managedExtended: 'False'
+    menu: All
+    idleDisconnect: 'True'
+    overrideValidationWarning: 'False'
+    exporting: 'True'
+    printing: 'True'
+    name: '[Read-Only Access]'
+    Records:
+      value: ViewOnly
+    Layouts:
+      value: ViewOnly
+      allowCreation: 'False'
+    ValueLists:
+      value: ViewOnly
+      allowCreation: 'False'
+    Scripts:
+      value: ExecutableOnly
+      allowCreation: 'False'

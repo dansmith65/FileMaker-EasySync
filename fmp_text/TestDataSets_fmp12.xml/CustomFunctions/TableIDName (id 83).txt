@@ -1,0 +1,70 @@
+/**
+ * =====================================
+ * TableIDName ( file ; theTableID )
+ *
+ * RETURNS:
+ *		The current name of a FileMaker script, based on its ID.
+ *
+ * PARAMETERS:
+ *		file: The name of the FileMaker file containing the table.
+ *		theTableID: FileMaker's internal ID for the table.
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		CREATED on 2012-01-26 by Jeremy Bante <http://scr.im/jbante>.
+ *		INSPIRED by custom functions by Fabrice Nordman.
+ * =====================================
+ */
+
+Let ( [
+	~idList = ¶ & TableIDs ( file ) & ¶;
+	~value =
+		Position ( ~idList ; ¶ & theTableID & ¶ ; 1 ; 1 );
+	~value = PatternCount ( Left ( ~idList ; ~value ) ; ¶ )
+];
+	GetValue ( TableNames ( file ) ; ~value )
+)
+
+---
+CustomFunction:
+  id: '83'
+  functionArity: '2'
+  visible: 'True'
+  parameters: file;theTableID
+  name: TableIDName
+  Calculation: "/**\n * =====================================\n * TableIDName ( file
+    ; theTableID )\n *\n * RETURNS:\n *\t\tThe current name of a FileMaker script,
+    based on its ID.\n *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker file
+    containing the table.\n *\t\ttheTableID: FileMaker's internal ID for the table.\n
+    *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED on 2012-01-26 by Jeremy
+    Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions by Fabrice Nordman.\n
+    * =====================================\n */\n\nLet ( [\n\t~idList = ¶ & TableIDs
+    ( file ) & ¶;\n\t~value =\n\t\tPosition ( ~idList ; ¶ & theTableID & ¶ ; 1 ; 1
+    );\n\t~value = PatternCount ( Left ( ~idList ; ~value ) ; ¶ )\n];\n\tGetValue
+    ( TableNames ( file ) ; ~value )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * TableIDName ( file ; theTableID
+      )\n *\n * RETURNS:\n *\t\tThe current name of a FileMaker script, based on its
+      ID.\n *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker file containing
+      the table.\n *\t\ttheTableID: FileMaker's internal ID for the table.\n *\n *
+      DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED on 2012-01-26 by Jeremy Bante
+      <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions by Fabrice Nordman.\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~idList = ¶ & "
+    - TableIDs
+    - " ( file ) & ¶;\n\t~value =\n\t\t"
+    - Position
+    - " ( ~idList ; ¶ & theTableID & ¶ ; 1 ; 1 );\n\t~value = "
+    - PatternCount
+    - ' ( '
+    - Left
+    - " ( ~idList ; ~value ) ; ¶ )\n];\n\t"
+    - GetValue
+    - ' ( '
+    - TableNames
+    - |2-
+       ( file ) ; ~value )
+      )

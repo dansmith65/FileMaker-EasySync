@@ -1,0 +1,216 @@
+/**
+ * =====================================
+ * RowContainingValue ( data ; firstColumnValue ; columnSeparator ; rowSeparator )
+ *
+ * RETURNS:
+ *		First row from an array of data where the first columns value matches.
+ *		WITHOUT trailing column separator.
+ *
+ * PARAMETERS:
+ *		data: array of data with single characters delimiting columns/rows
+ *		firstColumnValue: Entire value to be found in the first column.
+ *		columnSeparator: Character used to separate fields in the data.
+ *			will default to comma "," if empty
+ *		rowSeparator: Character used to separate records in the data.
+ *			will default to a carriage return "¶" if empty
+ *
+ * DEPENDENCIES: none
+ *
+ * EXAMPLE:
+ *		RowContainingValue (
+ *			List (
+ *				"a|b|c" ;
+ *				"1|2|3" ;
+ *				"apple|banana|cantaloup"
+ *			) ;
+ *			"apple" ;	/* firstColumnValue */
+ *			"|" ;	/* columnSeparator */
+ *			""	/* rowSeparator, default = ¶ */
+ *		) = "apple|banana|cantaloup"
+ *
+ * NOTE:
+ *		This doesn't really need to be a recursive function but I created it by
+ *		modifying ColumnSlice, which is recursive, so it already had that format.
+ *		I may modify this function to return all found rows instead of just the first,
+ *		but for now, all I need is the first found row. So, since this future use
+ *		case would require a recursive function, I left the format as-is.
+ *
+ * HISTORY:
+ *		CREATED on 2014-DEC-10 by Daniel Smith <http://scr.im/dansmith>
+ * =====================================
+ */
+
+Case (
+	/* Step 0, set-up */
+	not $~rcs.step ;
+		Let ( [
+			$~rcs.result = "" ;
+			$~rcs.step = 1 ;
+			columnSeparator = If ( not IsEmpty ( columnSeparator ) ;
+				columnSeparator ;
+				","
+			) ;
+			rowSeparator = If ( not IsEmpty ( rowSeparator ) ;
+				rowSeparator ;
+				"¶"
+			)
+		] ;
+			RowContainingValue ( data ; firstColumnValue ; columnSeparator ; rowSeparator )
+		) ;
+
+	/* Step 1, gather values from specified column */
+	$~rcs.step = 1 ;
+		Let ( [
+			~startOfRow = Position (
+				rowSeparator & data ;
+				rowSeparator & firstColumnValue & columnSeparator ;
+				1 ; 	/* start */
+				1 	/* occurrence */
+			) ;
+			~endOfRow = If ( ~startOfRow  ;
+				Position (
+					data & rowSeparator ;
+					rowSeparator ;
+					~startOfRow ; 	/* start */
+					1 	/* occurrence */
+				)
+			) ;
+			~row = If ( ~startOfRow  ;
+				Middle ( data ; ~startOfRow ; ~endOfRow - ~startOfRow )
+			) ;
+			
+			$~rcs.result = ~row ;
+			$~rcs.step = 2
+		] ;
+			RowContainingValue ( "" ; "" ; "" ; "" )
+		) ;
+
+	/* Step 2, clean-up and return result */
+	$~rcs.step = 2 ;
+		Let ( [
+			~result = $~rcs.result ;
+
+			// purge variables
+			$~rcs.result = "" ;
+			$~rcs.step = ""
+		] ;
+			~result
+		)
+)
+
+---
+CustomFunction:
+  id: '70'
+  functionArity: '4'
+  visible: 'True'
+  parameters: data;firstColumnValue;columnSeparator;rowSeparator
+  name: RowContainingValue
+  Calculation: "/**\n * =====================================\n * RowContainingValue
+    ( data ; firstColumnValue ; columnSeparator ; rowSeparator )\n *\n * RETURNS:\n
+    *\t\tFirst row from an array of data where the first columns value matches.\n
+    *\t\tWITHOUT trailing column separator.\n *\n * PARAMETERS:\n *\t\tdata: array
+    of data with single characters delimiting columns/rows\n *\t\tfirstColumnValue:
+    Entire value to be found in the first column.\n *\t\tcolumnSeparator: Character
+    used to separate fields in the data.\n *\t\t\twill default to comma \",\" if empty\n
+    *\t\trowSeparator: Character used to separate records in the data.\n *\t\t\twill
+    default to a carriage return \"¶\" if empty\n *\n * DEPENDENCIES: none\n *\n *
+    EXAMPLE:\n *\t\tRowContainingValue (\n *\t\t\tList (\n *\t\t\t\t\"a|b|c\" ;\n
+    *\t\t\t\t\"1|2|3\" ;\n *\t\t\t\t\"apple|banana|cantaloup\"\n *\t\t\t) ;\n *\t\t\t\"apple\"
+    ;\t/* firstColumnValue */\n *\t\t\t\"|\" ;\t/* columnSeparator */\n *\t\t\t\"\"\t/*
+    rowSeparator, default = ¶ */\n *\t\t) = \"apple|banana|cantaloup\"\n *\n * NOTE:\n
+    *\t\tThis doesn't really need to be a recursive function but I created it by\n
+    *\t\tmodifying ColumnSlice, which is recursive, so it already had that format.\n
+    *\t\tI may modify this function to return all found rows instead of just the first,\n
+    *\t\tbut for now, all I need is the first found row. So, since this future use\n
+    *\t\tcase would require a recursive function, I left the format as-is.\n *\n *
+    HISTORY:\n *\t\tCREATED on 2014-DEC-10 by Daniel Smith <http://scr.im/dansmith>\n
+    * =====================================\n */\n\nCase (\n\t/* Step 0, set-up */\n\tnot
+    $~rcs.step ;\n\t\tLet ( [\n\t\t\t$~rcs.result = \"\" ;\n\t\t\t$~rcs.step = 1 ;\n\t\t\tcolumnSeparator
+    = If ( not IsEmpty ( columnSeparator ) ;\n\t\t\t\tcolumnSeparator ;\n\t\t\t\t\",\"\n\t\t\t)
+    ;\n\t\t\trowSeparator = If ( not IsEmpty ( rowSeparator ) ;\n\t\t\t\trowSeparator
+    ;\n\t\t\t\t\"¶\"\n\t\t\t)\n\t\t] ;\n\t\t\tRowContainingValue ( data ; firstColumnValue
+    ; columnSeparator ; rowSeparator )\n\t\t) ;\n\n\t/* Step 1, gather values from
+    specified column */\n\t$~rcs.step = 1 ;\n\t\tLet ( [\n\t\t\t~startOfRow = Position
+    (\n\t\t\t\trowSeparator & data ;\n\t\t\t\trowSeparator & firstColumnValue & columnSeparator
+    ;\n\t\t\t\t1 ; \t/* start */\n\t\t\t\t1 \t/* occurrence */\n\t\t\t) ;\n\t\t\t~endOfRow
+    = If ( ~startOfRow  ;\n\t\t\t\tPosition (\n\t\t\t\t\tdata & rowSeparator ;\n\t\t\t\t\trowSeparator
+    ;\n\t\t\t\t\t~startOfRow ; \t/* start */\n\t\t\t\t\t1 \t/* occurrence */\n\t\t\t\t)\n\t\t\t)
+    ;\n\t\t\t~row = If ( ~startOfRow  ;\n\t\t\t\tMiddle ( data ; ~startOfRow ; ~endOfRow
+    - ~startOfRow )\n\t\t\t) ;\n\t\t\t\n\t\t\t$~rcs.result = ~row ;\n\t\t\t$~rcs.step
+    = 2\n\t\t] ;\n\t\t\tRowContainingValue ( \"\" ; \"\" ; \"\" ; \"\" )\n\t\t) ;\n\n\t/*
+    Step 2, clean-up and return result */\n\t$~rcs.step = 2 ;\n\t\tLet ( [\n\t\t\t~result
+    = $~rcs.result ;\n\n\t\t\t// purge variables\n\t\t\t$~rcs.result = \"\" ;\n\t\t\t$~rcs.step
+    = \"\"\n\t\t] ;\n\t\t\t~result\n\t\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * RowContainingValue ( data
+      ; firstColumnValue ; columnSeparator ; rowSeparator )\n *\n * RETURNS:\n *\t\tFirst
+      row from an array of data where the first columns value matches.\n *\t\tWITHOUT
+      trailing column separator.\n *\n * PARAMETERS:\n *\t\tdata: array of data with
+      single characters delimiting columns/rows\n *\t\tfirstColumnValue: Entire value
+      to be found in the first column.\n *\t\tcolumnSeparator: Character used to separate
+      fields in the data.\n *\t\t\twill default to comma \",\" if empty\n *\t\trowSeparator:
+      Character used to separate records in the data.\n *\t\t\twill default to a carriage
+      return \"¶\" if empty\n *\n * DEPENDENCIES: none\n *\n * EXAMPLE:\n *\t\tRowContainingValue
+      (\n *\t\t\tList (\n *\t\t\t\t\"a|b|c\" ;\n *\t\t\t\t\"1|2|3\" ;\n *\t\t\t\t\"apple|banana|cantaloup\"\n
+      *\t\t\t) ;\n *\t\t\t\"apple\" ;\t/* firstColumnValue */\n *\t\t\t\"|\" ;\t/*
+      columnSeparator */\n *\t\t\t\"\"\t/* rowSeparator, default = ¶ */\n *\t\t) =
+      \"apple|banana|cantaloup\"\n *\n * NOTE:\n *\t\tThis doesn't really need to
+      be a recursive function but I created it by\n *\t\tmodifying ColumnSlice, which
+      is recursive, so it already had that format.\n *\t\tI may modify this function
+      to return all found rows instead of just the first,\n *\t\tbut for now, all
+      I need is the first found row. So, since this future use\n *\t\tcase would require
+      a recursive function, I left the format as-is.\n *\n * HISTORY:\n *\t\tCREATED
+      on 2014-DEC-10 by Daniel Smith <http://scr.im/dansmith>\n * =====================================\n
+      */\n\n"
+    - Case
+    - " (\n\t/* Step 0, set-up */\n\t"
+    - not
+    - " $~rcs.step ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t$~rcs.result = \"\" ;\n\t\t\t$~rcs.step = 1 ;\n\t\t\tcolumnSeparator
+      = "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( columnSeparator ) ;\n\t\t\t\tcolumnSeparator ;\n\t\t\t\t\",\"\n\t\t\t) ;\n\t\t\trowSeparator
+      = "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( rowSeparator ) ;\n\t\t\t\trowSeparator ;\n\t\t\t\t\"¶\"\n\t\t\t)\n\t\t]
+      ;\n\t\t\t"
+    - RowContainingValue
+    - " ( data ; firstColumnValue ; columnSeparator ; rowSeparator )\n\t\t) ;\n\n\t/*
+      Step 1, gather values from specified column */\n\t$~rcs.step = 1 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~startOfRow = "
+    - Position
+    - " (\n\t\t\t\trowSeparator & data ;\n\t\t\t\trowSeparator & firstColumnValue
+      & columnSeparator ;\n\t\t\t\t1 ; \t/* start */\n\t\t\t\t1 \t/* occurrence */\n\t\t\t)
+      ;\n\t\t\t~endOfRow = "
+    - If
+    - " ( ~startOfRow  ;\n\t\t\t\t"
+    - Position
+    - " (\n\t\t\t\t\tdata & rowSeparator ;\n\t\t\t\t\trowSeparator ;\n\t\t\t\t\t~startOfRow
+      ; \t/* start */\n\t\t\t\t\t1 \t/* occurrence */\n\t\t\t\t)\n\t\t\t) ;\n\t\t\t~row
+      = "
+    - If
+    - " ( ~startOfRow  ;\n\t\t\t\t"
+    - Middle
+    - " ( data ; ~startOfRow ; ~endOfRow - ~startOfRow )\n\t\t\t) ;\n\t\t\t\n\t\t\t$~rcs.result
+      = ~row ;\n\t\t\t$~rcs.step = 2\n\t\t] ;\n\t\t\t"
+    - RowContainingValue
+    - " ( \"\" ; \"\" ; \"\" ; \"\" )\n\t\t) ;\n\n\t/* Step 2, clean-up and return
+      result */\n\t$~rcs.step = 2 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~result = $~rcs.result ;\n\n\t\t\t"
+    - |
+      // purge variables
+    - "\t\t\t$~rcs.result = \"\" ;\n\t\t\t$~rcs.step = \"\"\n\t\t] ;\n\t\t\t~result\n\t\t)\n)"

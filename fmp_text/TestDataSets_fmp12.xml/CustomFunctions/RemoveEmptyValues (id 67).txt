@@ -1,0 +1,121 @@
+/**
+ * ============================================================================
+ * RemoveEmptyValues ( valueList )
+ *
+ * PURPOSE:
+ *		Recursively remove all empty values from a list of carriage-return separated values.
+ *
+ * RETURNS:
+ *		(text) Value list without leading return and with trailing return.
+ *
+ * PARAMETERS:
+ *		valueList (text) list of carriage-return separated values
+ *
+ * EXAMPLE:
+ *		RemoveEmptyValues ( "¶a¶¶b¶c¶¶" ) = "a¶b¶c¶"
+ *
+ * HISTORY:
+ *		2013-MAR-14 Modified by Daniel Smith
+ *			- remove outter let statement by moving the logic to the inner one
+ *			- update documentation format
+ *			- add trailing carriage-return, if it doesn't exist
+ *			- use Position instead of FilterValues to test for existence of empty values
+ *		2009-APR-17	Modified by Daniel Smith http://scr.im/dansmith
+ *		Created by: Michael Rhodes  rhodes.michaelc@gmail.com  http://www.briandunning.com/cf/997
+ * ============================================================================
+ */
+
+Let ( [
+	valueList = Substitute ( valueList; "¶¶"; ¶ )
+] ;
+	Case (
+		valueList = ¶ ;
+		"" ;
+		
+		Position ( valueList ; "¶¶" ; 1 ; 1 ) > 0 ;
+		RemoveEmptyValues ( valueList ) ;
+		
+		// trim leading carriage-return
+		If (
+			Left ( valueList ; 1 ) = ¶ ;
+			Right ( valueList ; Length ( valueList ) - 1 ) ;
+			valueList
+		)
+		// and add trailing carriage-return
+		& If (
+			Right ( valueList ; 1 ) ≠ ¶ ;
+			¶
+		)
+	)
+)
+
+---
+CustomFunction:
+  id: '67'
+  functionArity: '1'
+  visible: 'True'
+  parameters: valueList
+  name: RemoveEmptyValues
+  Calculation: "/**\n * ============================================================================\n
+    * RemoveEmptyValues ( valueList )\n *\n * PURPOSE:\n *\t\tRecursively remove all
+    empty values from a list of carriage-return separated values.\n *\n * RETURNS:\n
+    *\t\t(text) Value list without leading return and with trailing return.\n *\n
+    * PARAMETERS:\n *\t\tvalueList (text) list of carriage-return separated values\n
+    *\n * EXAMPLE:\n *\t\tRemoveEmptyValues ( \"¶a¶¶b¶c¶¶\" ) = \"a¶b¶c¶\"\n *\n *
+    HISTORY:\n *\t\t2013-MAR-14 Modified by Daniel Smith\n *\t\t\t- remove outter
+    let statement by moving the logic to the inner one\n *\t\t\t- update documentation
+    format\n *\t\t\t- add trailing carriage-return, if it doesn't exist\n *\t\t\t-
+    use Position instead of FilterValues to test for existence of empty values\n *\t\t2009-APR-17\tModified
+    by Daniel Smith http://scr.im/dansmith\n *\t\tCreated by: Michael Rhodes  rhodes.michaelc@gmail.com
+    \ http://www.briandunning.com/cf/997\n * ============================================================================\n
+    */\n\nLet ( [\n\tvalueList = Substitute ( valueList; \"¶¶\"; ¶ )\n] ;\n\tCase
+    (\n\t\tvalueList = ¶ ;\n\t\t\"\" ;\n\t\t\n\t\tPosition ( valueList ; \"¶¶\" ;
+    1 ; 1 ) > 0 ;\n\t\tRemoveEmptyValues ( valueList ) ;\n\t\t\n\t\t// trim leading
+    carriage-return\n\t\tIf (\n\t\t\tLeft ( valueList ; 1 ) = ¶ ;\n\t\t\tRight ( valueList
+    ; Length ( valueList ) - 1 ) ;\n\t\t\tvalueList\n\t\t)\n\t\t// and add trailing
+    carriage-return\n\t\t& If (\n\t\t\tRight ( valueList ; 1 ) ≠ ¶ ;\n\t\t\t¶\n\t\t)\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * RemoveEmptyValues ( valueList )\n *\n * PURPOSE:\n *\t\tRecursively remove
+      all empty values from a list of carriage-return separated values.\n *\n * RETURNS:\n
+      *\t\t(text) Value list without leading return and with trailing return.\n *\n
+      * PARAMETERS:\n *\t\tvalueList (text) list of carriage-return separated values\n
+      *\n * EXAMPLE:\n *\t\tRemoveEmptyValues ( \"¶a¶¶b¶c¶¶\" ) = \"a¶b¶c¶\"\n *\n
+      * HISTORY:\n *\t\t2013-MAR-14 Modified by Daniel Smith\n *\t\t\t- remove outter
+      let statement by moving the logic to the inner one\n *\t\t\t- update documentation
+      format\n *\t\t\t- add trailing carriage-return, if it doesn't exist\n *\t\t\t-
+      use Position instead of FilterValues to test for existence of empty values\n
+      *\t\t2009-APR-17\tModified by Daniel Smith http://scr.im/dansmith\n *\t\tCreated
+      by: Michael Rhodes  rhodes.michaelc@gmail.com  http://www.briandunning.com/cf/997\n
+      * ============================================================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\tvalueList = "
+    - Substitute
+    - " ( valueList; \"¶¶\"; ¶ )\n] ;\n\t"
+    - Case
+    - " (\n\t\tvalueList = ¶ ;\n\t\t\"\" ;\n\t\t\n\t\t"
+    - Position
+    - " ( valueList ; \"¶¶\" ; 1 ; 1 ) > 0 ;\n\t\t"
+    - RemoveEmptyValues
+    - " ( valueList ) ;\n\t\t\n\t\t"
+    - |
+      // trim leading carriage-return
+    - type: NoRef
+      __content__: "\t\t"
+    - If
+    - " (\n\t\t\t"
+    - Left
+    - " ( valueList ; 1 ) = ¶ ;\n\t\t\t"
+    - Right
+    - ' ( valueList ; '
+    - Length
+    - " ( valueList ) - 1 ) ;\n\t\t\tvalueList\n\t\t)\n\t\t"
+    - |
+      // and add trailing carriage-return
+    - "\t\t& "
+    - If
+    - " (\n\t\t\t"
+    - Right
+    - " ( valueList ; 1 ) ≠ ¶ ;\n\t\t\t¶\n\t\t)\n\t)\n)"

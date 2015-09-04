@@ -1,0 +1,232 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   id                          Text             Normal                                                              
+     2   name                        Text             Normal            file name this data set applies to                
+     4   creationTimestamp           TimeStamp        Normal                                                              
+     5   modificationTimestamp       TimeStamp        Normal                                                              
+     6   xJoin                       Number           Normal                                                              
+     7   id_DataSet                  Text             Normal                                                              
+
+
+---
+BaseTable:
+  id: '136'
+  records: '2'
+  name: DataSetFile
+  FieldCatalog:
+    Field:
+    - id: '1'
+      dataType: Text
+      fieldType: Normal
+      name: id
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        overwriteExistingValue: 'True'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( UUID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - UUID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '2'
+      dataType: Text
+      fieldType: Normal
+      name: name
+      Comment: file name this data set applies to
+      AutoEnter:
+        allowEditing: 'True'
+        overwriteExistingValue: 'True'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Trim ( Self )
+        DisplayCalculation:
+          Chunk:
+          - Trim
+          - ' ( '
+          - Self
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '4'
+      dataType: TimeStamp
+      fieldType: Normal
+      name: creationTimestamp
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        value: ModificationTimeStamp
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '5'
+      dataType: TimeStamp
+      fieldType: Normal
+      name: modificationTimestamp
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        value: ModificationTimeStamp
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '6'
+      dataType: Number
+      fieldType: Normal
+      name: xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '7'
+      dataType: Text
+      fieldType: Normal
+      name: id_DataSet
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'

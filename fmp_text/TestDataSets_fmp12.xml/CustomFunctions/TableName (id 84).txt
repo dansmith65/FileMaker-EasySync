@@ -1,0 +1,57 @@
+/**
+ * =====================================
+ * TableName ( field )
+ *
+ * RETURNS:
+ *		Name of the table of the given field.
+ *
+ * PARAMETERS:
+ *		field: a field belonging to the table.
+ *
+ * EXAMPLE:
+ *		TableName ( Table::Field ;  ) = "Table"
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		CREATED on 2013-OCT-04 by Orlando Ferraiuolo
+ * =====================================
+ */
+
+Let (
+	~fieldName = GetFieldName ( field ) ;
+	Left ( ~fieldName ; Position ( ~fieldName ; "::" ; 1 ; 1 ) - 1 )
+)
+
+---
+CustomFunction:
+  id: '84'
+  functionArity: '1'
+  visible: 'True'
+  parameters: field
+  name: TableName
+  Calculation: "/**\n * =====================================\n * TableName ( field
+    )\n *\n * RETURNS:\n *\t\tName of the table of the given field.\n *\n * PARAMETERS:\n
+    *\t\tfield: a field belonging to the table.\n *\n * EXAMPLE:\n *\t\tTableName
+    ( Table::Field ;  ) = \"Table\"\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n
+    *\t\tCREATED on 2013-OCT-04 by Orlando Ferraiuolo\n * =====================================\n
+    */\n\nLet (\n\t~fieldName = GetFieldName ( field ) ;\n\tLeft ( ~fieldName ; Position
+    ( ~fieldName ; \"::\" ; 1 ; 1 ) - 1 )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * TableName ( field )\n *\n
+      * RETURNS:\n *\t\tName of the table of the given field.\n *\n * PARAMETERS:\n
+      *\t\tfield: a field belonging to the table.\n *\n * EXAMPLE:\n *\t\tTableName
+      ( Table::Field ;  ) = \"Table\"\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n
+      *\t\tCREATED on 2013-OCT-04 by Orlando Ferraiuolo\n * =====================================\n
+      */\n\n"
+    - Let
+    - " (\n\t~fieldName = "
+    - GetFieldName
+    - " ( field ) ;\n\t"
+    - Left
+    - ' ( ~fieldName ; '
+    - Position
+    - |2-
+       ( ~fieldName ; "::" ; 1 ; 1 ) - 1 )
+      )

@@ -1,0 +1,75 @@
+/**
+ * =====================================
+ * ErrorFound ( theErrorData )
+ *
+ * RETURNS:
+ *		ErrorCode contained in theErrorData as a Boolean. In other words,
+ *		if any error occurred at all, return True (1), otherwise return
+ *		False (0).
+ *
+ * PARAMETERS:
+ *		theErrorData = (let notation) output of Error custom function
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: #Get
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-NOV-22 by Daniel Smith dansmith65@gmail.com
+ *			- renamed to ErrorFound, update documentation
+ *		MODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com
+ *			- renamed from IsError to #IsError
+ *			- update documentation in script header
+ *		MODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com
+ *			- don't access $error variable directly
+ *		CREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com
+ *
+ * REFERENCES:
+ *		http://filemakerstandards.org/x/AoA-/
+ * =====================================
+ */
+
+GetAsBoolean (
+	#Get ( theErrorData ; "errorCode" )
+)
+
+---
+CustomFunction:
+  id: '28'
+  functionArity: '1'
+  visible: 'True'
+  parameters: theErrorData
+  name: ErrorFound
+  Calculation: "/**\n * =====================================\n * ErrorFound ( theErrorData
+    )\n *\n * RETURNS:\n *\t\tErrorCode contained in theErrorData as a Boolean. In
+    other words,\n *\t\tif any error occurred at all, return True (1), otherwise return\n
+    *\t\tFalse (0).\n *\n * PARAMETERS:\n *\t\ttheErrorData = (let notation) output
+    of Error custom function\n *\n * DEPENDENCIES:\n *\t\tCustom Functions: #Get\n
+    *\n * HISTORY:\n *\t\tMODIFIED on 2013-NOV-22 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- renamed to ErrorFound, update documentation\n *\t\tMODIFIED on 2013-OCT-11
+    by Daniel Smith dansmith65@gmail.com\n *\t\t\t- renamed from IsError to #IsError\n
+    *\t\t\t- update documentation in script header\n *\t\tMODIFIED on 2012-NOV-21
+    by Daniel Smith dansmith65@gmail.com\n *\t\t\t- don't access $error variable directly\n
+    *\t\tCREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n *\n * REFERENCES:\n
+    *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+    */\n\nGetAsBoolean (\n\t#Get ( theErrorData ; \"errorCode\" )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ErrorFound ( theErrorData
+      )\n *\n * RETURNS:\n *\t\tErrorCode contained in theErrorData as a Boolean.
+      In other words,\n *\t\tif any error occurred at all, return True (1), otherwise
+      return\n *\t\tFalse (0).\n *\n * PARAMETERS:\n *\t\ttheErrorData = (let notation)
+      output of Error custom function\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:
+      #Get\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-NOV-22 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- renamed to ErrorFound, update documentation\n *\t\tMODIFIED on 2013-OCT-11
+      by Daniel Smith dansmith65@gmail.com\n *\t\t\t- renamed from IsError to #IsError\n
+      *\t\t\t- update documentation in script header\n *\t\tMODIFIED on 2012-NOV-21
+      by Daniel Smith dansmith65@gmail.com\n *\t\t\t- don't access $error variable
+      directly\n *\t\tCREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n *\n
+      * REFERENCES:\n *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+      */\n\n"
+    - GetAsBoolean
+    - " (\n\t"
+    - '#Get'
+    - |2-
+       ( theErrorData ; "errorCode" )
+      )

@@ -1,0 +1,759 @@
+Tables
+
+    Base Table (id)            Table occurrence (id)    
+    ---------------            ---------------------    
+
+    EasySync (133)             dse_dsf_ESY__EasySync (1065116)
+    Survey_Hobbies (131)       dse_dsf_SHO__Survey_Hobbies (1065115)
+    Survey_Documents (132)     dse_dsf_SDO__Survey_Documents (1065114)
+    Surveys (130)              dse_dsf_SUR__Surveys (1065113)
+    DataSetFile (136)          dse_DSF__DataSetFile (1065112)
+    EasySync (133)             ESY__EasySync (1065093)  
+    Survey_Hobbies (131)       SHO__Survey_Hobbies (1065091)
+    Survey_Documents (132)     SDO__Survey_Documents (1065092)
+    Surveys (130)              SUR__Surveys (1065090)   
+    DataSetFile (136)          DSF__DataSetFile (1065110)
+    SELECTOR (135)             SEL__SELECTOR (1065095)  
+    DataSet (129)              sel_DSE__DataSet (1065111)
+    DataSetFile (136)          sel_DSF__DataSetFile (1065100)
+    EasySync (133)             sel_dsf_ESY__EasySync (1065098)
+    Survey_Hobbies (131)       sel_dsf_SHO__Survey_Hobbies (1065096)
+    Survey_Documents (132)     sel_dsf_SDO__Survey_Documents (1065097)
+    Surveys (130)              sel_dsf_SUR__Surveys (1065099)
+    DataSet (129)              DSE__DataSet (1065089)   
+    CONNECTOR (134)            CONNECTOR (1065094)      
+    Survey_Documents (133)     Client_Survey_Documents (1065104)
+    Survey_Hobbies (131)       Client_Survey_Hobbies (1065102)
+    EasySync (132)             Client_EasySync (1065103)
+    Surveys (129)              Client_Surveys (1065101) 
+    Survey_Documents (133)     Server_Survey_Documents (1065109)
+    Survey_Hobbies (132)       Server_Survey_Hobbies (1065108)
+    EasySync (130)             Server_EasySync (1065107)
+    Surveys (129)              Server_Surveys (1065106) 
+
+Relationships
+
+    Relationship: 5   
+        DSE__DataSet::xJoin                  CartesianProduct  CONNECTOR::xJoin                   
+
+    Relationship: 6   
+        SUR__Surveys::xJoin                  CartesianProduct  CONNECTOR::xJoin                   
+
+    Relationship: 7   
+        SHO__Survey_Hobbies::xJoin           CartesianProduct  CONNECTOR::xJoin                   
+
+    Relationship: 8   
+        SDO__Survey_Documents::xJoin         CartesianProduct  CONNECTOR::xJoin                   
+
+    Relationship: 9   
+        ESY__EasySync::xJoin                 CartesianProduct  CONNECTOR::xJoin                   
+
+    Relationship: 10  
+        SEL__SELECTOR::xJoin                 CartesianProduct  CONNECTOR::xJoin                   
+
+    Relationship: 11  
+        sel_DSF__DataSetFile::id             Equal            SEL__SELECTOR::idList_DataSetFile  
+
+    Relationship: 12  
+        sel_DSF__DataSetFile::id             Equal            sel_dsf_SUR__Surveys::id_DataSetFile
+
+    Relationship: 13  
+        sel_dsf_SHO__Survey_Hobbies::id_DataSetFile  Equal            sel_DSF__DataSetFile::id           
+
+    Relationship: 14  
+        sel_dsf_SDO__Survey_Documents::id_DataSetFile  Equal            sel_DSF__DataSetFile::id           
+
+    Relationship: 15  
+        sel_DSF__DataSetFile::id             Equal            sel_dsf_ESY__EasySync::id_DataSetFile
+
+    Relationship: 16  
+        DSF__DataSetFile::xJoin              CartesianProduct  CONNECTOR::xJoin                   
+
+    Relationship: 17  
+        sel_DSE__DataSet::id                 Equal            SEL__SELECTOR::idList_DataSet      
+
+    Relationship: 18  
+        DSE__DataSet::id                     Equal            dse_DSF__DataSetFile::id_DataSet   
+
+    Relationship: 19  
+        dse_dsf_SUR__Surveys::id_DataSetFile  Equal            dse_DSF__DataSetFile::id           
+
+    Relationship: 20  
+        dse_dsf_SDO__Survey_Documents::id_DataSetFile  Equal            dse_DSF__DataSetFile::id           
+
+    Relationship: 21  
+        dse_dsf_SHO__Survey_Hobbies::id_DataSetFile  Equal            dse_DSF__DataSetFile::id           
+
+    Relationship: 22  
+        dse_dsf_ESY__EasySync::id_DataSetFile  Equal            dse_DSF__DataSetFile::id           
+
+
+---
+RelationshipGraph:
+  TableList:
+    Table:
+    - id: '1065116'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: EasySync
+      name: dse_dsf_ESY__EasySync
+    - id: '1065115'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Survey_Hobbies
+      name: dse_dsf_SHO__Survey_Hobbies
+    - id: '1065114'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: Survey_Documents
+      name: dse_dsf_SDO__Survey_Documents
+    - id: '1065113'
+      color: '#787878'
+      baseTableId: '130'
+      baseTable: Surveys
+      name: dse_dsf_SUR__Surveys
+    - id: '1065112'
+      color: '#787878'
+      baseTableId: '136'
+      baseTable: DataSetFile
+      name: dse_DSF__DataSetFile
+    - id: '1065093'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: EasySync
+      name: ESY__EasySync
+    - id: '1065091'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Survey_Hobbies
+      name: SHO__Survey_Hobbies
+    - id: '1065092'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: Survey_Documents
+      name: SDO__Survey_Documents
+    - id: '1065090'
+      color: '#787878'
+      baseTableId: '130'
+      baseTable: Surveys
+      name: SUR__Surveys
+    - id: '1065110'
+      color: '#787878'
+      baseTableId: '136'
+      baseTable: DataSetFile
+      name: DSF__DataSetFile
+    - id: '1065095'
+      color: '#787878'
+      baseTableId: '135'
+      baseTable: SELECTOR
+      name: SEL__SELECTOR
+    - id: '1065111'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: DataSet
+      name: sel_DSE__DataSet
+    - id: '1065100'
+      color: '#787878'
+      baseTableId: '136'
+      baseTable: DataSetFile
+      name: sel_DSF__DataSetFile
+    - id: '1065098'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: EasySync
+      name: sel_dsf_ESY__EasySync
+    - id: '1065096'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Survey_Hobbies
+      name: sel_dsf_SHO__Survey_Hobbies
+    - id: '1065097'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: Survey_Documents
+      name: sel_dsf_SDO__Survey_Documents
+    - id: '1065099'
+      color: '#787878'
+      baseTableId: '130'
+      baseTable: Surveys
+      name: sel_dsf_SUR__Surveys
+    - id: '1065089'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: DataSet
+      name: DSE__DataSet
+    - id: '1065094'
+      color: '#787878'
+      baseTableId: '134'
+      baseTable: CONNECTOR
+      name: CONNECTOR
+    - id: '1065104'
+      color: '#777777'
+      baseTableId: '133'
+      baseTable: Survey_Documents
+      name: Client_Survey_Documents
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+    - id: '1065102'
+      color: '#777777'
+      baseTableId: '131'
+      baseTable: Survey_Hobbies
+      name: Client_Survey_Hobbies
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+    - id: '1065103'
+      color: '#777777'
+      baseTableId: '132'
+      baseTable: EasySync
+      name: Client_EasySync
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+    - id: '1065101'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: Surveys
+      name: Client_Surveys
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+    - id: '1065109'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: Survey_Documents
+      name: Server_Survey_Documents
+      FileReference:
+        id: '2'
+        name: EasySync_Server
+    - id: '1065108'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: Survey_Hobbies
+      name: Server_Survey_Hobbies
+      FileReference:
+        id: '2'
+        name: EasySync_Server
+    - id: '1065107'
+      color: '#787878'
+      baseTableId: '130'
+      baseTable: EasySync
+      name: Server_EasySync
+      FileReference:
+        id: '2'
+        name: EasySync_Server
+    - id: '1065106'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: Surveys
+      name: Server_Surveys
+      FileReference:
+        id: '2'
+        name: EasySync_Server
+  RelationshipList:
+    Relationship:
+    - id: '5'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: DSE__DataSet
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: DSE__DataSet
+              id: '6'
+              name: xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: xJoin
+    - id: '6'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SUR__Surveys
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: SUR__Surveys
+              id: '34'
+              name: xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: xJoin
+    - id: '7'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SHO__Survey_Hobbies
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: SHO__Survey_Hobbies
+              id: '11'
+              name: xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: xJoin
+    - id: '8'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SDO__Survey_Documents
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: SDO__Survey_Documents
+              id: '36'
+              name: xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: xJoin
+    - id: '9'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: ESY__EasySync
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: ESY__EasySync
+              id: '21'
+              name: xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: xJoin
+    - id: '10'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SEL__SELECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: SEL__SELECTOR
+              id: '1'
+              name: xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: xJoin
+    - id: '11'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: sel_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SEL__SELECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_DSF__DataSetFile
+              id: '1'
+              name: id
+          RightField:
+            Field:
+              table: SEL__SELECTOR
+              id: '2'
+              name: idList_DataSetFile
+    - id: '12'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_dsf_SUR__Surveys
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_DSF__DataSetFile
+              id: '1'
+              name: id
+          RightField:
+            Field:
+              table: sel_dsf_SUR__Surveys
+              id: '33'
+              name: id_DataSetFile
+    - id: '13'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_dsf_SHO__Survey_Hobbies
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_dsf_SHO__Survey_Hobbies
+              id: '10'
+              name: id_DataSetFile
+          RightField:
+            Field:
+              table: sel_DSF__DataSetFile
+              id: '1'
+              name: id
+    - id: '14'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_dsf_SDO__Survey_Documents
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_dsf_SDO__Survey_Documents
+              id: '35'
+              name: id_DataSetFile
+          RightField:
+            Field:
+              table: sel_DSF__DataSetFile
+              id: '1'
+              name: id
+    - id: '15'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: sel_dsf_ESY__EasySync
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_DSF__DataSetFile
+              id: '1'
+              name: id
+          RightField:
+            Field:
+              table: sel_dsf_ESY__EasySync
+              id: '20'
+              name: id_DataSetFile
+    - id: '16'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: DSF__DataSetFile
+              id: '6'
+              name: xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: xJoin
+    - id: '17'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: sel_DSE__DataSet
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SEL__SELECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_DSE__DataSet
+              id: '1'
+              name: id
+          RightField:
+            Field:
+              table: SEL__SELECTOR
+              id: '6'
+              name: idList_DataSet
+    - id: '18'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: DSE__DataSet
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'True'
+        name: dse_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: DSE__DataSet
+              id: '1'
+              name: id
+          RightField:
+            Field:
+              table: dse_DSF__DataSetFile
+              id: '7'
+              name: id_DataSet
+    - id: '19'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'True'
+        name: dse_dsf_SUR__Surveys
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: dse_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: dse_dsf_SUR__Surveys
+              id: '33'
+              name: id_DataSetFile
+          RightField:
+            Field:
+              table: dse_DSF__DataSetFile
+              id: '1'
+              name: id
+    - id: '20'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'True'
+        name: dse_dsf_SDO__Survey_Documents
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: dse_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: dse_dsf_SDO__Survey_Documents
+              id: '35'
+              name: id_DataSetFile
+          RightField:
+            Field:
+              table: dse_DSF__DataSetFile
+              id: '1'
+              name: id
+    - id: '21'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'True'
+        name: dse_dsf_SHO__Survey_Hobbies
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: dse_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: dse_dsf_SHO__Survey_Hobbies
+              id: '10'
+              name: id_DataSetFile
+          RightField:
+            Field:
+              table: dse_DSF__DataSetFile
+              id: '1'
+              name: id
+    - id: '22'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'True'
+        name: dse_dsf_ESY__EasySync
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: dse_DSF__DataSetFile
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: dse_dsf_ESY__EasySync
+              id: '20'
+              name: id_DataSetFile
+          RightField:
+            Field:
+              table: dse_DSF__DataSetFile
+              id: '1'
+              name: id

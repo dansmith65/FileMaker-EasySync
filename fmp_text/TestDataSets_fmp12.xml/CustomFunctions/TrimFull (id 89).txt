@@ -1,0 +1,278 @@
+/* TrimFull ( text )
+
+PURPOSE:
+Removes ALL leading/trailing whitespace, including paraphraph marks "¶", tabs, etc.
+
+PARAMETERS:
+text: text to have leading/trailing characters removed
+
+RETURNS:
+(text) param without leading/trailing whitespace
+
+DEPENDENCIES:
+FileMaker 10+
+
+REVISIONS:
+2009-MAR-25	- Modified or Created by: Dan Smith  dansmith65@gmail.com
+		(I cant remember if I downloaded it somewhere, then modified it, or created it myself)
+		is very similar to this function: http://www.briandunning.com/cf/904 by Debi Fuchs, Aptworks Consulting
+2010-AUG-18	- (no notes from this modification)
+2011-MAY-31	- revised documentation format
+		- modified to return empty value if param is ALL whitespace
+####################################################################################################*/
+
+//stripped    Text with all returns removed
+//firstChar   Locate the position of the first non trimmed character in the original text
+//lastChar    Locate the position of the last non trimmed character in the original text
+
+// unicode of space characters found here: http://en.wikipedia.org/wiki/Space_%28punctuation%29#Table_of_spaces
+
+Let([
+    // Add more substitutions characters to "stripped" to remove any other type of leading or trailing characters
+    stripped = Substitute( text
+        ; ["¶"; ""]          //return
+        ; [" "; ""]          //space
+        ; [Char(9); ""]       //tab
+        ; [Char(160); ""]    //No-Break Space (&nbsp; in html)
+        ; [Char(6158); ""]   //Mongolian Vowel Separator (MVS)
+        ; [Char(8194); ""]   //En Space (&ensp; in html)
+        ; [Char(8195); ""]   //Em Space (&emsp; in html)
+        ; [Char(8196); ""]   //Three-Per-Em Space
+        ; [Char(8197); ""]   //Four-Per-Em Space
+        ; [Char(8198); ""]   //Six-Per-Em Space
+        ; [Char(8199); ""]   //Figure Space
+        ; [Char(8200); ""]   //Punctuation Space
+        ; [Char(8201); ""]   //Thin Space ($thinsp in html)
+        ; [Char(8202); ""]   //Hair Space
+        ; [Char(8203); ""]   //Zero Width Space(ZWSP)
+        ; [Char(8204); ""]   //Zero Width Non Joiner (ZWNJ) (&zwnj; in html)
+        ; [Char(8205); ""]   //Zero Width Joiner (ZWJ) ( in html)
+        ; [Char(8239); ""]   //Narrow No-Break Space
+        ; [Char(8287); ""]   //Medium Mathematical Space (MMSP)
+        ; [Char(8288); ""]   //Word Joiner
+        ; [Char(12288); ""]  //Ideographic Space
+        ; [Char(65279); ""]  //Zero Width No-Break Space = Byte Order Mark (BOM)
+    );
+    firstChar = Position(text; Left(stripped; 1); 0; 1);
+    lastChar = Position(text; Right(stripped; 1); Length(text); -1 ) 
+    ];
+
+    If(
+        // text does not consist entirely of whitespace
+        not IsEmpty( stripped );
+        // extract text between first and last character that is not trimmed
+        Middle(text; firstChar; lastChar - firstChar + 1)
+    )
+)
+
+---
+CustomFunction:
+  id: '89'
+  functionArity: '1'
+  visible: 'True'
+  parameters: text
+  name: TrimFull
+  Calculation: "/* TrimFull ( text )\n\nPURPOSE:\nRemoves ALL leading/trailing whitespace,
+    including paraphraph marks \"¶\", tabs, etc.\n\nPARAMETERS:\ntext: text to have
+    leading/trailing characters removed\n\nRETURNS:\n(text) param without leading/trailing
+    whitespace\n\nDEPENDENCIES:\nFileMaker 10+\n\nREVISIONS:\n2009-MAR-25\t- Modified
+    or Created by: Dan Smith  dansmith65@gmail.com\n\t\t(I cant remember if I downloaded
+    it somewhere, then modified it, or created it myself)\n\t\tis very similar to
+    this function: http://www.briandunning.com/cf/904 by Debi Fuchs, Aptworks Consulting\n2010-AUG-18\t-
+    (no notes from this modification)\n2011-MAY-31\t- revised documentation format\n\t\t-
+    modified to return empty value if param is ALL whitespace\n####################################################################################################*/\n\n//stripped
+    \   Text with all returns removed\n//firstChar   Locate the position of the first
+    non trimmed character in the original text\n//lastChar    Locate the position
+    of the last non trimmed character in the original text\n\n// unicode of space
+    characters found here: http://en.wikipedia.org/wiki/Space_%28punctuation%29#Table_of_spaces\n\nLet([\n
+    \   // Add more substitutions characters to \"stripped\" to remove any other type
+    of leading or trailing characters\n    stripped = Substitute( text\n        ;
+    [\"¶\"; \"\"]          //return\n        ; [\" \"; \"\"]          //space\n        ;
+    [Char(9); \"\"]       //tab\n        ; [Char(160); \"\"]    //No-Break Space (&nbsp;
+    in html)\n        ; [Char(6158); \"\"]   //Mongolian Vowel Separator (MVS)\n        ;
+    [Char(8194); \"\"]   //En Space (&ensp; in html)\n        ; [Char(8195); \"\"]
+    \  //Em Space (&emsp; in html)\n        ; [Char(8196); \"\"]   //Three-Per-Em
+    Space\n        ; [Char(8197); \"\"]   //Four-Per-Em Space\n        ; [Char(8198);
+    \"\"]   //Six-Per-Em Space\n        ; [Char(8199); \"\"]   //Figure Space\n        ;
+    [Char(8200); \"\"]   //Punctuation Space\n        ; [Char(8201); \"\"]   //Thin
+    Space ($thinsp in html)\n        ; [Char(8202); \"\"]   //Hair Space\n        ;
+    [Char(8203); \"\"]   //Zero Width Space(ZWSP)\n        ; [Char(8204); \"\"]   //Zero
+    Width Non Joiner (ZWNJ) (&zwnj; in html)\n        ; [Char(8205); \"\"]   //Zero
+    Width Joiner (ZWJ) ( in html)\n        ; [Char(8239); \"\"]   //Narrow No-Break
+    Space\n        ; [Char(8287); \"\"]   //Medium Mathematical Space (MMSP)\n        ;
+    [Char(8288); \"\"]   //Word Joiner\n        ; [Char(12288); \"\"]  //Ideographic
+    Space\n        ; [Char(65279); \"\"]  //Zero Width No-Break Space = Byte Order
+    Mark (BOM)\n    );\n    firstChar = Position(text; Left(stripped; 1); 0; 1);\n
+    \   lastChar = Position(text; Right(stripped; 1); Length(text); -1 ) \n    ];\n\n
+    \   If(\n        // text does not consist entirely of whitespace\n        not
+    IsEmpty( stripped );\n        // extract text between first and last character
+    that is not trimmed\n        Middle(text; firstChar; lastChar - firstChar + 1)\n
+    \   )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/* TrimFull ( text )\n\nPURPOSE:\nRemoves ALL leading/trailing whitespace,
+      including paraphraph marks \"¶\", tabs, etc.\n\nPARAMETERS:\ntext: text to have
+      leading/trailing characters removed\n\nRETURNS:\n(text) param without leading/trailing
+      whitespace\n\nDEPENDENCIES:\nFileMaker 10+\n\nREVISIONS:\n2009-MAR-25\t- Modified
+      or Created by: Dan Smith  dansmith65@gmail.com\n\t\t(I cant remember if I downloaded
+      it somewhere, then modified it, or created it myself)\n\t\tis very similar to
+      this function: http://www.briandunning.com/cf/904 by Debi Fuchs, Aptworks Consulting\n2010-AUG-18\t-
+      (no notes from this modification)\n2011-MAY-31\t- revised documentation format\n\t\t-
+      modified to return empty value if param is ALL whitespace\n####################################################################################################*/\n\n"
+    - |
+      //stripped    Text with all returns removed
+    - |
+      //firstChar   Locate the position of the first non trimmed character in the original text
+    - |
+      //lastChar    Locate the position of the last non trimmed character in the original text
+    - type: NoRef
+      __content__: |2+
+
+    - |
+      // unicode of space characters found here: http://en.wikipedia.org/wiki/Space_%28punctuation%29#Table_of_spaces
+    - type: NoRef
+      __content__: |2+
+
+    - Let
+    - "([\n    "
+    - |
+      // Add more substitutions characters to "stripped" to remove any other type of leading or trailing characters
+    - '    stripped = '
+    - Substitute
+    - "( text\n        ; [\"¶\"; \"\"]          "
+    - |
+      //return
+    - '        ; [" "; ""]          '
+    - |
+      //space
+    - '        ; ['
+    - Char
+    - '(9); ""]       '
+    - |
+      //tab
+    - '        ; ['
+    - Char
+    - '(160); ""]    '
+    - |
+      //No-Break Space (&nbsp; in html)
+    - '        ; ['
+    - Char
+    - '(6158); ""]   '
+    - |
+      //Mongolian Vowel Separator (MVS)
+    - '        ; ['
+    - Char
+    - '(8194); ""]   '
+    - |
+      //En Space (&ensp; in html)
+    - '        ; ['
+    - Char
+    - '(8195); ""]   '
+    - |
+      //Em Space (&emsp; in html)
+    - '        ; ['
+    - Char
+    - '(8196); ""]   '
+    - |
+      //Three-Per-Em Space
+    - '        ; ['
+    - Char
+    - '(8197); ""]   '
+    - |
+      //Four-Per-Em Space
+    - '        ; ['
+    - Char
+    - '(8198); ""]   '
+    - |
+      //Six-Per-Em Space
+    - '        ; ['
+    - Char
+    - '(8199); ""]   '
+    - |
+      //Figure Space
+    - '        ; ['
+    - Char
+    - '(8200); ""]   '
+    - |
+      //Punctuation Space
+    - '        ; ['
+    - Char
+    - '(8201); ""]   '
+    - |
+      //Thin Space ($thinsp in html)
+    - '        ; ['
+    - Char
+    - '(8202); ""]   '
+    - |
+      //Hair Space
+    - '        ; ['
+    - Char
+    - '(8203); ""]   '
+    - |
+      //Zero Width Space(ZWSP)
+    - '        ; ['
+    - Char
+    - '(8204); ""]   '
+    - |
+      //Zero Width Non Joiner (ZWNJ) (&zwnj; in html)
+    - '        ; ['
+    - Char
+    - '(8205); ""]   '
+    - |
+      //Zero Width Joiner (ZWJ) ( in html)
+    - '        ; ['
+    - Char
+    - '(8239); ""]   '
+    - |
+      //Narrow No-Break Space
+    - '        ; ['
+    - Char
+    - '(8287); ""]   '
+    - |
+      //Medium Mathematical Space (MMSP)
+    - '        ; ['
+    - Char
+    - '(8288); ""]   '
+    - |
+      //Word Joiner
+    - '        ; ['
+    - Char
+    - '(12288); ""]  '
+    - |
+      //Ideographic Space
+    - '        ; ['
+    - Char
+    - '(65279); ""]  '
+    - |
+      //Zero Width No-Break Space = Byte Order Mark (BOM)
+    - "    );\n    firstChar = "
+    - Position
+    - '(text; '
+    - Left
+    - "(stripped; 1); 0; 1);\n    lastChar = "
+    - Position
+    - '(text; '
+    - Right
+    - '(stripped; 1); '
+    - Length
+    - "(text); -1 ) \n    ];\n\n    "
+    - If
+    - "(\n        "
+    - |
+      // text does not consist entirely of whitespace
+    - type: NoRef
+      __content__: '        '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - "( stripped );\n        "
+    - |
+      // extract text between first and last character that is not trimmed
+    - type: NoRef
+      __content__: '        '
+    - Middle
+    - |-
+      (text; firstChar; lastChar - firstChar + 1)
+          )
+      )

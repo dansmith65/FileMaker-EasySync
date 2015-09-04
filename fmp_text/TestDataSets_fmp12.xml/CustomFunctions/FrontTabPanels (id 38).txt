@@ -1,0 +1,194 @@
+/**
+ * ============================================================================
+ * FrontTabPanels ( ObjectNames )
+ *
+ * PURPOSE:
+ *		Return the active tabs and their depth in a nested tab structure.
+ *		Return a list of tab object names with a number representing the depth
+ *		it is nested within enclosing objects, like other tab controls.
+ * 
+ * PARAMETERS:
+ *		ObjectNames (text) the result of:
+ *			LayoutObjectNames ( Get ( FileName ) ; Get ( LayoutName ) )
+ * 
+ * RETURNS:
+ *		(text) list of values, formated like this: #<tab>object name
+ *			#		number of parent objects; 0 represents the highest level
+ *			<tab>		a tab character; Char(9)
+ * 
+ * DEPENDENCIES:
+ *		none
+ * 
+ * NOTES:
+ *		Formated as a list of: #<tab>object name
+ *			#		number of parent objects; 0 represents the highest level
+ *			<tab>	a tab character; Char(9)
+ * 
+ * REVISIONS:
+ *		2013-JAN-10	- Modified by Daniel Smith dansmith65@gmail.com
+ *			- updated documentation and formatting
+ *			- utilize tail recursion to increase max iterations to 50,000
+ *		2011-AUG-28	- Created by Dan Smith dansmith65@gmail.com
+ * ============================================================================
+ */
+
+If (
+	not IsEmpty ( ObjectNames ) ;
+	Let ( [
+		// remove empty groups on first iteration only
+		ObjectNames = Substitute ( ObjectNames ; "<¶>¶" ; "" ) ;
+		~current = GetValue( ObjectNames ; 1 ) ;
+		~remaining =
+			RightValues (
+				ObjectNames ;
+				ValueCount ( ObjectNames ) - 1
+			) ;
+		$~thisFrontTabPanels_result =
+			$~thisFrontTabPanels_result
+			& Case (
+				// start of a group
+				~current = "<" ;
+				Let ( $~thisFrontTabPanels_depth = $~thisFrontTabPanels_depth + 1 ; "" ) ;
+				
+				// end of a group
+				~current = ">" ;
+				Let ( $~thisFrontTabPanels_depth = $~thisFrontTabPanels_depth - 1 ; "" ) ;
+				
+				// object name
+				GetLayoutObjectAttribute ( ~current ; "isFrontTabPanel" ) ;
+				Max ( $~thisFrontTabPanels_depth ; 0 )
+					& "	"  // tab
+					& ~current
+					& ¶
+			)
+	] ;
+		FrontTabPanels ( ~remaining )
+	) ; // end Let
+	
+// else
+	// clean up variables and return result
+	Let ( [
+		~result = $~thisFrontTabPanels_result ;
+		$~thisFrontTabPanels_result = "" ;
+		$~thisFrontTabPanels_depth = ""
+	] ;
+		~result
+	)
+) // end If
+
+---
+CustomFunction:
+  id: '38'
+  functionArity: '1'
+  visible: 'True'
+  parameters: ObjectNames
+  name: FrontTabPanels
+  Calculation: "/**\n * ============================================================================\n
+    * FrontTabPanels ( ObjectNames )\n *\n * PURPOSE:\n *\t\tReturn the active tabs
+    and their depth in a nested tab structure.\n *\t\tReturn a list of tab object
+    names with a number representing the depth\n *\t\tit is nested within enclosing
+    objects, like other tab controls.\n * \n * PARAMETERS:\n *\t\tObjectNames (text)
+    the result of:\n *\t\t\tLayoutObjectNames ( Get ( FileName ) ; Get ( LayoutName
+    ) )\n * \n * RETURNS:\n *\t\t(text) list of values, formated like this: #<tab>object
+    name\n *\t\t\t#\t\tnumber of parent objects; 0 represents the highest level\n
+    *\t\t\t<tab>\t\ta tab character; Char(9)\n * \n * DEPENDENCIES:\n *\t\tnone\n
+    * \n * NOTES:\n *\t\tFormated as a list of: #<tab>object name\n *\t\t\t#\t\tnumber
+    of parent objects; 0 represents the highest level\n *\t\t\t<tab>\ta tab character;
+    Char(9)\n * \n * REVISIONS:\n *\t\t2013-JAN-10\t- Modified by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- updated documentation and formatting\n *\t\t\t- utilize tail recursion
+    to increase max iterations to 50,000\n *\t\t2011-AUG-28\t- Created by Dan Smith
+    dansmith65@gmail.com\n * ============================================================================\n
+    */\n\nIf (\n\tnot IsEmpty ( ObjectNames ) ;\n\tLet ( [\n\t\t// remove empty groups
+    on first iteration only\n\t\tObjectNames = Substitute ( ObjectNames ; \"<¶>¶\"
+    ; \"\" ) ;\n\t\t~current = GetValue( ObjectNames ; 1 ) ;\n\t\t~remaining =\n\t\t\tRightValues
+    (\n\t\t\t\tObjectNames ;\n\t\t\t\tValueCount ( ObjectNames ) - 1\n\t\t\t) ;\n\t\t$~thisFrontTabPanels_result
+    =\n\t\t\t$~thisFrontTabPanels_result\n\t\t\t& Case (\n\t\t\t\t// start of a group\n\t\t\t\t~current
+    = \"<\" ;\n\t\t\t\tLet ( $~thisFrontTabPanels_depth = $~thisFrontTabPanels_depth
+    + 1 ; \"\" ) ;\n\t\t\t\t\n\t\t\t\t// end of a group\n\t\t\t\t~current = \">\"
+    ;\n\t\t\t\tLet ( $~thisFrontTabPanels_depth = $~thisFrontTabPanels_depth - 1 ;
+    \"\" ) ;\n\t\t\t\t\n\t\t\t\t// object name\n\t\t\t\tGetLayoutObjectAttribute (
+    ~current ; \"isFrontTabPanel\" ) ;\n\t\t\t\tMax ( $~thisFrontTabPanels_depth ;
+    0 )\n\t\t\t\t\t& \"\t\"  // tab\n\t\t\t\t\t& ~current\n\t\t\t\t\t& ¶\n\t\t\t)\n\t]
+    ;\n\t\tFrontTabPanels ( ~remaining )\n\t) ; // end Let\n\t\n// else\n\t// clean
+    up variables and return result\n\tLet ( [\n\t\t~result = $~thisFrontTabPanels_result
+    ;\n\t\t$~thisFrontTabPanels_result = \"\" ;\n\t\t$~thisFrontTabPanels_depth =
+    \"\"\n\t] ;\n\t\t~result\n\t)\n) // end If"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * FrontTabPanels ( ObjectNames )\n *\n * PURPOSE:\n *\t\tReturn the active tabs
+      and their depth in a nested tab structure.\n *\t\tReturn a list of tab object
+      names with a number representing the depth\n *\t\tit is nested within enclosing
+      objects, like other tab controls.\n * \n * PARAMETERS:\n *\t\tObjectNames (text)
+      the result of:\n *\t\t\tLayoutObjectNames ( Get ( FileName ) ; Get ( LayoutName
+      ) )\n * \n * RETURNS:\n *\t\t(text) list of values, formated like this: #<tab>object
+      name\n *\t\t\t#\t\tnumber of parent objects; 0 represents the highest level\n
+      *\t\t\t<tab>\t\ta tab character; Char(9)\n * \n * DEPENDENCIES:\n *\t\tnone\n
+      * \n * NOTES:\n *\t\tFormated as a list of: #<tab>object name\n *\t\t\t#\t\tnumber
+      of parent objects; 0 represents the highest level\n *\t\t\t<tab>\ta tab character;
+      Char(9)\n * \n * REVISIONS:\n *\t\t2013-JAN-10\t- Modified by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- updated documentation and formatting\n *\t\t\t- utilize tail recursion
+      to increase max iterations to 50,000\n *\t\t2011-AUG-28\t- Created by Dan Smith
+      dansmith65@gmail.com\n * ============================================================================\n
+      */\n\n"
+    - If
+    - " (\n\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( ObjectNames ) ;\n\t"
+    - Let
+    - " ( [\n\t\t"
+    - |
+      // remove empty groups on first iteration only
+    - "\t\tObjectNames = "
+    - Substitute
+    - " ( ObjectNames ; \"<¶>¶\" ; \"\" ) ;\n\t\t~current = "
+    - GetValue
+    - "( ObjectNames ; 1 ) ;\n\t\t~remaining =\n\t\t\t"
+    - RightValues
+    - " (\n\t\t\t\tObjectNames ;\n\t\t\t\t"
+    - ValueCount
+    - " ( ObjectNames ) - 1\n\t\t\t) ;\n\t\t$~thisFrontTabPanels_result =\n\t\t\t$~thisFrontTabPanels_result\n\t\t\t& "
+    - Case
+    - " (\n\t\t\t\t"
+    - |
+      // start of a group
+    - "\t\t\t\t~current = \"<\" ;\n\t\t\t\t"
+    - Let
+    - " ( $~thisFrontTabPanels_depth = $~thisFrontTabPanels_depth + 1 ; \"\" ) ;\n\t\t\t\t\n\t\t\t\t"
+    - |
+      // end of a group
+    - "\t\t\t\t~current = \">\" ;\n\t\t\t\t"
+    - Let
+    - " ( $~thisFrontTabPanels_depth = $~thisFrontTabPanels_depth - 1 ; \"\" ) ;\n\t\t\t\t\n\t\t\t\t"
+    - |
+      // object name
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - GetLayoutObjectAttribute
+    - " ( ~current ; \"isFrontTabPanel\" ) ;\n\t\t\t\t"
+    - Max
+    - " ( $~thisFrontTabPanels_depth ; 0 )\n\t\t\t\t\t& \"\t\"  "
+    - |
+      // tab
+    - "\t\t\t\t\t& ~current\n\t\t\t\t\t& ¶\n\t\t\t)\n\t] ;\n\t\t"
+    - FrontTabPanels
+    - " ( ~remaining )\n\t) ; "
+    - |
+      // end Let
+    - type: NoRef
+      __content__: "\t\n"
+    - |
+      // else
+    - type: NoRef
+      __content__: "\t"
+    - |
+      // clean up variables and return result
+    - type: NoRef
+      __content__: "\t"
+    - Let
+    - " ( [\n\t\t~result = $~thisFrontTabPanels_result ;\n\t\t$~thisFrontTabPanels_result
+      = \"\" ;\n\t\t$~thisFrontTabPanels_depth = \"\"\n\t] ;\n\t\t~result\n\t)\n) "
+    - // end If

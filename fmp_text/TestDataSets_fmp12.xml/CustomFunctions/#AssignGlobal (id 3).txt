@@ -1,0 +1,101 @@
+/**
+ * =====================================
+ * #AssignGlobal ( parameters )
+ *
+ * PURPOSE:
+ *		Parses a Let dictionary of name-value parameters into a series of
+ *		globally scoped $$VARIABLES.
+ *
+ * RETURNS:
+ *		FileMaker's error code from any errors encountered during evaluation.
+ *
+ * PARAMETERS:
+ *		parameters: A Let format dictionary, such as produced by the
+ *		# ( name ; value ) function.
+ *
+ * DEPENDENCIES: none
+ *
+ * NOTES:
+ *		Notes go here
+ *
+ * HISTORY:
+ *		CREATED on 2012-12-04 by Jeremy Bante <http://scr.im/jbante>.
+ * =====================================
+ */
+
+Let ( [
+	~error =
+		EvaluationError ( Evaluate (
+			"Let ( ["
+			& Substitute (	// convert $local to $$GLOBAL variables
+				¶ & parameters;
+				[ "¶$$" ; "¶$" ];	// ... without renaming existing $$GLOBALS
+				[ "¶$" ; "¶$$" ]
+			)
+			& "¶~ = \"\" ]; ~ )"
+		) )
+];
+	~error = 0	// indicate success or failure of Evaluate()
+	or Let ( $#AssignGlobal.error = ~error ; False )	// only runs on error
+)
+
+---
+CustomFunction:
+  id: '3'
+  functionArity: '1'
+  visible: 'True'
+  parameters: parameters
+  name: '#AssignGlobal'
+  Calculation: "/**\n * =====================================\n * #AssignGlobal (
+    parameters )\n *\n * PURPOSE:\n *\t\tParses a Let dictionary of name-value parameters
+    into a series of\n *\t\tglobally scoped $$VARIABLES.\n *\n * RETURNS:\n *\t\tFileMaker's
+    error code from any errors encountered during evaluation.\n *\n * PARAMETERS:\n
+    *\t\tparameters: A Let format dictionary, such as produced by the\n *\t\t# ( name
+    ; value ) function.\n *\n * DEPENDENCIES: none\n *\n * NOTES:\n *\t\tNotes go
+    here\n *\n * HISTORY:\n *\t\tCREATED on 2012-12-04 by Jeremy Bante <http://scr.im/jbante>.\n
+    * =====================================\n */\n\nLet ( [\n\t~error =\n\t\tEvaluationError
+    ( Evaluate (\n\t\t\t\"Let ( [\"\n\t\t\t& Substitute (\t// convert $local to $$GLOBAL
+    variables\n\t\t\t\t¶ & parameters;\n\t\t\t\t[ \"¶$$\" ; \"¶$\" ];\t// ... without
+    renaming existing $$GLOBALS\n\t\t\t\t[ \"¶$\" ; \"¶$$\" ]\n\t\t\t)\n\t\t\t& \"¶~
+    = \\\"\\\" ]; ~ )\"\n\t\t) )\n];\n\t~error = 0\t// indicate success or failure
+    of Evaluate()\n\tor Let ( $#AssignGlobal.error = ~error ; False )\t// only runs
+    on error\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #AssignGlobal ( parameters
+      )\n *\n * PURPOSE:\n *\t\tParses a Let dictionary of name-value parameters into
+      a series of\n *\t\tglobally scoped $$VARIABLES.\n *\n * RETURNS:\n *\t\tFileMaker's
+      error code from any errors encountered during evaluation.\n *\n * PARAMETERS:\n
+      *\t\tparameters: A Let format dictionary, such as produced by the\n *\t\t# (
+      name ; value ) function.\n *\n * DEPENDENCIES: none\n *\n * NOTES:\n *\t\tNotes
+      go here\n *\n * HISTORY:\n *\t\tCREATED on 2012-12-04 by Jeremy Bante <http://scr.im/jbante>.\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~error =\n\t\t"
+    - EvaluationError
+    - ' ( '
+    - Evaluate
+    - " (\n\t\t\t\"Let ( [\"\n\t\t\t& "
+    - Substitute
+    - " (\t"
+    - |
+      // convert $local to $$GLOBAL variables
+    - "\t\t\t\t¶ & parameters;\n\t\t\t\t[ \"¶$$\" ; \"¶$\" ];\t"
+    - |
+      // ... without renaming existing $$GLOBALS
+    - "\t\t\t\t[ \"¶$\" ; \"¶$$\" ]\n\t\t\t)\n\t\t\t& \"¶~ = \\\"\\\" ]; ~ )\"\n\t\t)
+      )\n];\n\t~error = 0\t"
+    - |
+      // indicate success or failure of Evaluate()
+    - type: NoRef
+      __content__: "\t"
+    - or
+    - type: NoRef
+      __content__: ' '
+    - Let
+    - ' ( $#AssignGlobal.error = ~error ; '
+    - 'False'
+    - " )\t"
+    - |
+      // only runs on error
+    - )

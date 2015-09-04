@@ -1,0 +1,88 @@
+/* SQLField ( fieldOrFieldName )
+
+PURPOSE:
+Quote a field name for use in a FileMaker SQL statement. Prevent hard-coding it's value.
+
+PARAMETERS:
+fieldOrFieldName (field, txt) field or field name to extract field name from.  It can be from any TableOccurence, as that portion of the field name is removed.
+
+DEPENDENCIES:
+FileMaker Pro 10+
+
+REVISIONS:
+2011-MAR-25	- Created by Kevin Frank  http://www.filemakerhacks.com/?p=1065
+2011-JUL-01	- Dan Smith dansmith65@gmail.com
+	- renamed from GFN to SQLField
+	- added to documentation section
+2012-AUG-10	- allow parameter to be a field or field name, change parameter name accordingly
+####################################################################################################*/
+
+Let (
+[
+	~fieldName = If(
+		IsValid( GetFieldName( fieldOrFieldName ) ) ;
+		GetFieldName( fieldOrFieldName ) ;
+		fieldOrFieldName
+	) ;
+	~separator = Position ( ~fieldName ; "::" ; 1 ; 1 ) ;
+	~fieldNameOnly = If(
+		~separator ;
+		Right ( ~fieldName ; Length ( ~fieldName ) - ~separator - 1 ) ;
+		~fieldName
+	)
+] ;
+	Quote ( ~fieldNameOnly )
+)
+
+---
+CustomFunction:
+  id: '75'
+  functionArity: '1'
+  visible: 'True'
+  parameters: fieldOrFieldName
+  name: SQLField
+  Calculation: "/* SQLField ( fieldOrFieldName )\n\nPURPOSE:\nQuote a field name for
+    use in a FileMaker SQL statement. Prevent hard-coding it's value.\n\nPARAMETERS:\nfieldOrFieldName
+    (field, txt) field or field name to extract field name from.  It can be from any
+    TableOccurence, as that portion of the field name is removed.\n\nDEPENDENCIES:\nFileMaker
+    Pro 10+\n\nREVISIONS:\n2011-MAR-25\t- Created by Kevin Frank  http://www.filemakerhacks.com/?p=1065\n2011-JUL-01\t-
+    Dan Smith dansmith65@gmail.com\n\t- renamed from GFN to SQLField\n\t- added to
+    documentation section\n2012-AUG-10\t- allow parameter to be a field or field name,
+    change parameter name accordingly\n####################################################################################################*/\n\nLet
+    (\n[\n\t~fieldName = If(\n\t\tIsValid( GetFieldName( fieldOrFieldName ) ) ;\n\t\tGetFieldName(
+    fieldOrFieldName ) ;\n\t\tfieldOrFieldName\n\t) ;\n\t~separator = Position ( ~fieldName
+    ; \"::\" ; 1 ; 1 ) ;\n\t~fieldNameOnly = If(\n\t\t~separator ;\n\t\tRight ( ~fieldName
+    ; Length ( ~fieldName ) - ~separator - 1 ) ;\n\t\t~fieldName\n\t)\n] ;\n\tQuote
+    ( ~fieldNameOnly )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/* SQLField ( fieldOrFieldName )\n\nPURPOSE:\nQuote a field name for use in
+      a FileMaker SQL statement. Prevent hard-coding it's value.\n\nPARAMETERS:\nfieldOrFieldName
+      (field, txt) field or field name to extract field name from.  It can be from
+      any TableOccurence, as that portion of the field name is removed.\n\nDEPENDENCIES:\nFileMaker
+      Pro 10+\n\nREVISIONS:\n2011-MAR-25\t- Created by Kevin Frank  http://www.filemakerhacks.com/?p=1065\n2011-JUL-01\t-
+      Dan Smith dansmith65@gmail.com\n\t- renamed from GFN to SQLField\n\t- added
+      to documentation section\n2012-AUG-10\t- allow parameter to be a field or field
+      name, change parameter name accordingly\n####################################################################################################*/\n\n"
+    - Let
+    - " (\n[\n\t~fieldName = "
+    - If
+    - "(\n\t\t"
+    - IsValid
+    - '( '
+    - GetFieldName
+    - "( fieldOrFieldName ) ) ;\n\t\t"
+    - GetFieldName
+    - "( fieldOrFieldName ) ;\n\t\tfieldOrFieldName\n\t) ;\n\t~separator = "
+    - Position
+    - " ( ~fieldName ; \"::\" ; 1 ; 1 ) ;\n\t~fieldNameOnly = "
+    - If
+    - "(\n\t\t~separator ;\n\t\t"
+    - Right
+    - ' ( ~fieldName ; '
+    - Length
+    - " ( ~fieldName ) - ~separator - 1 ) ;\n\t\t~fieldName\n\t)\n] ;\n\t"
+    - Quote
+    - |2-
+       ( ~fieldNameOnly )
+      )

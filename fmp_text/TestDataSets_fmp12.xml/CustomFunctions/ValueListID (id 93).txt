@@ -1,0 +1,74 @@
+/**
+ * =====================================
+ * ValueListID ( file ; theValueListName )
+ *
+ * RETURNS:
+ *		FileMaker's internal ID for a value list.
+ *
+ * PARAMETERS:
+ *		file: The name of the FileMaker file containing the valueList.
+ *		theValueListName
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		CREATED on 2012-04-13 by Jeremy Bante <http://scr.im/jbante>.
+ *		INSPIRED by custom functions by Fabrice Nordman.
+ * =====================================
+ */
+
+Let ( [
+	~nameList = ¶ & ValueListNames ( file ) & ¶;
+	~value =
+		Position ( ~nameList ; ¶ & theValueListName & ¶ ; 1 ; 1 );
+	~value = PatternCount ( Left ( ~nameList ; ~value ) ; ¶ );
+	~id = GetValue ( ValueListIDs ( file ) ; ~value )
+];
+	If ( IsEmpty ( ~id ) ; -1 ; /* Else */ ~id )
+)
+
+---
+CustomFunction:
+  id: '93'
+  functionArity: '2'
+  visible: 'True'
+  parameters: file;theValueListName
+  name: ValueListID
+  Calculation: "/**\n * =====================================\n * ValueListID ( file
+    ; theValueListName )\n *\n * RETURNS:\n *\t\tFileMaker's internal ID for a value
+    list.\n *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker file containing
+    the valueList.\n *\t\ttheValueListName\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n
+    *\t\tCREATED on 2012-04-13 by Jeremy Bante <http://scr.im/jbante>.\n *\t\tINSPIRED
+    by custom functions by Fabrice Nordman.\n * =====================================\n
+    */\n\nLet ( [\n\t~nameList = ¶ & ValueListNames ( file ) & ¶;\n\t~value =\n\t\tPosition
+    ( ~nameList ; ¶ & theValueListName & ¶ ; 1 ; 1 );\n\t~value = PatternCount ( Left
+    ( ~nameList ; ~value ) ; ¶ );\n\t~id = GetValue ( ValueListIDs ( file ) ; ~value
+    )\n];\n\tIf ( IsEmpty ( ~id ) ; -1 ; /* Else */ ~id )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ValueListID ( file ; theValueListName
+      )\n *\n * RETURNS:\n *\t\tFileMaker's internal ID for a value list.\n *\n *
+      PARAMETERS:\n *\t\tfile: The name of the FileMaker file containing the valueList.\n
+      *\t\ttheValueListName\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED
+      on 2012-04-13 by Jeremy Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom
+      functions by Fabrice Nordman.\n * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~nameList = ¶ & "
+    - ValueListNames
+    - " ( file ) & ¶;\n\t~value =\n\t\t"
+    - Position
+    - " ( ~nameList ; ¶ & theValueListName & ¶ ; 1 ; 1 );\n\t~value = "
+    - PatternCount
+    - ' ( '
+    - Left
+    - " ( ~nameList ; ~value ) ; ¶ );\n\t~id = "
+    - GetValue
+    - ' ( '
+    - ValueListIDs
+    - " ( file ) ; ~value )\n];\n\t"
+    - If
+    - ' ( '
+    - IsEmpty
+    - |2-
+       ( ~id ) ; -1 ; /* Else */ ~id )
+      )

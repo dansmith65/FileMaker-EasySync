@@ -1,0 +1,103 @@
+/*
+Repeat function
+Repeats text number of times
+
+Author
+*COMMENT Visual Realisation
+
+Format
+Repeat ( text ; numberOfTimes )
+
+Parameters
+text - any text that also contains a number
+numberOfTimes - integer
+
+Data type returned
+text
+
+Description
+Repeats text the specified number of times.
+
+This simple non-recursive calculation extends the limit of allowable repeats up to 161,999 (with a plain Substitute ( 10^numberOfTimes - 1 ; "9" ; text ) the limit is 404 repeats, while the obvious recursive function would be limited to 10,000 recursions).
+
+December 14, 2008
+
+Source: http://www.briandunning.com/cf/942
+*/
+
+
+Let ( [ 
+a = Div (numberOfTimes; 400 ) ;
+b = Mod (numberOfTimes; 400 )
+] ;
+Case ( a ; Substitute ( 10^a - 1 ; [ "9" ; 10^400 - 1 ] ; [ "9" ; text ] ) ) &
+Case ( b ; Substitute ( 10^b - 1 ; "9" ; text ) )
+)
+
+---
+CustomFunction:
+  id: '69'
+  functionArity: '2'
+  visible: 'True'
+  parameters: text;numberOfTimes
+  name: Repeat
+  Calculation: "/*\nRepeat function\nRepeats text number of times\n\nAuthor\n*COMMENT
+    Visual Realisation\n\nFormat\nRepeat ( text ; numberOfTimes )\n\nParameters\ntext
+    - any text that also contains a number\nnumberOfTimes - integer\n\nData type returned\ntext\n\nDescription\nRepeats
+    text the specified number of times.\n\nThis simple non-recursive calculation extends
+    the limit of allowable repeats up to 161,999 (with a plain Substitute ( 10^numberOfTimes
+    - 1 ; \"9\" ; text ) the limit is 404 repeats, while the obvious recursive function
+    would be limited to 10,000 recursions).\n\nDecember 14, 2008\n\nSource: http://www.briandunning.com/cf/942\n*/\n\n\nLet
+    ( [ \na = Div (numberOfTimes; 400 ) ;\nb = Mod (numberOfTimes; 400 )\n] ;\nCase
+    ( a ; Substitute ( 10^a - 1 ; [ \"9\" ; 10^400 - 1 ] ; [ \"9\" ; text ] ) ) &\nCase
+    ( b ; Substitute ( 10^b - 1 ; \"9\" ; text ) )\n)"
+  DisplayCalculation:
+    Chunk:
+    - |+
+      /*
+      Repeat function
+      Repeats text number of times
+
+      Author
+      *COMMENT Visual Realisation
+
+      Format
+      Repeat ( text ; numberOfTimes )
+
+      Parameters
+      text - any text that also contains a number
+      numberOfTimes - integer
+
+      Data type returned
+      text
+
+      Description
+      Repeats text the specified number of times.
+
+      This simple non-recursive calculation extends the limit of allowable repeats up to 161,999 (with a plain Substitute ( 10^numberOfTimes - 1 ; "9" ; text ) the limit is 404 repeats, while the obvious recursive function would be limited to 10,000 recursions).
+
+      December 14, 2008
+
+      Source: http://www.briandunning.com/cf/942
+      */
+
+
+    - Let
+    - " ( [ \na = "
+    - Div
+    - " (numberOfTimes; 400 ) ;\nb = "
+    - Mod
+    - |2
+       (numberOfTimes; 400 )
+      ] ;
+    - Case
+    - ' ( a ; '
+    - Substitute
+    - |2
+       ( 10^a - 1 ; [ "9" ; 10^400 - 1 ] ; [ "9" ; text ] ) ) &
+    - Case
+    - ' ( b ; '
+    - Substitute
+    - |2-
+       ( 10^b - 1 ; "9" ; text ) )
+      )

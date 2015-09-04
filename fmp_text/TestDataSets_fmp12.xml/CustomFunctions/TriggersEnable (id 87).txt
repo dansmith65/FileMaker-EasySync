@@ -1,0 +1,157 @@
+/**
+ * =====================================
+ * TriggersEnable
+ *		http://www.briandunning.com/cf/1249
+ *
+ * PURPOSE:
+ *		TriggersEnable sets global variables to indicate that the current script
+ *		is no longer suppressing triggers. This function will also turn off
+ *		trigger suppression altogether if there are no other scripts suppressing
+ *		triggers. In order to be suppressed, a script called via trigger should
+ *		use the TriggersAreActive function to decide whether or not to run.
+ *
+ * RETURNS:
+ *		True (1) if TriggersEnable successfully removed the current script from
+ *		the list of scripts suppressing triggers; False (0) otherwise.
+ *
+ * PARAMETERS: none
+ *
+ * REFERENCED VARIABLES:
+ *		$$~TRIGGERS_DISABLE
+ *		$$~TRIGGERS_SCRIPTS
+ *
+ * DEPENDENCIES: none
+ *
+ * EXAMPLE (script):
+ *		Set Variable [ $ignoreMe ; TriggersDisable ]
+ *			# Do something
+ *		Set Variable [ $ignoreMe ; TriggersEnable ]
+ *
+ * NOTES:
+ *		This function should *always* be used in pairs with the TriggersDisable
+ *		function.
+ *
+ * HISTORY:
+ *		MODIFIED on 2011-02-09 by Jeremy Bante to use differently-named
+ *		variables.
+ *		MODIFIED on 2010-12-13 by Jeremy Bante to use names suggested at
+ *		filemakerstandards.org.
+ *		CREATED on 2010-12-12 by Jeremy Bante <http://scr.im/jbante>.
+ *
+ * REFERENCES:
+ *		Supressible Triggered Scripts Best Practice: http://filemakerstandards.org/display/bp/Suppressible+Triggered+Scripts
+ *		TriggersAreActive: http://www.briandunning.com/cf/1247
+ *		TriggersDisable: http://www.briandunning.com/cf/1248
+ *		TriggersEnable: http://www.briandunning.com/cf/1249
+ *		TriggersReset: http://www.briandunning.com/cf/1250
+ * =====================================
+ */
+
+Let ( [
+	~lastScript = GetValue ( $$~TRIGGERS_SCRIPTS ; 1 );
+	~enableTriggers = Get ( ScriptName ) = ~lastScript; //boolean indicating script name match
+	$$~TRIGGERS_SCRIPTS =
+		If ( ~enableTriggers;
+			RightValues (
+				$$~TRIGGERS_SCRIPTS;
+				ValueCount ( $$~TRIGGERS_SCRIPTS ) - 1
+			);
+			/*else*/ $$~TRIGGERS_SCRIPTS
+		);
+	~scriptCount = ValueCount ( $$~TRIGGERS_SCRIPTS );
+	$$~TRIGGERS_DISABLE = If ( ~scriptCount ; True ; /*else*/ "" )
+];
+	~enableTriggers or not ~scriptCount //ScriptName was found and removed, or there are no suppressing scripts
+)
+
+---
+CustomFunction:
+  id: '87'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: TriggersEnable
+  Calculation: "/**\n * =====================================\n * TriggersEnable\n
+    *\t\thttp://www.briandunning.com/cf/1249\n *\n * PURPOSE:\n *\t\tTriggersEnable
+    sets global variables to indicate that the current script\n *\t\tis no longer
+    suppressing triggers. This function will also turn off\n *\t\ttrigger suppression
+    altogether if there are no other scripts suppressing\n *\t\ttriggers. In order
+    to be suppressed, a script called via trigger should\n *\t\tuse the TriggersAreActive
+    function to decide whether or not to run.\n *\n * RETURNS:\n *\t\tTrue (1) if
+    TriggersEnable successfully removed the current script from\n *\t\tthe list of
+    scripts suppressing triggers; False (0) otherwise.\n *\n * PARAMETERS: none\n
+    *\n * REFERENCED VARIABLES:\n *\t\t$$~TRIGGERS_DISABLE\n *\t\t$$~TRIGGERS_SCRIPTS\n
+    *\n * DEPENDENCIES: none\n *\n * EXAMPLE (script):\n *\t\tSet Variable [ $ignoreMe
+    ; TriggersDisable ]\n *\t\t\t# Do something\n *\t\tSet Variable [ $ignoreMe ;
+    TriggersEnable ]\n *\n * NOTES:\n *\t\tThis function should *always* be used in
+    pairs with the TriggersDisable\n *\t\tfunction.\n *\n * HISTORY:\n *\t\tMODIFIED
+    on 2011-02-09 by Jeremy Bante to use differently-named\n *\t\tvariables.\n *\t\tMODIFIED
+    on 2010-12-13 by Jeremy Bante to use names suggested at\n *\t\tfilemakerstandards.org.\n
+    *\t\tCREATED on 2010-12-12 by Jeremy Bante <http://scr.im/jbante>.\n *\n * REFERENCES:\n
+    *\t\tSupressible Triggered Scripts Best Practice: http://filemakerstandards.org/display/bp/Suppressible+Triggered+Scripts\n
+    *\t\tTriggersAreActive: http://www.briandunning.com/cf/1247\n *\t\tTriggersDisable:
+    http://www.briandunning.com/cf/1248\n *\t\tTriggersEnable: http://www.briandunning.com/cf/1249\n
+    *\t\tTriggersReset: http://www.briandunning.com/cf/1250\n * =====================================\n
+    */\n\nLet ( [\n\t~lastScript = GetValue ( $$~TRIGGERS_SCRIPTS ; 1 );\n\t~enableTriggers
+    = Get ( ScriptName ) = ~lastScript; //boolean indicating script name match\n\t$$~TRIGGERS_SCRIPTS
+    =\n\t\tIf ( ~enableTriggers;\n\t\t\tRightValues (\n\t\t\t\t$$~TRIGGERS_SCRIPTS;\n\t\t\t\tValueCount
+    ( $$~TRIGGERS_SCRIPTS ) - 1\n\t\t\t);\n\t\t\t/*else*/ $$~TRIGGERS_SCRIPTS\n\t\t);\n\t~scriptCount
+    = ValueCount ( $$~TRIGGERS_SCRIPTS );\n\t$$~TRIGGERS_DISABLE = If ( ~scriptCount
+    ; True ; /*else*/ \"\" )\n];\n\t~enableTriggers or not ~scriptCount //ScriptName
+    was found and removed, or there are no suppressing scripts\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * TriggersEnable\n *\t\thttp://www.briandunning.com/cf/1249\n
+      *\n * PURPOSE:\n *\t\tTriggersEnable sets global variables to indicate that
+      the current script\n *\t\tis no longer suppressing triggers. This function will
+      also turn off\n *\t\ttrigger suppression altogether if there are no other scripts
+      suppressing\n *\t\ttriggers. In order to be suppressed, a script called via
+      trigger should\n *\t\tuse the TriggersAreActive function to decide whether or
+      not to run.\n *\n * RETURNS:\n *\t\tTrue (1) if TriggersEnable successfully
+      removed the current script from\n *\t\tthe list of scripts suppressing triggers;
+      False (0) otherwise.\n *\n * PARAMETERS: none\n *\n * REFERENCED VARIABLES:\n
+      *\t\t$$~TRIGGERS_DISABLE\n *\t\t$$~TRIGGERS_SCRIPTS\n *\n * DEPENDENCIES: none\n
+      *\n * EXAMPLE (script):\n *\t\tSet Variable [ $ignoreMe ; TriggersDisable ]\n
+      *\t\t\t# Do something\n *\t\tSet Variable [ $ignoreMe ; TriggersEnable ]\n *\n
+      * NOTES:\n *\t\tThis function should *always* be used in pairs with the TriggersDisable\n
+      *\t\tfunction.\n *\n * HISTORY:\n *\t\tMODIFIED on 2011-02-09 by Jeremy Bante
+      to use differently-named\n *\t\tvariables.\n *\t\tMODIFIED on 2010-12-13 by
+      Jeremy Bante to use names suggested at\n *\t\tfilemakerstandards.org.\n *\t\tCREATED
+      on 2010-12-12 by Jeremy Bante <http://scr.im/jbante>.\n *\n * REFERENCES:\n
+      *\t\tSupressible Triggered Scripts Best Practice: http://filemakerstandards.org/display/bp/Suppressible+Triggered+Scripts\n
+      *\t\tTriggersAreActive: http://www.briandunning.com/cf/1247\n *\t\tTriggersDisable:
+      http://www.briandunning.com/cf/1248\n *\t\tTriggersEnable: http://www.briandunning.com/cf/1249\n
+      *\t\tTriggersReset: http://www.briandunning.com/cf/1250\n * =====================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\t~lastScript = "
+    - GetValue
+    - " ( $$~TRIGGERS_SCRIPTS ; 1 );\n\t~enableTriggers = "
+    - Get
+    - ' ( '
+    - ScriptName
+    - ' ) = ~lastScript; '
+    - |
+      //boolean indicating script name match
+    - "\t$$~TRIGGERS_SCRIPTS =\n\t\t"
+    - If
+    - " ( ~enableTriggers;\n\t\t\t"
+    - RightValues
+    - " (\n\t\t\t\t$$~TRIGGERS_SCRIPTS;\n\t\t\t\t"
+    - ValueCount
+    - " ( $$~TRIGGERS_SCRIPTS ) - 1\n\t\t\t);\n\t\t\t/*else*/ $$~TRIGGERS_SCRIPTS\n\t\t);\n\t~scriptCount
+      = "
+    - ValueCount
+    - " ( $$~TRIGGERS_SCRIPTS );\n\t$$~TRIGGERS_DISABLE = "
+    - If
+    - ' ( ~scriptCount ; '
+    - 'True'
+    - " ; /*else*/ \"\" )\n];\n\t~enableTriggers "
+    - or
+    - type: NoRef
+      __content__: ' '
+    - not
+    - ' ~scriptCount '
+    - |
+      //ScriptName was found and removed, or there are no suppressing scripts
+    - )

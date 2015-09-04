@@ -1,0 +1,124 @@
+/*Name:  AddOrRemoveValue
+Parameters:  valueList , value
+
+Purpose:
+"Toggle" a value in a value list:
+If value exists in valueList, it is removed.
+If value does not exist in valueList, it is added.
+
+Parameter Description:
+valueList: list of values
+value: single value
+
+Dependencies:
+none
+
+History:
+Created by: Daniel Antunes http://sixfriedrice.com/wp/using-global-variables-for-list-selections/
+Modified Date: 2010-AUG-23
+####################################################################################################*/
+
+Let([
+    newList = Substitute(¶ & valueList & ¶; ¶ & value & ¶; ¶)
+    ];
+
+    If(
+        PatternCount( ¶ & valueList & ¶; ¶ & value & ¶ ) = 1 ;
+        Middle(newList; 2; Length(newList) - 2) ;
+        valueList
+            & If( not IsEmpty( valueList ) and Right( valueList ; 1 ) <> ¶ ; ¶ )
+            & value
+    )
+)
+
+---
+CustomFunction:
+  id: '14'
+  functionArity: '2'
+  visible: 'True'
+  parameters: valueList;value
+  name: AddOrRemoveValue
+  Calculation: |-
+    /*Name:  AddOrRemoveValue
+    Parameters:  valueList , value
+
+    Purpose:
+    "Toggle" a value in a value list:
+    If value exists in valueList, it is removed.
+    If value does not exist in valueList, it is added.
+
+    Parameter Description:
+    valueList: list of values
+    value: single value
+
+    Dependencies:
+    none
+
+    History:
+    Created by: Daniel Antunes http://sixfriedrice.com/wp/using-global-variables-for-list-selections/
+    Modified Date: 2010-AUG-23
+    ####################################################################################################*/
+
+    Let([
+        newList = Substitute(¶ & valueList & ¶; ¶ & value & ¶; ¶)
+        ];
+
+        If(
+            PatternCount( ¶ & valueList & ¶; ¶ & value & ¶ ) = 1 ;
+            Middle(newList; 2; Length(newList) - 2) ;
+            valueList
+                & If( not IsEmpty( valueList ) and Right( valueList ; 1 ) <> ¶ ; ¶ )
+                & value
+        )
+    )
+  DisplayCalculation:
+    Chunk:
+    - |+
+      /*Name:  AddOrRemoveValue
+      Parameters:  valueList , value
+
+      Purpose:
+      "Toggle" a value in a value list:
+      If value exists in valueList, it is removed.
+      If value does not exist in valueList, it is added.
+
+      Parameter Description:
+      valueList: list of values
+      value: single value
+
+      Dependencies:
+      none
+
+      History:
+      Created by: Daniel Antunes http://sixfriedrice.com/wp/using-global-variables-for-list-selections/
+      Modified Date: 2010-AUG-23
+      ####################################################################################################*/
+
+    - Let
+    - "([\n    newList = "
+    - Substitute
+    - "(¶ & valueList & ¶; ¶ & value & ¶; ¶)\n    ];\n\n    "
+    - If
+    - "(\n        "
+    - PatternCount
+    - "( ¶ & valueList & ¶; ¶ & value & ¶ ) = 1 ;\n        "
+    - Middle
+    - '(newList; 2; '
+    - Length
+    - "(newList) - 2) ;\n        valueList\n            & "
+    - If
+    - '( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - '( valueList ) '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Right
+    - |-
+      ( valueList ; 1 ) <> ¶ ; ¶ )
+                  & value
+          )
+      )

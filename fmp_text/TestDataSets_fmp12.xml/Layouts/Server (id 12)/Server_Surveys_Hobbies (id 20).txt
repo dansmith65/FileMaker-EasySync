@@ -1,0 +1,29 @@
+     Layout name:  Server_Surveys_Hobbies   
+              id:  20                       
+           Table:  Server_Survey_Hobbies    
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '20'
+  name: Server_Surveys_Hobbies
+  Table:
+    id: '1065108'
+    name: Server_Survey_Hobbies
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'False'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

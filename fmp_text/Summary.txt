@@ -2,17 +2,18 @@
             Summary path:  /Volumes/E/Users/Daniel/GitHub/FileMaker-EasySync/dev/fmp_ddr                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
    FileMaker Pro version:  13.0v9                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
            Creation Date:  2015-09-03                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-           Creation Time:  4:14:58 PM                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+           Creation Time:  5:51:17 PM                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 
                    Report   BaseTables  Tables  Relationships  Accounts  Privileges  ExtendedPrivileges  FileAccess  Layouts  Scripts  ValueLists  CustomFunctions  FileReferences  CustomMenuSets  CustomMenus
                    ------   ----------  ------  -------------  --------  ----------  ------------------  ----------  -------  -------  ----------  ---------------  --------------  --------------  -----------
         EasyDeploy.fmp12  1           1       0              3         3           6                   0           1        3        6           0                1               0               0            
    EasySync_Client.fmp12  5           9       6              4         3           6                   0           7        39       6           0                2               0               0            
    EasySync_Server.fmp12  5           9       6              5         4           6                   0           7        12       4           0                1               0               0            
+      TestDataSets.fmp12  8           27      18             2         3           6                   0           18       17       0           70               4               0               0            
 
 ---
 FMPReport:
-  creationTime: 4:14:58 PM
+  creationTime: 5:51:17 PM
   creationDate: '2015-09-03'
   type: Summary
   version: 13.0v9
@@ -106,6 +107,37 @@ FMPReport:
       count: '0'
     FileReferences:
       count: '1'
+    CustomMenuSets:
+      count: '0'
+    CustomMenus:
+      count: '0'
+  - link: .//TestDataSets_fmp12.xml
+    name: TestDataSets.fmp12
+    path: E:\Users\Daniel\GitHub\FileMaker-EasySync\dev\
+    BaseTables:
+      count: '8'
+    Tables:
+      count: '27'
+    Relationships:
+      count: '18'
+    Accounts:
+      count: '2'
+    Privileges:
+      count: '3'
+    ExtendedPrivileges:
+      count: '6'
+    FileAccess:
+      count: '0'
+    Layouts:
+      count: '18'
+    Scripts:
+      count: '17'
+    ValueLists:
+      count: '0'
+    CustomFunctions:
+      count: '70'
+    FileReferences:
+      count: '4'
     CustomMenuSets:
       count: '0'
     CustomMenus:

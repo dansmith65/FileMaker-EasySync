@@ -1,0 +1,527 @@
+/**
+ * =====================================
+ * LogData ( theLogLevel ; theMessage )
+ *
+ * RETURNS:
+ *		(string) Let format dictionary which describes the current environment.
+ *
+ * PARAMETERS:
+ *		theLogLevel = (numeric) 0 thru [n]
+ *		theErrorInfo = (text, optional) some text describing the log entry
+ *
+ * EXAMPLE:
+ *		LogData ( LogWarning )
+ *		LogData ( $logLevelDebug )
+ *		// Where your own custom function LogWarning
+ *		// returns the constant of 1 or a variable
+ *		// named $logLevelDebug returns a value of 3.
+ *
+ * NOTES:
+ *		This function should be modified to capture any relevant values for
+ *		your solution. This includes any plugin or solution specific data desired.
+ *		The level/amount of data returned increases numerically. You can add
+ *		as much data as needed. You can also define the log levels by using
+ *		separate custom functions with the prefix of Log* - such as LogWarning,
+ *		LogError, LogCritical, LogDebug, etc.
+ *		See: http://en.wikipedia.org/wiki/Syslog for logging references.
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-AUG-06 by Daniel Smith dansmith65@gmail.com
+ *			- include ApplicationVersion for all log levels
+ *		MODIFIED on 2014-JUL-18 by Daniel Smith dansmith65@gmail.com
+ *			- include UserName for all log levels
+ *		MODIFIED on 2014-JUL-15 by Daniel Smith dansmith65@gmail.com
+ *			- added AccountPrivilegeSetName and CurrentPrivilegeSetName
+ *			  to help debug issue with Fee* records being deleted
+ *		MODIFIED on 2014-FEB-05 by Daniel Smith dansmith65@gmail.com
+ *			- modify for CAA to convert old log levels to new, disable
+ *			  unwanted data, and add logLevelToWriteOffset variables
+ *
+ *		MODIFIED on 2014-FEB-05 by Daniel Smith dansmith65@gmail.com
+ *			- prepend parameter with "the" to prevent collision
+ *			- add theMessage parameter
+ *			- remove session-specific values (see LogDataSession function)
+ *			- manually encode name/value pairs, remove dependency on #
+ *			- add values added in FileMaker 13
+ *			- disable UserCount
+ *		MODIFIED on 2014-JAN-11 matt@filemakermagazine.com to use numeric logLevel
+ *		MODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com
+ *			- don't access $error variable directly
+ *		CREATED on 2012-NOV-21 Daniel Smith dansmith65@gmail.com
+ *		INSPIRED by ErrorData by matt@filemakermagazine.com
+ *			https://github.com/filemakerstandards/fmpstandards/tree/master/Functions
+ *
+ * REFERENCE:
+ *		http://filemakerstandards.org/x/LACm
+ * =====================================
+ */
+
+Let ( [
+	theLogLevel = Case (
+		// new logLevel format is numeric
+		GetAsNumber ( theLogLevel ) = theLogLevel ;
+		theLogLevel ;
+		
+		// Previously I used "error" for ANY error that occurred, which is not
+		// how the new error level is supposed to be used, so I'm demoting old
+		// error levels to warn.
+		// This isn't going to be correct for all old entries, but it will be more
+		// accurate than keeping them as error level.
+		theLogLevel = "error" ;
+		LogLevel2Warn ;
+		
+		theLogLevel = "warn" ;
+		LogLevel3Info ;
+		
+		theLogLevel = "info" ;
+		LogLevel4Debug ;
+		
+		// else, use 0, which is the most severe log level available
+		// (and is reserved for cases like this where the log level is not decipherable)
+		0
+	)
+] ;
+
+
+	// ALL LOG LEVELS
+	"$LogLevel = " & theLogLevel & " ;¶"
+	& If ( not IsEmpty ( theMessage ) ;
+		"$message = " & Quote ( theMessage ) & " ;¶"
+	)
+	& "$AccountName = " & Quote ( Get ( AccountName ) ) & " ;¶"
+	& "$UserName = " & Quote ( Get ( UserName ) ) & " ;¶"
+//	& "$CurrentHostTimestamp = GetAsTimeStamp ( " & Quote ( Get ( CurrentHostTimestamp ) ) & " ) ;¶"
+	// possibly use UTC in addition to/instead of CurrentHostTimeStamp, may want to only store this once per session
+	//    FM12: Get ( UTCmSecs )
+	//    FM13: Get ( CurrentTimeUTCMilliseconds )
+	& "$FileName = " & Quote ( Get ( FileName ) ) & " ;¶"
+	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"
+	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"
+	& "$ScriptResult = " & Quote ( Get ( ScriptResult ) ) & " ;¶"
+	& If ( not IsEmpty ( $logLevelToWriteOffset ) ;
+		"$logLevelToWriteOffset = " & $logLevelToWriteOffset & " ;¶"
+	)
+	& If ( not IsEmpty ( $$LOGLEVELTOWRITEOFFSET ) ;
+		"$LOGLEVELTOWRITEOFFSETglobal = " & $$LOGLEVELTOWRITEOFFSET & " ;¶"
+	)
+	& "$AccountPrivilegeSetName = " & Quote ( Get ( AccountPrivilegeSetName ) ) & " ;¶"
+	& "$CurrentPrivilegeSetName = " & Quote ( Get ( CurrentPrivilegeSetName ) ) & " ;¶"
+	& "$ApplicationVersion = " & Quote ( Get ( ApplicationVersion ) ) & " ;¶"
+
+	// LEVEL 1
+	& If ( theLogLevel ≤ 1 ;
+		""
+		& "$AllowAbortState = " & Get ( AllowAbortState ) & " ;¶"
+		& "$ErrorCaptureState = " & Get ( ErrorCaptureState ) & " ;¶"
+	//	& "$FilePath = " & Quote ( Get ( FilePath ) ) & " ;¶"
+	//	& "$LayoutAccess = " & Get ( LayoutAccess ) & " ;¶"
+		& "$LayoutName = " & Quote ( Get ( LayoutName ) ) & " ;¶"
+	//	& "$LayoutTableName = " & Quote ( Get ( LayoutTableName ) ) & " ;¶"
+	//	& "$LayoutViewState = " & Get ( LayoutViewState ) & " ;¶"
+	//	& "$MultiUserState = " & Get ( MultiUserState ) & " ;¶"
+		& "$RecordAccess = " & Get ( RecordAccess ) & " ;¶"
+		& "$RecordID = " & Get ( RecordID ) & " ;¶"
+		& "$RecordOpenCount = " & Get ( RecordOpenCount ) & " ;¶"
+		& "$RecordOpenState = " &  Get ( RecordOpenState ) & " ;¶"
+	//	& "$SortState = " & Get ( SortState ) & " ;¶"
+	//	& "$StatusAreaState = " & Get ( StatusAreaState ) & " ;¶"
+		// UserCount is disabled by default because it is slow to calculate (~1000 times slower than Get ( UserName ) )
+		// & "$UserCount = " & Get ( UserCount ) & " ;¶"
+		& "$WindowMode = " & Get ( WindowMode ) & " ;¶"
+		& "$WindowName = " & Quote ( Get ( WindowName ) ) & " ;¶"
+	//	& "$WindowOrientation = " & Quote ( Get ( WindowOrientation ) ) & " ;¶"
+	//	& "$WindowStyle = " & Get ( WindowStyle ) & " ;¶"
+		& "$WindowVisible = " & Get ( WindowVisible ) & " ;¶"
+		& If ( not IsEmpty ( Get ( ActiveFieldName ) ) ;
+			"$ActiveFieldName = " & Quote ( Get ( ActiveFieldName ) ) & " ;¶"
+			& "$ActiveFieldTableName = " & Quote ( Get ( ActiveFieldTableName ) ) & " ;¶"
+		)
+		& If ( not IsEmpty ( Get ( ActiveLayoutObjectName ) ) ;
+			"$ActiveLayoutObjectName = " & Quote ( Get ( ActiveLayoutObjectName ) ) & " ;¶"
+		)
+	)
+)
+
+---
+CustomFunction:
+  id: '50'
+  functionArity: '2'
+  visible: 'True'
+  parameters: theLogLevel;theMessage
+  name: LogData
+  Calculation: "/**\n * =====================================\n * LogData ( theLogLevel
+    ; theMessage )\n *\n * RETURNS:\n *\t\t(string) Let format dictionary which describes
+    the current environment.\n *\n * PARAMETERS:\n *\t\ttheLogLevel = (numeric) 0
+    thru [n]\n *\t\ttheErrorInfo = (text, optional) some text describing the log entry\n
+    *\n * EXAMPLE:\n *\t\tLogData ( LogWarning )\n *\t\tLogData ( $logLevelDebug )\n
+    *\t\t// Where your own custom function LogWarning\n *\t\t// returns the constant
+    of 1 or a variable\n *\t\t// named $logLevelDebug returns a value of 3.\n *\n
+    * NOTES:\n *\t\tThis function should be modified to capture any relevant values
+    for\n *\t\tyour solution. This includes any plugin or solution specific data desired.\n
+    *\t\tThe level/amount of data returned increases numerically. You can add\n *\t\tas
+    much data as needed. You can also define the log levels by using\n *\t\tseparate
+    custom functions with the prefix of Log* - such as LogWarning,\n *\t\tLogError,
+    LogCritical, LogDebug, etc.\n *\t\tSee: http://en.wikipedia.org/wiki/Syslog for
+    logging references.\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-AUG-06 by Daniel
+    Smith dansmith65@gmail.com\n *\t\t\t- include ApplicationVersion for all log levels\n
+    *\t\tMODIFIED on 2014-JUL-18 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- include
+    UserName for all log levels\n *\t\tMODIFIED on 2014-JUL-15 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- added AccountPrivilegeSetName and CurrentPrivilegeSetName\n *\t\t\t  to
+    help debug issue with Fee* records being deleted\n *\t\tMODIFIED on 2014-FEB-05
+    by Daniel Smith dansmith65@gmail.com\n *\t\t\t- modify for CAA to convert old
+    log levels to new, disable\n *\t\t\t  unwanted data, and add logLevelToWriteOffset
+    variables\n *\n *\t\tMODIFIED on 2014-FEB-05 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- prepend parameter with \"the\" to prevent collision\n *\t\t\t- add theMessage
+    parameter\n *\t\t\t- remove session-specific values (see LogDataSession function)\n
+    *\t\t\t- manually encode name/value pairs, remove dependency on #\n *\t\t\t- add
+    values added in FileMaker 13\n *\t\t\t- disable UserCount\n *\t\tMODIFIED on 2014-JAN-11
+    matt@filemakermagazine.com to use numeric logLevel\n *\t\tMODIFIED on 2012-NOV-21
+    by Daniel Smith dansmith65@gmail.com\n *\t\t\t- don't access $error variable directly\n
+    *\t\tCREATED on 2012-NOV-21 Daniel Smith dansmith65@gmail.com\n *\t\tINSPIRED
+    by ErrorData by matt@filemakermagazine.com\n *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+    *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/x/LACm\n * =====================================\n
+    */\n\nLet ( [\n\ttheLogLevel = Case (\n\t\t// new logLevel format is numeric\n\t\tGetAsNumber
+    ( theLogLevel ) = theLogLevel ;\n\t\ttheLogLevel ;\n\t\t\n\t\t// Previously I
+    used \"error\" for ANY error that occurred, which is not\n\t\t// how the new error
+    level is supposed to be used, so I'm demoting old\n\t\t// error levels to warn.\n\t\t//
+    This isn't going to be correct for all old entries, but it will be more\n\t\t//
+    accurate than keeping them as error level.\n\t\ttheLogLevel = \"error\" ;\n\t\tLogLevel2Warn
+    ;\n\t\t\n\t\ttheLogLevel = \"warn\" ;\n\t\tLogLevel3Info ;\n\t\t\n\t\ttheLogLevel
+    = \"info\" ;\n\t\tLogLevel4Debug ;\n\t\t\n\t\t// else, use 0, which is the most
+    severe log level available\n\t\t// (and is reserved for cases like this where
+    the log level is not decipherable)\n\t\t0\n\t)\n] ;\n\n\n\t// ALL LOG LEVELS\n\t\"$LogLevel
+    = \" & theLogLevel & \" ;¶\"\n\t& If ( not IsEmpty ( theMessage ) ;\n\t\t\"$message
+    = \" & Quote ( theMessage ) & \" ;¶\"\n\t)\n\t& \"$AccountName = \" & Quote (
+    Get ( AccountName ) ) & \" ;¶\"\n\t& \"$UserName = \" & Quote ( Get ( UserName
+    ) ) & \" ;¶\"\n//\t& \"$CurrentHostTimestamp = GetAsTimeStamp ( \" & Quote ( Get
+    ( CurrentHostTimestamp ) ) & \" ) ;¶\"\n\t// possibly use UTC in addition to/instead
+    of CurrentHostTimeStamp, may want to only store this once per session\n\t//    FM12:
+    Get ( UTCmSecs )\n\t//    FM13: Get ( CurrentTimeUTCMilliseconds )\n\t& \"$FileName
+    = \" & Quote ( Get ( FileName ) ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote (
+    Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+    ) ) & \" ;¶\"\n\t& \"$ScriptResult = \" & Quote ( Get ( ScriptResult ) ) & \"
+    ;¶\"\n\t& If ( not IsEmpty ( $logLevelToWriteOffset ) ;\n\t\t\"$logLevelToWriteOffset
+    = \" & $logLevelToWriteOffset & \" ;¶\"\n\t)\n\t& If ( not IsEmpty ( $$LOGLEVELTOWRITEOFFSET
+    ) ;\n\t\t\"$LOGLEVELTOWRITEOFFSETglobal = \" & $$LOGLEVELTOWRITEOFFSET & \" ;¶\"\n\t)\n\t&
+    \"$AccountPrivilegeSetName = \" & Quote ( Get ( AccountPrivilegeSetName ) ) &
+    \" ;¶\"\n\t& \"$CurrentPrivilegeSetName = \" & Quote ( Get ( CurrentPrivilegeSetName
+    ) ) & \" ;¶\"\n\t& \"$ApplicationVersion = \" & Quote ( Get ( ApplicationVersion
+    ) ) & \" ;¶\"\n\n\t// LEVEL 1\n\t& If ( theLogLevel ≤ 1 ;\n\t\t\"\"\n\t\t& \"$AllowAbortState
+    = \" & Get ( AllowAbortState ) & \" ;¶\"\n\t\t& \"$ErrorCaptureState = \" & Get
+    ( ErrorCaptureState ) & \" ;¶\"\n\t//\t& \"$FilePath = \" & Quote ( Get ( FilePath
+    ) ) & \" ;¶\"\n\t//\t& \"$LayoutAccess = \" & Get ( LayoutAccess ) & \" ;¶\"\n\t\t&
+    \"$LayoutName = \" & Quote ( Get ( LayoutName ) ) & \" ;¶\"\n\t//\t& \"$LayoutTableName
+    = \" & Quote ( Get ( LayoutTableName ) ) & \" ;¶\"\n\t//\t& \"$LayoutViewState
+    = \" & Get ( LayoutViewState ) & \" ;¶\"\n\t//\t& \"$MultiUserState = \" & Get
+    ( MultiUserState ) & \" ;¶\"\n\t\t& \"$RecordAccess = \" & Get ( RecordAccess
+    ) & \" ;¶\"\n\t\t& \"$RecordID = \" & Get ( RecordID ) & \" ;¶\"\n\t\t& \"$RecordOpenCount
+    = \" & Get ( RecordOpenCount ) & \" ;¶\"\n\t\t& \"$RecordOpenState = \" &  Get
+    ( RecordOpenState ) & \" ;¶\"\n\t//\t& \"$SortState = \" & Get ( SortState ) &
+    \" ;¶\"\n\t//\t& \"$StatusAreaState = \" & Get ( StatusAreaState ) & \" ;¶\"\n\t\t//
+    UserCount is disabled by default because it is slow to calculate (~1000 times
+    slower than Get ( UserName ) )\n\t\t// & \"$UserCount = \" & Get ( UserCount )
+    & \" ;¶\"\n\t\t& \"$WindowMode = \" & Get ( WindowMode ) & \" ;¶\"\n\t\t& \"$WindowName
+    = \" & Quote ( Get ( WindowName ) ) & \" ;¶\"\n\t//\t& \"$WindowOrientation =
+    \" & Quote ( Get ( WindowOrientation ) ) & \" ;¶\"\n\t//\t& \"$WindowStyle = \"
+    & Get ( WindowStyle ) & \" ;¶\"\n\t\t& \"$WindowVisible = \" & Get ( WindowVisible
+    ) & \" ;¶\"\n\t\t& If ( not IsEmpty ( Get ( ActiveFieldName ) ) ;\n\t\t\t\"$ActiveFieldName
+    = \" & Quote ( Get ( ActiveFieldName ) ) & \" ;¶\"\n\t\t\t& \"$ActiveFieldTableName
+    = \" & Quote ( Get ( ActiveFieldTableName ) ) & \" ;¶\"\n\t\t)\n\t\t& If ( not
+    IsEmpty ( Get ( ActiveLayoutObjectName ) ) ;\n\t\t\t\"$ActiveLayoutObjectName
+    = \" & Quote ( Get ( ActiveLayoutObjectName ) ) & \" ;¶\"\n\t\t)\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * LogData ( theLogLevel ; theMessage
+      )\n *\n * RETURNS:\n *\t\t(string) Let format dictionary which describes the
+      current environment.\n *\n * PARAMETERS:\n *\t\ttheLogLevel = (numeric) 0 thru
+      [n]\n *\t\ttheErrorInfo = (text, optional) some text describing the log entry\n
+      *\n * EXAMPLE:\n *\t\tLogData ( LogWarning )\n *\t\tLogData ( $logLevelDebug
+      )\n *\t\t// Where your own custom function LogWarning\n *\t\t// returns the
+      constant of 1 or a variable\n *\t\t// named $logLevelDebug returns a value of
+      3.\n *\n * NOTES:\n *\t\tThis function should be modified to capture any relevant
+      values for\n *\t\tyour solution. This includes any plugin or solution specific
+      data desired.\n *\t\tThe level/amount of data returned increases numerically.
+      You can add\n *\t\tas much data as needed. You can also define the log levels
+      by using\n *\t\tseparate custom functions with the prefix of Log* - such as
+      LogWarning,\n *\t\tLogError, LogCritical, LogDebug, etc.\n *\t\tSee: http://en.wikipedia.org/wiki/Syslog
+      for logging references.\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-AUG-06 by Daniel
+      Smith dansmith65@gmail.com\n *\t\t\t- include ApplicationVersion for all log
+      levels\n *\t\tMODIFIED on 2014-JUL-18 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- include UserName for all log levels\n *\t\tMODIFIED on 2014-JUL-15
+      by Daniel Smith dansmith65@gmail.com\n *\t\t\t- added AccountPrivilegeSetName
+      and CurrentPrivilegeSetName\n *\t\t\t  to help debug issue with Fee* records
+      being deleted\n *\t\tMODIFIED on 2014-FEB-05 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- modify for CAA to convert old log levels to new, disable\n *\t\t\t
+      \ unwanted data, and add logLevelToWriteOffset variables\n *\n *\t\tMODIFIED
+      on 2014-FEB-05 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- prepend parameter
+      with \"the\" to prevent collision\n *\t\t\t- add theMessage parameter\n *\t\t\t-
+      remove session-specific values (see LogDataSession function)\n *\t\t\t- manually
+      encode name/value pairs, remove dependency on #\n *\t\t\t- add values added
+      in FileMaker 13\n *\t\t\t- disable UserCount\n *\t\tMODIFIED on 2014-JAN-11
+      matt@filemakermagazine.com to use numeric logLevel\n *\t\tMODIFIED on 2012-NOV-21
+      by Daniel Smith dansmith65@gmail.com\n *\t\t\t- don't access $error variable
+      directly\n *\t\tCREATED on 2012-NOV-21 Daniel Smith dansmith65@gmail.com\n *\t\tINSPIRED
+      by ErrorData by matt@filemakermagazine.com\n *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+      *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/x/LACm\n * =====================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\ttheLogLevel = "
+    - Case
+    - " (\n\t\t"
+    - |
+      // new logLevel format is numeric
+    - type: NoRef
+      __content__: "\t\t"
+    - GetAsNumber
+    - " ( theLogLevel ) = theLogLevel ;\n\t\ttheLogLevel ;\n\t\t\n\t\t"
+    - |
+      // Previously I used "error" for ANY error that occurred, which is not
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // how the new error level is supposed to be used, so I'm demoting old
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // error levels to warn.
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // This isn't going to be correct for all old entries, but it will be more
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // accurate than keeping them as error level.
+    - "\t\ttheLogLevel = \"error\" ;\n\t\t"
+    - LogLevel2Warn
+    - " ;\n\t\t\n\t\ttheLogLevel = \"warn\" ;\n\t\t"
+    - LogLevel3Info
+    - " ;\n\t\t\n\t\ttheLogLevel = \"info\" ;\n\t\t"
+    - LogLevel4Debug
+    - " ;\n\t\t\n\t\t"
+    - |
+      // else, use 0, which is the most severe log level available
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // (and is reserved for cases like this where the log level is not decipherable)
+    - "\t\t0\n\t)\n] ;\n\n\n\t"
+    - |
+      // ALL LOG LEVELS
+    - "\t\"$LogLevel = \" & theLogLevel & \" ;¶\"\n\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( theMessage ) ;\n\t\t\"$message = \" & "
+    - Quote
+    - " ( theMessage ) & \" ;¶\"\n\t)\n\t& \"$AccountName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - AccountName
+    - " ) ) & \" ;¶\"\n\t& \"$UserName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - UserName
+    - |2
+       ) ) & " ;¶"
+    - "//\t& \"$CurrentHostTimestamp = GetAsTimeStamp ( \" & Quote ( Get ( CurrentHostTimestamp
+      ) ) & \" ) ;¶\"\n"
+    - type: NoRef
+      __content__: "\t"
+    - |
+      // possibly use UTC in addition to/instead of CurrentHostTimeStamp, may want to only store this once per session
+    - type: NoRef
+      __content__: "\t"
+    - |
+      //    FM12: Get ( UTCmSecs )
+    - type: NoRef
+      __content__: "\t"
+    - |
+      //    FM13: Get ( CurrentTimeUTCMilliseconds )
+    - "\t& \"$FileName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - FileName
+    - " ) ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - ScriptName
+    - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - ScriptParameter
+    - " ) ) & \" ;¶\"\n\t& \"$ScriptResult = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - ScriptResult
+    - " ) ) & \" ;¶\"\n\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( $logLevelToWriteOffset ) ;\n\t\t\"$logLevelToWriteOffset = \" & $logLevelToWriteOffset
+      & \" ;¶\"\n\t)\n\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( $$LOGLEVELTOWRITEOFFSET ) ;\n\t\t\"$LOGLEVELTOWRITEOFFSETglobal = \" & $$LOGLEVELTOWRITEOFFSET
+      & \" ;¶\"\n\t)\n\t& \"$AccountPrivilegeSetName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - AccountPrivilegeSetName
+    - " ) ) & \" ;¶\"\n\t& \"$CurrentPrivilegeSetName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - CurrentPrivilegeSetName
+    - " ) ) & \" ;¶\"\n\t& \"$ApplicationVersion = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - ApplicationVersion
+    - " ) ) & \" ;¶\"\n\n\t"
+    - |
+      // LEVEL 1
+    - "\t& "
+    - If
+    - " ( theLogLevel ≤ 1 ;\n\t\t\"\"\n\t\t& \"$AllowAbortState = \" & "
+    - Get
+    - ' ( '
+    - AllowAbortState
+    - " ) & \" ;¶\"\n\t\t& \"$ErrorCaptureState = \" & "
+    - Get
+    - ' ( '
+    - ErrorCaptureState
+    - " ) & \" ;¶\"\n\t"
+    - "//\t& \"$FilePath = \" & Quote ( Get ( FilePath ) ) & \" ;¶\"\n"
+    - type: NoRef
+      __content__: "\t"
+    - "//\t& \"$LayoutAccess = \" & Get ( LayoutAccess ) & \" ;¶\"\n"
+    - "\t\t& \"$LayoutName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - LayoutName
+    - " ) ) & \" ;¶\"\n\t"
+    - "//\t& \"$LayoutTableName = \" & Quote ( Get ( LayoutTableName ) ) & \" ;¶\"\n"
+    - type: NoRef
+      __content__: "\t"
+    - "//\t& \"$LayoutViewState = \" & Get ( LayoutViewState ) & \" ;¶\"\n"
+    - type: NoRef
+      __content__: "\t"
+    - "//\t& \"$MultiUserState = \" & Get ( MultiUserState ) & \" ;¶\"\n"
+    - "\t\t& \"$RecordAccess = \" & "
+    - Get
+    - ' ( '
+    - RecordAccess
+    - " ) & \" ;¶\"\n\t\t& \"$RecordID = \" & "
+    - Get
+    - ' ( '
+    - RecordID
+    - " ) & \" ;¶\"\n\t\t& \"$RecordOpenCount = \" & "
+    - Get
+    - ' ( '
+    - RecordOpenCount
+    - " ) & \" ;¶\"\n\t\t& \"$RecordOpenState = \" &  "
+    - Get
+    - ' ( '
+    - RecordOpenState
+    - " ) & \" ;¶\"\n\t"
+    - "//\t& \"$SortState = \" & Get ( SortState ) & \" ;¶\"\n"
+    - type: NoRef
+      __content__: "\t"
+    - "//\t& \"$StatusAreaState = \" & Get ( StatusAreaState ) & \" ;¶\"\n"
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // UserCount is disabled by default because it is slow to calculate (~1000 times slower than Get ( UserName ) )
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // & "$UserCount = " & Get ( UserCount ) & " ;¶"
+    - "\t\t& \"$WindowMode = \" & "
+    - Get
+    - ' ( '
+    - WindowMode
+    - " ) & \" ;¶\"\n\t\t& \"$WindowName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - WindowName
+    - " ) ) & \" ;¶\"\n\t"
+    - "//\t& \"$WindowOrientation = \" & Quote ( Get ( WindowOrientation ) ) & \"
+      ;¶\"\n"
+    - type: NoRef
+      __content__: "\t"
+    - "//\t& \"$WindowStyle = \" & Get ( WindowStyle ) & \" ;¶\"\n"
+    - "\t\t& \"$WindowVisible = \" & "
+    - Get
+    - ' ( '
+    - WindowVisible
+    - " ) & \" ;¶\"\n\t\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - ' ( '
+    - Get
+    - ' ( '
+    - ActiveFieldName
+    - " ) ) ;\n\t\t\t\"$ActiveFieldName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - ActiveFieldName
+    - " ) ) & \" ;¶\"\n\t\t\t& \"$ActiveFieldTableName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - ActiveFieldTableName
+    - " ) ) & \" ;¶\"\n\t\t)\n\t\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - ' ( '
+    - Get
+    - ' ( '
+    - ActiveLayoutObjectName
+    - " ) ) ;\n\t\t\t\"$ActiveLayoutObjectName = \" & "
+    - Quote
+    - ' ( '
+    - Get
+    - ' ( '
+    - ActiveLayoutObjectName
+    - " ) ) & \" ;¶\"\n\t\t)\n\t)\n)"

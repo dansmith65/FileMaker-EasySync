@@ -1,0 +1,419 @@
+################################################################################
+# PURPOSE:
+#    Check to see if the module is fully installed and working.
+#
+# CONTEXT: global
+#
+# PARAMETERS: none
+#
+# RETURNS: none
+#
+# DEPENDENCIES:
+#    Logger: Create Entry script from the current module
+#
+# NOTES:
+#    Calls Logger script with logLevel 1 through 5, to assist in testing your filter settings (if filtering by log level).
+#
+# REVISIONS:
+#    2015-JUN-03	 Daniel Smith	- create 5 log entries instead of just one2014-FEB-06	 Daniel Smith	- set $logLevelToWriteOffset1.0.0-beta22014-JAN-15	 Daniel Smith	- Created
+################################################################################
+#
+Set Variable [ $commonLogData; Value:"$fileName = " & Quote ( Get ( FileName ) ) & " ;¶"& "$accountName = " & Quote ( Get ( AccountName ) ) & " ;¶"& "$scriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"& "$scriptParameter = Random ;¶" ]
+#
+Set Variable [ $$LOGLEVELTOWRITEOFFSET; Value:5 ]
+#
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 1 ;¶"& "$logMessage = " & Quote ( "test 1" ) & " ;¶"& $commonLogData& "$error = " & Quote (	"$errorType = \"Module: Logger\" ;¶"	& "$errorCode = 1234 ;¶"	& "$errorDescription = \"bogus error for testing only\" ;¶"	& "$errorInfo = \"testing installation of module\" ;¶") & " ;¶" ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 2 ;¶"& "$logMessage = " & Quote ( "test 2" ) & " ;¶"& $commonLogData& "$error = " & Quote (	"$errorType = \"Module: Logger\" ;¶"	& "$errorCode = 4567 ;¶"	& "$errorDescription = \"another bogus error for testing only\" ;¶"	& "$errorInfo = \"testing installation of module\" ;¶") & " ;¶" ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 3 ;¶"& "$logMessage = " & Quote ( "test 3" ) & " ;¶"& $commonLogData ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 4 ;¶"& "$logMessage = " & Quote ( "test 4" ) & " ;¶"& $commonLogData& "$AccountExtendedPrivileges = " & Quote ( Get ( AccountExtendedPrivileges ) ) & " ;¶"& "$AllowAbortState = " & Quote ( Get ( AllowAbortState ) ) & " ;¶" ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 5 ;¶"& "$logMessage = " & Quote ( "test 5" ) & " ;¶"& $commonLogData& "$AccountExtendedPrivileges = " & Quote ( Get ( AccountExtendedPrivileges ) ) & " ;¶"& "$AllowAbortState = " & Quote ( Get ( AllowAbortState ) ) & " ;¶"& "DatabaseNames = " & Quote ( DatabaseNames ) & " ;¶"& "WindowNames = " & Quote ( WindowNames ) & " ;¶" ]
+#
+Set Variable [ $$LOGLEVELTOWRITEOFFSET; Value:"" ]
+#
+Show Custom Dialog [ Title: "Test Finished"; Message: "Check if any log enteries were written to your specified destination to confirm successful operation."; Default Button: “OK”, Commit: “Yes” ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '85'
+  name: 'Logger: Test Installation'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Check to see if the module is fully installed and working.'
+      Text: '    Check to see if the module is fully installed and working.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CONTEXT: global'
+      Text: ' CONTEXT: global'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS: none'
+      Text: ' RETURNS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Logger: Create Entry script from the current module'
+      Text: '    Logger: Create Entry script from the current module'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Calls Logger script with logLevel 1 through 5, to assist in
+        testing your filter settings (if filtering by log level).'
+      Text: '    Calls Logger script with logLevel 1 through 5, to assist in testing
+        your filter settings (if filtering by log level).'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2015-JUN-03\t Daniel Smith\n\t- create 5 log entries instead
+        of just one\n2014-FEB-06\t Daniel Smith\n\t- set $logLevelToWriteOffset\n\n1.0.0-beta2\n\n2014-JAN-15\t
+        Daniel Smith\n\t- Created"
+      Text: "    \n2015-JUN-03\t Daniel Smith\n\t- create 5 log entries instead of
+        just one\n2014-FEB-06\t Daniel Smith\n\t- set $logLevelToWriteOffset\n\n1.0.0-beta2\n\n2014-JAN-15\t
+        Daniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $commonLogData; Value:"$fileName = " & Quote ( Get ( FileName ) ) & " ;¶"
+        & "$accountName = " & Quote ( Get ( AccountName ) ) & " ;¶"
+        & "$scriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"
+        & "$scriptParameter = Random ;¶" ]
+      Value:
+        Calculation: |-
+          "$fileName = " & Quote ( Get ( FileName ) ) & " ;¶"
+          & "$accountName = " & Quote ( Get ( AccountName ) ) & " ;¶"
+          & "$scriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"
+          & "$scriptParameter = Random ;¶"
+        DisplayCalculation:
+          Chunk:
+          - '"$fileName = " & '
+          - Quote
+          - ' ( '
+          - Get
+          - ' ( '
+          - FileName
+          - " ) ) & \" ;¶\"\n& \"$accountName = \" & "
+          - Quote
+          - ' ( '
+          - Get
+          - ' ( '
+          - AccountName
+          - " ) ) & \" ;¶\"\n& \"$scriptName = \" & "
+          - Quote
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptName
+          - |2-
+             ) ) & " ;¶"
+            & "$scriptParameter = Random ;¶"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $commonLogData
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$LOGLEVELTOWRITEOFFSET; Value:5 ]
+      Value:
+        Calculation: '5'
+        DisplayCalculation:
+          Chunk: '5'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$LOGLEVELTOWRITEOFFSET
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “Logger: Create Entry ( logData )”; Parameter: \"$logLevel
+        = 1 ;¶\"\n& \"$logMessage = \" & Quote ( \"test 1\" ) & \" ;¶\"\n& $commonLogData\n\n&
+        \"$error = \" & Quote (\n\t\"$errorType = \\\"Module: Logger\\\" ;¶\"\n\t&
+        \"$errorCode = 1234 ;¶\"\n\t& \"$errorDescription = \\\"bogus error for testing
+        only\\\" ;¶\"\n\t& \"$errorInfo = \\\"testing installation of module\\\" ;¶\"\n)
+        & \" ;¶\" ]"
+      Calculation: "\"$logLevel = 1 ;¶\"\n& \"$logMessage = \" & Quote ( \"test 1\"
+        ) & \" ;¶\"\n& $commonLogData\n\n& \"$error = \" & Quote (\n\t\"$errorType
+        = \\\"Module: Logger\\\" ;¶\"\n\t& \"$errorCode = 1234 ;¶\"\n\t& \"$errorDescription
+        = \\\"bogus error for testing only\\\" ;¶\"\n\t& \"$errorInfo = \\\"testing
+        installation of module\\\" ;¶\"\n) & \" ;¶\""
+      DisplayCalculation:
+        Chunk:
+        - "\"$logLevel = 1 ;¶\"\n& \"$logMessage = \" & "
+        - Quote
+        - " ( \"test 1\" ) & \" ;¶\"\n& $commonLogData\n\n& \"$error = \" & "
+        - Quote
+        - " (\n\t\"$errorType = \\\"Module: Logger\\\" ;¶\"\n\t& \"$errorCode = 1234
+          ;¶\"\n\t& \"$errorDescription = \\\"bogus error for testing only\\\" ;¶\"\n\t&
+          \"$errorInfo = \\\"testing installation of module\\\" ;¶\"\n) & \" ;¶\""
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “Logger: Create Entry ( logData )”; Parameter: \"$logLevel
+        = 2 ;¶\"\n& \"$logMessage = \" & Quote ( \"test 2\" ) & \" ;¶\"\n& $commonLogData\n\n&
+        \"$error = \" & Quote (\n\t\"$errorType = \\\"Module: Logger\\\" ;¶\"\n\t&
+        \"$errorCode = 4567 ;¶\"\n\t& \"$errorDescription = \\\"another bogus error
+        for testing only\\\" ;¶\"\n\t& \"$errorInfo = \\\"testing installation of
+        module\\\" ;¶\"\n) & \" ;¶\" ]"
+      Calculation: "\"$logLevel = 2 ;¶\"\n& \"$logMessage = \" & Quote ( \"test 2\"
+        ) & \" ;¶\"\n& $commonLogData\n\n& \"$error = \" & Quote (\n\t\"$errorType
+        = \\\"Module: Logger\\\" ;¶\"\n\t& \"$errorCode = 4567 ;¶\"\n\t& \"$errorDescription
+        = \\\"another bogus error for testing only\\\" ;¶\"\n\t& \"$errorInfo = \\\"testing
+        installation of module\\\" ;¶\"\n) & \" ;¶\""
+      DisplayCalculation:
+        Chunk:
+        - "\"$logLevel = 2 ;¶\"\n& \"$logMessage = \" & "
+        - Quote
+        - " ( \"test 2\" ) & \" ;¶\"\n& $commonLogData\n\n& \"$error = \" & "
+        - Quote
+        - " (\n\t\"$errorType = \\\"Module: Logger\\\" ;¶\"\n\t& \"$errorCode = 4567
+          ;¶\"\n\t& \"$errorDescription = \\\"another bogus error for testing only\\\"
+          ;¶\"\n\t& \"$errorInfo = \\\"testing installation of module\\\" ;¶\"\n)
+          & \" ;¶\""
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 3 ;¶"
+        & "$logMessage = " & Quote ( "test 3" ) & " ;¶"
+        & $commonLogData ]
+      Calculation: |-
+        "$logLevel = 3 ;¶"
+        & "$logMessage = " & Quote ( "test 3" ) & " ;¶"
+        & $commonLogData
+      DisplayCalculation:
+        Chunk:
+        - "\"$logLevel = 3 ;¶\"\n& \"$logMessage = \" & "
+        - Quote
+        - |2-
+           ( "test 3" ) & " ;¶"
+          & $commonLogData
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 4 ;¶"
+        & "$logMessage = " & Quote ( "test 4" ) & " ;¶"
+        & $commonLogData
+
+        & "$AccountExtendedPrivileges = " & Quote ( Get ( AccountExtendedPrivileges ) ) & " ;¶"
+        & "$AllowAbortState = " & Quote ( Get ( AllowAbortState ) ) & " ;¶" ]
+      Calculation: |-
+        "$logLevel = 4 ;¶"
+        & "$logMessage = " & Quote ( "test 4" ) & " ;¶"
+        & $commonLogData
+
+        & "$AccountExtendedPrivileges = " & Quote ( Get ( AccountExtendedPrivileges ) ) & " ;¶"
+        & "$AllowAbortState = " & Quote ( Get ( AllowAbortState ) ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - "\"$logLevel = 4 ;¶\"\n& \"$logMessage = \" & "
+        - Quote
+        - " ( \"test 4\" ) & \" ;¶\"\n& $commonLogData\n\n& \"$AccountExtendedPrivileges
+          = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - AccountExtendedPrivileges
+        - " ) ) & \" ;¶\"\n& \"$AllowAbortState = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - AllowAbortState
+        - ' ) ) & " ;¶"'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: "$logLevel = 5 ;¶"
+        & "$logMessage = " & Quote ( "test 5" ) & " ;¶"
+        & $commonLogData
+
+        & "$AccountExtendedPrivileges = " & Quote ( Get ( AccountExtendedPrivileges ) ) & " ;¶"
+        & "$AllowAbortState = " & Quote ( Get ( AllowAbortState ) ) & " ;¶"
+
+        & "DatabaseNames = " & Quote ( DatabaseNames ) & " ;¶"
+        & "WindowNames = " & Quote ( WindowNames ) & " ;¶" ]
+      Calculation: |-
+        "$logLevel = 5 ;¶"
+        & "$logMessage = " & Quote ( "test 5" ) & " ;¶"
+        & $commonLogData
+
+        & "$AccountExtendedPrivileges = " & Quote ( Get ( AccountExtendedPrivileges ) ) & " ;¶"
+        & "$AllowAbortState = " & Quote ( Get ( AllowAbortState ) ) & " ;¶"
+
+        & "DatabaseNames = " & Quote ( DatabaseNames ) & " ;¶"
+        & "WindowNames = " & Quote ( WindowNames ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - "\"$logLevel = 5 ;¶\"\n& \"$logMessage = \" & "
+        - Quote
+        - " ( \"test 5\" ) & \" ;¶\"\n& $commonLogData\n\n& \"$AccountExtendedPrivileges
+          = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - AccountExtendedPrivileges
+        - " ) ) & \" ;¶\"\n& \"$AllowAbortState = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - AllowAbortState
+        - " ) ) & \" ;¶\"\n\n& \"DatabaseNames = \" & "
+        - Quote
+        - ' ( '
+        - DatabaseNames
+        - " ) & \" ;¶\"\n& \"WindowNames = \" & "
+        - Quote
+        - ' ( '
+        - WindowNames
+        - ' ) & " ;¶"'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$LOGLEVELTOWRITEOFFSET; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$LOGLEVELTOWRITEOFFSET
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Test Finished"; Message: "Check if any
+        log enteries were written to your specified destination to confirm successful
+        operation."; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Test Finished"'
+        DisplayCalculation:
+          Chunk: '"Test Finished"'
+      Message:
+        Calculation: '"Check if any log enteries were written to your specified destination
+          to confirm successful operation."'
+        DisplayCalculation:
+          Chunk: '"Check if any log enteries were written to your specified destination
+            to confirm successful operation."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,178 @@
+/*
+	ClipboardSet ( data ; format )
+
+*/
+
+Let ( [
+	~windows = Get ( SystemPlatform ) = -2 ;
+	~format = Case (
+		format = "function"
+			or format = "functions"
+			or format = "cf"
+			or format = "cfs"
+			or format = "custom function"
+			or format = "custom functions"
+		;
+		If ( ~windows ;
+			"Mac-XMFN" ;
+			"TODO"
+		) ;
+
+		format = "text" ;
+		If ( ~windows ;
+			"CF_TEXT" ;
+			"TODO"
+		) ;
+
+		format = "unicode"
+			or format = "unicodetext" ;
+		If ( ~windows ;
+			"CF_UNICODETEXT" ;
+			"TODO"
+		) ;
+
+		/* else: don't translate format - use it as-is */
+		format
+	) ;
+	~fmFormat =
+		/* first list contains second value */
+		not IsEmpty ( FilterValues (
+			If ( ~windows ;
+				List (
+					"Mac-XMTB" ;	 /* table */
+					"Mac-XMFD" ;	 /* field */
+					"Mac-XMSC" ;	 /* script */
+					"Mac-XMSS" ;	 /* script step */
+					"Mac-XMFN" ;	 /* custom function */
+					"Mac-XMLO" ;	 /* layout object (.fp7) */
+					"Mac-XML2"	 /* layout object (.fmp12) */
+				) ;
+				/* else: Mac */
+				List (
+				/*	TODO: list all mac filemaker clip formats"	*/
+					"" ;	 /* table */
+					"" ;	 /* field */
+					"" ;	 /* script */
+					"" ;	 /* script step */
+					"" ;	 /* custom function */
+					"" ;	 /* layout object (.fp7) */
+					""	 /* layout object (.fmp12) */
+				)
+			) ;
+			~format
+		) )
+	; 
+	~data = If ( ~fmFormat and Right ( data ; 13 ) ≠ "fmxmlsnippet>" ;
+		/* wrap in enclosing xml */
+		/* TODO: this is different for layout objects */
+		"<fmxmlsnippet type=\"FMObjectList\">"
+			& data
+			& "</fmxmlsnippet>"
+		;
+		/* else: leave data as-is */
+		data
+	)
+] ;
+	BE_SetClipboardText ( ~data ; ~format )
+)
+
+---
+CustomFunction:
+  id: '18'
+  functionArity: '2'
+  visible: 'True'
+  parameters: data;format
+  name: ClipboardSet
+  Calculation: "/*\n\tClipboardSet ( data ; format )\n\n*/\n\nLet ( [\n\t~windows
+    = Get ( SystemPlatform ) = -2 ;\n\t~format = Case (\n\t\tformat = \"function\"\n\t\t\tor
+    format = \"functions\"\n\t\t\tor format = \"cf\"\n\t\t\tor format = \"cfs\"\n\t\t\tor
+    format = \"custom function\"\n\t\t\tor format = \"custom functions\"\n\t\t;\n\t\tIf
+    ( ~windows ;\n\t\t\t\"Mac-XMFN\" ;\n\t\t\t\"TODO\"\n\t\t) ;\n\n\t\tformat = \"text\"
+    ;\n\t\tIf ( ~windows ;\n\t\t\t\"CF_TEXT\" ;\n\t\t\t\"TODO\"\n\t\t) ;\n\n\t\tformat
+    = \"unicode\"\n\t\t\tor format = \"unicodetext\" ;\n\t\tIf ( ~windows ;\n\t\t\t\"CF_UNICODETEXT\"
+    ;\n\t\t\t\"TODO\"\n\t\t) ;\n\n\t\t/* else: don't translate format - use it as-is
+    */\n\t\tformat\n\t) ;\n\t~fmFormat =\n\t\t/* first list contains second value
+    */\n\t\tnot IsEmpty ( FilterValues (\n\t\t\tIf ( ~windows ;\n\t\t\t\tList (\n\t\t\t\t\t\"Mac-XMTB\"
+    ;\t /* table */\n\t\t\t\t\t\"Mac-XMFD\" ;\t /* field */\n\t\t\t\t\t\"Mac-XMSC\"
+    ;\t /* script */\n\t\t\t\t\t\"Mac-XMSS\" ;\t /* script step */\n\t\t\t\t\t\"Mac-XMFN\"
+    ;\t /* custom function */\n\t\t\t\t\t\"Mac-XMLO\" ;\t /* layout object (.fp7)
+    */\n\t\t\t\t\t\"Mac-XML2\"\t /* layout object (.fmp12) */\n\t\t\t\t) ;\n\t\t\t\t/*
+    else: Mac */\n\t\t\t\tList (\n\t\t\t\t/*\tTODO: list all mac filemaker clip formats\"\t*/\n\t\t\t\t\t\"\"
+    ;\t /* table */\n\t\t\t\t\t\"\" ;\t /* field */\n\t\t\t\t\t\"\" ;\t /* script
+    */\n\t\t\t\t\t\"\" ;\t /* script step */\n\t\t\t\t\t\"\" ;\t /* custom function
+    */\n\t\t\t\t\t\"\" ;\t /* layout object (.fp7) */\n\t\t\t\t\t\"\"\t /* layout
+    object (.fmp12) */\n\t\t\t\t)\n\t\t\t) ;\n\t\t\t~format\n\t\t) )\n\t; \n\t~data
+    = If ( ~fmFormat and Right ( data ; 13 ) ≠ \"fmxmlsnippet>\" ;\n\t\t/* wrap in
+    enclosing xml */\n\t\t/* TODO: this is different for layout objects */\n\t\t\"<fmxmlsnippet
+    type=\\\"FMObjectList\\\">\"\n\t\t\t& data\n\t\t\t& \"</fmxmlsnippet>\"\n\t\t;\n\t\t/*
+    else: leave data as-is */\n\t\tdata\n\t)\n] ;\n\tBE_SetClipboardText ( ~data ;
+    ~format )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/*\n\tClipboardSet ( data ; format )\n\n*/\n\n"
+    - Let
+    - " ( [\n\t~windows = "
+    - Get
+    - ' ( '
+    - SystemPlatform
+    - " ) = -2 ;\n\t~format = "
+    - Case
+    - " (\n\t\tformat = \"function\"\n\t\t\t"
+    - or
+    - " format = \"functions\"\n\t\t\t"
+    - or
+    - " format = \"cf\"\n\t\t\t"
+    - or
+    - " format = \"cfs\"\n\t\t\t"
+    - or
+    - " format = \"custom function\"\n\t\t\t"
+    - or
+    - " format = \"custom functions\"\n\t\t;\n\t\t"
+    - If
+    - " ( ~windows ;\n\t\t\t\"Mac-XMFN\" ;\n\t\t\t\"TODO\"\n\t\t) ;\n\n\t\tformat
+      = \"text\" ;\n\t\t"
+    - If
+    - " ( ~windows ;\n\t\t\t\"CF_TEXT\" ;\n\t\t\t\"TODO\"\n\t\t) ;\n\n\t\tformat =
+      \"unicode\"\n\t\t\t"
+    - or
+    - " format = \"unicodetext\" ;\n\t\t"
+    - If
+    - " ( ~windows ;\n\t\t\t\"CF_UNICODETEXT\" ;\n\t\t\t\"TODO\"\n\t\t) ;\n\n\t\t/*
+      else: don't translate format - use it as-is */\n\t\tformat\n\t) ;\n\t~fmFormat
+      =\n\t\t/* first list contains second value */\n\t\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - ' ( '
+    - FilterValues
+    - " (\n\t\t\t"
+    - If
+    - " ( ~windows ;\n\t\t\t\t"
+    - List
+    - " (\n\t\t\t\t\t\"Mac-XMTB\" ;\t /* table */\n\t\t\t\t\t\"Mac-XMFD\" ;\t /* field
+      */\n\t\t\t\t\t\"Mac-XMSC\" ;\t /* script */\n\t\t\t\t\t\"Mac-XMSS\" ;\t /* script
+      step */\n\t\t\t\t\t\"Mac-XMFN\" ;\t /* custom function */\n\t\t\t\t\t\"Mac-XMLO\"
+      ;\t /* layout object (.fp7) */\n\t\t\t\t\t\"Mac-XML2\"\t /* layout object (.fmp12)
+      */\n\t\t\t\t) ;\n\t\t\t\t/* else: Mac */\n\t\t\t\t"
+    - List
+    - " (\n\t\t\t\t/*\tTODO: list all mac filemaker clip formats\"\t*/\n\t\t\t\t\t\"\"
+      ;\t /* table */\n\t\t\t\t\t\"\" ;\t /* field */\n\t\t\t\t\t\"\" ;\t /* script
+      */\n\t\t\t\t\t\"\" ;\t /* script step */\n\t\t\t\t\t\"\" ;\t /* custom function
+      */\n\t\t\t\t\t\"\" ;\t /* layout object (.fp7) */\n\t\t\t\t\t\"\"\t /* layout
+      object (.fmp12) */\n\t\t\t\t)\n\t\t\t) ;\n\t\t\t~format\n\t\t) )\n\t; \n\t~data
+      = "
+    - If
+    - ' ( ~fmFormat '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Right
+    - " ( data ; 13 ) ≠ \"fmxmlsnippet>\" ;\n\t\t/* wrap in enclosing xml */\n\t\t/*
+      TODO: this is different for layout objects */\n\t\t\"<fmxmlsnippet type=\\\"FMObjectList\\\">\"\n\t\t\t&
+      data\n\t\t\t& \"</fmxmlsnippet>\"\n\t\t;\n\t\t/* else: leave data as-is */\n\t\tdata\n\t)\n]
+      ;\n\t"
+    - BE_SetClipboardText
+    - |2-
+       ( ~data ; ~format )
+      )

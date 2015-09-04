@@ -1,0 +1,249 @@
+/**
+ * =====================================
+ * ColumnSlice ( data ; columnNumber ; columnSeparator ; rowSeparator )
+ *
+ * RETURNS:
+ *		A return-delimited list of values from a specific column in data.
+ *
+ * PARAMETERS:
+ *		data: array of data with single characters delimiting columns/rows
+ *		columnNumber: The number of the column to select.
+ *		columnSeparator: Character used to separate fields in the data.
+ *			will default to comma "," if empty
+ *		rowSeparator: Character used to separate records in the data.
+ *			will default to a carriage return "¶" if empty
+ *
+ * DEPENDENCIES: none
+ *
+ * EXAMPLE:
+ *		ColumnSlice (
+ *			List (
+ *				"a|b|c" ;
+ *				"1|2|3" ;
+ *				"apple|banana|cantaloup"
+ *			) ;
+ *			1 ;	/* columnNumber */
+ *			"|" ;	/* columnSeparator */
+ *			""	/* rowSeparator, default = ¶ */
+ *		) = "a¶1¶apple"
+ *
+ * HISTORY:
+ *		MODIFIED on 2015-JAN-23 by Daniel Smith http://scr.im/dansmith
+ *			- fix bug where last column had an extra return in every value
+ *		MODIFIED on 2014-DEC-09 by Daniel Smith <http://scr.im/dansmith>
+ *			- add columnSeparator and rowSeparator parameters
+ *			- pass a dwindling list to itself, rather than all data
+ *		CREATED on 2013-01-26 by Jeremy Bante <http://scr.im/jbante>.
+ * =====================================
+ */
+
+Case (
+	/* Step 0, set-up */
+	not $~cs.step ;
+		Let ( [
+			$~cs.result = "" ;
+			$~cs.step = 1 ;
+			$~cs.firstIteration = True ;
+			columnSeparator = If ( not IsEmpty ( columnSeparator ) ;
+				columnSeparator ;
+				","
+			) ;
+			rowSeparator = If ( not IsEmpty ( rowSeparator ) ;
+				rowSeparator ;
+				"¶"
+			)
+		] ;
+			ColumnSlice ( data ; columnNumber ; columnSeparator ; rowSeparator )
+		) ;
+
+	/* Step 1, gather values from specified column */
+	$~cs.step = 1 ;
+		Let ( [
+			~endOfRow = Position (
+				data & rowSeparator ;
+				rowSeparator ;
+				1 ; 	/* start */
+				1 	/* occurrence */
+			) ;
+			~row = Left ( data ; ~endOfRow - 1 ) & columnSeparator ;
+			
+			~start = Position (
+				~row ;
+				columnSeparator ;
+				1 ; 	/* start */
+				columnNumber - 1 	/* occurrence */
+			) + 1 ;
+			~end = Position (
+				~row ;
+				columnSeparator ;
+				~start ;
+				1 	/* occurrence */
+			) ;
+			~value = Middle (
+				~row ;
+				~start ;
+				~end - ~start
+			) ;
+			
+			data = Middle ( data ; ~endOfRow + 1 ; Length ( data ) ) ;
+			
+			$~cs.result =
+				$~cs.result
+				& If ( not $~cs.firstIteration ; ¶ )
+				& ~value ;
+			$~cs.firstIteration = "" ;
+			$~cs.step =
+				If ( IsEmpty ( data ) ;
+					$~cs.step + 1 ;
+					/* Else */ $~cs.step
+				)
+		] ;
+			ColumnSlice ( data ; columnNumber ; columnSeparator ; rowSeparator )
+		) ;
+
+	/* Step 2, clean-up and return result */
+	$~cs.step = 2 ;
+		Let ( [
+			~result = $~cs.result ;
+
+			// purge variables
+			$~cs.result = "" ;
+			$~cs.step = "" ;
+			$~cs.firstIteration = ""
+		] ;
+			~result
+		)
+)
+
+---
+CustomFunction:
+  id: '19'
+  functionArity: '4'
+  visible: 'True'
+  parameters: data;columnNumber;columnSeparator;rowSeparator
+  name: ColumnSlice
+  Calculation: "/**\n * =====================================\n * ColumnSlice ( data
+    ; columnNumber ; columnSeparator ; rowSeparator )\n *\n * RETURNS:\n *\t\tA return-delimited
+    list of values from a specific column in data.\n *\n * PARAMETERS:\n *\t\tdata:
+    array of data with single characters delimiting columns/rows\n *\t\tcolumnNumber:
+    The number of the column to select.\n *\t\tcolumnSeparator: Character used to
+    separate fields in the data.\n *\t\t\twill default to comma \",\" if empty\n *\t\trowSeparator:
+    Character used to separate records in the data.\n *\t\t\twill default to a carriage
+    return \"¶\" if empty\n *\n * DEPENDENCIES: none\n *\n * EXAMPLE:\n *\t\tColumnSlice
+    (\n *\t\t\tList (\n *\t\t\t\t\"a|b|c\" ;\n *\t\t\t\t\"1|2|3\" ;\n *\t\t\t\t\"apple|banana|cantaloup\"\n
+    *\t\t\t) ;\n *\t\t\t1 ;\t/* columnNumber */\n *\t\t\t\"|\" ;\t/* columnSeparator
+    */\n *\t\t\t\"\"\t/* rowSeparator, default = ¶ */\n *\t\t) = \"a¶1¶apple\"\n *\n
+    * HISTORY:\n *\t\tMODIFIED on 2015-JAN-23 by Daniel Smith http://scr.im/dansmith\n
+    *\t\t\t- fix bug where last column had an extra return in every value\n *\t\tMODIFIED
+    on 2014-DEC-09 by Daniel Smith <http://scr.im/dansmith>\n *\t\t\t- add columnSeparator
+    and rowSeparator parameters\n *\t\t\t- pass a dwindling list to itself, rather
+    than all data\n *\t\tCREATED on 2013-01-26 by Jeremy Bante <http://scr.im/jbante>.\n
+    * =====================================\n */\n\nCase (\n\t/* Step 0, set-up */\n\tnot
+    $~cs.step ;\n\t\tLet ( [\n\t\t\t$~cs.result = \"\" ;\n\t\t\t$~cs.step = 1 ;\n\t\t\t$~cs.firstIteration
+    = True ;\n\t\t\tcolumnSeparator = If ( not IsEmpty ( columnSeparator ) ;\n\t\t\t\tcolumnSeparator
+    ;\n\t\t\t\t\",\"\n\t\t\t) ;\n\t\t\trowSeparator = If ( not IsEmpty ( rowSeparator
+    ) ;\n\t\t\t\trowSeparator ;\n\t\t\t\t\"¶\"\n\t\t\t)\n\t\t] ;\n\t\t\tColumnSlice
+    ( data ; columnNumber ; columnSeparator ; rowSeparator )\n\t\t) ;\n\n\t/* Step
+    1, gather values from specified column */\n\t$~cs.step = 1 ;\n\t\tLet ( [\n\t\t\t~endOfRow
+    = Position (\n\t\t\t\tdata & rowSeparator ;\n\t\t\t\trowSeparator ;\n\t\t\t\t1
+    ; \t/* start */\n\t\t\t\t1 \t/* occurrence */\n\t\t\t) ;\n\t\t\t~row = Left (
+    data ; ~endOfRow - 1 ) & columnSeparator ;\n\t\t\t\n\t\t\t~start = Position (\n\t\t\t\t~row
+    ;\n\t\t\t\tcolumnSeparator ;\n\t\t\t\t1 ; \t/* start */\n\t\t\t\tcolumnNumber
+    - 1 \t/* occurrence */\n\t\t\t) + 1 ;\n\t\t\t~end = Position (\n\t\t\t\t~row ;\n\t\t\t\tcolumnSeparator
+    ;\n\t\t\t\t~start ;\n\t\t\t\t1 \t/* occurrence */\n\t\t\t) ;\n\t\t\t~value = Middle
+    (\n\t\t\t\t~row ;\n\t\t\t\t~start ;\n\t\t\t\t~end - ~start\n\t\t\t) ;\n\t\t\t\n\t\t\tdata
+    = Middle ( data ; ~endOfRow + 1 ; Length ( data ) ) ;\n\t\t\t\n\t\t\t$~cs.result
+    =\n\t\t\t\t$~cs.result\n\t\t\t\t& If ( not $~cs.firstIteration ; ¶ )\n\t\t\t\t&
+    ~value ;\n\t\t\t$~cs.firstIteration = \"\" ;\n\t\t\t$~cs.step =\n\t\t\t\tIf (
+    IsEmpty ( data ) ;\n\t\t\t\t\t$~cs.step + 1 ;\n\t\t\t\t\t/* Else */ $~cs.step\n\t\t\t\t)\n\t\t]
+    ;\n\t\t\tColumnSlice ( data ; columnNumber ; columnSeparator ; rowSeparator )\n\t\t)
+    ;\n\n\t/* Step 2, clean-up and return result */\n\t$~cs.step = 2 ;\n\t\tLet (
+    [\n\t\t\t~result = $~cs.result ;\n\n\t\t\t// purge variables\n\t\t\t$~cs.result
+    = \"\" ;\n\t\t\t$~cs.step = \"\" ;\n\t\t\t$~cs.firstIteration = \"\"\n\t\t] ;\n\t\t\t~result\n\t\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ColumnSlice ( data ; columnNumber
+      ; columnSeparator ; rowSeparator )\n *\n * RETURNS:\n *\t\tA return-delimited
+      list of values from a specific column in data.\n *\n * PARAMETERS:\n *\t\tdata:
+      array of data with single characters delimiting columns/rows\n *\t\tcolumnNumber:
+      The number of the column to select.\n *\t\tcolumnSeparator: Character used to
+      separate fields in the data.\n *\t\t\twill default to comma \",\" if empty\n
+      *\t\trowSeparator: Character used to separate records in the data.\n *\t\t\twill
+      default to a carriage return \"¶\" if empty\n *\n * DEPENDENCIES: none\n *\n
+      * EXAMPLE:\n *\t\tColumnSlice (\n *\t\t\tList (\n *\t\t\t\t\"a|b|c\" ;\n *\t\t\t\t\"1|2|3\"
+      ;\n *\t\t\t\t\"apple|banana|cantaloup\"\n *\t\t\t) ;\n *\t\t\t1 ;\t/* columnNumber
+      */\n *\t\t\t\"|\" ;\t/* columnSeparator */\n *\t\t\t\"\"\t/* rowSeparator, default
+      = ¶ */\n *\t\t) = \"a¶1¶apple\"\n *\n * HISTORY:\n *\t\tMODIFIED on 2015-JAN-23
+      by Daniel Smith http://scr.im/dansmith\n *\t\t\t- fix bug where last column
+      had an extra return in every value\n *\t\tMODIFIED on 2014-DEC-09 by Daniel
+      Smith <http://scr.im/dansmith>\n *\t\t\t- add columnSeparator and rowSeparator
+      parameters\n *\t\t\t- pass a dwindling list to itself, rather than all data\n
+      *\t\tCREATED on 2013-01-26 by Jeremy Bante <http://scr.im/jbante>.\n * =====================================\n
+      */\n\n"
+    - Case
+    - " (\n\t/* Step 0, set-up */\n\t"
+    - not
+    - " $~cs.step ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t$~cs.result = \"\" ;\n\t\t\t$~cs.step = 1 ;\n\t\t\t$~cs.firstIteration
+      = "
+    - 'True'
+    - " ;\n\t\t\tcolumnSeparator = "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( columnSeparator ) ;\n\t\t\t\tcolumnSeparator ;\n\t\t\t\t\",\"\n\t\t\t) ;\n\t\t\trowSeparator
+      = "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( rowSeparator ) ;\n\t\t\t\trowSeparator ;\n\t\t\t\t\"¶\"\n\t\t\t)\n\t\t]
+      ;\n\t\t\t"
+    - ColumnSlice
+    - " ( data ; columnNumber ; columnSeparator ; rowSeparator )\n\t\t) ;\n\n\t/*
+      Step 1, gather values from specified column */\n\t$~cs.step = 1 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~endOfRow = "
+    - Position
+    - " (\n\t\t\t\tdata & rowSeparator ;\n\t\t\t\trowSeparator ;\n\t\t\t\t1 ; \t/*
+      start */\n\t\t\t\t1 \t/* occurrence */\n\t\t\t) ;\n\t\t\t~row = "
+    - Left
+    - " ( data ; ~endOfRow - 1 ) & columnSeparator ;\n\t\t\t\n\t\t\t~start = "
+    - Position
+    - " (\n\t\t\t\t~row ;\n\t\t\t\tcolumnSeparator ;\n\t\t\t\t1 ; \t/* start */\n\t\t\t\tcolumnNumber
+      - 1 \t/* occurrence */\n\t\t\t) + 1 ;\n\t\t\t~end = "
+    - Position
+    - " (\n\t\t\t\t~row ;\n\t\t\t\tcolumnSeparator ;\n\t\t\t\t~start ;\n\t\t\t\t1
+      \t/* occurrence */\n\t\t\t) ;\n\t\t\t~value = "
+    - Middle
+    - " (\n\t\t\t\t~row ;\n\t\t\t\t~start ;\n\t\t\t\t~end - ~start\n\t\t\t) ;\n\t\t\t\n\t\t\tdata
+      = "
+    - Middle
+    - ' ( data ; ~endOfRow + 1 ; '
+    - Length
+    - " ( data ) ) ;\n\t\t\t\n\t\t\t$~cs.result =\n\t\t\t\t$~cs.result\n\t\t\t\t& "
+    - If
+    - ' ( '
+    - not
+    - " $~cs.firstIteration ; ¶ )\n\t\t\t\t& ~value ;\n\t\t\t$~cs.firstIteration =
+      \"\" ;\n\t\t\t$~cs.step =\n\t\t\t\t"
+    - If
+    - ' ( '
+    - IsEmpty
+    - " ( data ) ;\n\t\t\t\t\t$~cs.step + 1 ;\n\t\t\t\t\t/* Else */ $~cs.step\n\t\t\t\t)\n\t\t]
+      ;\n\t\t\t"
+    - ColumnSlice
+    - " ( data ; columnNumber ; columnSeparator ; rowSeparator )\n\t\t) ;\n\n\t/*
+      Step 2, clean-up and return result */\n\t$~cs.step = 2 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~result = $~cs.result ;\n\n\t\t\t"
+    - |
+      // purge variables
+    - "\t\t\t$~cs.result = \"\" ;\n\t\t\t$~cs.step = \"\" ;\n\t\t\t$~cs.firstIteration
+      = \"\"\n\t\t] ;\n\t\t\t~result\n\t\t)\n)"

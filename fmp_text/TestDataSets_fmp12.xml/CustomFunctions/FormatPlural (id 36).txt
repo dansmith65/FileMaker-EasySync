@@ -1,0 +1,57 @@
+/**
+ * =====================================================
+ * FormatPlural ( number ; singular ; plural )
+ *
+ * PURPOSE:
+ *		Provide a method to return the singular or plural version
+ *		of a count of something
+ *
+ * RETURNS:
+ *		(string) Either the supplied singular or plural string
+ *
+ * DEPENDENCIES:
+ *		none
+ *
+ * NOTES:
+ *		none
+ *
+ * HISTORY:
+ *		4/14/11 - Petrowsky - Added
+ * =====================================================
+ * 
+ */
+
+Case (
+	number = 0;
+		plural;
+	
+	number = 1;
+		singular;
+
+	plural
+)
+
+---
+CustomFunction:
+  id: '36'
+  functionArity: '3'
+  visible: 'True'
+  parameters: number;singular;plural
+  name: FormatPlural
+  Calculation: "/**\n * =====================================================\n *
+    FormatPlural ( number ; singular ; plural )\n *\n * PURPOSE:\n *\t\tProvide a
+    method to return the singular or plural version\n *\t\tof a count of something\n
+    *\n * RETURNS:\n *\t\t(string) Either the supplied singular or plural string\n
+    *\n * DEPENDENCIES:\n *\t\tnone\n *\n * NOTES:\n *\t\tnone\n *\n * HISTORY:\n
+    *\t\t4/14/11 - Petrowsky - Added\n * =====================================================\n
+    * \n */\n\nCase (\n\tnumber = 0;\n\t\tplural;\n\t\n\tnumber = 1;\n\t\tsingular;\n\n\tplural\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================================\n * FormatPlural
+      ( number ; singular ; plural )\n *\n * PURPOSE:\n *\t\tProvide a method to return
+      the singular or plural version\n *\t\tof a count of something\n *\n * RETURNS:\n
+      *\t\t(string) Either the supplied singular or plural string\n *\n * DEPENDENCIES:\n
+      *\t\tnone\n *\n * NOTES:\n *\t\tnone\n *\n * HISTORY:\n *\t\t4/14/11 - Petrowsky
+      - Added\n * =====================================================\n * \n */\n\n"
+    - Case
+    - " (\n\tnumber = 0;\n\t\tplural;\n\t\n\tnumber = 1;\n\t\tsingular;\n\n\tplural\n)"

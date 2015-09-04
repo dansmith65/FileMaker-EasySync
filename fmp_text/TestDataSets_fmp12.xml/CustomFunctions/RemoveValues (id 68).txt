@@ -1,0 +1,259 @@
+/*Name:  RemoveValues ( valueList , valuesToRemove )
+
+Purpose:
+Removes from valueList any values which are found in valuesToRemove.  This provides the logical inverse of FileMaker 7's built-in FilterValues( ) function.  If valuesToRemove contains an empty value, all empty values will be removed. (this performs same as RemoveEmptyValues custom function).  Returns value list without leading ¶, and always with only one trailing ¶.  If value list is empy after removing values, result will be empty (no ¶'s).
+limit: 49,998 values in the valuesToRemove parameter (Caution!  processing this many values could take one hour!)
+when processing large lists, does not use huge amounts of memeory like ZapValues or SubtractValues do
+
+How it Works:
+Adds a ¶ to the beginning and end of valueList, then gets the first value from valuesToRemove and adds a ¶ to the beginning and end of it.  Then searches valueList for that text string and replaces with a ¶ if it is found.
+
+Parameter Description:
+valueList: list of return-delimited values
+valuesToRemove: list of  return-delimited values
+
+Dependencies:
+none
+
+History:
+Created by:  Dan Smith  dansmith65@gmail.com
+Modified by: 
+Creation Date: 2009-SEP-21
+Modified Date: 
+####################################################################################################*/
+
+
+
+Let([
+    userLimit = 5000 ; // set the limit of values to process (to prevent "locking" FileMaker in a recursive function)
+    valuesToRemoveCount = ValueCount( valuesToRemove )
+    ];
+    Case(
+        valuesToRemoveCount > 49998 ;
+        "ERROR! RemoveValues custom function cannot process more than 49998 values in valuesToRemove list (contained " & valuesToRemoveCount & " values)" ;
+        Case(
+            valuesToRemoveCount > userLimit ;
+            "ERROR! RemoveValues custom function was limited to processing " & userLimit & " values (contained " & valuesToRemoveCount & " values).  The function is capable of processing up to 49998 values, but it can take a very long time." ;
+
+            Case(
+                valuesToRemoveCount > 0 ;
+
+
+                // valuesToRemove contains values
+                Let([
+                    valueList =
+                        Case( Left( valueList ; 1 ) <> ¶ ; ¶ )  //adds left ¶, if it does not exist
+                        & valueList &
+                        Case(  Right( valueList ; 1 ) <> ¶ ; ¶ ) ;  //adds right ¶, if it does not exist
+                    firstValueToZap = ¶ & Substitute ( LeftValues( valuesToRemove ; 1 ) ; ¶ ; "" ) & ¶ ;
+                    exists = PatternCount ( valueList ; firstValueToZap ) > 0 ;  //boolean
+                    valueList = Case( exists ; Substitute( valueList ; firstValueToZap ; ¶ ) ; valueList ) ;
+                    valuesToRemove = RightValues( valuesToRemove ; ValueCount( valuesToRemove ) - 1 )
+                    ];
+
+                    RemoveValues( valueList ; valuesToRemove )
+
+                ) ;  //end of Let
+
+
+                 // valuesToRemove DOES NOT contain any values
+                Let([
+                    // remove all leading/trailing blank values
+                    stripped = Substitute(valueList; [¶; ""]);
+                    firstChar = Left(stripped; 1);
+                    lastChar = Right(stripped; 1); 
+                    fcPos = Position(valueList; firstChar; 0; 1); 
+                    lcPos = Position(valueList; lastChar; 0; PatternCount(valueList; lastChar)) ;
+                    result = Middle(valueList; fcPos; lcPos - fcPos + 1)
+                    ];
+                    Case(  //RETURN RESULT HERE
+                        IsEmpty( stripped ) ;
+                        "" ;
+                        result & ¶  // end list with a new line
+                    )
+                )  
+            )  //end Case valuesToRemoveCount > 0
+        )  //end Case valuesToRemoveCount > userLimit
+    )  //end Case valuesToRemoveCount > 49998
+)  //end Let
+
+---
+CustomFunction:
+  id: '68'
+  functionArity: '2'
+  visible: 'True'
+  parameters: valueList;valuesToRemove
+  name: RemoveValues
+  Calculation: "/*Name:  RemoveValues ( valueList , valuesToRemove )\n\nPurpose:\nRemoves
+    from valueList any values which are found in valuesToRemove.  This provides the
+    logical inverse of FileMaker 7's built-in FilterValues( ) function.  If valuesToRemove
+    contains an empty value, all empty values will be removed. (this performs same
+    as RemoveEmptyValues custom function).  Returns value list without leading ¶,
+    and always with only one trailing ¶.  If value list is empy after removing values,
+    result will be empty (no ¶'s).\nlimit: 49,998 values in the valuesToRemove parameter
+    (Caution!  processing this many values could take one hour!)\nwhen processing
+    large lists, does not use huge amounts of memeory like ZapValues or SubtractValues
+    do\n\nHow it Works:\nAdds a ¶ to the beginning and end of valueList, then gets
+    the first value from valuesToRemove and adds a ¶ to the beginning and end of it.
+    \ Then searches valueList for that text string and replaces with a ¶ if it is
+    found.\n\nParameter Description:\nvalueList: list of return-delimited values\nvaluesToRemove:
+    list of  return-delimited values\n\nDependencies:\nnone\n\nHistory:\nCreated by:
+    \ Dan Smith  dansmith65@gmail.com\nModified by: \nCreation Date: 2009-SEP-21\nModified
+    Date: \n####################################################################################################*/\n\n\n\nLet([\n
+    \   userLimit = 5000 ; // set the limit of values to process (to prevent \"locking\"
+    FileMaker in a recursive function)\n    valuesToRemoveCount = ValueCount( valuesToRemove
+    )\n    ];\n    Case(\n        valuesToRemoveCount > 49998 ;\n        \"ERROR!
+    RemoveValues custom function cannot process more than 49998 values in valuesToRemove
+    list (contained \" & valuesToRemoveCount & \" values)\" ;\n        Case(\n            valuesToRemoveCount
+    > userLimit ;\n            \"ERROR! RemoveValues custom function was limited to
+    processing \" & userLimit & \" values (contained \" & valuesToRemoveCount & \"
+    values).  The function is capable of processing up to 49998 values, but it can
+    take a very long time.\" ;\n\n            Case(\n                valuesToRemoveCount
+    > 0 ;\n\n\n                // valuesToRemove contains values\n                Let([\n
+    \                   valueList =\n                        Case( Left( valueList
+    ; 1 ) <> ¶ ; ¶ )  //adds left ¶, if it does not exist\n                        &
+    valueList &\n                        Case(  Right( valueList ; 1 ) <> ¶ ; ¶ )
+    ;  //adds right ¶, if it does not exist\n                    firstValueToZap =
+    ¶ & Substitute ( LeftValues( valuesToRemove ; 1 ) ; ¶ ; \"\" ) & ¶ ;\n                    exists
+    = PatternCount ( valueList ; firstValueToZap ) > 0 ;  //boolean\n                    valueList
+    = Case( exists ; Substitute( valueList ; firstValueToZap ; ¶ ) ; valueList ) ;\n
+    \                   valuesToRemove = RightValues( valuesToRemove ; ValueCount(
+    valuesToRemove ) - 1 )\n                    ];\n\n                    RemoveValues(
+    valueList ; valuesToRemove )\n\n                ) ;  //end of Let\n\n\n                 //
+    valuesToRemove DOES NOT contain any values\n                Let([\n                    //
+    remove all leading/trailing blank values\n                    stripped = Substitute(valueList;
+    [¶; \"\"]);\n                    firstChar = Left(stripped; 1);\n                    lastChar
+    = Right(stripped; 1); \n                    fcPos = Position(valueList; firstChar;
+    0; 1); \n                    lcPos = Position(valueList; lastChar; 0; PatternCount(valueList;
+    lastChar)) ;\n                    result = Middle(valueList; fcPos; lcPos - fcPos
+    + 1)\n                    ];\n                    Case(  //RETURN RESULT HERE\n
+    \                       IsEmpty( stripped ) ;\n                        \"\" ;\n
+    \                       result & ¶  // end list with a new line\n                    )\n
+    \               )  \n            )  //end Case valuesToRemoveCount > 0\n        )
+    \ //end Case valuesToRemoveCount > userLimit\n    )  //end Case valuesToRemoveCount
+    > 49998\n)  //end Let"
+  DisplayCalculation:
+    Chunk:
+    - "/*Name:  RemoveValues ( valueList , valuesToRemove )\n\nPurpose:\nRemoves from
+      valueList any values which are found in valuesToRemove.  This provides the logical
+      inverse of FileMaker 7's built-in FilterValues( ) function.  If valuesToRemove
+      contains an empty value, all empty values will be removed. (this performs same
+      as RemoveEmptyValues custom function).  Returns value list without leading ¶,
+      and always with only one trailing ¶.  If value list is empy after removing values,
+      result will be empty (no ¶'s).\nlimit: 49,998 values in the valuesToRemove parameter
+      (Caution!  processing this many values could take one hour!)\nwhen processing
+      large lists, does not use huge amounts of memeory like ZapValues or SubtractValues
+      do\n\nHow it Works:\nAdds a ¶ to the beginning and end of valueList, then gets
+      the first value from valuesToRemove and adds a ¶ to the beginning and end of
+      it.  Then searches valueList for that text string and replaces with a ¶ if it
+      is found.\n\nParameter Description:\nvalueList: list of return-delimited values\nvaluesToRemove:
+      list of  return-delimited values\n\nDependencies:\nnone\n\nHistory:\nCreated
+      by:  Dan Smith  dansmith65@gmail.com\nModified by: \nCreation Date: 2009-SEP-21\nModified
+      Date: \n####################################################################################################*/\n\n\n\n"
+    - Let
+    - "([\n    userLimit = 5000 ; "
+    - |
+      // set the limit of values to process (to prevent "locking" FileMaker in a recursive function)
+    - '    valuesToRemoveCount = '
+    - ValueCount
+    - "( valuesToRemove )\n    ];\n    "
+    - Case
+    - "(\n        valuesToRemoveCount > 49998 ;\n        \"ERROR! RemoveValues custom
+      function cannot process more than 49998 values in valuesToRemove list (contained
+      \" & valuesToRemoveCount & \" values)\" ;\n        "
+    - Case
+    - "(\n            valuesToRemoveCount > userLimit ;\n            \"ERROR! RemoveValues
+      custom function was limited to processing \" & userLimit & \" values (contained
+      \" & valuesToRemoveCount & \" values).  The function is capable of processing
+      up to 49998 values, but it can take a very long time.\" ;\n\n            "
+    - Case
+    - "(\n                valuesToRemoveCount > 0 ;\n\n\n                "
+    - |
+      // valuesToRemove contains values
+    - type: NoRef
+      __content__: '                '
+    - Let
+    - "([\n                    valueList =\n                        "
+    - Case
+    - '( '
+    - Left
+    - '( valueList ; 1 ) <> ¶ ; ¶ )  '
+    - |
+      //adds left ¶, if it does not exist
+    - "                        & valueList &\n                        "
+    - Case
+    - '(  '
+    - Right
+    - '( valueList ; 1 ) <> ¶ ; ¶ ) ;  '
+    - |
+      //adds right ¶, if it does not exist
+    - '                    firstValueToZap = ¶ & '
+    - Substitute
+    - ' ( '
+    - LeftValues
+    - "( valuesToRemove ; 1 ) ; ¶ ; \"\" ) & ¶ ;\n                    exists = "
+    - PatternCount
+    - ' ( valueList ; firstValueToZap ) > 0 ;  '
+    - |
+      //boolean
+    - '                    valueList = '
+    - Case
+    - '( exists ; '
+    - Substitute
+    - "( valueList ; firstValueToZap ; ¶ ) ; valueList ) ;\n                    valuesToRemove
+      = "
+    - RightValues
+    - '( valuesToRemove ; '
+    - ValueCount
+    - "( valuesToRemove ) - 1 )\n                    ];\n\n                    "
+    - RemoveValues
+    - "( valueList ; valuesToRemove )\n\n                ) ;  "
+    - |
+      //end of Let
+    - type: NoRef
+      __content__: "\n\n                 "
+    - |
+      // valuesToRemove DOES NOT contain any values
+    - type: NoRef
+      __content__: '                '
+    - Let
+    - "([\n                    "
+    - |
+      // remove all leading/trailing blank values
+    - '                    stripped = '
+    - Substitute
+    - "(valueList; [¶; \"\"]);\n                    firstChar = "
+    - Left
+    - "(stripped; 1);\n                    lastChar = "
+    - Right
+    - "(stripped; 1); \n                    fcPos = "
+    - Position
+    - "(valueList; firstChar; 0; 1); \n                    lcPos = "
+    - Position
+    - '(valueList; lastChar; 0; '
+    - PatternCount
+    - "(valueList; lastChar)) ;\n                    result = "
+    - Middle
+    - "(valueList; fcPos; lcPos - fcPos + 1)\n                    ];\n                    "
+    - Case
+    - '(  '
+    - |
+      //RETURN RESULT HERE
+    - type: NoRef
+      __content__: '                        '
+    - IsEmpty
+    - "( stripped ) ;\n                        \"\" ;\n                        result
+      & ¶  "
+    - |
+      // end list with a new line
+    - "                    )\n                )  \n            )  "
+    - |
+      //end Case valuesToRemoveCount > 0
+    - '        )  '
+    - |
+      //end Case valuesToRemoveCount > userLimit
+    - '    )  '
+    - |
+      //end Case valuesToRemoveCount > 49998
+    - ')  '
+    - //end Let

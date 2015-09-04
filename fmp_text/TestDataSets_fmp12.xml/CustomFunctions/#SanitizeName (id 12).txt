@@ -1,0 +1,117 @@
+/**
+ * ============================================================================
+ * #SanitizeName ( name )
+ *
+ * PURPOSE:
+ * 		Remove characters that are not valid for use in a Let() variable name.
+ *
+ * RETURNS:
+ *		Text that is a valid Let() variable name, if an error occurs, the original text is returned.
+ *
+ * PARAMETERS:
+ *		name: any value that you want to use as the name parameter in the function: # ( name ; value )
+ *
+ * EXAMPLE:
+ *		#SanitizeName ( "abc-123" ) = "abc123"
+ *
+ * DEPENDENCIES: none
+ *
+ * NOTES:
+ *		This method is much faster than performing a substitute on all characters because the source text will probably
+ *		only contain a small subset of invalid characters, if any at all.
+ *
+ * HISTORY:
+ *		CREATED on 2014-MAR-04 by Daniel Smith dansmith65@gmail.com
+ * ============================================================================
+ */
+
+// ~invalidCharacters are derived from this calculation:
+// Quote ( Char ( 34 ) & Char ( 38 ) & Char ( 40 ) & Char ( 41 ) & Char ( 42 ) & Char ( 43 ) & Char ( 44 ) & Char ( 45 ) & Char ( 47 ) & Char ( 59 ) & Char ( 60 ) & Char ( 61 ) & Char ( 62 ) & Char ( 91 ) & Char ( 92 ) & Char ( 93 ) & Char ( 94 ) & Char ( 125 ) & Char ( 173 ) & Char ( 182 ) & Char ( 710 ) & Char ( 1548 ) & Char ( 1563 ) & Char ( 8208 ) & Char ( 8209 ) & Char ( 8220 ) & Char ( 8221 ) & Char ( 8222 ) & Char ( 8223 ) & Char ( 8249 ) & Char ( 8250 ) & Char ( 8260 ) & Char ( 8722 ) & Char ( 8725 ) & Char ( 8727 ) & Char ( 8800 ) & Char ( 8804 ) & Char ( 8805 ) & Char ( 9001 ) & Char ( 9002 ) & Char ( 12289 ) & Char ( 12296 ) & Char ( 12297 ) & Char ( 65104 ) & Char ( 65105 ) & Char ( 65108 ) & Char ( 65113 ) & Char ( 65114 ) & Char ( 65116 ) & Char ( 65120 ) & Char ( 65121 ) & Char ( 65122 ) & Char ( 65123 ) & Char ( 65124 ) & Char ( 65125 ) & Char ( 65126 ) & Char ( 65128 ) & Char ( 65282 ) & Char ( 65286 ) & Char ( 65288 ) & Char ( 65289 ) & Char ( 65290 ) & Char ( 65291 ) & Char ( 65292 ) & Char ( 65293 ) & Char ( 65295 ) & Char ( 65307 ) & Char ( 65308 ) & Char ( 65309 ) & Char ( 65310 ) & Char ( 65339 ) & Char ( 65340 ) & Char ( 65341 ) & Char ( 65342 ) & Char ( 65373 ) & Char ( 65380 ) )
+
+Let ( [
+	~invalidCharacters = "\"&()*+,-/;<=>[\]^}­\¶ˆ،؛‐‑\“\”\„\‟‹›⁄−∕∗≠≤≥〈〉、〈〉﹐﹑﹔﹙﹚﹜﹠﹡﹢﹣﹤﹥﹦\﹨\＂＆（）＊＋，－／；＜＝＞［＼］＾｝､" ;
+	~removeCharacters = Filter ( name ; ~invalidCharacters ) ;
+	~removeCharacter = Left ( ~removeCharacters ; 1 )
+] ;
+	If (
+		IsEmpty ( ~removeCharacter ) ;
+		name ;
+		#SanitizeName ( Substitute ( name ; ~removeCharacter ; "" ) )
+	)
+)
+
+---
+CustomFunction:
+  id: '12'
+  functionArity: '1'
+  visible: 'True'
+  parameters: name
+  name: '#SanitizeName'
+  Calculation: "/**\n * ============================================================================\n
+    * #SanitizeName ( name )\n *\n * PURPOSE:\n * \t\tRemove characters that are not
+    valid for use in a Let() variable name.\n *\n * RETURNS:\n *\t\tText that is a
+    valid Let() variable name, if an error occurs, the original text is returned.\n
+    *\n * PARAMETERS:\n *\t\tname: any value that you want to use as the name parameter
+    in the function: # ( name ; value )\n *\n * EXAMPLE:\n *\t\t#SanitizeName ( \"abc-123\"
+    ) = \"abc123\"\n *\n * DEPENDENCIES: none\n *\n * NOTES:\n *\t\tThis method is
+    much faster than performing a substitute on all characters because the source
+    text will probably\n *\t\tonly contain a small subset of invalid characters, if
+    any at all.\n *\n * HISTORY:\n *\t\tCREATED on 2014-MAR-04 by Daniel Smith dansmith65@gmail.com\n
+    * ============================================================================\n
+    */\n\n// ~invalidCharacters are derived from this calculation:\n// Quote ( Char
+    ( 34 ) & Char ( 38 ) & Char ( 40 ) & Char ( 41 ) & Char ( 42 ) & Char ( 43 ) &
+    Char ( 44 ) & Char ( 45 ) & Char ( 47 ) & Char ( 59 ) & Char ( 60 ) & Char ( 61
+    ) & Char ( 62 ) & Char ( 91 ) & Char ( 92 ) & Char ( 93 ) & Char ( 94 ) & Char
+    ( 125 ) & Char ( 173 ) & Char ( 182 ) & Char ( 710 ) & Char ( 1548 ) & Char (
+    1563 ) & Char ( 8208 ) & Char ( 8209 ) & Char ( 8220 ) & Char ( 8221 ) & Char
+    ( 8222 ) & Char ( 8223 ) & Char ( 8249 ) & Char ( 8250 ) & Char ( 8260 ) & Char
+    ( 8722 ) & Char ( 8725 ) & Char ( 8727 ) & Char ( 8800 ) & Char ( 8804 ) & Char
+    ( 8805 ) & Char ( 9001 ) & Char ( 9002 ) & Char ( 12289 ) & Char ( 12296 ) & Char
+    ( 12297 ) & Char ( 65104 ) & Char ( 65105 ) & Char ( 65108 ) & Char ( 65113 )
+    & Char ( 65114 ) & Char ( 65116 ) & Char ( 65120 ) & Char ( 65121 ) & Char ( 65122
+    ) & Char ( 65123 ) & Char ( 65124 ) & Char ( 65125 ) & Char ( 65126 ) & Char (
+    65128 ) & Char ( 65282 ) & Char ( 65286 ) & Char ( 65288 ) & Char ( 65289 ) &
+    Char ( 65290 ) & Char ( 65291 ) & Char ( 65292 ) & Char ( 65293 ) & Char ( 65295
+    ) & Char ( 65307 ) & Char ( 65308 ) & Char ( 65309 ) & Char ( 65310 ) & Char (
+    65339 ) & Char ( 65340 ) & Char ( 65341 ) & Char ( 65342 ) & Char ( 65373 ) &
+    Char ( 65380 ) )\n\nLet ( [\n\t~invalidCharacters = \"\\\"&()*+,-/;<=>[\\]^}­\\¶ˆ،؛‐‑\\“\\”\\„\\‟‹›⁄−∕∗≠≤≥〈〉、〈〉﹐﹑﹔﹙﹚﹜﹠﹡﹢﹣﹤﹥﹦\\﹨\\＂＆（）＊＋，－／；＜＝＞［＼］＾｝､\"
+    ;\n\t~removeCharacters = Filter ( name ; ~invalidCharacters ) ;\n\t~removeCharacter
+    = Left ( ~removeCharacters ; 1 )\n] ;\n\tIf (\n\t\tIsEmpty ( ~removeCharacter
+    ) ;\n\t\tname ;\n\t\t#SanitizeName ( Substitute ( name ; ~removeCharacter ; \"\"
+    ) )\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * #SanitizeName ( name )\n *\n * PURPOSE:\n * \t\tRemove characters that are
+      not valid for use in a Let() variable name.\n *\n * RETURNS:\n *\t\tText that
+      is a valid Let() variable name, if an error occurs, the original text is returned.\n
+      *\n * PARAMETERS:\n *\t\tname: any value that you want to use as the name parameter
+      in the function: # ( name ; value )\n *\n * EXAMPLE:\n *\t\t#SanitizeName (
+      \"abc-123\" ) = \"abc123\"\n *\n * DEPENDENCIES: none\n *\n * NOTES:\n *\t\tThis
+      method is much faster than performing a substitute on all characters because
+      the source text will probably\n *\t\tonly contain a small subset of invalid
+      characters, if any at all.\n *\n * HISTORY:\n *\t\tCREATED on 2014-MAR-04 by
+      Daniel Smith dansmith65@gmail.com\n * ============================================================================\n
+      */\n\n"
+    - |
+      // ~invalidCharacters are derived from this calculation:
+    - |
+      // Quote ( Char ( 34 ) & Char ( 38 ) & Char ( 40 ) & Char ( 41 ) & Char ( 42 ) & Char ( 43 ) & Char ( 44 ) & Char ( 45 ) & Char ( 47 ) & Char ( 59 ) & Char ( 60 ) & Char ( 61 ) & Char ( 62 ) & Char ( 91 ) & Char ( 92 ) & Char ( 93 ) & Char ( 94 ) & Char ( 125 ) & Char ( 173 ) & Char ( 182 ) & Char ( 710 ) & Char ( 1548 ) & Char ( 1563 ) & Char ( 8208 ) & Char ( 8209 ) & Char ( 8220 ) & Char ( 8221 ) & Char ( 8222 ) & Char ( 8223 ) & Char ( 8249 ) & Char ( 8250 ) & Char ( 8260 ) & Char ( 8722 ) & Char ( 8725 ) & Char ( 8727 ) & Char ( 8800 ) & Char ( 8804 ) & Char ( 8805 ) & Char ( 9001 ) & Char ( 9002 ) & Char ( 12289 ) & Char ( 12296 ) & Char ( 12297 ) & Char ( 65104 ) & Char ( 65105 ) & Char ( 65108 ) & Char ( 65113 ) & Char ( 65114 ) & Char ( 65116 ) & Char ( 65120 ) & Char ( 65121 ) & Char ( 65122 ) & Char ( 65123 ) & Char ( 65124 ) & Char ( 65125 ) & Char ( 65126 ) & Char ( 65128 ) & Char ( 65282 ) & Char ( 65286 ) & Char ( 65288 ) & Char ( 65289 ) & Char ( 65290 ) & Char ( 65291 ) & Char ( 65292 ) & Char ( 65293 ) & Char ( 65295 ) & Char ( 65307 ) & Char ( 65308 ) & Char ( 65309 ) & Char ( 65310 ) & Char ( 65339 ) & Char ( 65340 ) & Char ( 65341 ) & Char ( 65342 ) & Char ( 65373 ) & Char ( 65380 ) )
+    - type: NoRef
+      __content__: |2+
+
+    - Let
+    - " ( [\n\t~invalidCharacters = \"\\\"&()*+,-/;<=>[\\]^}­\\¶ˆ،؛‐‑\\“\\”\\„\\‟‹›⁄−∕∗≠≤≥〈〉、〈〉﹐﹑﹔﹙﹚﹜﹠﹡﹢﹣﹤﹥﹦\\﹨\\＂＆（）＊＋，－／；＜＝＞［＼］＾｝､\"
+      ;\n\t~removeCharacters = "
+    - Filter
+    - " ( name ; ~invalidCharacters ) ;\n\t~removeCharacter = "
+    - Left
+    - " ( ~removeCharacters ; 1 )\n] ;\n\t"
+    - If
+    - " (\n\t\t"
+    - IsEmpty
+    - " ( ~removeCharacter ) ;\n\t\tname ;\n\t\t"
+    - '#SanitizeName'
+    - ' ( '
+    - Substitute
+    - " ( name ; ~removeCharacter ; \"\" ) )\n\t)\n)"

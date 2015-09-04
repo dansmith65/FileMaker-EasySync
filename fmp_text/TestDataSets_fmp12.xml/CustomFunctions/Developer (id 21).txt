@@ -1,0 +1,139 @@
+/**
+ * =====================================================
+ * Developer ( )
+ *		https://github.com/petrowsky/fmpstandards/blob/master/Functions/Developer.fmfn
+ * 
+ * PARAMETERS:
+ *		none
+ *
+ * RETURNS:
+ *		(bool) True or False based on proper   
+ *		evaluation
+ *
+ * DEPENDENCIES:
+ *		none
+ *
+ * NOTES:
+ *		Because Filemaker Changed Get ( PrivilegeSetName )
+ *		Evaluate () must be used
+ *
+ * RELEASE:
+ *		2011-02-23
+ * =====================================================
+ * 
+ */
+
+Let ( [ 
+
+	~developers = List ( "" ; "" );  // Add names of the accounts which are valid developer accounts
+	~version = Get ( ApplicationVersion );
+	~isGo = PatternCount ( ~version; "Go" ) = True;
+	~versionNumber = GetAsNumber ( Substitute ( ~version ; "," ; "." ) ); // account for foreign versions using comma
+	~extendedPrivileges = // Add "developer" extended privilege to groups which are valid developer groups
+		If (  ~isGo or ~versionNumber ≥ 11;
+			Evaluate ( "Get ( AccountExtendedPrivileges )" );
+			/*else*/ Evaluate ( "Get ( ExtendedPrivileges )" )
+		)
+
+];
+
+	PatternCount ( ¶& ~developers &¶ ; ¶& Get ( AccountName ) &¶ ) ≥ 1
+	or PatternCount ( ¶& ~extendedPrivileges &¶ ; ¶& "developer" &¶ ) ≥ 1
+	or
+	If ( ~isGo or ~versionNumber ≥ 11;
+		Evaluate ( "Get ( AccountPrivilegeSetName )" ) = "[Full Access]";
+		/*else*/ Evaluate ( "Get ( PrivilegeSetName )" ) = "[Full Access]"
+	)
+
+)
+
+---
+CustomFunction:
+  id: '21'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: Developer
+  Calculation: "/**\n * =====================================================\n *
+    Developer ( )\n *\t\thttps://github.com/petrowsky/fmpstandards/blob/master/Functions/Developer.fmfn\n
+    * \n * PARAMETERS:\n *\t\tnone\n *\n * RETURNS:\n *\t\t(bool) True or False based
+    on proper   \n *\t\tevaluation\n *\n * DEPENDENCIES:\n *\t\tnone\n *\n * NOTES:\n
+    *\t\tBecause Filemaker Changed Get ( PrivilegeSetName )\n *\t\tEvaluate () must
+    be used\n *\n * RELEASE:\n *\t\t2011-02-23\n * =====================================================\n
+    * \n */\n\nLet ( [ \n\n\t~developers = List ( \"\" ; \"\" );  // Add names of
+    the accounts which are valid developer accounts\n\t~version = Get ( ApplicationVersion
+    );\n\t~isGo = PatternCount ( ~version; \"Go\" ) = True;\n\t~versionNumber = GetAsNumber
+    ( Substitute ( ~version ; \",\" ; \".\" ) ); // account for foreign versions using
+    comma\n\t~extendedPrivileges = // Add \"developer\" extended privilege to groups
+    which are valid developer groups\n\t\tIf (  ~isGo or ~versionNumber ≥ 11;\n\t\t\tEvaluate
+    ( \"Get ( AccountExtendedPrivileges )\" );\n\t\t\t/*else*/ Evaluate ( \"Get (
+    ExtendedPrivileges )\" )\n\t\t)\n\n];\n\n\tPatternCount ( ¶& ~developers &¶ ;
+    ¶& Get ( AccountName ) &¶ ) ≥ 1\n\tor PatternCount ( ¶& ~extendedPrivileges &¶
+    ; ¶& \"developer\" &¶ ) ≥ 1\n\tor\n\tIf ( ~isGo or ~versionNumber ≥ 11;\n\t\tEvaluate
+    ( \"Get ( AccountPrivilegeSetName )\" ) = \"[Full Access]\";\n\t\t/*else*/ Evaluate
+    ( \"Get ( PrivilegeSetName )\" ) = \"[Full Access]\"\n\t)\n\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================================\n * Developer
+      ( )\n *\t\thttps://github.com/petrowsky/fmpstandards/blob/master/Functions/Developer.fmfn\n
+      * \n * PARAMETERS:\n *\t\tnone\n *\n * RETURNS:\n *\t\t(bool) True or False
+      based on proper   \n *\t\tevaluation\n *\n * DEPENDENCIES:\n *\t\tnone\n *\n
+      * NOTES:\n *\t\tBecause Filemaker Changed Get ( PrivilegeSetName )\n *\t\tEvaluate
+      () must be used\n *\n * RELEASE:\n *\t\t2011-02-23\n * =====================================================\n
+      * \n */\n\n"
+    - Let
+    - " ( [ \n\n\t~developers = "
+    - List
+    - ' ( "" ; "" );  '
+    - |
+      // Add names of the accounts which are valid developer accounts
+    - "\t~version = "
+    - Get
+    - ' ( '
+    - ApplicationVersion
+    - " );\n\t~isGo = "
+    - PatternCount
+    - ' ( ~version; "Go" ) = '
+    - 'True'
+    - ";\n\t~versionNumber = "
+    - GetAsNumber
+    - ' ( '
+    - Substitute
+    - ' ( ~version ; "," ; "." ) ); '
+    - |
+      // account for foreign versions using comma
+    - "\t~extendedPrivileges = "
+    - |
+      // Add "developer" extended privilege to groups which are valid developer groups
+    - type: NoRef
+      __content__: "\t\t"
+    - If
+    - ' (  ~isGo '
+    - or
+    - " ~versionNumber ≥ 11;\n\t\t\t"
+    - Evaluate
+    - " ( \"Get ( AccountExtendedPrivileges )\" );\n\t\t\t/*else*/ "
+    - Evaluate
+    - " ( \"Get ( ExtendedPrivileges )\" )\n\t\t)\n\n];\n\n\t"
+    - PatternCount
+    - ' ( ¶& ~developers &¶ ; ¶& '
+    - Get
+    - ' ( '
+    - AccountName
+    - " ) &¶ ) ≥ 1\n\t"
+    - or
+    - type: NoRef
+      __content__: ' '
+    - PatternCount
+    - " ( ¶& ~extendedPrivileges &¶ ; ¶& \"developer\" &¶ ) ≥ 1\n\t"
+    - or
+    - type: NoRef
+      __content__: "\n\t"
+    - If
+    - ' ( ~isGo '
+    - or
+    - " ~versionNumber ≥ 11;\n\t\t"
+    - Evaluate
+    - " ( \"Get ( AccountPrivilegeSetName )\" ) = \"[Full Access]\";\n\t\t/*else*/ "
+    - Evaluate
+    - " ( \"Get ( PrivilegeSetName )\" ) = \"[Full Access]\"\n\t)\n\n)"

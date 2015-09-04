@@ -1,0 +1,151 @@
+/* ListContains ( ValueList ; ValuesToTestExistence )
+
+PURPOSE:
+Test if all specified values exist in a list.
+
+PARAMETERS:
+ValueList	(text) values to search in
+ValuesToTestExistence	(num) value(s) to search for
+
+RETURNS:
+(bool) True if ALL values exist in the list
+
+DEPENDENCIES:
+none
+
+NOTES:
+This function is approx. 25% slower than using a function like this, for a single value:
+	Not IsEmpty( FilterValues( ValueList ; SingleValue ) )
+
+REVISIONS:
+2012-AUG-31	- Created by Dan Smith dansmith65@gmail.com
+####################################################################################################*/
+
+
+Let([
+	~count = ValueCount( ValuesToTestExistence )
+];
+	If(
+		~count = 0 ;
+		False ;
+		
+	// else
+		// test first value
+		If(
+			IsEmpty( FilterValues(
+				ValueList ;
+				GetValue( ValuesToTestExistence ; 1 )
+			) ) ;
+			
+			// value not found
+			False ;
+			
+		// else
+			// value found
+			If(
+				~count = 1 ;
+				// this is the last value, and it was found
+				True ;
+				
+			// else
+				// test next value
+				ListContains(
+					ValueList ;
+					RightValues(
+						ValuesToTestExistence ;
+						~count - 1
+					)
+				)
+			)
+		)
+	)
+)
+
+---
+CustomFunction:
+  id: '49'
+  functionArity: '2'
+  visible: 'True'
+  parameters: ValueList;ValuesToTestExistence
+  name: ListContains
+  Calculation: "/* ListContains ( ValueList ; ValuesToTestExistence )\n\nPURPOSE:\nTest
+    if all specified values exist in a list.\n\nPARAMETERS:\nValueList\t(text) values
+    to search in\nValuesToTestExistence\t(num) value(s) to search for\n\nRETURNS:\n(bool)
+    True if ALL values exist in the list\n\nDEPENDENCIES:\nnone\n\nNOTES:\nThis function
+    is approx. 25% slower than using a function like this, for a single value:\n\tNot
+    IsEmpty( FilterValues( ValueList ; SingleValue ) )\n\nREVISIONS:\n2012-AUG-31\t-
+    Created by Dan Smith dansmith65@gmail.com\n####################################################################################################*/\n\n\nLet([\n\t~count
+    = ValueCount( ValuesToTestExistence )\n];\n\tIf(\n\t\t~count = 0 ;\n\t\tFalse
+    ;\n\t\t\n\t// else\n\t\t// test first value\n\t\tIf(\n\t\t\tIsEmpty( FilterValues(\n\t\t\t\tValueList
+    ;\n\t\t\t\tGetValue( ValuesToTestExistence ; 1 )\n\t\t\t) ) ;\n\t\t\t\n\t\t\t//
+    value not found\n\t\t\tFalse ;\n\t\t\t\n\t\t// else\n\t\t\t// value found\n\t\t\tIf(\n\t\t\t\t~count
+    = 1 ;\n\t\t\t\t// this is the last value, and it was found\n\t\t\t\tTrue ;\n\t\t\t\t\n\t\t\t//
+    else\n\t\t\t\t// test next value\n\t\t\t\tListContains(\n\t\t\t\t\tValueList ;\n\t\t\t\t\tRightValues(\n\t\t\t\t\t\tValuesToTestExistence
+    ;\n\t\t\t\t\t\t~count - 1\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/* ListContains ( ValueList ; ValuesToTestExistence )\n\nPURPOSE:\nTest if
+      all specified values exist in a list.\n\nPARAMETERS:\nValueList\t(text) values
+      to search in\nValuesToTestExistence\t(num) value(s) to search for\n\nRETURNS:\n(bool)
+      True if ALL values exist in the list\n\nDEPENDENCIES:\nnone\n\nNOTES:\nThis
+      function is approx. 25% slower than using a function like this, for a single
+      value:\n\tNot IsEmpty( FilterValues( ValueList ; SingleValue ) )\n\nREVISIONS:\n2012-AUG-31\t-
+      Created by Dan Smith dansmith65@gmail.com\n####################################################################################################*/\n\n\n"
+    - Let
+    - "([\n\t~count = "
+    - ValueCount
+    - "( ValuesToTestExistence )\n];\n\t"
+    - If
+    - "(\n\t\t~count = 0 ;\n\t\t"
+    - 'False'
+    - " ;\n\t\t\n\t"
+    - |
+      // else
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // test first value
+    - type: NoRef
+      __content__: "\t\t"
+    - If
+    - "(\n\t\t\t"
+    - IsEmpty
+    - '( '
+    - FilterValues
+    - "(\n\t\t\t\tValueList ;\n\t\t\t\t"
+    - GetValue
+    - "( ValuesToTestExistence ; 1 )\n\t\t\t) ) ;\n\t\t\t\n\t\t\t"
+    - |
+      // value not found
+    - type: NoRef
+      __content__: "\t\t\t"
+    - 'False'
+    - " ;\n\t\t\t\n\t\t"
+    - |
+      // else
+    - type: NoRef
+      __content__: "\t\t\t"
+    - |
+      // value found
+    - type: NoRef
+      __content__: "\t\t\t"
+    - If
+    - "(\n\t\t\t\t~count = 1 ;\n\t\t\t\t"
+    - |
+      // this is the last value, and it was found
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - 'True'
+    - " ;\n\t\t\t\t\n\t\t\t"
+    - |
+      // else
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - |
+      // test next value
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - ListContains
+    - "(\n\t\t\t\t\tValueList ;\n\t\t\t\t\t"
+    - RightValues
+    - "(\n\t\t\t\t\t\tValuesToTestExistence ;\n\t\t\t\t\t\t~count - 1\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)\n)"

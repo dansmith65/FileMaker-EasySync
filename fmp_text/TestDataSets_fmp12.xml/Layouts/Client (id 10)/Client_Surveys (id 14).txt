@@ -1,0 +1,29 @@
+     Layout name:  Client_Surveys           
+              id:  14                       
+           Table:  Client_Surveys           
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '14'
+  name: Client_Surveys
+  Table:
+    id: '1065101'
+    name: Client_Surveys
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'False'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

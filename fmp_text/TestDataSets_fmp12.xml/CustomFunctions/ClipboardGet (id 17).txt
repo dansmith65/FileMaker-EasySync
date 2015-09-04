@@ -1,0 +1,64 @@
+/*
+	ClipboardGet ( format )
+
+*/
+
+Let ( [
+	~windows = Get ( SystemPlatform ) = -2 ;
+	~format = Case (
+		format = "function"
+			or format = "functions"
+			or format = "cf"
+			or format = "cfs"
+			or format = "custom function"
+			or format = "custom functions"
+		;
+		If ( ~windows ;
+			"Mac-XMFN" ;
+			"TODO"
+		)
+	)
+] ;
+	BE_ClipboardText ( ~format )
+)
+
+---
+CustomFunction:
+  id: '17'
+  functionArity: '1'
+  visible: 'True'
+  parameters: format
+  name: ClipboardGet
+  Calculation: "/*\n\tClipboardGet ( format )\n\n*/\n\nLet ( [\n\t~windows = Get (
+    SystemPlatform ) = -2 ;\n\t~format = Case (\n\t\tformat = \"function\"\n\t\t\tor
+    format = \"functions\"\n\t\t\tor format = \"cf\"\n\t\t\tor format = \"cfs\"\n\t\t\tor
+    format = \"custom function\"\n\t\t\tor format = \"custom functions\"\n\t\t;\n\t\tIf
+    ( ~windows ;\n\t\t\t\"Mac-XMFN\" ;\n\t\t\t\"TODO\"\n\t\t)\n\t)\n] ;\n\tBE_ClipboardText
+    ( ~format )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/*\n\tClipboardGet ( format )\n\n*/\n\n"
+    - Let
+    - " ( [\n\t~windows = "
+    - Get
+    - ' ( '
+    - SystemPlatform
+    - " ) = -2 ;\n\t~format = "
+    - Case
+    - " (\n\t\tformat = \"function\"\n\t\t\t"
+    - or
+    - " format = \"functions\"\n\t\t\t"
+    - or
+    - " format = \"cf\"\n\t\t\t"
+    - or
+    - " format = \"cfs\"\n\t\t\t"
+    - or
+    - " format = \"custom function\"\n\t\t\t"
+    - or
+    - " format = \"custom functions\"\n\t\t;\n\t\t"
+    - If
+    - " ( ~windows ;\n\t\t\t\"Mac-XMFN\" ;\n\t\t\t\"TODO\"\n\t\t)\n\t)\n] ;\n\t"
+    - BE_ClipboardText
+    - |2-
+       ( ~format )
+      )

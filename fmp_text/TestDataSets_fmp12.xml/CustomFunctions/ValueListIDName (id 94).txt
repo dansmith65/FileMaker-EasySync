@@ -1,0 +1,76 @@
+/**
+ * =====================================
+ * ValueListIDName ( file ; theValueListID )
+ *
+ * RETURNS:
+ *		The current name of a FileMaker value list, based on its ID.
+ *
+ * PARAMETERS:
+ *		file: The name of the FileMaker file containing the value list.
+ *		theValueListID: FileMaker's internal ID for the value list.
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		CREATED on 2012-04-13 by Jeremy Bante <http://scr.im/jbante>.
+ *		INSPIRED by custom functions by Fabrice Nordman.
+ * =====================================
+ */
+
+Let ( [
+	~idList = ¶ & ValueListIDs ( file ) & ¶;
+	~value =
+		Position ( ~idList ; ¶ & theValueListID & ¶ ; 1 ; 1 );
+	~value = PatternCount ( Left ( ~idList ; ~value ) ; ¶ );
+	~name = GetValue ( ValueListNames ( file ) ; ~value )
+];
+	If ( IsEmpty ( ~name ) ; "?" ; /* Else */ ~name )
+)
+
+---
+CustomFunction:
+  id: '94'
+  functionArity: '2'
+  visible: 'True'
+  parameters: file;theValueListID
+  name: ValueListIDName
+  Calculation: "/**\n * =====================================\n * ValueListIDName
+    ( file ; theValueListID )\n *\n * RETURNS:\n *\t\tThe current name of a FileMaker
+    value list, based on its ID.\n *\n * PARAMETERS:\n *\t\tfile: The name of the
+    FileMaker file containing the value list.\n *\t\ttheValueListID: FileMaker's internal
+    ID for the value list.\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED
+    on 2012-04-13 by Jeremy Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom
+    functions by Fabrice Nordman.\n * =====================================\n */\n\nLet
+    ( [\n\t~idList = ¶ & ValueListIDs ( file ) & ¶;\n\t~value =\n\t\tPosition ( ~idList
+    ; ¶ & theValueListID & ¶ ; 1 ; 1 );\n\t~value = PatternCount ( Left ( ~idList
+    ; ~value ) ; ¶ );\n\t~name = GetValue ( ValueListNames ( file ) ; ~value )\n];\n\tIf
+    ( IsEmpty ( ~name ) ; \"?\" ; /* Else */ ~name )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ValueListIDName ( file ;
+      theValueListID )\n *\n * RETURNS:\n *\t\tThe current name of a FileMaker value
+      list, based on its ID.\n *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker
+      file containing the value list.\n *\t\ttheValueListID: FileMaker's internal
+      ID for the value list.\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED
+      on 2012-04-13 by Jeremy Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom
+      functions by Fabrice Nordman.\n * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~idList = ¶ & "
+    - ValueListIDs
+    - " ( file ) & ¶;\n\t~value =\n\t\t"
+    - Position
+    - " ( ~idList ; ¶ & theValueListID & ¶ ; 1 ; 1 );\n\t~value = "
+    - PatternCount
+    - ' ( '
+    - Left
+    - " ( ~idList ; ~value ) ; ¶ );\n\t~name = "
+    - GetValue
+    - ' ( '
+    - ValueListNames
+    - " ( file ) ; ~value )\n];\n\t"
+    - If
+    - ' ( '
+    - IsEmpty
+    - |2-
+       ( ~name ) ; "?" ; /* Else */ ~name )
+      )

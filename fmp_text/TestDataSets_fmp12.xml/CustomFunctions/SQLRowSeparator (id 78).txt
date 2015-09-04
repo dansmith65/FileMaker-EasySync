@@ -1,0 +1,39 @@
+Char ( 30 ) // unicode record separator
+
+/*
+ * to get the count of found records when using this as a separator:
+ *
+ * If ( IsEmpty ( $sqlResult ) ; 0 ; PatternCount ( $sqlResult ; SQLRowSeparator ) + 1 )
+ *
+ */
+
+---
+CustomFunction:
+  id: '78'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: SQLRowSeparator
+  Calculation: |-
+    Char ( 30 ) // unicode record separator
+
+    /*
+     * to get the count of found records when using this as a separator:
+     *
+     * If ( IsEmpty ( $sqlResult ) ; 0 ; PatternCount ( $sqlResult ; SQLRowSeparator ) + 1 )
+     *
+     */
+  DisplayCalculation:
+    Chunk:
+    - Char
+    - ' ( 30 ) '
+    - |
+      // unicode record separator
+    - |2-
+
+      /*
+       * to get the count of found records when using this as a separator:
+       *
+       * If ( IsEmpty ( $sqlResult ) ; 0 ; PatternCount ( $sqlResult ; SQLRowSeparator ) + 1 )
+       *
+       */

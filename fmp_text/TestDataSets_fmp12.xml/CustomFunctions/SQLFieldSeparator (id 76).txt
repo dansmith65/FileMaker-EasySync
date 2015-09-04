@@ -1,0 +1,15 @@
+Char ( 31 ) // unicode unit separator
+
+---
+CustomFunction:
+  id: '76'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: SQLFieldSeparator
+  Calculation: Char ( 31 ) // unicode unit separator
+  DisplayCalculation:
+    Chunk:
+    - Char
+    - ' ( 31 ) '
+    - // unicode unit separator

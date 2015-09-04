@@ -1,0 +1,402 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   Survey_Hobby_ID             Text             Normal                                                              
+     6   Survey_ID                   Text             Normal                                                              
+     2   Hobby                       Text             Normal                                                              
+     3   ES_Record_UUID              Text             Normal            The UUID that FMEasySync uses to uniquely identify records in synced tables.
+     4   ES_UTC_Time                 Number           Normal            Used by FMEasySync to keep track of changes made to remote records.
+     7   ES_Account                  Text             Normal            The account name that last updated this record.   
+     5   ES_Exclude                  Number           Normal            Exclude this record when creating the payload to deliver to the mobile user?
+     9   ES_Device_ID                Text             Normal                                                              
+    10   id_DataSetFile              Text             Normal                                                              
+    11   xJoin                       Number           Normal                                                              
+
+
+---
+BaseTable:
+  id: '131'
+  records: '3'
+  name: Survey_Hobbies
+  FieldCatalog:
+    Field:
+    - id: '1'
+      dataType: Text
+      fieldType: Normal
+      name: Survey_Hobby_ID
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: Get ( UUID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - UUID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '6'
+      dataType: Text
+      fieldType: Normal
+      name: Survey_ID
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '2'
+      dataType: Text
+      fieldType: Normal
+      name: Hobby
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '3'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Record_UUID
+      Comment: The UUID that FMEasySync uses to uniquely identify records in synced
+        tables.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: Get ( UUID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - UUID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '4'
+      dataType: Number
+      fieldType: Normal
+      name: ES_UTC_Time
+      Comment: Used by FMEasySync to keep track of changes made to remote records.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: Let ( trigger = GetField ( "" ); If ( IsEmpty ( $script_override
+          ) ; Get ( CurrentTimeUTCMilliseconds ); Self ) )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( trigger = '
+          - GetField
+          - ' ( "" ); '
+          - If
+          - ' ( '
+          - IsEmpty
+          - ' ( $script_override ) ; '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ); '
+          - Self
+          - ' ) )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '7'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Account
+      Comment: The account name that last updated this record.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '5'
+      dataType: Number
+      fieldType: Normal
+      name: ES_Exclude
+      Comment: Exclude this record when creating the payload to deliver to the mobile
+        user?
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '9'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Device_ID
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: Let ( trigger = GetField ( "" ); If ( IsEmpty ( $script_override
+          ) ; Get ( PersistentID ); Self ) )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( trigger = '
+          - GetField
+          - ' ( "" ); '
+          - If
+          - ' ( '
+          - IsEmpty
+          - ' ( $script_override ) ; '
+          - Get
+          - ' ( '
+          - PersistentID
+          - ' ); '
+          - Self
+          - ' ) )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '10'
+      dataType: Text
+      fieldType: Normal
+      name: id_DataSetFile
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '11'
+      dataType: Number
+      fieldType: Normal
+      name: xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'

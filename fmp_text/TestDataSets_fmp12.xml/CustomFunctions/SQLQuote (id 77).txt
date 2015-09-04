@@ -1,0 +1,48 @@
+/* SQLQuote ( name )
+
+PURPOSE:
+Wrap text in single quotes, for use with SQL queries.
+The purpose of the Substitute is to "escape" any internally embedded apostrophes, e.g., O'Malley becomes 'O''Malley', which SQL will convert into O'Malley
+
+PARAMETERS:
+(text) text	text to quote
+
+DEPENDENCIES:
+none
+
+REVISIONS:
+2011-MAR-25	- Created by Kevin Frank  http://www.filemakerhacks.com/?p=1065
+2011-JUL-01	- Dan Smith dansmith65@gmail.com
+	- renamed from Q to SQLQuote
+	- added to documentation section
+####################################################################################################*/
+
+ "'" & Substitute ( text ; "'"; "''" ) & "'"
+
+---
+CustomFunction:
+  id: '77'
+  functionArity: '1'
+  visible: 'True'
+  parameters: Text
+  name: SQLQuote
+  Calculation: "/* SQLQuote ( name )\n\nPURPOSE:\nWrap text in single quotes, for
+    use with SQL queries.\nThe purpose of the Substitute is to \"escape\" any internally
+    embedded apostrophes, e.g., O'Malley becomes 'O''Malley', which SQL will convert
+    into O'Malley\n\nPARAMETERS:\n(text) text\ttext to quote\n\nDEPENDENCIES:\nnone\n\nREVISIONS:\n2011-MAR-25\t-
+    Created by Kevin Frank  http://www.filemakerhacks.com/?p=1065\n2011-JUL-01\t-
+    Dan Smith dansmith65@gmail.com\n\t- renamed from Q to SQLQuote\n\t- added to documentation
+    section\n####################################################################################################*/\n\n
+    \"'\" & Substitute ( text ; \"'\"; \"''\" ) & \"'\""
+  DisplayCalculation:
+    Chunk:
+    - "/* SQLQuote ( name )\n\nPURPOSE:\nWrap text in single quotes, for use with
+      SQL queries.\nThe purpose of the Substitute is to \"escape\" any internally
+      embedded apostrophes, e.g., O'Malley becomes 'O''Malley', which SQL will convert
+      into O'Malley\n\nPARAMETERS:\n(text) text\ttext to quote\n\nDEPENDENCIES:\nnone\n\nREVISIONS:\n2011-MAR-25\t-
+      Created by Kevin Frank  http://www.filemakerhacks.com/?p=1065\n2011-JUL-01\t-
+      Dan Smith dansmith65@gmail.com\n\t- renamed from Q to SQLQuote\n\t- added to
+      documentation section\n####################################################################################################*/\n\n
+      \"'\" & "
+    - Substitute
+    - ' ( text ; "''"; "''''" ) & "''"'

@@ -1,0 +1,89 @@
+/*
+CorrespondingValue function
+
+Author
+*COMMENT Visual Realisation
+
+Format
+CorrespondingValue ( indexValues ; searchValue ; listOfValues )
+
+Parameters
+indexValues - a list of carriage return-delimited values
+searchValue - any text expression or text field
+listOfValues - a list of carriage return-delimited values
+
+Data type returned
+text
+
+Description
+Finds the first occurrence of searchValue in indexValues and returns the corresponding value (i.e. the value with the same ordinal number) in listOfValues.
+The search is not case-sensitive.
+
+August 24, 2008
+*/
+
+
+Let ( 
+i = ValueCount ( Left ( indexValues ; Position ( ¶ & indexValues & ¶ ; ¶ & searchValue & ¶ ; 1 ; 1 ) ) )
+;
+GetValue ( listOfValues ; i )
+)
+
+---
+CustomFunction:
+  id: '20'
+  functionArity: '3'
+  visible: 'True'
+  parameters: indexValues;searchValue;listOfValues
+  name: CorrespondingValue
+  Calculation: "/*\nCorrespondingValue function\n\nAuthor\n*COMMENT Visual Realisation\n\nFormat\nCorrespondingValue
+    ( indexValues ; searchValue ; listOfValues )\n\nParameters\nindexValues - a list
+    of carriage return-delimited values\nsearchValue - any text expression or text
+    field\nlistOfValues - a list of carriage return-delimited values\n\nData type
+    returned\ntext\n\nDescription\nFinds the first occurrence of searchValue in indexValues
+    and returns the corresponding value (i.e. the value with the same ordinal number)
+    in listOfValues.\nThe search is not case-sensitive.\n\nAugust 24, 2008\n*/\n\n\nLet
+    ( \ni = ValueCount ( Left ( indexValues ; Position ( ¶ & indexValues & ¶ ; ¶ &
+    searchValue & ¶ ; 1 ; 1 ) ) )\n;\nGetValue ( listOfValues ; i )\n)"
+  DisplayCalculation:
+    Chunk:
+    - |+
+      /*
+      CorrespondingValue function
+
+      Author
+      *COMMENT Visual Realisation
+
+      Format
+      CorrespondingValue ( indexValues ; searchValue ; listOfValues )
+
+      Parameters
+      indexValues - a list of carriage return-delimited values
+      searchValue - any text expression or text field
+      listOfValues - a list of carriage return-delimited values
+
+      Data type returned
+      text
+
+      Description
+      Finds the first occurrence of searchValue in indexValues and returns the corresponding value (i.e. the value with the same ordinal number) in listOfValues.
+      The search is not case-sensitive.
+
+      August 24, 2008
+      */
+
+
+    - Let
+    - " ( \ni = "
+    - ValueCount
+    - ' ( '
+    - Left
+    - ' ( indexValues ; '
+    - Position
+    - |2
+       ( ¶ & indexValues & ¶ ; ¶ & searchValue & ¶ ; 1 ; 1 ) ) )
+      ;
+    - GetValue
+    - |2-
+       ( listOfValues ; i )
+      )

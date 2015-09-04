@@ -1,0 +1,63 @@
+/**
+ * =====================================
+ * GetDelimitedValue ( text ; delimiter ; occurrence )
+ *
+ * RETURNS:
+ *		Value in specified location of delimited text.
+ *
+ * PARAMETERS:
+ *		text = (text) delimited data
+ *		delimiter = (text) single character used to separate values
+ *		occurrence = (number) instance to return
+ *
+ * DEPENDENCIES:
+ *		none
+ *
+ * HISTORY:
+ *		CREATED on 2013-NOV-13 by Daniel Smith dansmith65@gmail.com
+ * =====================================
+ */
+ 
+Let ( [
+	text = text & delimiter ;
+	~start = Position ( text ; delimiter ; 1 ; occurrence - 1 ) + 1 ;
+	~end = Position ( text ; delimiter ; 1 ; occurrence )
+] ;
+	Middle ( text ; ~start ; ~end - ~start )
+)
+
+---
+CustomFunction:
+  id: '39'
+  functionArity: '3'
+  visible: 'True'
+  parameters: text;delimiter;occurrence
+  name: GetDelimitedValue
+  Calculation: "/**\n * =====================================\n * GetDelimitedValue
+    ( text ; delimiter ; occurrence )\n *\n * RETURNS:\n *\t\tValue in specified location
+    of delimited text.\n *\n * PARAMETERS:\n *\t\ttext = (text) delimited data\n *\t\tdelimiter
+    = (text) single character used to separate values\n *\t\toccurrence = (number)
+    instance to return\n *\n * DEPENDENCIES:\n *\t\tnone\n *\n * HISTORY:\n *\t\tCREATED
+    on 2013-NOV-13 by Daniel Smith dansmith65@gmail.com\n * =====================================\n
+    */\n \nLet ( [\n\ttext = text & delimiter ;\n\t~start = Position ( text ; delimiter
+    ; 1 ; occurrence - 1 ) + 1 ;\n\t~end = Position ( text ; delimiter ; 1 ; occurrence
+    )\n] ;\n\tMiddle ( text ; ~start ; ~end - ~start )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * GetDelimitedValue ( text
+      ; delimiter ; occurrence )\n *\n * RETURNS:\n *\t\tValue in specified location
+      of delimited text.\n *\n * PARAMETERS:\n *\t\ttext = (text) delimited data\n
+      *\t\tdelimiter = (text) single character used to separate values\n *\t\toccurrence
+      = (number) instance to return\n *\n * DEPENDENCIES:\n *\t\tnone\n *\n * HISTORY:\n
+      *\t\tCREATED on 2013-NOV-13 by Daniel Smith dansmith65@gmail.com\n * =====================================\n
+      */\n \n"
+    - Let
+    - " ( [\n\ttext = text & delimiter ;\n\t~start = "
+    - Position
+    - " ( text ; delimiter ; 1 ; occurrence - 1 ) + 1 ;\n\t~end = "
+    - Position
+    - " ( text ; delimiter ; 1 ; occurrence )\n] ;\n\t"
+    - Middle
+    - |2-
+       ( text ; ~start ; ~end - ~start )
+      )

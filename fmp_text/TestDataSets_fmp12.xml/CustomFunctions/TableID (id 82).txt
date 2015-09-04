@@ -1,0 +1,71 @@
+/**
+ * =====================================
+ * TableID ( file ; theTableName )
+ *
+ * RETURNS:
+ *		FileMaker's internal ID for a table.
+ *
+ * PARAMETERS:
+ *		file: The name of the FileMaker file containing the table.
+ *		tableName
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		MODIFIED on 2012-01-26 by Jeremy Bante to accept the file parameter.
+ *		CREATED on 2011-06-01 by Jeremy Bante <http://scr.im/jbante>.
+ *		INSPIRED by custom functions by Fabrice Nordman.
+ * =====================================
+ */
+
+Let ( [
+	~nameList = ¶ & TableNames ( file ) & ¶;
+	~value =
+		Position ( ~nameList ; ¶ & theTableName & ¶ ; 1 ; 1 );
+	~value = PatternCount ( Left ( ~nameList ; ~value ) ; ¶ )
+];
+	GetValue ( TableIDs ( file ) ; ~value )
+)
+
+---
+CustomFunction:
+  id: '82'
+  functionArity: '2'
+  visible: 'True'
+  parameters: file;theTableName
+  name: TableID
+  Calculation: "/**\n * =====================================\n * TableID ( file ;
+    theTableName )\n *\n * RETURNS:\n *\t\tFileMaker's internal ID for a table.\n
+    *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker file containing the table.\n
+    *\t\ttableName\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on
+    2012-01-26 by Jeremy Bante to accept the file parameter.\n *\t\tCREATED on 2011-06-01
+    by Jeremy Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions by
+    Fabrice Nordman.\n * =====================================\n */\n\nLet ( [\n\t~nameList
+    = ¶ & TableNames ( file ) & ¶;\n\t~value =\n\t\tPosition ( ~nameList ; ¶ & theTableName
+    & ¶ ; 1 ; 1 );\n\t~value = PatternCount ( Left ( ~nameList ; ~value ) ; ¶ )\n];\n\tGetValue
+    ( TableIDs ( file ) ; ~value )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * TableID ( file ; theTableName
+      )\n *\n * RETURNS:\n *\t\tFileMaker's internal ID for a table.\n *\n * PARAMETERS:\n
+      *\t\tfile: The name of the FileMaker file containing the table.\n *\t\ttableName\n
+      *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on 2012-01-26 by Jeremy
+      Bante to accept the file parameter.\n *\t\tCREATED on 2011-06-01 by Jeremy Bante
+      <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions by Fabrice Nordman.\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~nameList = ¶ & "
+    - TableNames
+    - " ( file ) & ¶;\n\t~value =\n\t\t"
+    - Position
+    - " ( ~nameList ; ¶ & theTableName & ¶ ; 1 ; 1 );\n\t~value = "
+    - PatternCount
+    - ' ( '
+    - Left
+    - " ( ~nameList ; ~value ) ; ¶ )\n];\n\t"
+    - GetValue
+    - ' ( '
+    - TableIDs
+    - |2-
+       ( file ) ; ~value )
+      )

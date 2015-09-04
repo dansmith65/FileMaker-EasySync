@@ -1,0 +1,234 @@
+/**
+ * ============================================================================
+ * AddValues ( mainList ; addListToMain )
+ *
+ * PURPOSE:
+ *		Adds return-delimited values from addListToMain to mainList, without adding duplicates.
+ *
+ * RETURNS:
+ *		(text) value list
+ *
+ * PARAMETERS:
+ *		mainList (text) list of return-delimited values
+ *		addListToMain (text) list of return-delimited values to add to mainList
+ *
+ * EXAMPLE:
+ *		AddValues ( List ( 1 ; 2 ) ; List ( 2 ; 3 ) ) = List ( 1 ; 2 ; 3 )
+ *
+ * DEPENDENCIES:
+ *		none
+ *
+ * NOTES:
+ *		Will not add blank values that are in addListToMain, but wont remove blank values from mainList.
+ *		limit: 49,998 values in addListToMain (can enter a user-defined limit that is lower than this)
+ *		How it works: Iterate over addListToMain values, adding each to mainList if it does not already exist in mainList.
+ *
+ * HISTORY:
+ *		2013-MAR-18 Modified by Daniel Smith http://scr.im/dansmith
+ *			- remove detection of smallest/largest list; always add second list to first
+ *			- rename parameters to reflect above change
+ *			- use FilterValues instead of PatternCount to test for value existence
+ *			- don't add trailing return when adding values (does not remove trailing return from mainList)
+ *		2009-SEP-23 Modified by Daniel Smith http://scr.im/dansmith
+ *		2009-MAR-25 Created by Daniel Smith http://scr.im/dansmith
+ * ============================================================================
+ */
+
+Let( [
+	// set the limit of values to process (to prevent "locking" FileMaker in a recursive function)
+	addListToMain_Limit = 10000 ;
+	addListToMain_Count = ValueCount ( addListToMain )
+] ;
+	Case (
+		// DO NOT change the following value - it is FileMaker's internal limit
+		addListToMain_Count > 49998 ;
+		"ERROR! AddValues custom function cannot process more than 49998 values in addListToMain parameter ( contained "
+			& addListToMain_Count
+			& " values )"
+		;
+		
+		addListToMain_Count > addListToMain_Limit ;
+		"ERROR! AddValues custom function was limited to processing "
+			& addListToMain_Limit
+			& " values in addListToMain parameter ( contained "
+			& addListToMain_Count
+			& " values )"
+		;
+		
+		addListToMain_Count > 0 ;
+		Let ( [
+			valueToAdd = GetValue ( addListToMain ; 1 ) ;
+			exists =
+				not IsEmpty ( FilterValues (
+					mainList ;
+					valueToAdd
+				) )
+			;
+			mainList =	 // add value to main list, if it doesn't exist
+				If (
+					exists or IsEmpty ( valueToAdd ) ;
+					mainList ;
+					List (
+						Left (	 // trim trailing return from mainList
+							mainList ;
+							Length ( mainList ) - ( Right ( mainList ; 1 ) = ¶ )
+						) ;
+						valueToAdd
+					)
+				)
+		] ;
+			AddValues (
+				mainList ;
+				RightValues (	 // remove first value from 2nd param, pass it back to this custom function
+					addListToMain ;
+					addListToMain_Count - 1
+				)
+			)
+		) ;  //end of Let
+		
+		
+		// addListToMain DOES NOT contain any values (recursive calc complete)
+		mainList
+
+	) // end Case
+) //end Let
+
+---
+CustomFunction:
+  id: '15'
+  functionArity: '2'
+  visible: 'True'
+  parameters: mainList;addListToMain
+  name: AddValues
+  Calculation: "/**\n * ============================================================================\n
+    * AddValues ( mainList ; addListToMain )\n *\n * PURPOSE:\n *\t\tAdds return-delimited
+    values from addListToMain to mainList, without adding duplicates.\n *\n * RETURNS:\n
+    *\t\t(text) value list\n *\n * PARAMETERS:\n *\t\tmainList (text) list of return-delimited
+    values\n *\t\taddListToMain (text) list of return-delimited values to add to mainList\n
+    *\n * EXAMPLE:\n *\t\tAddValues ( List ( 1 ; 2 ) ; List ( 2 ; 3 ) ) = List ( 1
+    ; 2 ; 3 )\n *\n * DEPENDENCIES:\n *\t\tnone\n *\n * NOTES:\n *\t\tWill not add
+    blank values that are in addListToMain, but wont remove blank values from mainList.\n
+    *\t\tlimit: 49,998 values in addListToMain (can enter a user-defined limit that
+    is lower than this)\n *\t\tHow it works: Iterate over addListToMain values, adding
+    each to mainList if it does not already exist in mainList.\n *\n * HISTORY:\n
+    *\t\t2013-MAR-18 Modified by Daniel Smith http://scr.im/dansmith\n *\t\t\t- remove
+    detection of smallest/largest list; always add second list to first\n *\t\t\t-
+    rename parameters to reflect above change\n *\t\t\t- use FilterValues instead
+    of PatternCount to test for value existence\n *\t\t\t- don't add trailing return
+    when adding values (does not remove trailing return from mainList)\n *\t\t2009-SEP-23
+    Modified by Daniel Smith http://scr.im/dansmith\n *\t\t2009-MAR-25 Created by
+    Daniel Smith http://scr.im/dansmith\n * ============================================================================\n
+    */\n\nLet( [\n\t// set the limit of values to process (to prevent \"locking\"
+    FileMaker in a recursive function)\n\taddListToMain_Limit = 10000 ;\n\taddListToMain_Count
+    = ValueCount ( addListToMain )\n] ;\n\tCase (\n\t\t// DO NOT change the following
+    value - it is FileMaker's internal limit\n\t\taddListToMain_Count > 49998 ;\n\t\t\"ERROR!
+    AddValues custom function cannot process more than 49998 values in addListToMain
+    parameter ( contained \"\n\t\t\t& addListToMain_Count\n\t\t\t& \" values )\"\n\t\t;\n\t\t\n\t\taddListToMain_Count
+    > addListToMain_Limit ;\n\t\t\"ERROR! AddValues custom function was limited to
+    processing \"\n\t\t\t& addListToMain_Limit\n\t\t\t& \" values in addListToMain
+    parameter ( contained \"\n\t\t\t& addListToMain_Count\n\t\t\t& \" values )\"\n\t\t;\n\t\t\n\t\taddListToMain_Count
+    > 0 ;\n\t\tLet ( [\n\t\t\tvalueToAdd = GetValue ( addListToMain ; 1 ) ;\n\t\t\texists
+    =\n\t\t\t\tnot IsEmpty ( FilterValues (\n\t\t\t\t\tmainList ;\n\t\t\t\t\tvalueToAdd\n\t\t\t\t)
+    )\n\t\t\t;\n\t\t\tmainList =\t // add value to main list, if it doesn't exist\n\t\t\t\tIf
+    (\n\t\t\t\t\texists or IsEmpty ( valueToAdd ) ;\n\t\t\t\t\tmainList ;\n\t\t\t\t\tList
+    (\n\t\t\t\t\t\tLeft (\t // trim trailing return from mainList\n\t\t\t\t\t\t\tmainList
+    ;\n\t\t\t\t\t\t\tLength ( mainList ) - ( Right ( mainList ; 1 ) = ¶ )\n\t\t\t\t\t\t)
+    ;\n\t\t\t\t\t\tvalueToAdd\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t] ;\n\t\t\tAddValues (\n\t\t\t\tmainList
+    ;\n\t\t\t\tRightValues (\t // remove first value from 2nd param, pass it back
+    to this custom function\n\t\t\t\t\taddListToMain ;\n\t\t\t\t\taddListToMain_Count
+    - 1\n\t\t\t\t)\n\t\t\t)\n\t\t) ;  //end of Let\n\t\t\n\t\t\n\t\t// addListToMain
+    DOES NOT contain any values (recursive calc complete)\n\t\tmainList\n\n\t) //
+    end Case\n) //end Let"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * AddValues ( mainList ; addListToMain )\n *\n * PURPOSE:\n *\t\tAdds return-delimited
+      values from addListToMain to mainList, without adding duplicates.\n *\n * RETURNS:\n
+      *\t\t(text) value list\n *\n * PARAMETERS:\n *\t\tmainList (text) list of return-delimited
+      values\n *\t\taddListToMain (text) list of return-delimited values to add to
+      mainList\n *\n * EXAMPLE:\n *\t\tAddValues ( List ( 1 ; 2 ) ; List ( 2 ; 3 )
+      ) = List ( 1 ; 2 ; 3 )\n *\n * DEPENDENCIES:\n *\t\tnone\n *\n * NOTES:\n *\t\tWill
+      not add blank values that are in addListToMain, but wont remove blank values
+      from mainList.\n *\t\tlimit: 49,998 values in addListToMain (can enter a user-defined
+      limit that is lower than this)\n *\t\tHow it works: Iterate over addListToMain
+      values, adding each to mainList if it does not already exist in mainList.\n
+      *\n * HISTORY:\n *\t\t2013-MAR-18 Modified by Daniel Smith http://scr.im/dansmith\n
+      *\t\t\t- remove detection of smallest/largest list; always add second list to
+      first\n *\t\t\t- rename parameters to reflect above change\n *\t\t\t- use FilterValues
+      instead of PatternCount to test for value existence\n *\t\t\t- don't add trailing
+      return when adding values (does not remove trailing return from mainList)\n
+      *\t\t2009-SEP-23 Modified by Daniel Smith http://scr.im/dansmith\n *\t\t2009-MAR-25
+      Created by Daniel Smith http://scr.im/dansmith\n * ============================================================================\n
+      */\n\n"
+    - Let
+    - "( [\n\t"
+    - |
+      // set the limit of values to process (to prevent "locking" FileMaker in a recursive function)
+    - "\taddListToMain_Limit = 10000 ;\n\taddListToMain_Count = "
+    - ValueCount
+    - " ( addListToMain )\n] ;\n\t"
+    - Case
+    - " (\n\t\t"
+    - |
+      // DO NOT change the following value - it is FileMaker's internal limit
+    - "\t\taddListToMain_Count > 49998 ;\n\t\t\"ERROR! AddValues custom function cannot
+      process more than 49998 values in addListToMain parameter ( contained \"\n\t\t\t&
+      addListToMain_Count\n\t\t\t& \" values )\"\n\t\t;\n\t\t\n\t\taddListToMain_Count
+      > addListToMain_Limit ;\n\t\t\"ERROR! AddValues custom function was limited
+      to processing \"\n\t\t\t& addListToMain_Limit\n\t\t\t& \" values in addListToMain
+      parameter ( contained \"\n\t\t\t& addListToMain_Count\n\t\t\t& \" values )\"\n\t\t;\n\t\t\n\t\taddListToMain_Count
+      > 0 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\tvalueToAdd = "
+    - GetValue
+    - " ( addListToMain ; 1 ) ;\n\t\t\texists =\n\t\t\t\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - ' ( '
+    - FilterValues
+    - " (\n\t\t\t\t\tmainList ;\n\t\t\t\t\tvalueToAdd\n\t\t\t\t) )\n\t\t\t;\n\t\t\tmainList
+      =\t "
+    - |
+      // add value to main list, if it doesn't exist
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - If
+    - " (\n\t\t\t\t\texists "
+    - or
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( valueToAdd ) ;\n\t\t\t\t\tmainList ;\n\t\t\t\t\t"
+    - List
+    - " (\n\t\t\t\t\t\t"
+    - Left
+    - " (\t "
+    - |
+      // trim trailing return from mainList
+    - "\t\t\t\t\t\t\tmainList ;\n\t\t\t\t\t\t\t"
+    - Length
+    - ' ( mainList ) - ( '
+    - Right
+    - " ( mainList ; 1 ) = ¶ )\n\t\t\t\t\t\t) ;\n\t\t\t\t\t\tvalueToAdd\n\t\t\t\t\t)\n\t\t\t\t)\n\t\t]
+      ;\n\t\t\t"
+    - AddValues
+    - " (\n\t\t\t\tmainList ;\n\t\t\t\t"
+    - RightValues
+    - " (\t "
+    - |
+      // remove first value from 2nd param, pass it back to this custom function
+    - "\t\t\t\t\taddListToMain ;\n\t\t\t\t\taddListToMain_Count - 1\n\t\t\t\t)\n\t\t\t)\n\t\t)
+      ;  "
+    - |
+      //end of Let
+    - type: NoRef
+      __content__: "\t\t\n\t\t\n\t\t"
+    - |
+      // addListToMain DOES NOT contain any values (recursive calc complete)
+    - "\t\tmainList\n\n\t) "
+    - |
+      // end Case
+    - ') '
+    - //end Let

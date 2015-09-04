@@ -1,0 +1,203 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   xJoin                       Number           Normal                                                              
+     2   idList_DataSetFile          Text             Normal                                                              
+     3   idList_Surveys              Text             Normal                                                              
+     4   idList_Survey_Hobbies       Text             Normal                                                              
+     5   idList_Survey_Documents     Text             Normal                                                              
+     6   idList_DataSet              Text             Normal                                                              
+
+
+---
+BaseTable:
+  id: '135'
+  records: '1'
+  name: SELECTOR
+  FieldCatalog:
+    Field:
+    - id: '1'
+      dataType: Number
+      fieldType: Normal
+      name: xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '2'
+      dataType: Text
+      fieldType: Normal
+      name: idList_DataSetFile
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '3'
+      dataType: Text
+      fieldType: Normal
+      name: idList_Surveys
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '4'
+      dataType: Text
+      fieldType: Normal
+      name: idList_Survey_Hobbies
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '5'
+      dataType: Text
+      fieldType: Normal
+      name: idList_Survey_Documents
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '6'
+      dataType: Text
+      fieldType: Normal
+      name: idList_DataSet
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'

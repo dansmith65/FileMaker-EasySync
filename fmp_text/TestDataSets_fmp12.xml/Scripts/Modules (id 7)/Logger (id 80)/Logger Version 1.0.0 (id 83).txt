@@ -1,0 +1,312 @@
+################################################################################
+# PURPOSE:
+#    Return the version number of this module.
+#
+# RETURNS:
+#    version string portion of the script name
+#
+# NOTES:
+#    http://filemakerstandards.org/display/bp/Default+scripts
+#    This guideline was heavily influenced by http://semver.org/spec/v2.0.0-rc.1.html
+#    Changelog: Summary is formatted with markdown: http://daringfireball.net/projects/markdown/- use different header 'tag' (#'s) depending on the version being incrementedMajor: H1Minor: H2Patch: H3
+################################################################################
+Set Variable [ $scriptResult; Value:// return script version string portion of script nameLet ( [	~text = Get ( ScriptName ) ;	~firstNumber = Left ( Filter ( ~text  ; "0123456789" ) ; 1 ) ;	~firstNumberPosition = Position ( ~text ; ~firstNumber ; 1 ; 1 )] ;	Right ( ~text ; Length ( ~text ) - ~firstNumberPosition + 1 )) ]
+Exit Script [ Result: $scriptResult ]
+#
+# MAJOR.MINOR.PATCH{-PRERELEASE}{+}
+#    MAJOR:    Arbitrarily defined by the developer, but must introduce significant change to either the feature set, or the internal method of processing.
+#    MINOR:    New features. Should be incremented whenever a new feature is added.
+#    PATCH:    Bug fixes. Should not introduce new features (unless the lack of that feature can be considered a bug).
+#    {-PRERELEASE}    OPTIONAL    A pre-release version MAY be denoted by appending a dash and a series of dot separated identifiers immediately following the patch version. Identifiers MUST be comprised of only ASCII alphanumerics and dash [0-9A-Za-z-]. Pre-release versions satisfy but have a lower precedence than the associated normal version. Examples: 1.0.0-alpha, 1.0.0-alpha.1, 1.0.0-0.3.7, 1.0.0-x.7.z.92.This value can be compaired as text in FileMaker, and the following will be true:  "alpha" < "beta" and "alpha" < "rc" and "beta" < "rc".
+#    {+}    OPTIONAL    If the file has been modified since the version was last incremented, and the version does not need to be incremented yet (still under development), append the version string with a +.
+#
+# These guidelines should be followed:
+#    Use decimal separated text to store the version.
+#    When evaluating the version, MUST NOT convert the entire text to a number. Each decimal separated section must be evaluated individually, and in order. Here is a possible method of doing so:Let ( [	ver = "1.2.21" ;	// extract pre-release version string	ver = Substitute ( ver ; "-" ; ¶ ) ;	preRelease = GetValue ( ver ; 2 ) ;	// extract normal version string	ver = GetValue ( ver ; 1 ) ;	ver = Substitute ( ver ; "." ; ¶ ) ;	major = GetAsNumber ( GetValue ( ver ; 1 ) ) ;	minor = GetAsNumber ( GetValue ( ver ; 2 ) ) ;	patch = GetAsNumber ( GetValue ( ver ; 3 ) )] ;	// evaluate version	Case (		major = 0 ;		"initial development" ;				major = 1 ;		"first public release"	))
+#    Summarize the changes of each version in a single comment step below.
+#
+#
+# ==============================================================================
+# CHANGELOG
+# ==============================================================================
+#
+## 1.0.0 #released 2015-JUN-03- initial release
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '83'
+  name: 'Logger: Version 1.0.0'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Return the version number of this module.'
+      Text: '    Return the version number of this module.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    version string portion of the script name'
+      Text: '    version string portion of the script name'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    http://filemakerstandards.org/display/bp/Default+scripts'
+      Text: '    http://filemakerstandards.org/display/bp/Default+scripts'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    This guideline was heavily influenced by http://semver.org/spec/v2.0.0-rc.1.html'
+      Text: '    This guideline was heavily influenced by http://semver.org/spec/v2.0.0-rc.1.html'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #    Changelog: Summary is formatted with markdown: http://daringfireball.net/projects/markdown/
+
+        - use different header 'tag' (#'s) depending on the version being incremented
+        Major: H1
+        Minor: H2
+        Patch: H3
+      Text: |2-
+            Changelog: Summary is formatted with markdown: http://daringfireball.net/projects/markdown/
+
+        - use different header 'tag' (#'s) depending on the version being incremented
+        Major: H1
+        Minor: H2
+        Patch: H3
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $scriptResult; Value:// return script version string
+        portion of script name\n\nLet ( [\n\t~text = Get ( ScriptName ) ;\n\t~firstNumber
+        = Left ( Filter ( ~text  ; \"0123456789\" ) ; 1 ) ;\n\t~firstNumberPosition
+        = Position ( ~text ; ~firstNumber ; 1 ; 1 )\n] ;\n\tRight ( ~text ; Length
+        ( ~text ) - ~firstNumberPosition + 1 )\n) ]"
+      Value:
+        Calculation: "// return script version string portion of script name\n\nLet
+          ( [\n\t~text = Get ( ScriptName ) ;\n\t~firstNumber = Left ( Filter ( ~text
+          \ ; \"0123456789\" ) ; 1 ) ;\n\t~firstNumberPosition = Position ( ~text
+          ; ~firstNumber ; 1 ; 1 )\n] ;\n\tRight ( ~text ; Length ( ~text ) - ~firstNumberPosition
+          + 1 )\n)"
+        DisplayCalculation:
+          Chunk:
+          - |
+            // return script version string portion of script name
+          - type: NoRef
+            __content__: |2+
+
+          - Let
+          - " ( [\n\t~text = "
+          - Get
+          - ' ( '
+          - ScriptName
+          - " ) ;\n\t~firstNumber = "
+          - Left
+          - ' ( '
+          - Filter
+          - " ( ~text  ; \"0123456789\" ) ; 1 ) ;\n\t~firstNumberPosition = "
+          - Position
+          - " ( ~text ; ~firstNumber ; 1 ; 1 )\n] ;\n\t"
+          - Right
+          - ' ( ~text ; '
+          - Length
+          - |2-
+             ( ~text ) - ~firstNumberPosition + 1 )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $scriptResult
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $scriptResult ]'
+      Calculation: $scriptResult
+      DisplayCalculation:
+        Chunk: $scriptResult
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# MAJOR.MINOR.PATCH{-PRERELEASE}{+}'
+      Text: ' MAJOR.MINOR.PATCH{-PRERELEASE}{+}'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    MAJOR:    \nArbitrarily defined by the developer, but must introduce
+        significant change to either the feature set, or the internal method of processing."
+      Text: "    MAJOR:    \nArbitrarily defined by the developer, but must introduce
+        significant change to either the feature set, or the internal method of processing."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    MINOR:    \nNew features. Should be incremented whenever a new
+        feature is added."
+      Text: "    MINOR:    \nNew features. Should be incremented whenever a new feature
+        is added."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    PATCH:    \nBug fixes. Should not introduce new features (unless
+        the lack of that feature can be considered a bug)."
+      Text: "    PATCH:    \nBug fixes. Should not introduce new features (unless
+        the lack of that feature can be considered a bug)."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    {-PRERELEASE}    OPTIONAL    \nA pre-release version MAY be
+        denoted by appending a dash and a series of dot separated identifiers immediately
+        following the patch version. Identifiers MUST be comprised of only ASCII alphanumerics
+        and dash [0-9A-Za-z-]. Pre-release versions satisfy but have a lower precedence
+        than the associated normal version. Examples: 1.0.0-alpha, 1.0.0-alpha.1,
+        1.0.0-0.3.7, 1.0.0-x.7.z.92.\nThis value can be compaired as text in FileMaker,
+        and the following will be true:  \"alpha\" < \"beta\" and \"alpha\" < \"rc\"
+        and \"beta\" < \"rc\".\n"
+      Text: "    {-PRERELEASE}    OPTIONAL    \nA pre-release version MAY be denoted
+        by appending a dash and a series of dot separated identifiers immediately
+        following the patch version. Identifiers MUST be comprised of only ASCII alphanumerics
+        and dash [0-9A-Za-z-]. Pre-release versions satisfy but have a lower precedence
+        than the associated normal version. Examples: 1.0.0-alpha, 1.0.0-alpha.1,
+        1.0.0-0.3.7, 1.0.0-x.7.z.92.\nThis value can be compaired as text in FileMaker,
+        and the following will be true:  \"alpha\" < \"beta\" and \"alpha\" < \"rc\"
+        and \"beta\" < \"rc\".\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    {+}    OPTIONAL    \nIf the file has been modified since the
+        version was last incremented, and the version does not need to be incremented
+        yet (still under development), append the version string with a +."
+      Text: "    {+}    OPTIONAL    \nIf the file has been modified since the version
+        was last incremented, and the version does not need to be incremented yet
+        (still under development), append the version string with a +."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# These guidelines should be followed:'
+      Text: ' These guidelines should be followed:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Use decimal separated text to store the version.'
+      Text: '    Use decimal separated text to store the version.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    When evaluating the version, MUST NOT convert the entire text
+        to a number. Each decimal separated section must be evaluated individually,
+        and in order. Here is a possible method of doing so:\n\nLet ( [\n\tver = \"1.2.21\"
+        ;\n\t// extract pre-release version string\n\tver = Substitute ( ver ; \"-\"
+        ; ¶ ) ;\n\tpreRelease = GetValue ( ver ; 2 ) ;\n\t// extract normal version
+        string\n\tver = GetValue ( ver ; 1 ) ;\n\tver = Substitute ( ver ; \".\" ;
+        ¶ ) ;\n\tmajor = GetAsNumber ( GetValue ( ver ; 1 ) ) ;\n\tminor = GetAsNumber
+        ( GetValue ( ver ; 2 ) ) ;\n\tpatch = GetAsNumber ( GetValue ( ver ; 3 ) )\n]
+        ;\n\t// evaluate version\n\tCase (\n\t\tmajor = 0 ;\n\t\t\"initial development\"
+        ;\n\t\t\n\t\tmajor = 1 ;\n\t\t\"first public release\"\n\t)\n)\n"
+      Text: "    When evaluating the version, MUST NOT convert the entire text to
+        a number. Each decimal separated section must be evaluated individually, and
+        in order. Here is a possible method of doing so:\n\nLet ( [\n\tver = \"1.2.21\"
+        ;\n\t// extract pre-release version string\n\tver = Substitute ( ver ; \"-\"
+        ; ¶ ) ;\n\tpreRelease = GetValue ( ver ; 2 ) ;\n\t// extract normal version
+        string\n\tver = GetValue ( ver ; 1 ) ;\n\tver = Substitute ( ver ; \".\" ;
+        ¶ ) ;\n\tmajor = GetAsNumber ( GetValue ( ver ; 1 ) ) ;\n\tminor = GetAsNumber
+        ( GetValue ( ver ; 2 ) ) ;\n\tpatch = GetAsNumber ( GetValue ( ver ; 3 ) )\n]
+        ;\n\t// evaluate version\n\tCase (\n\t\tmajor = 0 ;\n\t\t\"initial development\"
+        ;\n\t\t\n\t\tmajor = 1 ;\n\t\t\"first public release\"\n\t)\n)\n"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Summarize the changes of each version in a single comment step
+        below.'
+      Text: '    Summarize the changes of each version in a single comment step below.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# =============================================================================='
+      Text: ' =============================================================================='
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CHANGELOG'
+      Text: ' CHANGELOG'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# =============================================================================='
+      Text: ' =============================================================================='
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        ## 1.0.0 #
+
+        released 2015-JUN-03
+
+        - initial release
+      Text: |-
+        # 1.0.0 #
+
+        released 2015-JUN-03
+
+        - initial release
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

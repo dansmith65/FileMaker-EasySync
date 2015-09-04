@@ -1,0 +1,126 @@
+/* GetFieldFromContext ( fieldForTableNameOrTableName ; fieldOrFieldName )
+
+PURPOSE:
+Get a value from a field from the context of a specified table occurence.
+
+PARAMETERS:
+fieldForTableNameOrTableName (field, txt) field, fully-qualified field name, or table occurence name to extract table occurence from.
+fieldOrFieldName (field, txt) field or field name to extract field name from.  It can be from any TableOccurence, as that portion of the field name is removed.
+
+RETURNS:
+specified field value or empty result if parameters are invalid
+
+DEPENDENCIES:
+none
+
+REVISIONS:
+2012-AUG-10	- Created by Dan Smith dansmith65@gmail.com
+####################################################################################################*/
+
+Let([
+	~tableName = If(
+		IsValid( GetFieldName( fieldForTableNameOrTableName ) ) ;
+		GetFieldName( fieldForTableNameOrTableName ) ;
+		fieldForTableNameOrTableName 
+	) ;
+	~tableNameOnly = GetValue( Substitute( ~tableName ; "::" ; ¶ ) ; 1 ) ;
+	~fieldName = If(
+		IsValid( GetFieldName( fieldOrFieldName ) ) ;
+		GetFieldName( fieldOrFieldName ) ;
+		fieldOrFieldName
+	) ;
+	~separator = Position ( ~fieldName ; "::" ; 1 ; 1 ) ;
+	~fieldNameOnly = If(
+		~separator ;
+		Right ( ~fieldName ; Length ( ~fieldName ) - ~separator - 1 ) ;
+		~fieldName
+	)
+];
+	If(
+		not IsEmpty( ~tableNameOnly ) and not IsEmpty( ~fieldNameOnly ) ;
+		GetField( ~tableNameOnly & "::" & ~fieldNameOnly )
+	)
+)
+
+---
+CustomFunction:
+  id: '40'
+  functionArity: '2'
+  visible: 'True'
+  parameters: fieldForTableNameOrTableName;fieldOrFieldName
+  name: GetFieldFromContext
+  Calculation: "/* GetFieldFromContext ( fieldForTableNameOrTableName ; fieldOrFieldName
+    )\n\nPURPOSE:\nGet a value from a field from the context of a specified table
+    occurence.\n\nPARAMETERS:\nfieldForTableNameOrTableName (field, txt) field, fully-qualified
+    field name, or table occurence name to extract table occurence from.\nfieldOrFieldName
+    (field, txt) field or field name to extract field name from.  It can be from any
+    TableOccurence, as that portion of the field name is removed.\n\nRETURNS:\nspecified
+    field value or empty result if parameters are invalid\n\nDEPENDENCIES:\nnone\n\nREVISIONS:\n2012-AUG-10\t-
+    Created by Dan Smith dansmith65@gmail.com\n####################################################################################################*/\n\nLet([\n\t~tableName
+    = If(\n\t\tIsValid( GetFieldName( fieldForTableNameOrTableName ) ) ;\n\t\tGetFieldName(
+    fieldForTableNameOrTableName ) ;\n\t\tfieldForTableNameOrTableName \n\t) ;\n\t~tableNameOnly
+    = GetValue( Substitute( ~tableName ; \"::\" ; ¶ ) ; 1 ) ;\n\t~fieldName = If(\n\t\tIsValid(
+    GetFieldName( fieldOrFieldName ) ) ;\n\t\tGetFieldName( fieldOrFieldName ) ;\n\t\tfieldOrFieldName\n\t)
+    ;\n\t~separator = Position ( ~fieldName ; \"::\" ; 1 ; 1 ) ;\n\t~fieldNameOnly
+    = If(\n\t\t~separator ;\n\t\tRight ( ~fieldName ; Length ( ~fieldName ) - ~separator
+    - 1 ) ;\n\t\t~fieldName\n\t)\n];\n\tIf(\n\t\tnot IsEmpty( ~tableNameOnly ) and
+    not IsEmpty( ~fieldNameOnly ) ;\n\t\tGetField( ~tableNameOnly & \"::\" & ~fieldNameOnly
+    )\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/* GetFieldFromContext ( fieldForTableNameOrTableName ; fieldOrFieldName )\n\nPURPOSE:\nGet
+      a value from a field from the context of a specified table occurence.\n\nPARAMETERS:\nfieldForTableNameOrTableName
+      (field, txt) field, fully-qualified field name, or table occurence name to extract
+      table occurence from.\nfieldOrFieldName (field, txt) field or field name to
+      extract field name from.  It can be from any TableOccurence, as that portion
+      of the field name is removed.\n\nRETURNS:\nspecified field value or empty result
+      if parameters are invalid\n\nDEPENDENCIES:\nnone\n\nREVISIONS:\n2012-AUG-10\t-
+      Created by Dan Smith dansmith65@gmail.com\n####################################################################################################*/\n\n"
+    - Let
+    - "([\n\t~tableName = "
+    - If
+    - "(\n\t\t"
+    - IsValid
+    - '( '
+    - GetFieldName
+    - "( fieldForTableNameOrTableName ) ) ;\n\t\t"
+    - GetFieldName
+    - "( fieldForTableNameOrTableName ) ;\n\t\tfieldForTableNameOrTableName \n\t)
+      ;\n\t~tableNameOnly = "
+    - GetValue
+    - '( '
+    - Substitute
+    - "( ~tableName ; \"::\" ; ¶ ) ; 1 ) ;\n\t~fieldName = "
+    - If
+    - "(\n\t\t"
+    - IsValid
+    - '( '
+    - GetFieldName
+    - "( fieldOrFieldName ) ) ;\n\t\t"
+    - GetFieldName
+    - "( fieldOrFieldName ) ;\n\t\tfieldOrFieldName\n\t) ;\n\t~separator = "
+    - Position
+    - " ( ~fieldName ; \"::\" ; 1 ; 1 ) ;\n\t~fieldNameOnly = "
+    - If
+    - "(\n\t\t~separator ;\n\t\t"
+    - Right
+    - ' ( ~fieldName ; '
+    - Length
+    - " ( ~fieldName ) - ~separator - 1 ) ;\n\t\t~fieldName\n\t)\n];\n\t"
+    - If
+    - "(\n\t\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - '( ~tableNameOnly ) '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - "( ~fieldNameOnly ) ;\n\t\t"
+    - GetField
+    - "( ~tableNameOnly & \"::\" & ~fieldNameOnly )\n\t)\n)"

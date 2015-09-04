@@ -1,0 +1,891 @@
+#################################################################################
+# PURPOSE:
+#    Extract message from error data, then display it to user.
+#
+# CONTEXT: global
+#
+# PARAMETERS:
+#    $error | let notation | name/value pairs describing the errordialogTitle		if provided, will override the default titledialogMessage		if provided, will override the default message
+#
+# RETURNS: none (this script is assumed to have worked)
+#
+# DEPENDENCIES:
+#
+# NOTES:
+#
+# REVISIONS:
+#    2015-AUG-27	 Daniel Smith	- add script section to message if the current user is a Developer2015-AUG-05	 Daniel Smith	- Created
+#################################################################################
+#
+#
+#
+Loop
+# single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+#================================================================================
+If [ // save script parameters to local variablesnot #Assign (	Get ( ScriptParameter ))ornot VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) ) ]
+Perform Script [ “<unknown>”; Parameter: LogData ( LogLevel1Error ; "" )& ErrorApp ( 2 ; "" )& # ( "~script.section" ; $~script.section ) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"EXTRACT CUSTOM MESSAGE FROM ERROR" ]
+#================================================================================
+If [ not IsEmpty ( $error ) ]
+Set Variable [ $dialogTitle; Value:#Get ( $error ; "dialogTitle" ) ]
+Set Variable [ $dialogMessage; Value:#Get ( $error ; "dialogMessage" ) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"USE ERROR FOR THE MESSAGE" ]
+#================================================================================
+If [ IsEmpty ( $dialogMessage )andnot IsEmpty ( $error ) ]
+Set Variable [ $dialogMessage; Value:Let ( [	$code = #Get ( $error ; "errorCode" ) ;	$type = #Get ( $error ; "errorType" ) ;	$description = #Get ( $error ; "errorDescription" ) ;	$info = #Get ( $error ; "errorInfo" )] ;	List (		"code: " & $code ;		"type: " & $type ;		"description: " & $description ;		If ( not IsEmpty ( $info ) ;			"info: " & $info		)	)) ]
+If [ Developer ]
+Set Variable [ $dialogMessage; Value:List (	$dialogMessage ;	"script section: " & #Get ( $error ; "~script.section" )) ]
+End If
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"USE GENERIC MESSAGE" ]
+#================================================================================
+If [ IsEmpty ( $dialogTitle ) ]
+Set Variable [ $dialogTitle; Value:"ERROR" ]
+End If
+If [ IsEmpty ( $dialogMessage ) ]
+Set Variable [ $dialogMessage; Value:"An error occurred, please notify your database administrator." ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SHOW MESSAGE" ]
+#================================================================================
+Beep
+Show Custom Dialog [ Title: $dialogTitle; Message: $dialogMessage; Default Button: “OK”, Commit: “No” ]
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"LOG END OF SCRIPT" ]
+#================================================================================
+If [ LogWriteEnabled ( LogLevel5Trace ) ]
+Set Variable [ $dataToLog; Value:/** * Data used in this script that may be relevent for debugging. *  * Save this data to a variable so it can easily be duplicated and logged both when there is an error, * or when detailed logging is enabled. This is easier to maintain than if it was defined in the script * parameter to the Logger script. * * For performance reasons, do not save this variable unless a log entry is supposed to be created. */# ( "dialogTitle" ; $dialogTitle )& # ( "dialogMessage" ; $dialogMessage ) ]
+Perform Script [ “<unknown>”; Parameter: LogData ( LogLevel5Trace ; "exit script" )& $dataToLog& # ( "~script.section" ; $~script.section ) ]
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '79'
+  name: Show Message From ( error )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Extract message from error data, then display it to user.'
+      Text: '    Extract message from error data, then display it to user.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CONTEXT: global'
+      Text: ' CONTEXT: global'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    $error | let notation | name/value pairs describing the error\n\ndialogTitle\t\tif
+        provided, will override the default title\ndialogMessage\t\tif provided, will
+        override the default message"
+      Text: "    $error | let notation | name/value pairs describing the error\n\ndialogTitle\t\tif
+        provided, will override the default title\ndialogMessage\t\tif provided, will
+        override the default message"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS: none (this script is assumed to have worked)'
+      Text: ' RETURNS: none (this script is assumed to have worked)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2015-AUG-27\t Daniel Smith\n\t- add script section to message
+        if the current user is a Developer\n2015-AUG-05\t Daniel Smith\n\t- Created"
+      Text: "    \n2015-AUG-27\t Daniel Smith\n\t- add script section to message if
+        the current user is a Developer\n2015-AUG-05\t Daniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# single-pass loop for error trapping'
+      Text: ' single-pass loop for error trapping'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+      Value:
+        Calculation: '"ASSIGN PARAMETERS"'
+        DisplayCalculation:
+          Chunk: '"ASSIGN PARAMETERS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ // save script parameters to local variables\nnot #Assign (\n\tGet
+        ( ScriptParameter )\n)\nor\nnot VerifyVariablesNotEmpty ( ScriptRequiredParameterList
+        ( \"\" ) ) ]"
+      Calculation: "// save script parameters to local variables\nnot #Assign (\n\tGet
+        ( ScriptParameter )\n)\nor\nnot VerifyVariablesNotEmpty ( ScriptRequiredParameterList
+        ( \"\" ) )"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // save script parameters to local variables
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#Assign'
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - |2
+           )
+          )
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - type: NoRef
+          __content__: ' '
+        - VerifyVariablesNotEmpty
+        - ' ( '
+        - ScriptRequiredParameterList
+        - ' ( "" ) )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “<unknown>”; Parameter: LogData ( LogLevel1Error ; "" )
+        & ErrorApp ( 2 ; "" )
+        & # ( "~script.section" ; $~script.section ) ]
+      Calculation: |-
+        LogData ( LogLevel1Error ; "" )
+        & ErrorApp ( 2 ; "" )
+        & # ( "~script.section" ; $~script.section )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel1Error
+        - " ; \"\" )\n& "
+        - ErrorApp
+        - " ( 2 ; \"\" )\n& "
+        - '#'
+        - ' ( "~script.section" ; $~script.section )'
+      Script:
+        id: '15'
+        name: <unknown>
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"EXTRACT CUSTOM MESSAGE FROM
+        ERROR" ]
+      Value:
+        Calculation: '"EXTRACT CUSTOM MESSAGE FROM ERROR"'
+        DisplayCalculation:
+          Chunk: '"EXTRACT CUSTOM MESSAGE FROM ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $error ) ]
+      Calculation: not IsEmpty ( $error )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $error )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dialogTitle; Value:#Get ( $error ; "dialogTitle" )
+        ]
+      Value:
+        Calculation: '#Get ( $error ; "dialogTitle" )'
+        DisplayCalculation:
+          Chunk:
+          - '#Get'
+          - ' ( $error ; "dialogTitle" )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dialogTitle
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dialogMessage; Value:#Get ( $error ; "dialogMessage"
+        ) ]
+      Value:
+        Calculation: '#Get ( $error ; "dialogMessage" )'
+        DisplayCalculation:
+          Chunk:
+          - '#Get'
+          - ' ( $error ; "dialogMessage" )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dialogMessage
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"USE ERROR FOR THE MESSAGE"
+        ]
+      Value:
+        Calculation: '"USE ERROR FOR THE MESSAGE"'
+        DisplayCalculation:
+          Chunk: '"USE ERROR FOR THE MESSAGE"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ IsEmpty ( $dialogMessage )
+        and
+        not IsEmpty ( $error ) ]
+      Calculation: |-
+        IsEmpty ( $dialogMessage )
+        and
+        not IsEmpty ( $error )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - |2
+           ( $dialogMessage )
+        - and
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $error )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dialogMessage; Value:Let ( [\n\t$code = #Get ( $error
+        ; \"errorCode\" ) ;\n\t$type = #Get ( $error ; \"errorType\" ) ;\n\t$description
+        = #Get ( $error ; \"errorDescription\" ) ;\n\t$info = #Get ( $error ; \"errorInfo\"
+        )\n] ;\n\tList (\n\t\t\"code: \" & $code ;\n\t\t\"type: \" & $type ;\n\t\t\"description:
+        \" & $description ;\n\t\tIf ( not IsEmpty ( $info ) ;\n\t\t\t\"info: \" &
+        $info\n\t\t)\n\t)\n) ]"
+      Value:
+        Calculation: "Let ( [\n\t$code = #Get ( $error ; \"errorCode\" ) ;\n\t$type
+          = #Get ( $error ; \"errorType\" ) ;\n\t$description = #Get ( $error ; \"errorDescription\"
+          ) ;\n\t$info = #Get ( $error ; \"errorInfo\" )\n] ;\n\tList (\n\t\t\"code:
+          \" & $code ;\n\t\t\"type: \" & $type ;\n\t\t\"description: \" & $description
+          ;\n\t\tIf ( not IsEmpty ( $info ) ;\n\t\t\t\"info: \" & $info\n\t\t)\n\t)\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( [\n\t$code = "
+          - '#Get'
+          - " ( $error ; \"errorCode\" ) ;\n\t$type = "
+          - '#Get'
+          - " ( $error ; \"errorType\" ) ;\n\t$description = "
+          - '#Get'
+          - " ( $error ; \"errorDescription\" ) ;\n\t$info = "
+          - '#Get'
+          - " ( $error ; \"errorInfo\" )\n] ;\n\t"
+          - List
+          - " (\n\t\t\"code: \" & $code ;\n\t\t\"type: \" & $type ;\n\t\t\"description:
+            \" & $description ;\n\t\t"
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - " ( $info ) ;\n\t\t\t\"info: \" & $info\n\t\t)\n\t)\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dialogMessage
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Developer ]
+      Calculation: Developer
+      DisplayCalculation:
+        Chunk: Developer
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dialogMessage; Value:List (\n\t$dialogMessage ;\n\t\"script
+        section: \" & #Get ( $error ; \"~script.section\" )\n) ]"
+      Value:
+        Calculation: "List (\n\t$dialogMessage ;\n\t\"script section: \" & #Get (
+          $error ; \"~script.section\" )\n)"
+        DisplayCalculation:
+          Chunk:
+          - List
+          - " (\n\t$dialogMessage ;\n\t\"script section: \" & "
+          - '#Get'
+          - |2-
+             ( $error ; "~script.section" )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dialogMessage
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"USE GENERIC MESSAGE" ]
+      Value:
+        Calculation: '"USE GENERIC MESSAGE"'
+        DisplayCalculation:
+          Chunk: '"USE GENERIC MESSAGE"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $dialogTitle ) ]
+      Calculation: IsEmpty ( $dialogTitle )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $dialogTitle )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dialogTitle; Value:"ERROR" ]
+      Value:
+        Calculation: '"ERROR"'
+        DisplayCalculation:
+          Chunk: '"ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dialogTitle
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $dialogMessage ) ]
+      Calculation: IsEmpty ( $dialogMessage )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $dialogMessage )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dialogMessage; Value:"An error occurred, please notify
+        your database administrator." ]
+      Value:
+        Calculation: '"An error occurred, please notify your database administrator."'
+        DisplayCalculation:
+          Chunk: '"An error occurred, please notify your database administrator."'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dialogMessage
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SHOW MESSAGE" ]
+      Value:
+        Calculation: '"SHOW MESSAGE"'
+        DisplayCalculation:
+          Chunk: '"SHOW MESSAGE"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '93'
+      name: Beep
+      StepText: Beep
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: $dialogTitle; Message: $dialogMessage;
+        Default Button: “OK”, Commit: “No” ]'
+      Title:
+        Calculation: $dialogTitle
+        DisplayCalculation:
+          Chunk: $dialogTitle
+      Message:
+        Calculation: $dialogMessage
+        DisplayCalculation:
+          Chunk: $dialogMessage
+      Buttons:
+        Button:
+        - CommitState: 'False'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# end single-pass loop for error trapping'
+      Text: ' end single-pass loop for error trapping'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"LOG END OF SCRIPT" ]
+      Value:
+        Calculation: '"LOG END OF SCRIPT"'
+        DisplayCalculation:
+          Chunk: '"LOG END OF SCRIPT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel5Trace ) ]
+      Calculation: LogWriteEnabled ( LogLevel5Trace )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel5Trace
+        - ' )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dataToLog; Value:/**\n * Data used in this script
+        that may be relevent for debugging.\n * \n * Save this data to a variable
+        so it can easily be duplicated and logged both when there is an error,\n *
+        or when detailed logging is enabled. This is easier to maintain than if it
+        was defined in the script\n * parameter to the Logger script.\n *\n * For
+        performance reasons, do not save this variable unless a log entry is supposed
+        to be created.\n */\n\n# ( \"dialogTitle\" ; $dialogTitle )\n& # ( \"dialogMessage\"
+        ; $dialogMessage ) ]"
+      Value:
+        Calculation: "/**\n * Data used in this script that may be relevent for debugging.\n
+          * \n * Save this data to a variable so it can easily be duplicated and logged
+          both when there is an error,\n * or when detailed logging is enabled. This
+          is easier to maintain than if it was defined in the script\n * parameter
+          to the Logger script.\n *\n * For performance reasons, do not save this
+          variable unless a log entry is supposed to be created.\n */\n\n# ( \"dialogTitle\"
+          ; $dialogTitle )\n& # ( \"dialogMessage\" ; $dialogMessage )"
+        DisplayCalculation:
+          Chunk:
+          - "/**\n * Data used in this script that may be relevent for debugging.\n
+            * \n * Save this data to a variable so it can easily be duplicated and
+            logged both when there is an error,\n * or when detailed logging is enabled.
+            This is easier to maintain than if it was defined in the script\n * parameter
+            to the Logger script.\n *\n * For performance reasons, do not save this
+            variable unless a log entry is supposed to be created.\n */\n\n"
+          - '#'
+          - " ( \"dialogTitle\" ; $dialogTitle )\n& "
+          - '#'
+          - ' ( "dialogMessage" ; $dialogMessage )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dataToLog
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “<unknown>”; Parameter: LogData ( LogLevel5Trace ; "exit script" )
+        & $dataToLog
+        & # ( "~script.section" ; $~script.section ) ]
+      Calculation: |-
+        LogData ( LogLevel5Trace ; "exit script" )
+        & $dataToLog
+        & # ( "~script.section" ; $~script.section )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel5Trace
+        - " ; \"exit script\" )\n& $dataToLog\n& "
+        - '#'
+        - ' ( "~script.section" ; $~script.section )'
+      Script:
+        id: '15'
+        name: <unknown>
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,40 @@
+/* SQLTable ( fieldForTableNameOrTableName )
+
+PURPOSE:
+Quote a table and field name for use in a FileMaker SQL statement. Prevent hard-coding it's value.
+
+PARAMETERS:
+fieldOrFieldName (field, txt) field or fully-qualified field name to extract names from.
+
+DEPENDENCIES:
+FileMaker Pro 10+
+
+REVISIONS:
+2012-DEC-13	- Created by Dan Smith dansmith65@gmail.com
+####################################################################################################*/
+
+SQLTable ( fieldOrFieldName ) & "." & SQLField ( fieldOrFieldName )
+
+---
+CustomFunction:
+  id: '80'
+  functionArity: '1'
+  visible: 'True'
+  parameters: fieldOrFieldName
+  name: SQLTableAndField
+  Calculation: "/* SQLTable ( fieldForTableNameOrTableName )\n\nPURPOSE:\nQuote a
+    table and field name for use in a FileMaker SQL statement. Prevent hard-coding
+    it's value.\n\nPARAMETERS:\nfieldOrFieldName (field, txt) field or fully-qualified
+    field name to extract names from.\n\nDEPENDENCIES:\nFileMaker Pro 10+\n\nREVISIONS:\n2012-DEC-13\t-
+    Created by Dan Smith dansmith65@gmail.com\n####################################################################################################*/\n\nSQLTable
+    ( fieldOrFieldName ) & \".\" & SQLField ( fieldOrFieldName )"
+  DisplayCalculation:
+    Chunk:
+    - "/* SQLTable ( fieldForTableNameOrTableName )\n\nPURPOSE:\nQuote a table and
+      field name for use in a FileMaker SQL statement. Prevent hard-coding it's value.\n\nPARAMETERS:\nfieldOrFieldName
+      (field, txt) field or fully-qualified field name to extract names from.\n\nDEPENDENCIES:\nFileMaker
+      Pro 10+\n\nREVISIONS:\n2012-DEC-13\t- Created by Dan Smith dansmith65@gmail.com\n####################################################################################################*/\n\n"
+    - SQLTable
+    - ' ( fieldOrFieldName ) & "." & '
+    - SQLField
+    - ' ( fieldOrFieldName )'

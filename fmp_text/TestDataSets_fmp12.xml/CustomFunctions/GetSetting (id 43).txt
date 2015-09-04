@@ -1,0 +1,72 @@
+/**
+ * ============================================================================
+ * GetSetting ( theField )
+ *
+ * PURPOSE:
+ *		Get field value from a single record "settings" table via SQL.
+ *
+ * RETURNS:
+ *		Specified field's value for all records in that table.
+ *
+ * PARAMETERS:
+ *		theField (field) FileMaker field (NOT field name, but the actual field).
+ *
+ * HISTORY:
+ *		2013-JAN-15 - Created by Daniel Smith dansmith65@gmail.com
+ * ============================================================================
+ */
+
+Let ( [
+	theField = Substitute ( GetFieldName ( theField ) ; "::" ; ¶ ) ;
+	~tableName = GetValue ( theField ; 1 ) ;
+	~fieldName = GetValue ( theField ; 2 )
+] ;
+	ExecuteSQL (
+		"SELECT " & Quote ( ~fieldName ) & " FROM " & Quote ( ~tableName ) ;
+		"" ;
+		""
+	)
+)
+
+---
+CustomFunction:
+  id: '43'
+  functionArity: '1'
+  visible: 'True'
+  parameters: theField
+  name: GetSetting
+  Calculation: "/**\n * ============================================================================\n
+    * GetSetting ( theField )\n *\n * PURPOSE:\n *\t\tGet field value from a single
+    record \"settings\" table via SQL.\n *\n * RETURNS:\n *\t\tSpecified field's value
+    for all records in that table.\n *\n * PARAMETERS:\n *\t\ttheField (field) FileMaker
+    field (NOT field name, but the actual field).\n *\n * HISTORY:\n *\t\t2013-JAN-15
+    - Created by Daniel Smith dansmith65@gmail.com\n * ============================================================================\n
+    */\n\nLet ( [\n\ttheField = Substitute ( GetFieldName ( theField ) ; \"::\" ;
+    ¶ ) ;\n\t~tableName = GetValue ( theField ; 1 ) ;\n\t~fieldName = GetValue ( theField
+    ; 2 )\n] ;\n\tExecuteSQL (\n\t\t\"SELECT \" & Quote ( ~fieldName ) & \" FROM \"
+    & Quote ( ~tableName ) ;\n\t\t\"\" ;\n\t\t\"\"\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * GetSetting ( theField )\n *\n * PURPOSE:\n *\t\tGet field value from a single
+      record \"settings\" table via SQL.\n *\n * RETURNS:\n *\t\tSpecified field's
+      value for all records in that table.\n *\n * PARAMETERS:\n *\t\ttheField (field)
+      FileMaker field (NOT field name, but the actual field).\n *\n * HISTORY:\n *\t\t2013-JAN-15
+      - Created by Daniel Smith dansmith65@gmail.com\n * ============================================================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\ttheField = "
+    - Substitute
+    - ' ( '
+    - GetFieldName
+    - " ( theField ) ; \"::\" ; ¶ ) ;\n\t~tableName = "
+    - GetValue
+    - " ( theField ; 1 ) ;\n\t~fieldName = "
+    - GetValue
+    - " ( theField ; 2 )\n] ;\n\t"
+    - ExecuteSQL
+    - " (\n\t\t\"SELECT \" & "
+    - Quote
+    - ' ( ~fieldName ) & " FROM " & '
+    - Quote
+    - " ( ~tableName ) ;\n\t\t\"\" ;\n\t\t\"\"\n\t)\n)"

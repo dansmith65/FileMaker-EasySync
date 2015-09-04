@@ -1,0 +1,28 @@
+       id  File Reference             Path List                
+       --  --------------             ---------                
+        1  EasySync_Client            file:EasySync_Client     
+        2  EasySync_Server            file:EasySync_Server     
+        3  Log                        file:Log                 
+        4  PluginManager              file:PluginManager.fmp12 
+
+       id  ODBC Source                DSN                        Link                     
+       --  -----------                ---                        ----                     
+
+
+---
+ExternalDataSourcesCatalog:
+  FileReference:
+  - link: EasySync_Client_fmp12.xml
+    id: '1'
+    pathList: file:EasySync_Client
+    name: EasySync_Client
+  - link: EasySync_Server_fmp12.xml
+    id: '2'
+    pathList: file:EasySync_Server
+    name: EasySync_Server
+  - id: '3'
+    pathList: file:Log
+    name: Log
+  - id: '4'
+    pathList: file:PluginManager.fmp12
+    name: PluginManager

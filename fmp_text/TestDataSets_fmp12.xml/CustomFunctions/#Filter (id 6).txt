@@ -1,0 +1,220 @@
+/**
+ * =====================================
+ * #Filter ( parameters ; filterParameters )
+ *
+ * RETURNS:
+ *		A list of Let notation name-value pairs from parameters with names in
+ *		filterParameters. Any pairs with names not in filterParameters will not
+ *		be included.
+ *
+ * PARAMETERS:
+ *		parameters: A string of serialized name-value pair data in Let notation.
+ *		filterParameters: A return-delimited list of parameter names to include
+ *		in the result.
+ *
+ * EXAMPLE:
+ *		#Assign ( #Filter (
+ *			# ( "name" ; "value" )
+ *			& # ( "foo" ; "bar" );
+ *			List ( "name" ; "otherName" )
+ *		) )
+ *		// variable $name assigned "value"; $foo and $otherName are unaffected
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to improve
+ *		efficiency.
+ *		MODIFIED on 2013-12-23 by John Jones <john.christopher@alumni.virginia.edu>
+ *		to use Position/Middle.  Modified to add trailing return if it doesn't
+ *		exist.
+ *		CREATED on 2012-11-28 by Jeremy Bante <http://scr.im/jbante>.
+ * =====================================
+ */
+
+Case (
+	/* Step 0, set-up */
+	not $#Filter.step ;
+		Let ( [
+			~empty = IsEmpty ( parameters ) or IsEmpty ( filterParameters ) ;
+			filterParameters =	// add "$" prefix for matching
+				Substitute ( ¶ & filterParameters ; ¶ ; "¶$" ) ;
+			filterParameters =	// add "$$" prefix for backwards-compatibility
+				filterParameters
+				& Substitute ( filterParameters ; ¶ ; "¶$" )
+				& ¶ ;
+			$#Filter.length = Length ( parameters ) ;
+			$#Filter.step = If ( ~empty ; 2 ; /* Else */ 1 )
+		] ;
+			#Filter ( parameters ; filterParameters )
+		) ;
+
+	/* Step 1, check each parameter */
+	$#Filter.step = 1 ;
+		Let ( [
+			~start = $#Filter.end + 1 ;
+			$#Filter.end = Position ( parameters ; ¶ ; ~start ; 1 ) ;
+			~endOfList = $#Filter.end = 0 ;
+			~length =
+				If ( ~endOfList ;
+					$#Filter.length + 1 ;
+					/* Else */ $#Filter.end
+				)
+				- ~start ;
+			~pair = Middle ( parameters ; ~start ; ~length ) ;
+			~name = Left ( ~pair ; Position ( ~pair ; " = " ; 1 ; 1 ) - 1 ) ;
+			~include =	// only include ~pair if ~name is in filterParameters
+				Position ( filterParameters ; ¶ & ~name & ¶ ; 1 ; 1 ) > 0 ;
+			$#Filter.result =
+				$#Filter.result
+				& If ( ~include ; ~pair & ¶ ) ;
+
+			~endOfList = ~endOfList or $#Filter.end ≥ $#Filter.length ;
+			$#Filter.step =
+				If ( ~endOfList ; $#Filter.step + 1 ; /* Else */ $#Filter.step )
+		] ;
+			#Filter ( parameters ; filterParameters )
+		) ;
+
+	/* Step 2, clean-up and return result */
+	$#Filter.step = 2 ;
+		Let ( [
+			~result = $#Filter.result ;
+
+			// purge variables
+			$#Filter.end = "" ;
+			$#Filter.length = "" ;
+			$#Filter.result = "" ;
+			$#Filter.step = ""
+		] ;
+			~result
+		)
+)
+
+---
+CustomFunction:
+  id: '6'
+  functionArity: '2'
+  visible: 'True'
+  parameters: parameters;filterParameters
+  name: '#Filter'
+  Calculation: "/**\n * =====================================\n * #Filter ( parameters
+    ; filterParameters )\n *\n * RETURNS:\n *\t\tA list of Let notation name-value
+    pairs from parameters with names in\n *\t\tfilterParameters. Any pairs with names
+    not in filterParameters will not\n *\t\tbe included.\n *\n * PARAMETERS:\n *\t\tparameters:
+    A string of serialized name-value pair data in Let notation.\n *\t\tfilterParameters:
+    A return-delimited list of parameter names to include\n *\t\tin the result.\n
+    *\n * EXAMPLE:\n *\t\t#Assign ( #Filter (\n *\t\t\t# ( \"name\" ; \"value\" )\n
+    *\t\t\t& # ( \"foo\" ; \"bar\" );\n *\t\t\tList ( \"name\" ; \"otherName\" )\n
+    *\t\t) )\n *\t\t// variable $name assigned \"value\"; $foo and $otherName are
+    unaffected\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-12-24
+    by Jeremy Bante <http://scr.im/jbante> to improve\n *\t\tefficiency.\n *\t\tMODIFIED
+    on 2013-12-23 by John Jones <john.christopher@alumni.virginia.edu>\n *\t\tto use
+    Position/Middle.  Modified to add trailing return if it doesn't\n *\t\texist.\n
+    *\t\tCREATED on 2012-11-28 by Jeremy Bante <http://scr.im/jbante>.\n * =====================================\n
+    */\n\nCase (\n\t/* Step 0, set-up */\n\tnot $#Filter.step ;\n\t\tLet ( [\n\t\t\t~empty
+    = IsEmpty ( parameters ) or IsEmpty ( filterParameters ) ;\n\t\t\tfilterParameters
+    =\t// add \"$\" prefix for matching\n\t\t\t\tSubstitute ( ¶ & filterParameters
+    ; ¶ ; \"¶$\" ) ;\n\t\t\tfilterParameters =\t// add \"$$\" prefix for backwards-compatibility\n\t\t\t\tfilterParameters\n\t\t\t\t&
+    Substitute ( filterParameters ; ¶ ; \"¶$\" )\n\t\t\t\t& ¶ ;\n\t\t\t$#Filter.length
+    = Length ( parameters ) ;\n\t\t\t$#Filter.step = If ( ~empty ; 2 ; /* Else */
+    1 )\n\t\t] ;\n\t\t\t#Filter ( parameters ; filterParameters )\n\t\t) ;\n\n\t/*
+    Step 1, check each parameter */\n\t$#Filter.step = 1 ;\n\t\tLet ( [\n\t\t\t~start
+    = $#Filter.end + 1 ;\n\t\t\t$#Filter.end = Position ( parameters ; ¶ ; ~start
+    ; 1 ) ;\n\t\t\t~endOfList = $#Filter.end = 0 ;\n\t\t\t~length =\n\t\t\t\tIf (
+    ~endOfList ;\n\t\t\t\t\t$#Filter.length + 1 ;\n\t\t\t\t\t/* Else */ $#Filter.end\n\t\t\t\t)\n\t\t\t\t-
+    ~start ;\n\t\t\t~pair = Middle ( parameters ; ~start ; ~length ) ;\n\t\t\t~name
+    = Left ( ~pair ; Position ( ~pair ; \" = \" ; 1 ; 1 ) - 1 ) ;\n\t\t\t~include
+    =\t// only include ~pair if ~name is in filterParameters\n\t\t\t\tPosition ( filterParameters
+    ; ¶ & ~name & ¶ ; 1 ; 1 ) > 0 ;\n\t\t\t$#Filter.result =\n\t\t\t\t$#Filter.result\n\t\t\t\t&
+    If ( ~include ; ~pair & ¶ ) ;\n\n\t\t\t~endOfList = ~endOfList or $#Filter.end
+    ≥ $#Filter.length ;\n\t\t\t$#Filter.step =\n\t\t\t\tIf ( ~endOfList ; $#Filter.step
+    + 1 ; /* Else */ $#Filter.step )\n\t\t] ;\n\t\t\t#Filter ( parameters ; filterParameters
+    )\n\t\t) ;\n\n\t/* Step 2, clean-up and return result */\n\t$#Filter.step = 2
+    ;\n\t\tLet ( [\n\t\t\t~result = $#Filter.result ;\n\n\t\t\t// purge variables\n\t\t\t$#Filter.end
+    = \"\" ;\n\t\t\t$#Filter.length = \"\" ;\n\t\t\t$#Filter.result = \"\" ;\n\t\t\t$#Filter.step
+    = \"\"\n\t\t] ;\n\t\t\t~result\n\t\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #Filter ( parameters ; filterParameters
+      )\n *\n * RETURNS:\n *\t\tA list of Let notation name-value pairs from parameters
+      with names in\n *\t\tfilterParameters. Any pairs with names not in filterParameters
+      will not\n *\t\tbe included.\n *\n * PARAMETERS:\n *\t\tparameters: A string
+      of serialized name-value pair data in Let notation.\n *\t\tfilterParameters:
+      A return-delimited list of parameter names to include\n *\t\tin the result.\n
+      *\n * EXAMPLE:\n *\t\t#Assign ( #Filter (\n *\t\t\t# ( \"name\" ; \"value\"
+      )\n *\t\t\t& # ( \"foo\" ; \"bar\" );\n *\t\t\tList ( \"name\" ; \"otherName\"
+      )\n *\t\t) )\n *\t\t// variable $name assigned \"value\"; $foo and $otherName
+      are unaffected\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on
+      2013-12-24 by Jeremy Bante <http://scr.im/jbante> to improve\n *\t\tefficiency.\n
+      *\t\tMODIFIED on 2013-12-23 by John Jones <john.christopher@alumni.virginia.edu>\n
+      *\t\tto use Position/Middle.  Modified to add trailing return if it doesn't\n
+      *\t\texist.\n *\t\tCREATED on 2012-11-28 by Jeremy Bante <http://scr.im/jbante>.\n
+      * =====================================\n */\n\n"
+    - Case
+    - " (\n\t/* Step 0, set-up */\n\t"
+    - not
+    - " $#Filter.step ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~empty = "
+    - IsEmpty
+    - ' ( parameters ) '
+    - or
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( filterParameters ) ;\n\t\t\tfilterParameters =\t"
+    - |
+      // add "$" prefix for matching
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - Substitute
+    - " ( ¶ & filterParameters ; ¶ ; \"¶$\" ) ;\n\t\t\tfilterParameters =\t"
+    - |
+      // add "$$" prefix for backwards-compatibility
+    - "\t\t\t\tfilterParameters\n\t\t\t\t& "
+    - Substitute
+    - " ( filterParameters ; ¶ ; \"¶$\" )\n\t\t\t\t& ¶ ;\n\t\t\t$#Filter.length = "
+    - Length
+    - " ( parameters ) ;\n\t\t\t$#Filter.step = "
+    - If
+    - " ( ~empty ; 2 ; /* Else */ 1 )\n\t\t] ;\n\t\t\t"
+    - '#Filter'
+    - " ( parameters ; filterParameters )\n\t\t) ;\n\n\t/* Step 1, check each parameter
+      */\n\t$#Filter.step = 1 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~start = $#Filter.end + 1 ;\n\t\t\t$#Filter.end = "
+    - Position
+    - " ( parameters ; ¶ ; ~start ; 1 ) ;\n\t\t\t~endOfList = $#Filter.end = 0 ;\n\t\t\t~length
+      =\n\t\t\t\t"
+    - If
+    - " ( ~endOfList ;\n\t\t\t\t\t$#Filter.length + 1 ;\n\t\t\t\t\t/* Else */ $#Filter.end\n\t\t\t\t)\n\t\t\t\t-
+      ~start ;\n\t\t\t~pair = "
+    - Middle
+    - " ( parameters ; ~start ; ~length ) ;\n\t\t\t~name = "
+    - Left
+    - ' ( ~pair ; '
+    - Position
+    - " ( ~pair ; \" = \" ; 1 ; 1 ) - 1 ) ;\n\t\t\t~include =\t"
+    - |
+      // only include ~pair if ~name is in filterParameters
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - Position
+    - " ( filterParameters ; ¶ & ~name & ¶ ; 1 ; 1 ) > 0 ;\n\t\t\t$#Filter.result
+      =\n\t\t\t\t$#Filter.result\n\t\t\t\t& "
+    - If
+    - " ( ~include ; ~pair & ¶ ) ;\n\n\t\t\t~endOfList = ~endOfList "
+    - or
+    - " $#Filter.end ≥ $#Filter.length ;\n\t\t\t$#Filter.step =\n\t\t\t\t"
+    - If
+    - " ( ~endOfList ; $#Filter.step + 1 ; /* Else */ $#Filter.step )\n\t\t] ;\n\t\t\t"
+    - '#Filter'
+    - " ( parameters ; filterParameters )\n\t\t) ;\n\n\t/* Step 2, clean-up and return
+      result */\n\t$#Filter.step = 2 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~result = $#Filter.result ;\n\n\t\t\t"
+    - |
+      // purge variables
+    - "\t\t\t$#Filter.end = \"\" ;\n\t\t\t$#Filter.length = \"\" ;\n\t\t\t$#Filter.result
+      = \"\" ;\n\t\t\t$#Filter.step = \"\"\n\t\t] ;\n\t\t\t~result\n\t\t)\n)"

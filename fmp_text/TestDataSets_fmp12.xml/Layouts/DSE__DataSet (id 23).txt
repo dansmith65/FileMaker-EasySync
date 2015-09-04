@@ -1,0 +1,713 @@
+     Layout name:  DSE__DataSet             
+              id:  23                       
+           Table:  DSE__DataSet             
+           Theme:  Enlightened              
+
+         Objects:                           
+                    Type              'Name'                             
+                    ----              ------                             
+                    Field             DSE__DataSet::name                 
+                    Field             DSE__DataSet::description          
+                    Field             DSE__DataSet::id                   
+                    Button                                               
+                    Button                                               
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '23'
+  name: DSE__DataSet
+  Table:
+    id: '1065089'
+    name: DSE__DataSet
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'False'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'
+  Object:
+  - type: Field
+    key: '2'
+    LabelKey: '3'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '200.0000000'
+      bottom: '96.0000000'
+      right: '440.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: DSE__DataSet::name
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: name
+          id: '2'
+          repetition: '1'
+          maxRepetition: '1'
+          table: DSE__DataSet
+  - type: Text
+    key: '3'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '200.0000000'
+      bottom: '64.0000000'
+      right: '256.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: Column Header Text
+      CharacterStyleVector:
+        Style:
+          Data: name
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#FFFFFF'
+      ParagraphStyleVector:
+        Style:
+          Data: name
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '4'
+    LabelKey: '5'
+    flags: '1073741824'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '448.0000000'
+      bottom: '96.0000000'
+      right: '848.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: DSE__DataSet::description
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: description
+          id: '3'
+          repetition: '1'
+          maxRepetition: '1'
+          table: DSE__DataSet
+  - type: Text
+    key: '5'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '448.0000000'
+      bottom: '64.0000000'
+      right: '536.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: Column Header Text
+      CharacterStyleVector:
+        Style:
+          Data: description
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#FFFFFF'
+      ParagraphStyleVector:
+        Style:
+          Data: description
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Text
+    key: '6'
+    LabelKey: '0'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '76.0000000'
+      left: '848.0000000'
+      bottom: '91.0000000'
+      right: '1016.0000000'
+    TextObj:
+      flags: '10'
+      tableViewVisibility: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '7'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '135'
+          charStyle: '0'
+          hourStyle: '1'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: created
+      CharacterStyleVector:
+        Style:
+          Data: 'created: <<creationTimestamp>>'
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '10'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: 'created: <<creationTimestamp>>'
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+      FieldList:
+        quickFind: 'True'
+        Field:
+          table: DSE__DataSet
+          id: '4'
+          name: creationTimestamp
+  - type: Button
+    key: '7'
+    LabelKey: '0'
+    flags: '16384'
+    rotation: '0'
+    Bounds:
+      top: '8.0000000'
+      left: '8.0000000'
+      bottom: '32.0000000'
+      right: '152.0000000'
+    ToolTip:
+      Calculation: '"Import the current data from EasySync Client and Server files
+        as a new data set."'
+      DisplayCalculation:
+        Chunk: '"Import the current data from EasySync Client and Server files as
+          a new data set."'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: Import From EasySync
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Import From EasySync
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: Perform Script [ “Import from EasySync” ]
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '1'
+          name: Import from EasySync
+  - type: Button
+    key: '8'
+    LabelKey: '0'
+    flags: '16384'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '8.0000000'
+      bottom: '96.0000000'
+      right: '56.0000000'
+    ToolTip:
+      Calculation: '"push this data set to sample files"'
+      DisplayCalculation:
+        Chunk: '"push this data set to sample files"'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: push
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: push
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: Perform Script [ “Push to EasySync” ]
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '96'
+          name: Push to EasySync
+  - type: Field
+    key: '9'
+    LabelKey: '10'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '64.0000000'
+      bottom: '96.0000000'
+      right: '192.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '34'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: DSE__DataSet::id
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: id
+          id: '1'
+          repetition: '1'
+          maxRepetition: '1'
+          table: DSE__DataSet
+  - type: Text
+    key: '10'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '64.0000000'
+      bottom: '64.0000000'
+      right: '120.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: Column Header Text
+      CharacterStyleVector:
+        Style:
+          Data: id
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#FFFFFF'
+      ParagraphStyleVector:
+        Style:
+          Data: id
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+

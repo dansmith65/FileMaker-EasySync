@@ -1,0 +1,623 @@
+################################################################################
+# PURPOSE:
+#    Provide an interface for logging.
+#    A central place all log requests are sent to, which allows for easily writting a log to a different destination.
+#
+# CONTEXT: global (can be called from any context)
+#
+# PARAMETERS:
+#    entire script parameter is the data to log, in whichever format you choose. Is recommended to contain the output of the LogData custom function, but does not have to.
+#
+# RETURNS: none
+#    Since this script will often be used for logging errors, it does not generate any errors itself to prevent infinite recursion.
+#    Not returning a result also preserves the value of Get ( ScriptResult ) in the calling script.
+#
+# DEPENDENCIES: none
+#
+# NOTES:
+#    This script should be modified to call a log writer of your choosing, which could either be in this file or another.
+#    It should also contain any filtering logic necessary. An example of this logic is included in the default script.
+#
+# REVISIONS:
+#    2015-JUN-01	 Daniel Smith	- don't call email log writer	- when the FM Log Writer returns an error, log all data via the Re-Login step	- clear FM Errors before exiting	- add section: RESTORE ENVIRONMENT2014-OCT-03	 Daniel Smith	- fix $logLevel expression2014-FEB-06	 Daniel Smith	- fix FILTER BY LOGLEVEL calculation1.0.0-beta22014-FEB-04	 Daniel Smith	- add LogNotFiltered cf2014-FEB-03	 Daniel Smith	- apply changes made to production test file2014-JAN-16	 Daniel Smith	- modify filter feature2014-JAN-15	 Daniel Smith	- modify documentation for script parameter, changing it from being a single value encoded under the name logData to a set of encoded name/value pairs	- move filter by log level steps into a sub-script2013-NOV-23	 Daniel Smith	- Created
+################################################################################
+#
+#
+#
+# FILTER BY LOGLEVEL
+# NOTE: when including verbose logging in your scripts, it's recommended to test if the log is filtered before calling this Logger script. The filter logic exists in a custom function specifically to facilitate this use case.The reason for this recommendation is performance: it prevents the log data from being generated/encoded if the log is not going to be written.EXAMPLE:If [LogWriteEnabled ( LogLevel5Trace )]    Perform Script ["Logger: Create Entry ( logData )"; Parameter: LogData ( LogLevel5Trace ; "" )]EndIf
+Set Variable [ $logLevel; Value:/** * Extract the logLevel from the script parameter. *  * If you include trace-level logging calls in your database, this calculation will be run many times so it is worth-while * making it as efficient as possible. *  * The calculation below performs the same task as #Get ( Get ( ScriptParameter ) ; "logLevel" ), but it does it more efficiently. *  */Let ( [	~start = Position ( Get ( ScriptParameter ) ; "$LogLevel = " ; 1 ; 1 ) ;	~end = Position ( Get ( ScriptParameter ) ; ";" ; ~start ; 1 )] ;	If ( ~start ;		GetAsNumber ( Middle ( Get ( ScriptParameter ) ; ~start + 12 ; ~end - ~start - 12 ) )	)) ]
+If [ GetAsNumber ( $logLevel ) ≥ 0		  // don't filter if $logLevel is invalidandnot LogWriteEnabled ( $logLevel ) ]
+Exit Script [  ]
+End If
+#
+#
+#
+# ASSIGN PARAMETERS
+Set Variable [ $logData; Value:Get ( ScriptParameter ) ]
+#
+#
+#
+# SET ENVIRONMENT
+# If Log Writer scripts are in an external file and if that file is not accessable for some reason, turning error capture on will prevent this script from showing an error to the user.
+Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState ) ]
+Set Error Capture [ On ]
+#
+#
+#
+# CALL LOGGING SCRIPT(S)
+Perform Script [ “Log Writer: FM: Create Entry ( logData )” from file: “Log”; Parameter: $logData ]
+If [ Get ( LastError ) ]
+Re-Login [ Account Name: /** * By attempting to login with an invalid account, an entry is created in the server's Event.log file. * Note that this info may not be displayed in the log viewer available from the Admin console, in * which case you may need to use either the OS log/event viewer app or view the Event.log file * in a text editor. * * Thanks goes to HOnza for this idea: http://honza.24usoftware.com/debugging-scripts-by-writing-to-event-log */"Error performing script: 'Log Writer: FM: Create Entry' from script: '"& Get ( ScriptName )& "'"& "¶logData:¶"& $logData ][ No dialog ]
+End If
+#
+#
+#
+# RESTORE ENVIRONMENT
+If [ not $ErrorCaptureState ]
+Set Error Capture [ Off ]
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '86'
+  name: 'Logger: Create Entry ( logData )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Provide an interface for logging.'
+      Text: '    Provide an interface for logging.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    A central place all log requests are sent to, which allows for
+        easily writting a log to a different destination.'
+      Text: '    A central place all log requests are sent to, which allows for easily
+        writting a log to a different destination.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CONTEXT: global (can be called from any context)'
+      Text: ' CONTEXT: global (can be called from any context)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    entire script parameter is the data to log, in whichever format
+        you choose. Is recommended to contain the output of the LogData custom function,
+        but does not have to.'
+      Text: '    entire script parameter is the data to log, in whichever format you
+        choose. Is recommended to contain the output of the LogData custom function,
+        but does not have to.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS: none'
+      Text: ' RETURNS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Since this script will often be used for logging errors, it
+        does not generate any errors itself to prevent infinite recursion.'
+      Text: '    Since this script will often be used for logging errors, it does
+        not generate any errors itself to prevent infinite recursion.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Not returning a result also preserves the value of Get ( ScriptResult
+        ) in the calling script.'
+      Text: '    Not returning a result also preserves the value of Get ( ScriptResult
+        ) in the calling script.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES: none'
+      Text: ' DEPENDENCIES: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    This script should be modified to call a log writer of your
+        choosing, which could either be in this file or another.'
+      Text: '    This script should be modified to call a log writer of your choosing,
+        which could either be in this file or another.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    It should also contain any filtering logic necessary. An example
+        of this logic is included in the default script.'
+      Text: '    It should also contain any filtering logic necessary. An example
+        of this logic is included in the default script.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2015-JUN-01\t Daniel Smith\n\t- don't call email log writer\n\t-
+        when the FM Log Writer returns an error, log all data via the Re-Login step\n\t-
+        clear FM Errors before exiting\n\t- add section: RESTORE ENVIRONMENT\n2014-OCT-03\t
+        Daniel Smith\n\t- fix $logLevel expression\n2014-FEB-06\t Daniel Smith\n\t-
+        fix FILTER BY LOGLEVEL calculation\n\n1.0.0-beta2\n2014-FEB-04\t Daniel Smith\n\t-
+        add LogNotFiltered cf\n2014-FEB-03\t Daniel Smith\n\t- apply changes made
+        to production test file\n2014-JAN-16\t Daniel Smith\n\t- modify filter feature\n2014-JAN-15\t
+        Daniel Smith\n\t- modify documentation for script parameter, changing it from
+        being a single value encoded under the name logData to a set of encoded name/value
+        pairs\n\t- move filter by log level steps into a sub-script\n2013-NOV-23\t
+        Daniel Smith\n\t- Created"
+      Text: "    \n2015-JUN-01\t Daniel Smith\n\t- don't call email log writer\n\t-
+        when the FM Log Writer returns an error, log all data via the Re-Login step\n\t-
+        clear FM Errors before exiting\n\t- add section: RESTORE ENVIRONMENT\n2014-OCT-03\t
+        Daniel Smith\n\t- fix $logLevel expression\n2014-FEB-06\t Daniel Smith\n\t-
+        fix FILTER BY LOGLEVEL calculation\n\n1.0.0-beta2\n2014-FEB-04\t Daniel Smith\n\t-
+        add LogNotFiltered cf\n2014-FEB-03\t Daniel Smith\n\t- apply changes made
+        to production test file\n2014-JAN-16\t Daniel Smith\n\t- modify filter feature\n2014-JAN-15\t
+        Daniel Smith\n\t- modify documentation for script parameter, changing it from
+        being a single value encoded under the name logData to a set of encoded name/value
+        pairs\n\t- move filter by log level steps into a sub-script\n2013-NOV-23\t
+        Daniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# FILTER BY LOGLEVEL'
+      Text: ' FILTER BY LOGLEVEL'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        # NOTE: when including verbose logging in your scripts, it's recommended to test if the log is filtered before calling this Logger script. The filter logic exists in a custom function specifically to facilitate this use case.
+
+        The reason for this recommendation is performance: it prevents the log data from being generated/encoded if the log is not going to be written.
+
+        EXAMPLE:
+        If [LogWriteEnabled ( LogLevel5Trace )]
+            Perform Script ["Logger: Create Entry ( logData )"; Parameter: LogData ( LogLevel5Trace ; "" )]
+        EndIf
+      Text: |2-
+         NOTE: when including verbose logging in your scripts, it's recommended to test if the log is filtered before calling this Logger script. The filter logic exists in a custom function specifically to facilitate this use case.
+
+        The reason for this recommendation is performance: it prevents the log data from being generated/encoded if the log is not going to be written.
+
+        EXAMPLE:
+        If [LogWriteEnabled ( LogLevel5Trace )]
+            Perform Script ["Logger: Create Entry ( logData )"; Parameter: LogData ( LogLevel5Trace ; "" )]
+        EndIf
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $logLevel; Value:/**\n * Extract the logLevel from
+        the script parameter.\n * \n * If you include trace-level logging calls in
+        your database, this calculation will be run many times so it is worth-while\n
+        * making it as efficient as possible.\n * \n * The calculation below performs
+        the same task as #Get ( Get ( ScriptParameter ) ; \"logLevel\" ), but it does
+        it more efficiently.\n * \n */\n\nLet ( [\n\t~start = Position ( Get ( ScriptParameter
+        ) ; \"$LogLevel = \" ; 1 ; 1 ) ;\n\t~end = Position ( Get ( ScriptParameter
+        ) ; \";\" ; ~start ; 1 )\n] ;\n\tIf ( ~start ;\n\t\tGetAsNumber ( Middle (
+        Get ( ScriptParameter ) ; ~start + 12 ; ~end - ~start - 12 ) )\n\t)\n) ]"
+      Value:
+        Calculation: "/**\n * Extract the logLevel from the script parameter.\n *
+          \n * If you include trace-level logging calls in your database, this calculation
+          will be run many times so it is worth-while\n * making it as efficient as
+          possible.\n * \n * The calculation below performs the same task as #Get
+          ( Get ( ScriptParameter ) ; \"logLevel\" ), but it does it more efficiently.\n
+          * \n */\n\nLet ( [\n\t~start = Position ( Get ( ScriptParameter ) ; \"$LogLevel
+          = \" ; 1 ; 1 ) ;\n\t~end = Position ( Get ( ScriptParameter ) ; \";\" ;
+          ~start ; 1 )\n] ;\n\tIf ( ~start ;\n\t\tGetAsNumber ( Middle ( Get ( ScriptParameter
+          ) ; ~start + 12 ; ~end - ~start - 12 ) )\n\t)\n)"
+        DisplayCalculation:
+          Chunk:
+          - "/**\n * Extract the logLevel from the script parameter.\n * \n * If you
+            include trace-level logging calls in your database, this calculation will
+            be run many times so it is worth-while\n * making it as efficient as possible.\n
+            * \n * The calculation below performs the same task as #Get ( Get ( ScriptParameter
+            ) ; \"logLevel\" ), but it does it more efficiently.\n * \n */\n\n"
+          - Let
+          - " ( [\n\t~start = "
+          - Position
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - " ) ; \"$LogLevel = \" ; 1 ; 1 ) ;\n\t~end = "
+          - Position
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - " ) ; \";\" ; ~start ; 1 )\n] ;\n\t"
+          - If
+          - " ( ~start ;\n\t\t"
+          - GetAsNumber
+          - ' ( '
+          - Middle
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - " ) ; ~start + 12 ; ~end - ~start - 12 ) )\n\t)\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $logLevel
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ GetAsNumber ( $logLevel ) ≥ 0\t\t  // don't filter if $logLevel
+        is invalid\nand\nnot LogWriteEnabled ( $logLevel ) ]"
+      Calculation: "GetAsNumber ( $logLevel ) ≥ 0\t\t  // don't filter if $logLevel
+        is invalid\nand\nnot LogWriteEnabled ( $logLevel )"
+      DisplayCalculation:
+        Chunk:
+        - GetAsNumber
+        - " ( $logLevel ) ≥ 0\t\t  "
+        - |
+          // don't filter if $logLevel is invalid
+        - and
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - type: NoRef
+          __content__: ' '
+        - LogWriteEnabled
+        - ' ( $logLevel )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# ASSIGN PARAMETERS'
+      Text: ' ASSIGN PARAMETERS'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $logData; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $logData
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# SET ENVIRONMENT'
+      Text: ' SET ENVIRONMENT'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# If Log Writer scripts are in an external file and if that file
+        is not accessable for some reason, turning error capture on will prevent this
+        script from showing an error to the user.'
+      Text: ' If Log Writer scripts are in an external file and if that file is not
+        accessable for some reason, turning error capture on will prevent this script
+        from showing an error to the user.'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState )
+        ]
+      Value:
+        Calculation: Get ( ErrorCaptureState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ErrorCaptureState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ErrorCaptureState
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CALL LOGGING SCRIPT(S)'
+      Text: ' CALL LOGGING SCRIPT(S)'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Log Writer: FM: Create Entry ( logData )” from
+        file: “Log”; Parameter: $logData ]'
+      FileReference:
+        id: '3'
+        name: Log
+        UniversalPathList: file:Log
+      Calculation: $logData
+      DisplayCalculation:
+        Chunk: $logData
+      Script:
+        id: '34'
+        name: 'Log Writer: FM: Create Entry ( logData )'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastError ) ]
+      Calculation: Get ( LastError )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - ' )'
+    - enable: 'True'
+      id: '138'
+      name: Re-Login
+      StepText: |-
+        Re-Login [ Account Name: /**
+         * By attempting to login with an invalid account, an entry is created in the server's Event.log file.
+         * Note that this info may not be displayed in the log viewer available from the Admin console, in
+         * which case you may need to use either the OS log/event viewer app or view the Event.log file
+         * in a text editor.
+         *
+         * Thanks goes to HOnza for this idea: http://honza.24usoftware.com/debugging-scripts-by-writing-to-event-log
+         */
+
+        "Error performing script: 'Log Writer: FM: Create Entry' from script: '"
+        & Get ( ScriptName )
+        & "'"
+        & "¶logData:¶"
+        & $logData ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      AccountName:
+        Calculation: |-
+          /**
+           * By attempting to login with an invalid account, an entry is created in the server's Event.log file.
+           * Note that this info may not be displayed in the log viewer available from the Admin console, in
+           * which case you may need to use either the OS log/event viewer app or view the Event.log file
+           * in a text editor.
+           *
+           * Thanks goes to HOnza for this idea: http://honza.24usoftware.com/debugging-scripts-by-writing-to-event-log
+           */
+
+          "Error performing script: 'Log Writer: FM: Create Entry' from script: '"
+          & Get ( ScriptName )
+          & "'"
+          & "¶logData:¶"
+          & $logData
+        DisplayCalculation:
+          Chunk:
+          - "/**\n * By attempting to login with an invalid account, an entry is created
+            in the server's Event.log file.\n * Note that this info may not be displayed
+            in the log viewer available from the Admin console, in\n * which case
+            you may need to use either the OS log/event viewer app or view the Event.log
+            file\n * in a text editor.\n *\n * Thanks goes to HOnza for this idea:
+            http://honza.24usoftware.com/debugging-scripts-by-writing-to-event-log\n
+            */\n\n\"Error performing script: 'Log Writer: FM: Create Entry' from script:
+            '\"\n& "
+          - Get
+          - ' ( '
+          - ScriptName
+          - |2-
+             )
+            & "'"
+            & "¶logData:¶"
+            & $logData
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RESTORE ENVIRONMENT'
+      Text: ' RESTORE ENVIRONMENT'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $ErrorCaptureState ]
+      Calculation: not $ErrorCaptureState
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $ErrorCaptureState'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

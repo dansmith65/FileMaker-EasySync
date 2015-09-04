@@ -1,0 +1,107 @@
+/**
+ * =====================================
+ * ErrorFmpGetLast ( theErrorInfo )
+ *
+ * RETURNS:
+ *		Let Notation containing information about the last FileMaker
+ *		error and the environment it occurred in.
+ *
+ * PARAMETERS:
+ *		theErrorInfo = (text, optional) some text describing the particular
+ *			instance of this error. This should help a developer locate where
+ *			in a script the error occured.
+ *			(e.g., "create new invoice record")
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: ErrorFmp
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-NOV-25 by Daniel Smith dansmith65@gmail.com
+ *			- make ErrorFmp a dependency
+ *		MODIFIED on 2013-NOV-22 by Daniel Smith dansmith65@gmail.com
+ *			- renamed to ErrorFmpGetLast, update documentation
+ *		MODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com
+ *			- renamed from ErrorDataFmp ( ~errorCode ) to #GetLastError ( theErrorInfo )
+ *			- add dependency on custom function: #Error
+ *		MODIFIED on 2013-JAN-25 by Daniel Smith dansmith65@gmail.com
+ *			- rename from ErrorDataFmpWithCode to ErrorDataFmp
+ *		MODIFIED on 2012-DEC-15 by Daniel Smith dansmith65@gmail.com
+ *			- rename from ErrorDataFmp to ErrorDataFmpWithCode
+ *			- add parameter
+ *		MODIFIED on 2012-NOV-22 by Daniel Smith dansmith65@gmail.com
+ *			- rename to: ErrorDataFmp
+ *		MODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com
+ *			- don't access $error variable directly
+ *		CREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com
+ *		INSPIRED by ErrorString and ErrorData by matt@filemakermagazine.com
+ *			https://github.com/filemakerstandards/fmpstandards/tree/master/Functions
+ *
+ * REFERENCES:
+ *		http://www.filemaker.com/help/html/error_codes.html
+ *		http://filemakerstandards.org/x/AoA-/
+ * =====================================
+ */
+
+ErrorFmp ( Get ( LastError ) ; theErrorInfo )
+
+---
+CustomFunction:
+  id: '27'
+  functionArity: '1'
+  visible: 'True'
+  parameters: theErrorInfo
+  name: ErrorFmpGetLast
+  Calculation: "/**\n * =====================================\n * ErrorFmpGetLast
+    ( theErrorInfo )\n *\n * RETURNS:\n *\t\tLet Notation containing information about
+    the last FileMaker\n *\t\terror and the environment it occurred in.\n *\n * PARAMETERS:\n
+    *\t\ttheErrorInfo = (text, optional) some text describing the particular\n *\t\t\tinstance
+    of this error. This should help a developer locate where\n *\t\t\tin a script
+    the error occured.\n *\t\t\t(e.g., \"create new invoice record\")\n *\n * DEPENDENCIES:\n
+    *\t\tCustom Functions: ErrorFmp\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-NOV-25
+    by Daniel Smith dansmith65@gmail.com\n *\t\t\t- make ErrorFmp a dependency\n *\t\tMODIFIED
+    on 2013-NOV-22 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- renamed to ErrorFmpGetLast,
+    update documentation\n *\t\tMODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- renamed from ErrorDataFmp ( ~errorCode ) to #GetLastError ( theErrorInfo
+    )\n *\t\t\t- add dependency on custom function: #Error\n *\t\tMODIFIED on 2013-JAN-25
+    by Daniel Smith dansmith65@gmail.com\n *\t\t\t- rename from ErrorDataFmpWithCode
+    to ErrorDataFmp\n *\t\tMODIFIED on 2012-DEC-15 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- rename from ErrorDataFmp to ErrorDataFmpWithCode\n *\t\t\t- add parameter\n
+    *\t\tMODIFIED on 2012-NOV-22 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- rename
+    to: ErrorDataFmp\n *\t\tMODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- don't access $error variable directly\n *\t\tCREATED on 2012-NOV-20 Daniel
+    Smith dansmith65@gmail.com\n *\t\tINSPIRED by ErrorString and ErrorData by matt@filemakermagazine.com\n
+    *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+    *\n * REFERENCES:\n *\t\thttp://www.filemaker.com/help/html/error_codes.html\n
+    *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+    */\n\nErrorFmp ( Get ( LastError ) ; theErrorInfo )"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ErrorFmpGetLast ( theErrorInfo
+      )\n *\n * RETURNS:\n *\t\tLet Notation containing information about the last
+      FileMaker\n *\t\terror and the environment it occurred in.\n *\n * PARAMETERS:\n
+      *\t\ttheErrorInfo = (text, optional) some text describing the particular\n *\t\t\tinstance
+      of this error. This should help a developer locate where\n *\t\t\tin a script
+      the error occured.\n *\t\t\t(e.g., \"create new invoice record\")\n *\n * DEPENDENCIES:\n
+      *\t\tCustom Functions: ErrorFmp\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-NOV-25
+      by Daniel Smith dansmith65@gmail.com\n *\t\t\t- make ErrorFmp a dependency\n
+      *\t\tMODIFIED on 2013-NOV-22 by Daniel Smith dansmith65@gmail.com\n *\t\t\t-
+      renamed to ErrorFmpGetLast, update documentation\n *\t\tMODIFIED on 2013-OCT-11
+      by Daniel Smith dansmith65@gmail.com\n *\t\t\t- renamed from ErrorDataFmp (
+      ~errorCode ) to #GetLastError ( theErrorInfo )\n *\t\t\t- add dependency on
+      custom function: #Error\n *\t\tMODIFIED on 2013-JAN-25 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- rename from ErrorDataFmpWithCode to ErrorDataFmp\n *\t\tMODIFIED on
+      2012-DEC-15 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- rename from ErrorDataFmp
+      to ErrorDataFmpWithCode\n *\t\t\t- add parameter\n *\t\tMODIFIED on 2012-NOV-22
+      by Daniel Smith dansmith65@gmail.com\n *\t\t\t- rename to: ErrorDataFmp\n *\t\tMODIFIED
+      on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- don't access
+      $error variable directly\n *\t\tCREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n
+      *\t\tINSPIRED by ErrorString and ErrorData by matt@filemakermagazine.com\n *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+      *\n * REFERENCES:\n *\t\thttp://www.filemaker.com/help/html/error_codes.html\n
+      *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+      */\n\n"
+    - ErrorFmp
+    - ' ( '
+    - Get
+    - ' ( '
+    - LastError
+    - ' ) ; theErrorInfo )'

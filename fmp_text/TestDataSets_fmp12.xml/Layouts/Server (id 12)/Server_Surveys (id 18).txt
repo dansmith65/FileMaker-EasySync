@@ -1,0 +1,29 @@
+     Layout name:  Server_Surveys           
+              id:  18                       
+           Table:  Server_Surveys           
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '18'
+  name: Server_Surveys
+  Table:
+    id: '1065106'
+    name: Server_Surveys
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'False'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

@@ -1,0 +1,220 @@
+/**
+ * =====================================
+ * ErrorPluginBaseElements ( thePlugInResult ; theErrorInfo )
+ *
+ * RETURNS:
+ *		Let Notation containing information about the last PlugIn
+ *		error and the environment it occurred in.
+ *
+ * PARAMETERS:
+ *		thePlugInResult = (text) result of the PlugIn call
+ *		theErrorInfo = (text, optional) some text describing the particular
+ *			instance of this error. This should help a developer locate where
+ *			in a script the error occured.
+ *			(e.g., "create new invoice record")
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: #, Error
+ *		Plugin: BaseElements
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-06-12 by Daniel Smith dansmith65@gmail.com
+ *			- fix bug that caused errorCode to be decremented by one
+ *			  and unknown error code to be empty
+ *			- use ~pluginInternalErrorCode instead of BE_GetLastError
+ *		MODIFIED on 2014-05-29 by Daniel Smith dansmith65@gmail.com
+ *			- use BE_GetLastError as code, if it's numeric
+ *			- fix test for plugin not installed
+ *		CREATED on 2014-01-22 by Daniel Smith dansmith65@gmail.com
+ *
+ * REFERENCES:
+ *		http://filemakerstandards.org/x/AoA-/
+ * =====================================
+ */
+
+Let ( [
+	~pluginInternalErrorCode = BE_GetLastError ;
+	~isError =
+		thePlugInResult = "?"
+		or ~pluginInternalErrorCode ≠ 0
+	;
+	~theErrorCode =
+		Case (
+		// no error
+			not ~isError ;
+			0 ;
+		// plug-in not available
+			~pluginInternalErrorCode = "?" ;
+			10000 ;
+		// if ~pluginInternalErrorCode is numeric, use it
+			GetAsNumber ( ~pluginInternalErrorCode ) = ~pluginInternalErrorCode ;
+			~pluginInternalErrorCode ;
+		// else, use "unknown" code
+			-1
+		)
+	;
+	~errorDescription =
+		Case (
+			~theErrorCode = -1 ;		"Unknown error" ;
+			~theErrorCode = 0 ;		"No error" ;
+			~theErrorCode = 10000 ;		"BaseElements plug-in is not available" ;
+		// else:
+		// BaseElements does not have a text description to go with it's error codes
+		// but some functions return error info
+			If ( thePlugInResult ≠ "?" and thePlugInResult ≠ 0 and not IsEmpty ( thePlugInResult ) ;
+				thePlugInResult ;
+				"no description available"
+			)
+		)
+] ;
+	Error ( "Plugin: BaseElements" ; ~theErrorCode ; ~errorDescription ; theErrorInfo )
+	& If ( ~isError ;
+		# ( "plugInResult" ; thePlugInResult )
+		& # ( "BE_GetLastError" ; ~pluginInternalErrorCode )
+		& # ( "BE_GetLastDDLError" ; BE_GetLastDDLError )
+		& # ( "BE_JSON_Error_Description" ; BE_JSON_Error_Description )
+	)
+	& If ( ~theErrorCode = 10000 ;
+		# ( "InstalledFMPlugins" ; Get ( InstalledFMPlugins ) )
+	)
+)
+
+---
+CustomFunction:
+  id: '29'
+  functionArity: '2'
+  visible: 'True'
+  parameters: thePlugInResult;theErrorInfo
+  name: ErrorPluginBaseElements
+  Calculation: "/**\n * =====================================\n * ErrorPluginBaseElements
+    ( thePlugInResult ; theErrorInfo )\n *\n * RETURNS:\n *\t\tLet Notation containing
+    information about the last PlugIn\n *\t\terror and the environment it occurred
+    in.\n *\n * PARAMETERS:\n *\t\tthePlugInResult = (text) result of the PlugIn call\n
+    *\t\ttheErrorInfo = (text, optional) some text describing the particular\n *\t\t\tinstance
+    of this error. This should help a developer locate where\n *\t\t\tin a script
+    the error occured.\n *\t\t\t(e.g., \"create new invoice record\")\n *\n * DEPENDENCIES:\n
+    *\t\tCustom Functions: #, Error\n *\t\tPlugin: BaseElements\n *\n * HISTORY:\n
+    *\t\tMODIFIED on 2014-06-12 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- fix
+    bug that caused errorCode to be decremented by one\n *\t\t\t  and unknown error
+    code to be empty\n *\t\t\t- use ~pluginInternalErrorCode instead of BE_GetLastError\n
+    *\t\tMODIFIED on 2014-05-29 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- use
+    BE_GetLastError as code, if it's numeric\n *\t\t\t- fix test for plugin not installed\n
+    *\t\tCREATED on 2014-01-22 by Daniel Smith dansmith65@gmail.com\n *\n * REFERENCES:\n
+    *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+    */\n\nLet ( [\n\t~pluginInternalErrorCode = BE_GetLastError ;\n\t~isError =\n\t\tthePlugInResult
+    = \"?\"\n\t\tor ~pluginInternalErrorCode ≠ 0\n\t;\n\t~theErrorCode =\n\t\tCase
+    (\n\t\t// no error\n\t\t\tnot ~isError ;\n\t\t\t0 ;\n\t\t// plug-in not available\n\t\t\t~pluginInternalErrorCode
+    = \"?\" ;\n\t\t\t10000 ;\n\t\t// if ~pluginInternalErrorCode is numeric, use it\n\t\t\tGetAsNumber
+    ( ~pluginInternalErrorCode ) = ~pluginInternalErrorCode ;\n\t\t\t~pluginInternalErrorCode
+    ;\n\t\t// else, use \"unknown\" code\n\t\t\t-1\n\t\t)\n\t;\n\t~errorDescription
+    =\n\t\tCase (\n\t\t\t~theErrorCode = -1 ;\t\t\"Unknown error\" ;\n\t\t\t~theErrorCode
+    = 0 ;\t\t\"No error\" ;\n\t\t\t~theErrorCode = 10000 ;\t\t\"BaseElements plug-in
+    is not available\" ;\n\t\t// else:\n\t\t// BaseElements does not have a text description
+    to go with it's error codes\n\t\t// but some functions return error info\n\t\t\tIf
+    ( thePlugInResult ≠ \"?\" and thePlugInResult ≠ 0 and not IsEmpty ( thePlugInResult
+    ) ;\n\t\t\t\tthePlugInResult ;\n\t\t\t\t\"no description available\"\n\t\t\t)\n\t\t)\n]
+    ;\n\tError ( \"Plugin: BaseElements\" ; ~theErrorCode ; ~errorDescription ; theErrorInfo
+    )\n\t& If ( ~isError ;\n\t\t# ( \"plugInResult\" ; thePlugInResult )\n\t\t& #
+    ( \"BE_GetLastError\" ; ~pluginInternalErrorCode )\n\t\t& # ( \"BE_GetLastDDLError\"
+    ; BE_GetLastDDLError )\n\t\t& # ( \"BE_JSON_Error_Description\" ; BE_JSON_Error_Description
+    )\n\t)\n\t& If ( ~theErrorCode = 10000 ;\n\t\t# ( \"InstalledFMPlugins\" ; Get
+    ( InstalledFMPlugins ) )\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ErrorPluginBaseElements (
+      thePlugInResult ; theErrorInfo )\n *\n * RETURNS:\n *\t\tLet Notation containing
+      information about the last PlugIn\n *\t\terror and the environment it occurred
+      in.\n *\n * PARAMETERS:\n *\t\tthePlugInResult = (text) result of the PlugIn
+      call\n *\t\ttheErrorInfo = (text, optional) some text describing the particular\n
+      *\t\t\tinstance of this error. This should help a developer locate where\n *\t\t\tin
+      a script the error occured.\n *\t\t\t(e.g., \"create new invoice record\")\n
+      *\n * DEPENDENCIES:\n *\t\tCustom Functions: #, Error\n *\t\tPlugin: BaseElements\n
+      *\n * HISTORY:\n *\t\tMODIFIED on 2014-06-12 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- fix bug that caused errorCode to be decremented by one\n *\t\t\t  and
+      unknown error code to be empty\n *\t\t\t- use ~pluginInternalErrorCode instead
+      of BE_GetLastError\n *\t\tMODIFIED on 2014-05-29 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- use BE_GetLastError as code, if it's numeric\n *\t\t\t- fix test for
+      plugin not installed\n *\t\tCREATED on 2014-01-22 by Daniel Smith dansmith65@gmail.com\n
+      *\n * REFERENCES:\n *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\t~pluginInternalErrorCode = "
+    - BE_GetLastError
+    - " ;\n\t~isError =\n\t\tthePlugInResult = \"?\"\n\t\t"
+    - or
+    - " ~pluginInternalErrorCode ≠ 0\n\t;\n\t~theErrorCode =\n\t\t"
+    - Case
+    - " (\n\t\t"
+    - |
+      // no error
+    - type: NoRef
+      __content__: "\t\t\t"
+    - not
+    - " ~isError ;\n\t\t\t0 ;\n\t\t"
+    - |
+      // plug-in not available
+    - "\t\t\t~pluginInternalErrorCode = \"?\" ;\n\t\t\t10000 ;\n\t\t"
+    - |
+      // if ~pluginInternalErrorCode is numeric, use it
+    - type: NoRef
+      __content__: "\t\t\t"
+    - GetAsNumber
+    - " ( ~pluginInternalErrorCode ) = ~pluginInternalErrorCode ;\n\t\t\t~pluginInternalErrorCode
+      ;\n\t\t"
+    - |
+      // else, use "unknown" code
+    - "\t\t\t-1\n\t\t)\n\t;\n\t~errorDescription =\n\t\t"
+    - Case
+    - " (\n\t\t\t~theErrorCode = -1 ;\t\t\"Unknown error\" ;\n\t\t\t~theErrorCode
+      = 0 ;\t\t\"No error\" ;\n\t\t\t~theErrorCode = 10000 ;\t\t\"BaseElements plug-in
+      is not available\" ;\n\t\t"
+    - |
+      // else:
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // BaseElements does not have a text description to go with it's error codes
+    - type: NoRef
+      __content__: "\t\t"
+    - |
+      // but some functions return error info
+    - type: NoRef
+      __content__: "\t\t\t"
+    - If
+    - ' ( thePlugInResult ≠ "?" '
+    - and
+    - ' thePlugInResult ≠ 0 '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( thePlugInResult ) ;\n\t\t\t\tthePlugInResult ;\n\t\t\t\t\"no description
+      available\"\n\t\t\t)\n\t\t)\n] ;\n\t"
+    - Error
+    - " ( \"Plugin: BaseElements\" ; ~theErrorCode ; ~errorDescription ; theErrorInfo
+      )\n\t& "
+    - If
+    - " ( ~isError ;\n\t\t"
+    - '#'
+    - " ( \"plugInResult\" ; thePlugInResult )\n\t\t& "
+    - '#'
+    - " ( \"BE_GetLastError\" ; ~pluginInternalErrorCode )\n\t\t& "
+    - '#'
+    - ' ( "BE_GetLastDDLError" ; '
+    - BE_GetLastDDLError
+    - " )\n\t\t& "
+    - '#'
+    - ' ( "BE_JSON_Error_Description" ; '
+    - BE_JSON_Error_Description
+    - " )\n\t)\n\t& "
+    - If
+    - " ( ~theErrorCode = 10000 ;\n\t\t"
+    - '#'
+    - ' ( "InstalledFMPlugins" ; '
+    - Get
+    - ' ( '
+    - InstalledFMPlugins
+    - " ) )\n\t)\n)"

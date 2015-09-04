@@ -1,0 +1,2570 @@
+########################################################################################################################
+#PURPOSE:
+#	Short explaination of the scripts purpose
+#
+#CONTEXT:
+#
+#PARAMETERS:
+Set Variable [ $PARAMETERS; Value:"( required , required2 { optional , optional2 } )"// if script takes more parameters than can fit in the name, declare the parameters here in the same format as would usually be done in the script name ]
+#	$paramName | bool text num date time timestamp | description
+#
+#RETURNS:
+#	$error | a dictionary containing error data
+#	$runtime | number of seconds this script was running (with millisecond precision)
+#
+#VARIABLES:
+#
+#DEPENDENCIES:
+#
+#NOTES:
+#
+#REVISIONS:
+#	2015-SEP-02 Daniel Smith	- Created
+########################################################################################################################
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+If [ LogWriteEnabled ( LogLevel5Trace ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel5Trace ; "start script" ) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"TRIGGERS ARE DISABLED" ]
+#================================================================================
+If [ not TriggersAreActive ]
+If [ LogWriteEnabled ( LogLevel4Debug ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; "exit script: triggers disabled" ) ]
+End If
+# do not return result so the value of Get ( ScriptResult ) is not modified in any currently running script
+Exit Script [  ]
+End If
+#
+#
+#
+#
+#
+#
+Loop
+#single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+#================================================================================
+If [ // save script parameters to local variablesnot #Assign (	#Filter (		Get ( ScriptParameter ) ;		ScriptRequiredParameterList ( "" ) & ScriptOptionalParameterList ( "" )	))ornot VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) ) ]
+Exit Loop If [ Let (	$error = ErrorApp ( 2 ; "" ) ;	True) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+#================================================================================
+Set Variable [ $nameOfValuesRetrieved; Value:Let ( [	$sqlQuery =		"SELECT "			& SQLTableAndField ( "table::field" )		& "¶FROM "			& SQLTable ( "table::field" )		& "¶LEFT JOIN "			& SQLTable ( "table::field" )		& "¶ON "			& SQLTableAndField ( "table::field" )			& " = "			& SQLTableAndField ( "table::field" )		& "¶WHERE "			& SQLTableAndField ( "table::field" )			& " = ? "		& "¶AND "			& SQLTableAndField ( "table::field" )			& " = ? "		& "¶ORDER BY "			& SQLTableAndField ( "table::field" )			& ", " & SQLTableAndField ( "table::field" ) & " DESC"		& "¶GROUP BY "			& SQLTableAndField ( "table::field" )	;	$sqlParameter1 = "value" ;	$sqlResult = ExecuteSQL (		$sqlQuery ;		SQLFieldSeparator ;		SQLRowSeparator ;		$sqlParameter1	) ;	$error = If ( $sqlResult = "?" ;		ErrorApp ( 17 ; "" ) & # ( "sqlQuery" ; $sqlQuery ) ;		$error	)] ;	$sqlResult) ]
+Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState ) ]
+Set Variable [ $AllowAbortState; Value:Get ( AllowAbortState ) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SET ENVIRONMENT" ]
+#================================================================================
+If [ /*not IsServer*/ ]
+Freeze Window
+End If
+Commit Records/Requests[ No dialog ]
+Enter Browse Mode
+Allow User Abort [ Off ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"VALIDATE" ]
+#================================================================================
+If [ Get ( WindowMode ) ≠ 0/*0 for Browse mode 1 for Find mode 2 for Preview mode 3 if printing is in progress 4 (FileMaker Pro Advanced) if evaluating the function from the Data Viewer and the current window is in Layout mode*/ ]
+Show Custom Dialog [ Title: "Incorrect Mode"; Message: "This operation can only run in Browse mode."; Default Button: “Cancel”, Commit: “Yes” ]
+Exit Loop If [ Let (	$error = ErrorApp ( 6 ; "" ) ;	True) ]
+End If
+If [ Get ( FoundCount ) = 0 ]
+Show Custom Dialog [ Title: "No Records"; Message: "No records in the found set, cannot complete this operation."; Default Button: “Cancel”, Commit: “Yes” ]
+Exit Loop If [ Let (	$error = ErrorApp ( 4 ; "" ) ;	True) ]
+End If
+#
+#open record
+Open Record/Request
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "open record" ) ;		True	)) ]
+#
+#test if user can write to field
+Set Field [ "" ]
+Set Variable [ $error; Value:ErrorFmpGetLast ( "write to field" ) ]
+Revert Record/Request[ No dialog ]
+Exit Loop If [ ErrorFound ( $error ) ]
+Open Record/Request
+#
+#user confirmation
+Show Custom Dialog [ Title: "Message"; Message: "Change web user for this Customer?" ]
+If [ /* Cancel */Get( LastMessageChoice ) = 1 ]
+Exit Loop If [ Let (	$error = ErrorApp ( 1 ; "user confirmation" ) ;	True) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"MODIFY CONTEXT" ]
+#================================================================================
+If [ LogWriteEnabled ( LogLevel5Trace ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel5Trace ; $~script.section ) ]
+End If
+Set Variable [ $!; Value:TriggersDisable ]
+If [ IsWindowMaximized ]
+#by not specifying the window size, the new window will also be maximized
+New Window [ Name: Get( ScriptName ); Style: Document; Close: “Yes”; Minimize: “Yes”; Maximize: “Yes”; Zoom Control Area: “Yes”; Resize: “Yes” ]
+Else
+#open window off-screen
+New Window [ Name: Get( ScriptName ); Height: 0; Width: 0; Top: Get( ScreenHeight ); Left: 0; Style: Document; Close: “Yes”; Minimize: “Yes”; Maximize: “Yes”; Zoom Control Area: “Yes”; Resize: “Yes” ]
+End If
+Go to Layout [ <unknown> ]
+Set Variable [ $error; Value:ErrorFmpGetLast ( "go to layout" ) ]
+Set Variable [ $!; Value:TriggersEnable ]
+Exit Loop If [ ErrorFound ( $error ) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"PERFORM SUB-SCRIPT" ]
+#================================================================================
+Perform Script [ “<unknown>” ]
+# #Assign with error trapping CF 1
+Set Variable [ $!; Value:not #AssignScriptResultAndSetError (	"performScriptName" ;	"requiredResultList" ;	"optionalResultList") ]
+#
+##Assign with error trapping CF 2
+Exit Loop If [ not #AssignScriptResultAndSetError (	"performScriptName" ;	"requiredResultList" ;	"optionalResultList") ]
+#
+##Assign with error trapping CF 3
+If [ not #AssignScriptResultAndSetError (	"performScriptName" ;	"requiredResultList" ;	"optionalResultList") ]
+End If
+#
+##Assign with error trapping calc
+If [ Let ( [	performScriptName = "TODO"] ;	// check for FileMaker error	If ( Get ( LastError ) ;		Let ( $error = ErrorFmpGetLast ( "perform script: " & performScriptName ) ; True )	)	// assign script result to local variables, test for error in this function	or If ( not #Assign ( Get ( ScriptResult ) ) ;		Let ( $error = ErrorFmp ( $#Assign.error ; "#Assign error after perform script: " & performScriptName ) ; True )	)	// check for sub-script returning an error	or If ( ErrorFound ( $error ) ;		Let ( $error = ErrorAddScriptStack ( $error ; "" ) ; True )	)) ]
+End If
+#
+#FM error trapping only
+If [ Let ( [	performScriptName = "TODO"] ;	// check for FileMaker error	If ( Get ( LastError ) ;		Let ( $error = ErrorFmpGetLast ( "perform script: " & performScriptName ) ; True )	)) ]
+End If
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"EDIT RECORD" ]
+#================================================================================
+If [ not ErrorFound ( $error ) ]
+Loop
+#single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+Set Field [  ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Commit Records/Requests[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#handle error
+If [ ErrorFound ( $error ) ]
+Revert Record/Request[ No dialog ]
+Exit Loop If [ True ]
+End If
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"LOOP CONSTRUCT" ]
+Set Variable [ $~script.section.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+#================================================================================
+Set Variable [ $i; Value:0 ]
+Loop
+#SETUP
+#Each "ElseIf" step below will run once
+If [ Let ( [	$current = 0 ;	$i = $i + 1] ;	False) ]
+#the "If" step is used to set variables for this loops iteration
+#
+Else If [ Let ( [	$current = $current + 1] ;	$current = $i) ]
+#duplicate the above "ElseIf" step for every setup operation
+#
+Else
+#clean up variables used in this loop
+Exit Loop If [ Let ( [	$current = "" ;	$i = ""] ;	True) ]
+End If
+#
+#REPETITIVE ACTION
+#this section is run after each setup step above
+#
+End Loop
+#========================================
+If [ LogWriteEnabled ( LogLevel4Debug ) ]
+Set Variable [ $~script.section.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start ) / 1000 ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; $~script.section & ", " & $~script.section.runtime )& # ( "~script.section.runtime" ; $~script.section.runtime ) ]
+End If
+#========================================
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"RESTORE CONTEXT" ]
+#================================================================================
+If [ LogWriteEnabled ( LogLevel5Trace ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel5Trace ; $~script.section ) ]
+End If
+If [ $isNewWindow ]
+Close Window [ Current Window ]
+Else
+Go to Layout [ original layout ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"RESTORE ENVIRONMENT" ]
+#================================================================================
+If [ not $ErrorCaptureState ]
+Set Error Capture [ Off ]
+End If
+If [ $AllowAbortState ]
+Allow User Abort [ On ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+#================================================================================
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+If [ ErrorFound ( $error ) ]
+Revert Record/Request[ No dialog ]
+Set Variable [ $dataToLog; Value:/** * Data used in this script that may be relevent for debugging. *  * Save this data to a variable so it can easily be duplicated and logged both when there is an error, * or when detailed logging is enabled. This is easier to maintain than if it was defined in the script * parameter to the Logger script. * * For performance reasons, do not save this variable unless a log entry is supposed to be created. */# ( "runtime" ; $~script.runtime ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "exit script, " & $~script.runtime )& $dataToLog& $error ]
+Perform Script [ “Show Message From ( error )”; Parameter: # ( "error" ; $error ) ]
+Else If [ LogWriteEnabled ( LogLevel4Debug ) ]
+Set Variable [ $dataToLog; Value:/** * Data used in this script that may be relevent for debugging. *  * Save this data to a variable so it can easily be duplicated and logged both when there is an error, * or when detailed logging is enabled. This is easier to maintain than if it was defined in the script * parameter to the Logger script. * * For performance reasons, do not save this variable unless a log entry is supposed to be created. */# ( "runtime" ; $~script.runtime ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; "exit script, " & $~script.runtime )& $dataToLog& # ( "~script.section" ; $~script.section ) ]
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [ Result: # ( "error" ; $error )& # ( "runtime" ; $~script.runtime ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '89'
+  name: Template ( paramName )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '########################################################################################################################'
+      Text: '#######################################################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#PURPOSE:'
+      Text: 'PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\tShort explaination of the scripts purpose"
+      Text: "\tShort explaination of the scripts purpose"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#CONTEXT:'
+      Text: 'CONTEXT:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#PARAMETERS:'
+      Text: 'PARAMETERS:'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $PARAMETERS; Value:"( required , required2 { optional , optional2 } )"
+
+        // if script takes more parameters than can fit in the name, declare the parameters here in the same format as would usually be done in the script name ]
+      Value:
+        Calculation: |-
+          "( required , required2 { optional , optional2 } )"
+
+          // if script takes more parameters than can fit in the name, declare the parameters here in the same format as would usually be done in the script name
+        DisplayCalculation:
+          Chunk:
+          - |+
+            "( required , required2 { optional , optional2 } )"
+
+          - // if script takes more parameters than can fit in the name, declare the
+            parameters here in the same format as would usually be done in the script
+            name
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $PARAMETERS
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t$paramName | bool text num date time timestamp | description"
+      Text: "\t$paramName | bool text num date time timestamp | description"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#RETURNS:'
+      Text: 'RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t$error | a dictionary containing error data"
+      Text: "\t$error | a dictionary containing error data"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t$runtime | number of seconds this script was running (with millisecond
+        precision)"
+      Text: "\t$runtime | number of seconds this script was running (with millisecond
+        precision)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#VARIABLES:'
+      Text: 'VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#DEPENDENCIES:'
+      Text: 'DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#NOTES:'
+      Text: 'NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#REVISIONS:'
+      Text: 'REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t\n2015-SEP-02 Daniel Smith\n\t- Created"
+      Text: "\t\n2015-SEP-02 Daniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '########################################################################################################################'
+      Text: '#######################################################################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel5Trace ) ]
+      Calculation: LogWriteEnabled ( LogLevel5Trace )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel5Trace
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData
+        ( LogLevel5Trace ; "start script" ) ]'
+      Calculation: LogData ( LogLevel5Trace ; "start script" )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel5Trace
+        - ' ; "start script" )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"TRIGGERS ARE DISABLED" ]
+      Value:
+        Calculation: '"TRIGGERS ARE DISABLED"'
+        DisplayCalculation:
+          Chunk: '"TRIGGERS ARE DISABLED"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not TriggersAreActive ]
+      Calculation: not TriggersAreActive
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - TriggersAreActive
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel4Debug ) ]
+      Calculation: LogWriteEnabled ( LogLevel4Debug )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel4Debug
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData
+        ( LogLevel4Debug ; "exit script: triggers disabled" ) ]'
+      Calculation: 'LogData ( LogLevel4Debug ; "exit script: triggers disabled" )'
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel4Debug
+        - ' ; "exit script: triggers disabled" )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# do not return result so the value of Get ( ScriptResult ) is not
+        modified in any currently running script'
+      Text: ' do not return result so the value of Get ( ScriptResult ) is not modified
+        in any currently running script'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#single-pass loop for error trapping'
+      Text: single-pass loop for error trapping
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+      Value:
+        Calculation: '"ASSIGN PARAMETERS"'
+        DisplayCalculation:
+          Chunk: '"ASSIGN PARAMETERS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ // save script parameters to local variables\nnot #Assign (\n\t#Filter
+        (\n\t\tGet ( ScriptParameter ) ;\n\t\tScriptRequiredParameterList ( \"\" )
+        & ScriptOptionalParameterList ( \"\" )\n\t)\n)\nor\nnot VerifyVariablesNotEmpty
+        ( ScriptRequiredParameterList ( \"\" ) ) ]"
+      Calculation: "// save script parameters to local variables\nnot #Assign (\n\t#Filter
+        (\n\t\tGet ( ScriptParameter ) ;\n\t\tScriptRequiredParameterList ( \"\" )
+        & ScriptOptionalParameterList ( \"\" )\n\t)\n)\nor\nnot VerifyVariablesNotEmpty
+        ( ScriptRequiredParameterList ( \"\" ) )"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // save script parameters to local variables
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#Assign'
+        - " (\n\t"
+        - '#Filter'
+        - " (\n\t\t"
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ;\n\t\t"
+        - ScriptRequiredParameterList
+        - ' ( "" ) & '
+        - ScriptOptionalParameterList
+        - " ( \"\" )\n\t)\n)\n"
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - type: NoRef
+          __content__: ' '
+        - VerifyVariablesNotEmpty
+        - ' ( '
+        - ScriptRequiredParameterList
+        - ' ( "" ) )'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorApp ( 2 ; \"\" ) ;\n\tTrue\n)
+        ]"
+      Calculation: "Let (\n\t$error = ErrorApp ( 2 ; \"\" ) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorApp
+        - " ( 2 ; \"\" ) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+      Value:
+        Calculation: '"SET VARIABLES"'
+        DisplayCalculation:
+          Chunk: '"SET VARIABLES"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $nameOfValuesRetrieved; Value:Let ( [\n\t$sqlQuery
+        =\n\t\t\"SELECT \"\n\t\t\t& SQLTableAndField ( \"table::field\" )\n\t\t& \"¶FROM
+        \"\n\t\t\t& SQLTable ( \"table::field\" )\n\t\t& \"¶LEFT JOIN \"\n\t\t\t&
+        SQLTable ( \"table::field\" )\n\t\t& \"¶ON \"\n\t\t\t& SQLTableAndField (
+        \"table::field\" )\n\t\t\t& \" = \"\n\t\t\t& SQLTableAndField ( \"table::field\"
+        )\n\t\t& \"¶WHERE \"\n\t\t\t& SQLTableAndField ( \"table::field\" )\n\t\t\t&
+        \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& SQLTableAndField ( \"table::field\" )\n\t\t\t&
+        \" = ? \"\n\t\t& \"¶ORDER BY \"\n\t\t\t& SQLTableAndField ( \"table::field\"
+        )\n\t\t\t& \", \" & SQLTableAndField ( \"table::field\" ) & \" DESC\"\n\t\t&
+        \"¶GROUP BY \"\n\t\t\t& SQLTableAndField ( \"table::field\" )\n\t;\n\t$sqlParameter1
+        = \"value\" ;\n\t$sqlResult = ExecuteSQL (\n\t\t$sqlQuery ;\n\t\tSQLFieldSeparator
+        ;\n\t\tSQLRowSeparator ;\n\t\t$sqlParameter1\n\t) ;\n\t$error = If ( $sqlResult
+        = \"?\" ;\n\t\tErrorApp ( 17 ; \"\" ) & # ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n]
+        ;\n\t$sqlResult\n) ]"
+      Value:
+        Calculation: "Let ( [\n\t$sqlQuery =\n\t\t\"SELECT \"\n\t\t\t& SQLTableAndField
+          ( \"table::field\" )\n\t\t& \"¶FROM \"\n\t\t\t& SQLTable ( \"table::field\"
+          )\n\t\t& \"¶LEFT JOIN \"\n\t\t\t& SQLTable ( \"table::field\" )\n\t\t& \"¶ON
+          \"\n\t\t\t& SQLTableAndField ( \"table::field\" )\n\t\t\t& \" = \"\n\t\t\t&
+          SQLTableAndField ( \"table::field\" )\n\t\t& \"¶WHERE \"\n\t\t\t& SQLTableAndField
+          ( \"table::field\" )\n\t\t\t& \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& SQLTableAndField
+          ( \"table::field\" )\n\t\t\t& \" = ? \"\n\t\t& \"¶ORDER BY \"\n\t\t\t& SQLTableAndField
+          ( \"table::field\" )\n\t\t\t& \", \" & SQLTableAndField ( \"table::field\"
+          ) & \" DESC\"\n\t\t& \"¶GROUP BY \"\n\t\t\t& SQLTableAndField ( \"table::field\"
+          )\n\t;\n\t$sqlParameter1 = \"value\" ;\n\t$sqlResult = ExecuteSQL (\n\t\t$sqlQuery
+          ;\n\t\tSQLFieldSeparator ;\n\t\tSQLRowSeparator ;\n\t\t$sqlParameter1\n\t)
+          ;\n\t$error = If ( $sqlResult = \"?\" ;\n\t\tErrorApp ( 17 ; \"\" ) & #
+          ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n] ;\n\t$sqlResult\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( [\n\t$sqlQuery =\n\t\t\"SELECT \"\n\t\t\t& "
+          - SQLTableAndField
+          - " ( \"table::field\" )\n\t\t& \"¶FROM \"\n\t\t\t& "
+          - SQLTable
+          - " ( \"table::field\" )\n\t\t& \"¶LEFT JOIN \"\n\t\t\t& "
+          - SQLTable
+          - " ( \"table::field\" )\n\t\t& \"¶ON \"\n\t\t\t& "
+          - SQLTableAndField
+          - " ( \"table::field\" )\n\t\t\t& \" = \"\n\t\t\t& "
+          - SQLTableAndField
+          - " ( \"table::field\" )\n\t\t& \"¶WHERE \"\n\t\t\t& "
+          - SQLTableAndField
+          - " ( \"table::field\" )\n\t\t\t& \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& "
+          - SQLTableAndField
+          - " ( \"table::field\" )\n\t\t\t& \" = ? \"\n\t\t& \"¶ORDER BY \"\n\t\t\t& "
+          - SQLTableAndField
+          - " ( \"table::field\" )\n\t\t\t& \", \" & "
+          - SQLTableAndField
+          - " ( \"table::field\" ) & \" DESC\"\n\t\t& \"¶GROUP BY \"\n\t\t\t& "
+          - SQLTableAndField
+          - " ( \"table::field\" )\n\t;\n\t$sqlParameter1 = \"value\" ;\n\t$sqlResult
+            = "
+          - ExecuteSQL
+          - " (\n\t\t$sqlQuery ;\n\t\t"
+          - SQLFieldSeparator
+          - " ;\n\t\t"
+          - SQLRowSeparator
+          - " ;\n\t\t$sqlParameter1\n\t) ;\n\t$error = "
+          - If
+          - " ( $sqlResult = \"?\" ;\n\t\t"
+          - ErrorApp
+          - ' ( 17 ; "" ) & '
+          - '#'
+          - " ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n] ;\n\t$sqlResult\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $nameOfValuesRetrieved
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ErrorCaptureState; Value:Get ( ErrorCaptureState )
+        ]
+      Value:
+        Calculation: Get ( ErrorCaptureState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ErrorCaptureState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ErrorCaptureState
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $AllowAbortState; Value:Get ( AllowAbortState ) ]
+      Value:
+        Calculation: Get ( AllowAbortState )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - AllowAbortState
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $AllowAbortState
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SET ENVIRONMENT" ]
+      Value:
+        Calculation: '"SET ENVIRONMENT"'
+        DisplayCalculation:
+          Chunk: '"SET ENVIRONMENT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ /*not IsServer*/ ]
+      Calculation: /*not IsServer*/
+      DisplayCalculation:
+        Chunk: /*not IsServer*/
+    - enable: 'True'
+      id: '79'
+      name: Freeze Window
+      StepText: Freeze Window
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '55'
+      name: Enter Browse Mode
+      StepText: Enter Browse Mode
+      Pause:
+        state: 'False'
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"VALIDATE" ]
+      Value:
+        Calculation: '"VALIDATE"'
+        DisplayCalculation:
+          Chunk: '"VALIDATE"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Get ( WindowMode ) ≠ 0\n\n/*\n0 for Browse mode \n1 for Find
+        mode \n2 for Preview mode \n3 if printing is in progress \n4 (FileMaker Pro
+        Advanced) if evaluating the function from the Data Viewer and the current
+        window is in Layout mode\n*/ ]"
+      Calculation: "Get ( WindowMode ) ≠ 0\n\n/*\n0 for Browse mode \n1 for Find mode
+        \n2 for Preview mode \n3 if printing is in progress \n4 (FileMaker Pro Advanced)
+        if evaluating the function from the Data Viewer and the current window is
+        in Layout mode\n*/"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - WindowMode
+        - " ) ≠ 0\n\n/*\n0 for Browse mode \n1 for Find mode \n2 for Preview mode
+          \n3 if printing is in progress \n4 (FileMaker Pro Advanced) if evaluating
+          the function from the Data Viewer and the current window is in Layout mode\n*/"
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Incorrect Mode"; Message: "This operation
+        can only run in Browse mode."; Default Button: “Cancel”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Incorrect Mode"'
+        DisplayCalculation:
+          Chunk: '"Incorrect Mode"'
+      Message:
+        Calculation: '"This operation can only run in Browse mode."'
+        DisplayCalculation:
+          Chunk: '"This operation can only run in Browse mode."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorApp ( 6 ; \"\" ) ;\n\tTrue\n)
+        ]"
+      Calculation: "Let (\n\t$error = ErrorApp ( 6 ; \"\" ) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorApp
+        - " ( 6 ; \"\" ) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) = 0 ]
+      Calculation: Get ( FoundCount ) = 0
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' ) = 0'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "No Records"; Message: "No records in
+        the found set, cannot complete this operation."; Default Button: “Cancel”,
+        Commit: “Yes” ]'
+      Title:
+        Calculation: '"No Records"'
+        DisplayCalculation:
+          Chunk: '"No Records"'
+      Message:
+        Calculation: '"No records in the found set, cannot complete this operation."'
+        DisplayCalculation:
+          Chunk: '"No records in the found set, cannot complete this operation."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorApp ( 4 ; \"\" ) ;\n\tTrue\n)
+        ]"
+      Calculation: "Let (\n\t$error = ErrorApp ( 4 ; \"\" ) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorApp
+        - " ( 4 ; \"\" ) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#open record'
+      Text: open record
+    - enable: 'True'
+      id: '133'
+      name: Open Record/Request
+      StepText: Open Record/Request
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"open record\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"open record\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"open record\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#test if user can write to field'
+      Text: test if user can write to field
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ "" ]
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $error; Value:ErrorFmpGetLast ( "write to field" )
+        ]
+      Value:
+        Calculation: ErrorFmpGetLast ( "write to field" )
+        DisplayCalculation:
+          Chunk:
+          - ErrorFmpGetLast
+          - ' ( "write to field" )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $error
+    - enable: 'True'
+      id: '51'
+      name: Revert Record/Request
+      StepText: |-
+        Revert Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '133'
+      name: Open Record/Request
+      StepText: Open Record/Request
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#user confirmation'
+      Text: user confirmation
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Message"; Message: "Change web user
+        for this Customer?" ]'
+      Title:
+        Calculation: '"Message"'
+        DisplayCalculation:
+          Chunk: '"Message"'
+      Message:
+        Calculation: '"Change web user for this Customer?"'
+        DisplayCalculation:
+          Chunk: '"Change web user for this Customer?"'
+      Buttons:
+        Button:
+        - CommitState: 'False'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ /* Cancel */
+
+        Get( LastMessageChoice ) = 1 ]
+      Calculation: |-
+        /* Cancel */
+
+        Get( LastMessageChoice ) = 1
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* Cancel */
+
+        - Get
+        - '( '
+        - LastMessageChoice
+        - ' ) = 1'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorApp ( 1 ; \"user confirmation\"
+        ) ;\n\tTrue\n) ]"
+      Calculation: "Let (\n\t$error = ErrorApp ( 1 ; \"user confirmation\" ) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorApp
+        - " ( 1 ; \"user confirmation\" ) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"MODIFY CONTEXT" ]
+      Value:
+        Calculation: '"MODIFY CONTEXT"'
+        DisplayCalculation:
+          Chunk: '"MODIFY CONTEXT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel5Trace ) ]
+      Calculation: LogWriteEnabled ( LogLevel5Trace )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel5Trace
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData
+        ( LogLevel5Trace ; $~script.section ) ]'
+      Calculation: LogData ( LogLevel5Trace ; $~script.section )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel5Trace
+        - ' ; $~script.section )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $!; Value:TriggersDisable ]
+      Value:
+        Calculation: TriggersDisable
+        DisplayCalculation:
+          Chunk: TriggersDisable
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsWindowMaximized ]
+      Calculation: IsWindowMaximized
+      DisplayCalculation:
+        Chunk: IsWindowMaximized
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#by not specifying the window size, the new window will also be maximized'
+      Text: by not specifying the window size, the new window will also be maximized
+    - enable: 'True'
+      id: '122'
+      name: New Window
+      StepText: 'New Window [ Name: Get( ScriptName ); Style: Document; Close: “Yes”;
+        Minimize: “Yes”; Maximize: “Yes”; Zoom Control Area: “Yes”; Resize: “Yes”
+        ]'
+      Name:
+        Calculation: Get( ScriptName )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - '( '
+          - ScriptName
+          - ' )'
+      NewWndStyles:
+        Styles: '983554'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#open window off-screen'
+      Text: open window off-screen
+    - enable: 'True'
+      id: '122'
+      name: New Window
+      StepText: 'New Window [ Name: Get( ScriptName ); Height: 0; Width: 0; Top: Get(
+        ScreenHeight ); Left: 0; Style: Document; Close: “Yes”; Minimize: “Yes”; Maximize:
+        “Yes”; Zoom Control Area: “Yes”; Resize: “Yes” ]'
+      Name:
+        Calculation: Get( ScriptName )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - '( '
+          - ScriptName
+          - ' )'
+      Height:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Width:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      DistanceFromTop:
+        Calculation: Get( ScreenHeight )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - '( '
+          - ScreenHeight
+          - ' )'
+      DistanceFromLeft:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      NewWndStyles:
+        Styles: '983554'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ <unknown> ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '0'
+        name: ''
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $error; Value:ErrorFmpGetLast ( "go to layout" ) ]
+      Value:
+        Calculation: ErrorFmpGetLast ( "go to layout" )
+        DisplayCalculation:
+          Chunk:
+          - ErrorFmpGetLast
+          - ' ( "go to layout" )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $error
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $!; Value:TriggersEnable ]
+      Value:
+        Calculation: TriggersEnable
+        DisplayCalculation:
+          Chunk: TriggersEnable
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"PERFORM SUB-SCRIPT" ]
+      Value:
+        Calculation: '"PERFORM SUB-SCRIPT"'
+        DisplayCalculation:
+          Chunk: '"PERFORM SUB-SCRIPT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “<unknown>” ]
+      Script:
+        id: '0'
+        name: <unknown>
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# #Assign with error trapping CF 1'
+      Text: ' #Assign with error trapping CF 1'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $!; Value:not #AssignScriptResultAndSetError (\n\t\"performScriptName\"
+        ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n) ]"
+      Value:
+        Calculation: "not #AssignScriptResultAndSetError (\n\t\"performScriptName\"
+          ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n)"
+        DisplayCalculation:
+          Chunk:
+          - not
+          - type: NoRef
+            __content__: ' '
+          - '#AssignScriptResultAndSetError'
+          - " (\n\t\"performScriptName\" ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##Assign with error trapping CF 2'
+      Text: '#Assign with error trapping CF 2'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ not #AssignScriptResultAndSetError (\n\t\"performScriptName\"
+        ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n) ]"
+      Calculation: "not #AssignScriptResultAndSetError (\n\t\"performScriptName\"
+        ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#AssignScriptResultAndSetError'
+        - " (\n\t\"performScriptName\" ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##Assign with error trapping CF 3'
+      Text: '#Assign with error trapping CF 3'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ not #AssignScriptResultAndSetError (\n\t\"performScriptName\"
+        ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n) ]"
+      Calculation: "not #AssignScriptResultAndSetError (\n\t\"performScriptName\"
+        ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#AssignScriptResultAndSetError'
+        - " (\n\t\"performScriptName\" ;\n\t\"requiredResultList\" ;\n\t\"optionalResultList\"\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '##Assign with error trapping calc'
+      Text: '#Assign with error trapping calc'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Let ( [\n\tperformScriptName = \"TODO\"\n] ;\n\t// check for
+        FileMaker error\n\tIf ( Get ( LastError ) ;\n\t\tLet ( $error = ErrorFmpGetLast
+        ( \"perform script: \" & performScriptName ) ; True )\n\t)\n\n\t// assign
+        script result to local variables, test for error in this function\n\tor If
+        ( not #Assign ( Get ( ScriptResult ) ) ;\n\t\tLet ( $error = ErrorFmp ( $#Assign.error
+        ; \"#Assign error after perform script: \" & performScriptName ) ; True )\n\t)\n\n\t//
+        check for sub-script returning an error\n\tor If ( ErrorFound ( $error ) ;\n\t\tLet
+        ( $error = ErrorAddScriptStack ( $error ; \"\" ) ; True )\n\t)\n) ]"
+      Calculation: "Let ( [\n\tperformScriptName = \"TODO\"\n] ;\n\t// check for FileMaker
+        error\n\tIf ( Get ( LastError ) ;\n\t\tLet ( $error = ErrorFmpGetLast ( \"perform
+        script: \" & performScriptName ) ; True )\n\t)\n\n\t// assign script result
+        to local variables, test for error in this function\n\tor If ( not #Assign
+        ( Get ( ScriptResult ) ) ;\n\t\tLet ( $error = ErrorFmp ( $#Assign.error ;
+        \"#Assign error after perform script: \" & performScriptName ) ; True )\n\t)\n\n\t//
+        check for sub-script returning an error\n\tor If ( ErrorFound ( $error ) ;\n\t\tLet
+        ( $error = ErrorAddScriptStack ( $error ; \"\" ) ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\tperformScriptName = \"TODO\"\n] ;\n\t"
+        - |
+          // check for FileMaker error
+        - type: NoRef
+          __content__: "\t"
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\t"
+        - Let
+        - ' ( $error = '
+        - ErrorFmpGetLast
+        - ' ( "perform script: " & performScriptName ) ; '
+        - 'True'
+        - " )\n\t)\n\n\t"
+        - |
+          // assign script result to local variables, test for error in this function
+        - type: NoRef
+          __content__: "\t"
+        - or
+        - type: NoRef
+          __content__: ' '
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#Assign'
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - " ) ) ;\n\t\t"
+        - Let
+        - ' ( $error = '
+        - ErrorFmp
+        - ' ( $#Assign.error ; "#Assign error after perform script: " & performScriptName
+          ) ; '
+        - 'True'
+        - " )\n\t)\n\n\t"
+        - |
+          // check for sub-script returning an error
+        - type: NoRef
+          __content__: "\t"
+        - or
+        - type: NoRef
+          __content__: ' '
+        - If
+        - ' ( '
+        - ErrorFound
+        - " ( $error ) ;\n\t\t"
+        - Let
+        - ' ( $error = '
+        - ErrorAddScriptStack
+        - ' ( $error ; "" ) ; '
+        - 'True'
+        - " )\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#FM error trapping only'
+      Text: FM error trapping only
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Let ( [\n\tperformScriptName = \"TODO\"\n] ;\n\t// check for
+        FileMaker error\n\tIf ( Get ( LastError ) ;\n\t\tLet ( $error = ErrorFmpGetLast
+        ( \"perform script: \" & performScriptName ) ; True )\n\t)\n) ]"
+      Calculation: "Let ( [\n\tperformScriptName = \"TODO\"\n] ;\n\t// check for FileMaker
+        error\n\tIf ( Get ( LastError ) ;\n\t\tLet ( $error = ErrorFmpGetLast ( \"perform
+        script: \" & performScriptName ) ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\tperformScriptName = \"TODO\"\n] ;\n\t"
+        - |
+          // check for FileMaker error
+        - type: NoRef
+          __content__: "\t"
+        - If
+        - ' ( '
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t\t"
+        - Let
+        - ' ( $error = '
+        - ErrorFmpGetLast
+        - ' ( "perform script: " & performScriptName ) ; '
+        - 'True'
+        - " )\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"EDIT RECORD" ]
+      Value:
+        Calculation: '"EDIT RECORD"'
+        DisplayCalculation:
+          Chunk: '"EDIT RECORD"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not ErrorFound ( $error ) ]
+      Calculation: not ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#single-pass loop for error trapping'
+      Text: single-pass loop for error trapping
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [  ]
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#end single-pass loop for error trapping'
+      Text: end single-pass loop for error trapping
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#handle error'
+      Text: handle error
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '51'
+      name: Revert Record/Request
+      StepText: |-
+        Revert Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"LOOP CONSTRUCT" ]
+      Value:
+        Calculation: '"LOOP CONSTRUCT"'
+        DisplayCalculation:
+          Chunk: '"LOOP CONSTRUCT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section.start
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#SETUP'
+      Text: SETUP
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Each "ElseIf" step below will run once'
+      Text: Each "ElseIf" step below will run once
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Let ( [\n\t$current = 0 ;\n\t$i = $i + 1\n] ;\n\tFalse\n) ]"
+      Calculation: "Let ( [\n\t$current = 0 ;\n\t$i = $i + 1\n] ;\n\tFalse\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t$current = 0 ;\n\t$i = $i + 1\n] ;\n\t"
+        - 'False'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#the "If" step is used to set variables for this loops iteration'
+      Text: the "If" step is used to set variables for this loops iteration
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ Let ( [\n\t$current = $current + 1\n] ;\n\t$current = $i\n)
+        ]"
+      Calculation: "Let ( [\n\t$current = $current + 1\n] ;\n\t$current = $i\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t$current = $current + 1\n] ;\n\t$current = $i\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#duplicate the above "ElseIf" step for every setup operation'
+      Text: duplicate the above "ElseIf" step for every setup operation
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#clean up variables used in this loop'
+      Text: clean up variables used in this loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\t$current = \"\" ;\n\t$i = \"\"\n] ;\n\tTrue\n)
+        ]"
+      Calculation: "Let ( [\n\t$current = \"\" ;\n\t$i = \"\"\n] ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t$current = \"\" ;\n\t$i = \"\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#REPETITIVE ACTION'
+      Text: REPETITIVE ACTION
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#this section is run after each setup step above'
+      Text: this section is run after each setup step above
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#========================================'
+      Text: ========================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel4Debug ) ]
+      Calculation: LogWriteEnabled ( LogLevel4Debug )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel4Debug
+        - ' )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.section.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start
+          ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.section.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section.runtime
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; $~script.section & ", " & $~script.section.runtime )
+        & # ( "~script.section.runtime" ; $~script.section.runtime ) ]
+      Calculation: |-
+        LogData ( LogLevel4Debug ; $~script.section & ", " & $~script.section.runtime )
+        & # ( "~script.section.runtime" ; $~script.section.runtime )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel4Debug
+        - " ; $~script.section & \", \" & $~script.section.runtime )\n& "
+        - '#'
+        - ' ( "~script.section.runtime" ; $~script.section.runtime )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#========================================'
+      Text: ========================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#end single-pass loop for error trapping'
+      Text: end single-pass loop for error trapping
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"RESTORE CONTEXT" ]
+      Value:
+        Calculation: '"RESTORE CONTEXT"'
+        DisplayCalculation:
+          Chunk: '"RESTORE CONTEXT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel5Trace ) ]
+      Calculation: LogWriteEnabled ( LogLevel5Trace )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel5Trace
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData
+        ( LogLevel5Trace ; $~script.section ) ]'
+      Calculation: LogData ( LogLevel5Trace ; $~script.section )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel5Trace
+        - ' ; $~script.section )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $isNewWindow ]
+      Calculation: $isNewWindow
+      DisplayCalculation:
+        Chunk: $isNewWindow
+    - enable: 'True'
+      id: '121'
+      name: Close Window
+      StepText: Close Window [ Current Window ]
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ original layout ]
+      LayoutDestination:
+        value: OriginalLayout
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"RESTORE ENVIRONMENT" ]
+      Value:
+        Calculation: '"RESTORE ENVIRONMENT"'
+        DisplayCalculation:
+          Chunk: '"RESTORE ENVIRONMENT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not $ErrorCaptureState ]
+      Calculation: not $ErrorCaptureState
+      DisplayCalculation:
+        Chunk:
+        - not
+        - ' $ErrorCaptureState'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $AllowAbortState ]
+      Calculation: $AllowAbortState
+      DisplayCalculation:
+        Chunk: $AllowAbortState
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+      Value:
+        Calculation: '"HANDLE ERROR"'
+        DisplayCalculation:
+          Chunk: '"HANDLE ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '51'
+      name: Revert Record/Request
+      StepText: |-
+        Revert Record/Request
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dataToLog; Value:/**\n * Data used in this script
+        that may be relevent for debugging.\n * \n * Save this data to a variable
+        so it can easily be duplicated and logged both when there is an error,\n *
+        or when detailed logging is enabled. This is easier to maintain than if it
+        was defined in the script\n * parameter to the Logger script.\n *\n * For
+        performance reasons, do not save this variable unless a log entry is supposed
+        to be created.\n */\n\n# ( \"runtime\" ; $~script.runtime ) ]"
+      Value:
+        Calculation: "/**\n * Data used in this script that may be relevent for debugging.\n
+          * \n * Save this data to a variable so it can easily be duplicated and logged
+          both when there is an error,\n * or when detailed logging is enabled. This
+          is easier to maintain than if it was defined in the script\n * parameter
+          to the Logger script.\n *\n * For performance reasons, do not save this
+          variable unless a log entry is supposed to be created.\n */\n\n# ( \"runtime\"
+          ; $~script.runtime )"
+        DisplayCalculation:
+          Chunk:
+          - "/**\n * Data used in this script that may be relevent for debugging.\n
+            * \n * Save this data to a variable so it can easily be duplicated and
+            logged both when there is an error,\n * or when detailed logging is enabled.
+            This is easier to maintain than if it was defined in the script\n * parameter
+            to the Logger script.\n *\n * For performance reasons, do not save this
+            variable unless a log entry is supposed to be created.\n */\n\n"
+          - '#'
+          - ' ( "runtime" ; $~script.runtime )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dataToLog
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & $error ]
+      Calculation: |-
+        LogData ( LogLevelByError ( $error ) ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & $error
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevelByError
+        - |2-
+           ( $error ) ; "exit script, " & $~script.runtime )
+          & $dataToLog
+          & $error
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Show Message From ( error )”; Parameter: # ( "error"
+        ; $error ) ]'
+      Calculation: '# ( "error" ; $error )'
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - ' ( "error" ; $error )'
+      Script:
+        id: '79'
+        name: Show Message From ( error )
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ LogWriteEnabled ( LogLevel4Debug ) ]
+      Calculation: LogWriteEnabled ( LogLevel4Debug )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel4Debug
+        - ' )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dataToLog; Value:/**\n * Data used in this script
+        that may be relevent for debugging.\n * \n * Save this data to a variable
+        so it can easily be duplicated and logged both when there is an error,\n *
+        or when detailed logging is enabled. This is easier to maintain than if it
+        was defined in the script\n * parameter to the Logger script.\n *\n * For
+        performance reasons, do not save this variable unless a log entry is supposed
+        to be created.\n */\n\n# ( \"runtime\" ; $~script.runtime ) ]"
+      Value:
+        Calculation: "/**\n * Data used in this script that may be relevent for debugging.\n
+          * \n * Save this data to a variable so it can easily be duplicated and logged
+          both when there is an error,\n * or when detailed logging is enabled. This
+          is easier to maintain than if it was defined in the script\n * parameter
+          to the Logger script.\n *\n * For performance reasons, do not save this
+          variable unless a log entry is supposed to be created.\n */\n\n# ( \"runtime\"
+          ; $~script.runtime )"
+        DisplayCalculation:
+          Chunk:
+          - "/**\n * Data used in this script that may be relevent for debugging.\n
+            * \n * Save this data to a variable so it can easily be duplicated and
+            logged both when there is an error,\n * or when detailed logging is enabled.
+            This is easier to maintain than if it was defined in the script\n * parameter
+            to the Logger script.\n *\n * For performance reasons, do not save this
+            variable unless a log entry is supposed to be created.\n */\n\n"
+          - '#'
+          - ' ( "runtime" ; $~script.runtime )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dataToLog
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & # ( "~script.section" ; $~script.section ) ]
+      Calculation: |-
+        LogData ( LogLevel4Debug ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & # ( "~script.section" ; $~script.section )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel4Debug
+        - " ; \"exit script, \" & $~script.runtime )\n& $dataToLog\n& "
+        - '#'
+        - ' ( "~script.section" ; $~script.section )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: # ( "error" ; $error )
+        & # ( "runtime" ; $~script.runtime ) ]
+      Calculation: |-
+        # ( "error" ; $error )
+        & # ( "runtime" ; $~script.runtime )
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - " ( \"error\" ; $error )\n& "
+        - '#'
+        - ' ( "runtime" ; $~script.runtime )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

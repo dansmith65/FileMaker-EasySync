@@ -1,0 +1,347 @@
+/*Name:  FormatTimestamp ( _ts , _f )
+
+Purpose:
+PHP standards 4 timestamp, date and time formatting based on http://uk3.php.net/manual/en/function.date.php
+"Timezone stuff doesn't work. If you wish to go the extra mile and get that working go for it and email me and i'll update this. I've commented out the ordinal suffix option, because it depends on another custom function, but kind of useful (http://www.briandunning.com/cf/118).
+
+Parameter Description:
+_ts: timestamp
+_f: format string (see website above for all formatting options)
+
+Dependencies:
+none
+
+History:
+Created by: Thomas Seidler, The Good Book Company [http://harmlesswise.com/it] [tom@seidler.co_uk]
+Found Here: http://www.briandunning.com/cf/1017
+Modified Date: 2010-SEP-02
+####################################################################################################*/
+
+Let (
+[
+// substitution for constant expressions - i.e. submit RFC822 and away-ish you go - u still need to add timezone stuff to end afterwards...
+_f = Substitute (_f ; ["RFC822" ; "D, d M y H:i:s"]; ["RSS"; "D, d M Y H:i:s"]) ;
+_c = Left(_f;1) ;
+_lf = Length(_f) ;
+_f = Right(_f; _lf-1) ;
+_result = Case (
+	
+	// DAY
+	Exact(_c; "d") ; Right ( "0" & Day( _ts ) ; 2 ) ;
+	Exact(_c; "D") ; Left( DayName( _ts ) ; 3 ) ;
+	Exact(_c; "j") ; Day ( _ts ) ;
+	Exact(_c; "l") ; DayName ( _ts ) ;
+	Exact(_c; "N") ; Mod ( DayOfWeek ( _ts ) -2 ; 7 )+1 ;
+	Exact(_c; "S") ; /* number_Ordinal_Suffix ( Day ( _ts) ) */ "" ;
+	Exact(_c; "w") ; DayOfWeek ( _ts ) - 1 ;
+	Exact(_c; "z") ; DayOfYear ( _ts ) ;
+	
+	// WEEK
+	Exact(_c; "W") ; WeekOfYearFiscal ( _ts ; 2 ) ;
+	
+	// MONTH
+	Exact(_c; "F") ; MonthName ( _ts ) ;
+	Exact(_c; "m") ; Right ( "0" & Month ( _ts ) ; 2) ;
+	Exact(_c; "M") ; Left ( MonthName ( _ts ) ; 3 ) ;
+	Exact(_c; "n") ; Month ( _ts ) ;
+	Exact(_c; "t") ; Day ( Date ( Month(_ts)+1 ; -1 ; Year(_ts) ) ) ;
+	
+	// YEAR
+	// leap year calc nicked from http://www.mitre.org/tech/cots/LEAPCALC.html
+	Exact(_c; "L") ; Let ( _y = Year(_ts);  Case ( Mod ( _y ; 4 ) <> 0 ; 0 ; Mod(_y;400)=0; 1; Mod(_y;100)=0; 0; 1)  ) ;
+	Exact(_c; "o") ; If ( WeekOfYearFiscal ( _ts ; 2 ) > 51  and Day(_ts)<7 ; Year(_ts)-1 ; Year(_ts) ) ;
+	Exact(_c; "Y") ; Year(_ts) ;
+	Exact(_c; "y") ; Right(Year(_ts); 2) ;
+	
+	// TIME
+	Exact(_c; "a") ; If(Hour(_ts)>=12; "pm"; "am") ;
+	Exact(_c; "A") ; If(Hour(_ts)>=12; "PM"; "AM") ;
+	Exact(_c; "g") ; Mod( Hour(_ts)-1;12)+1 ;
+	Exact(_c; "G") ; Hour(_ts) ;
+	Exact(_c; "h") ; Right( "0" & Mod(Hour(_ts)-1;12)+1; 2) ;
+	Exact(_c; "H") ; Right ("0" & Hour(_ts); 2) ;
+	Exact(_c; "i") ; Right("0" & Minute(_ts); 2) ;
+	Exact(_c; "s") ; Right("0" & Seconds(_ts); 2) ;
+	
+	_c
+
+) // end of case
+] ;
+
+
+_result & If(_lf>1; FormatTimestamp (_ts; _f) )
+
+)
+
+---
+CustomFunction:
+  id: '37'
+  functionArity: '2'
+  visible: 'True'
+  parameters: _ts;_f
+  name: FormatTimestamp
+  Calculation: "/*Name:  FormatTimestamp ( _ts , _f )\n\nPurpose:\nPHP standards 4
+    timestamp, date and time formatting based on http://uk3.php.net/manual/en/function.date.php\n\"Timezone
+    stuff doesn't work. If you wish to go the extra mile and get that working go for
+    it and email me and i'll update this. I've commented out the ordinal suffix option,
+    because it depends on another custom function, but kind of useful (http://www.briandunning.com/cf/118).\n\nParameter
+    Description:\n_ts: timestamp\n_f: format string (see website above for all formatting
+    options)\n\nDependencies:\nnone\n\nHistory:\nCreated by: Thomas Seidler, The Good
+    Book Company [http://harmlesswise.com/it] [tom@seidler.co_uk]\nFound Here: http://www.briandunning.com/cf/1017\nModified
+    Date: 2010-SEP-02\n####################################################################################################*/\n\nLet
+    (\n[\n// substitution for constant expressions - i.e. submit RFC822 and away-ish
+    you go - u still need to add timezone stuff to end afterwards...\n_f = Substitute
+    (_f ; [\"RFC822\" ; \"D, d M y H:i:s\"]; [\"RSS\"; \"D, d M Y H:i:s\"]) ;\n_c
+    = Left(_f;1) ;\n_lf = Length(_f) ;\n_f = Right(_f; _lf-1) ;\n_result = Case (\n\t\n\t//
+    DAY\n\tExact(_c; \"d\") ; Right ( \"0\" & Day( _ts ) ; 2 ) ;\n\tExact(_c; \"D\")
+    ; Left( DayName( _ts ) ; 3 ) ;\n\tExact(_c; \"j\") ; Day ( _ts ) ;\n\tExact(_c;
+    \"l\") ; DayName ( _ts ) ;\n\tExact(_c; \"N\") ; Mod ( DayOfWeek ( _ts ) -2 ;
+    7 )+1 ;\n\tExact(_c; \"S\") ; /* number_Ordinal_Suffix ( Day ( _ts) ) */ \"\"
+    ;\n\tExact(_c; \"w\") ; DayOfWeek ( _ts ) - 1 ;\n\tExact(_c; \"z\") ; DayOfYear
+    ( _ts ) ;\n\t\n\t// WEEK\n\tExact(_c; \"W\") ; WeekOfYearFiscal ( _ts ; 2 ) ;\n\t\n\t//
+    MONTH\n\tExact(_c; \"F\") ; MonthName ( _ts ) ;\n\tExact(_c; \"m\") ; Right (
+    \"0\" & Month ( _ts ) ; 2) ;\n\tExact(_c; \"M\") ; Left ( MonthName ( _ts ) ;
+    3 ) ;\n\tExact(_c; \"n\") ; Month ( _ts ) ;\n\tExact(_c; \"t\") ; Day ( Date (
+    Month(_ts)+1 ; -1 ; Year(_ts) ) ) ;\n\t\n\t// YEAR\n\t// leap year calc nicked
+    from http://www.mitre.org/tech/cots/LEAPCALC.html\n\tExact(_c; \"L\") ; Let (
+    _y = Year(_ts);  Case ( Mod ( _y ; 4 ) <> 0 ; 0 ; Mod(_y;400)=0; 1; Mod(_y;100)=0;
+    0; 1)  ) ;\n\tExact(_c; \"o\") ; If ( WeekOfYearFiscal ( _ts ; 2 ) > 51  and Day(_ts)<7
+    ; Year(_ts)-1 ; Year(_ts) ) ;\n\tExact(_c; \"Y\") ; Year(_ts) ;\n\tExact(_c; \"y\")
+    ; Right(Year(_ts); 2) ;\n\t\n\t// TIME\n\tExact(_c; \"a\") ; If(Hour(_ts)>=12;
+    \"pm\"; \"am\") ;\n\tExact(_c; \"A\") ; If(Hour(_ts)>=12; \"PM\"; \"AM\") ;\n\tExact(_c;
+    \"g\") ; Mod( Hour(_ts)-1;12)+1 ;\n\tExact(_c; \"G\") ; Hour(_ts) ;\n\tExact(_c;
+    \"h\") ; Right( \"0\" & Mod(Hour(_ts)-1;12)+1; 2) ;\n\tExact(_c; \"H\") ; Right
+    (\"0\" & Hour(_ts); 2) ;\n\tExact(_c; \"i\") ; Right(\"0\" & Minute(_ts); 2) ;\n\tExact(_c;
+    \"s\") ; Right(\"0\" & Seconds(_ts); 2) ;\n\t\n\t_c\n\n) // end of case\n] ;\n\n\n_result
+    & If(_lf>1; FormatTimestamp (_ts; _f) )\n\n)"
+  DisplayCalculation:
+    Chunk:
+    - |+
+      /*Name:  FormatTimestamp ( _ts , _f )
+
+      Purpose:
+      PHP standards 4 timestamp, date and time formatting based on http://uk3.php.net/manual/en/function.date.php
+      "Timezone stuff doesn't work. If you wish to go the extra mile and get that working go for it and email me and i'll update this. I've commented out the ordinal suffix option, because it depends on another custom function, but kind of useful (http://www.briandunning.com/cf/118).
+
+      Parameter Description:
+      _ts: timestamp
+      _f: format string (see website above for all formatting options)
+
+      Dependencies:
+      none
+
+      History:
+      Created by: Thomas Seidler, The Good Book Company [http://harmlesswise.com/it] [tom@seidler.co_uk]
+      Found Here: http://www.briandunning.com/cf/1017
+      Modified Date: 2010-SEP-02
+      ####################################################################################################*/
+
+    - Let
+    - |2
+       (
+      [
+    - |
+      // substitution for constant expressions - i.e. submit RFC822 and away-ish you go - u still need to add timezone stuff to end afterwards...
+    - '_f = '
+    - Substitute
+    - " (_f ; [\"RFC822\" ; \"D, d M y H:i:s\"]; [\"RSS\"; \"D, d M Y H:i:s\"]) ;\n_c
+      = "
+    - Left
+    - "(_f;1) ;\n_lf = "
+    - Length
+    - "(_f) ;\n_f = "
+    - Right
+    - "(_f; _lf-1) ;\n_result = "
+    - Case
+    - " (\n\t\n\t"
+    - |
+      // DAY
+    - type: NoRef
+      __content__: "\t"
+    - Exact
+    - '(_c; "d") ; '
+    - Right
+    - ' ( "0" & '
+    - Day
+    - "( _ts ) ; 2 ) ;\n\t"
+    - Exact
+    - '(_c; "D") ; '
+    - Left
+    - '( '
+    - DayName
+    - "( _ts ) ; 3 ) ;\n\t"
+    - Exact
+    - '(_c; "j") ; '
+    - Day
+    - " ( _ts ) ;\n\t"
+    - Exact
+    - '(_c; "l") ; '
+    - DayName
+    - " ( _ts ) ;\n\t"
+    - Exact
+    - '(_c; "N") ; '
+    - Mod
+    - ' ( '
+    - DayOfWeek
+    - " ( _ts ) -2 ; 7 )+1 ;\n\t"
+    - Exact
+    - "(_c; \"S\") ; /* number_Ordinal_Suffix ( Day ( _ts) ) */ \"\" ;\n\t"
+    - Exact
+    - '(_c; "w") ; '
+    - DayOfWeek
+    - " ( _ts ) - 1 ;\n\t"
+    - Exact
+    - '(_c; "z") ; '
+    - DayOfYear
+    - " ( _ts ) ;\n\t\n\t"
+    - |
+      // WEEK
+    - type: NoRef
+      __content__: "\t"
+    - Exact
+    - '(_c; "W") ; '
+    - WeekOfYearFiscal
+    - " ( _ts ; 2 ) ;\n\t\n\t"
+    - |
+      // MONTH
+    - type: NoRef
+      __content__: "\t"
+    - Exact
+    - '(_c; "F") ; '
+    - MonthName
+    - " ( _ts ) ;\n\t"
+    - Exact
+    - '(_c; "m") ; '
+    - Right
+    - ' ( "0" & '
+    - Month
+    - " ( _ts ) ; 2) ;\n\t"
+    - Exact
+    - '(_c; "M") ; '
+    - Left
+    - ' ( '
+    - MonthName
+    - " ( _ts ) ; 3 ) ;\n\t"
+    - Exact
+    - '(_c; "n") ; '
+    - Month
+    - " ( _ts ) ;\n\t"
+    - Exact
+    - '(_c; "t") ; '
+    - Day
+    - ' ( '
+    - Date
+    - ' ( '
+    - Month
+    - '(_ts)+1 ; -1 ; '
+    - Year
+    - "(_ts) ) ) ;\n\t\n\t"
+    - |
+      // YEAR
+    - type: NoRef
+      __content__: "\t"
+    - |
+      // leap year calc nicked from http://www.mitre.org/tech/cots/LEAPCALC.html
+    - type: NoRef
+      __content__: "\t"
+    - Exact
+    - '(_c; "L") ; '
+    - Let
+    - ' ( _y = '
+    - Year
+    - '(_ts);  '
+    - Case
+    - ' ( '
+    - Mod
+    - ' ( _y ; 4 ) <> 0 ; 0 ; '
+    - Mod
+    - '(_y;400)=0; 1; '
+    - Mod
+    - "(_y;100)=0; 0; 1)  ) ;\n\t"
+    - Exact
+    - '(_c; "o") ; '
+    - If
+    - ' ( '
+    - WeekOfYearFiscal
+    - ' ( _ts ; 2 ) > 51  '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Day
+    - '(_ts)<7 ; '
+    - Year
+    - '(_ts)-1 ; '
+    - Year
+    - "(_ts) ) ;\n\t"
+    - Exact
+    - '(_c; "Y") ; '
+    - Year
+    - "(_ts) ;\n\t"
+    - Exact
+    - '(_c; "y") ; '
+    - Right
+    - (
+    - Year
+    - "(_ts); 2) ;\n\t\n\t"
+    - |
+      // TIME
+    - type: NoRef
+      __content__: "\t"
+    - Exact
+    - '(_c; "a") ; '
+    - If
+    - (
+    - Hour
+    - "(_ts)>=12; \"pm\"; \"am\") ;\n\t"
+    - Exact
+    - '(_c; "A") ; '
+    - If
+    - (
+    - Hour
+    - "(_ts)>=12; \"PM\"; \"AM\") ;\n\t"
+    - Exact
+    - '(_c; "g") ; '
+    - Mod
+    - '( '
+    - Hour
+    - "(_ts)-1;12)+1 ;\n\t"
+    - Exact
+    - '(_c; "G") ; '
+    - Hour
+    - "(_ts) ;\n\t"
+    - Exact
+    - '(_c; "h") ; '
+    - Right
+    - '( "0" & '
+    - Mod
+    - (
+    - Hour
+    - "(_ts)-1;12)+1; 2) ;\n\t"
+    - Exact
+    - '(_c; "H") ; '
+    - Right
+    - ' ("0" & '
+    - Hour
+    - "(_ts); 2) ;\n\t"
+    - Exact
+    - '(_c; "i") ; '
+    - Right
+    - '("0" & '
+    - Minute
+    - "(_ts); 2) ;\n\t"
+    - Exact
+    - '(_c; "s") ; '
+    - Right
+    - '("0" & '
+    - Seconds
+    - "(_ts); 2) ;\n\t\n\t_c\n\n) "
+    - |
+      // end of case
+    - "] ;\n\n\n_result & "
+    - If
+    - '(_lf>1; '
+    - FormatTimestamp
+    - |2-
+       (_ts; _f) )
+
+      )

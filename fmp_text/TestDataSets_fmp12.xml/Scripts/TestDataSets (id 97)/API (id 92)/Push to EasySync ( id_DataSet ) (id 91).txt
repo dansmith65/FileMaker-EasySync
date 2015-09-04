@@ -1,0 +1,4282 @@
+########################################################################################################################
+#PURPOSE:
+#	Replace all records in EasySync Client and Server sample files with the current data set.
+#
+#CONTEXT:
+#	DataSet
+#
+#PARAMETERS:
+#	$id_DataSet | id of the data set to push to EasySync files
+#
+#RETURNS:
+#	$error | a dictionary containing error data
+#	$runtime | number of seconds this script was running (with millisecond precision)
+#
+#VARIABLES:
+#
+#DEPENDENCIES:
+#
+#NOTES:
+#
+#REVISIONS:
+#	2015-SEP-02 Daniel Smith	- Created
+########################################################################################################################
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+If [ LogWriteEnabled ( LogLevel5Trace ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel5Trace ; "start script" ) ]
+End If
+#
+#
+#
+#
+#
+#
+Loop
+#single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+#================================================================================
+If [ // save script parameters to local variablesnot #Assign (	#Filter (		Get ( ScriptParameter ) ;		ScriptRequiredParameterList ( "" ) & ScriptOptionalParameterList ( "" )	))ornot VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) ) ]
+Exit Loop If [ Let (	$error = ErrorApp ( 2 ; "" ) ;	True) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SET ENVIRONMENT" ]
+#================================================================================
+Freeze Window
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+#================================================================================
+Set Variable [ $thisFilePath; Value:Get ( FilePath ) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SELECT CLIENT DATASETFILE ID" ]
+#================================================================================
+Set Variable [ $id_DataSetFile; Value:Let ( [	$sqlQuery =		"SELECT "			& SQLField ( DSF__DataSetFile::id )		& "¶FROM "			& SQLTable ( DSF__DataSetFile::id )		& "¶WHERE "			& SQLField ( DSF__DataSetFile::id_DataSet )			& " = ? "		& "¶AND "			& SQLField ( DSF__DataSetFile::name )			& " = ? "	;	$sqlParameter1 = $id_DataSet ;	$sqlParameter2 = "Client" ;	$sqlResult = ExecuteSQL (		$sqlQuery ;		"" ;		"" ;		$sqlParameter1 ;		$sqlParameter2	) ;	$error = If ( $sqlResult = "?" ;		ErrorApp ( 17 ; "" ) & # ( "sqlQuery" ; $sqlQuery ) ;		$error	)] ;	$sqlResult) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Exit Loop If [ If (	IsEmpty ( $id_DataSetFile );	Let (		$error = ErrorApp ( 13 ; "$id_DataSetFile was empty after ExecuteSQL" ) ;		True	)) ]
+#
+Set Field [ SEL__SELECTOR::idList_DataSetFile; $id_DataSetFile ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CLIENT: SERVEYS" ]
+#================================================================================
+Go to Layout [ “Client_Surveys” (Client_Surveys) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_SUR__Surveys”; Using layout: “SUR__Surveys” (SUR__Surveys) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_Surveys”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_Surveys::Survey_IDSource field 2 import to Client_Surveys::DateTime_CreatedSource field 3 import to Client_Surveys::First_NameSource field 4 import to Client_Surveys::Last_NameSource field 5 import to Client_Surveys::OrganizationSource field 6 import to Client_Surveys::Street_Address_1Source field 7 import to Client_Surveys::Street_Address_2Source field 8 import to Client_Surveys::CitySource field 9 import to Client_Surveys::StateSource field 10 import to Client_Surveys::ZipSource field 11 import to Client_Surveys::CertificationsSource field 12 import to Client_Surveys::InterestsSource field 13 import to Client_Surveys::Favorite_New_FeatureSource field 14 import to Client_Surveys::DevCon_AttendeeSource field 15 import to Client_Surveys::CommentsSource field 16 import to Client_Surveys::ES_Record_UUIDSource field 17 import to Client_Surveys::ES_UTC_TimeSource field 18 import to Client_Surveys::Phone_NumberSource field 19 import to Client_Surveys::Email_AddressSource field 20 import to Client_Surveys::ES_ExcludeSource field 22 import to Client_Surveys::ES_AccountSource field 23 import to Client_Surveys::RepeaterSource field 24 import to Client_Surveys::ES_Device_IDSource field 25 import to Client_Surveys::Global ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CLIENT: SERVEYS DOCUMENTS" ]
+#================================================================================
+Go to Layout [ “Client_Surveys_Documents” (Client_Survey_Documents) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_SDO__Survey_Documents”; Using layout: “SDO__Survey_Documents” (SDO__Survey_Documents) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_Survey_Documents”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_Survey_Documents::Survey_Document_IDSource field 2 import to Client_Survey_Documents::DocumentSource field 3 import to Client_Survey_Documents::Survey_IDSource field 4 import to Client_Survey_Documents::ES_Record_UUIDSource field 5 import to Client_Survey_Documents::ES_UTC_TimeSource field 6 import to Client_Survey_Documents::ES_ExcludeSource field 7 import to Client_Survey_Documents::ES_AccountSource field 8 import to Client_Survey_Documents::ES_Device_ID ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CLIENT: SERVEYS HOBBIES" ]
+#================================================================================
+Go to Layout [ “Client_Surveys_Hobbies” (Client_Survey_Hobbies) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_SHO__Survey_Hobbies”; Using layout: “SHO__Survey_Hobbies” (SHO__Survey_Hobbies) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_Survey_Hobbies”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_Survey_Hobbies::Survey_Hobby_IDSource field 2 import to Client_Survey_Hobbies::HobbySource field 3 import to Client_Survey_Hobbies::ES_Record_UUIDSource field 4 import to Client_Survey_Hobbies::ES_UTC_TimeSource field 5 import to Client_Survey_Hobbies::ES_ExcludeSource field 6 import to Client_Survey_Hobbies::Survey_IDSource field 7 import to Client_Survey_Hobbies::ES_AccountSource field 8 import to Client_Survey_Hobbies::ES_Device_ID ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CLIENT: EASYSYNC" ]
+#================================================================================
+Go to Layout [ “Client_EasySync” (Client_EasySync) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_ESY__EasySync”; Using layout: “ESY__EasySync” (ESY__EasySync) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_EasySync::ES_Payload_UUIDSource field 2 import to Client_EasySync::Creator_AccountSource field 3 import to Client_EasySync::Created_TimeStampSource field 4 import to Client_EasySync::PayloadSource field 5 import to Client_EasySync::Payload_TypeSource field 6 import to Client_EasySync::ES_Child_Record_UUIDSource field 7 import to Client_EasySync::ES_Parent_Payload_UUIDSource field 8 import to Client_EasySync::ES_Last_Push_UTC_TimeSource field 9 import to Client_EasySync::ES_Last_Pull_UTC_TimeSource field 10 import to Client_EasySync::ES_Last_Full_SyncSource field 11 import to Client_EasySync::Created_TimeStamp_UTCSource field 12 import to Client_EasySync::ES_Deleted_Record_UUID ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SELECT SERVER DATASETFILE ID" ]
+#================================================================================
+Set Variable [ $id_DataSetFile; Value:Let ( [	$sqlQuery =		"SELECT "			& SQLField ( DSF__DataSetFile::id )		& "¶FROM "			& SQLTable ( DSF__DataSetFile::id )		& "¶WHERE "			& SQLField ( DSF__DataSetFile::id_DataSet )			& " = ? "		& "¶AND "			& SQLField ( DSF__DataSetFile::name )			& " = ? "	;	$sqlParameter1 = $id_DataSet ;	$sqlParameter2 = "Server" ;	$sqlResult = ExecuteSQL (		$sqlQuery ;		"" ;		"" ;		$sqlParameter1 ;		$sqlParameter2	) ;	$error = If ( $sqlResult = "?" ;		ErrorApp ( 17 ; "" ) & # ( "sqlQuery" ; $sqlQuery ) ;		$error	)] ;	$sqlResult) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Exit Loop If [ If (	IsEmpty ( $id_DataSetFile );	Let (		$error = ErrorApp ( 13 ; "$id_DataSetFile was empty after ExecuteSQL" ) ;		True	)) ]
+#
+Set Field [ SEL__SELECTOR::idList_DataSetFile; $id_DataSetFile ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SERVER: SERVEYS" ]
+#================================================================================
+Go to Layout [ “Server_Surveys” (Server_Surveys) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_SUR__Surveys”; Using layout: “SUR__Surveys” (SUR__Surveys) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_Surveys”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_Surveys::Survey_IDSource field 2 import to Server_Surveys::DateTime_CreatedSource field 3 import to Server_Surveys::First_NameSource field 4 import to Server_Surveys::Last_NameSource field 5 import to Server_Surveys::OrganizationSource field 6 import to Server_Surveys::Street_Address_1Source field 7 import to Server_Surveys::Street_Address_2Source field 8 import to Server_Surveys::CitySource field 9 import to Server_Surveys::StateSource field 10 import to Server_Surveys::ZipSource field 11 import to Server_Surveys::CertificationsSource field 12 import to Server_Surveys::InterestsSource field 13 import to Server_Surveys::Favorite_New_FeatureSource field 14 import to Server_Surveys::DevCon_AttendeeSource field 15 import to Server_Surveys::CommentsSource field 16 import to Server_Surveys::ES_Record_UUIDSource field 17 import to Server_Surveys::ES_UTC_TimeSource field 18 import to Server_Surveys::Phone_NumberSource field 19 import to Server_Surveys::Email_AddressSource field 20 import to Server_Surveys::ES_ExcludeSource field 21 import to Server_Surveys::EXCL_SalarySource field 22 import to Server_Surveys::ES_AccountSource field 23 import to Server_Surveys::RepeaterSource field 24 import to Server_Surveys::ES_Device_IDSource field 25 import to Server_Surveys::Global ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SERVER: SERVEYS DOCUMENTS" ]
+#================================================================================
+Go to Layout [ “Server_Surveys_Documents” (Server_Survey_Documents) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_SDO__Survey_Documents”; Using layout: “SDO__Survey_Documents” (SDO__Survey_Documents) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_Survey_Documents”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_Survey_Documents::Survey_Document_IDSource field 2 import to Server_Survey_Documents::DocumentSource field 3 import to Server_Survey_Documents::Survey_IDSource field 4 import to Server_Survey_Documents::ES_Record_UUIDSource field 5 import to Server_Survey_Documents::ES_UTC_TimeSource field 6 import to Server_Survey_Documents::ES_ExcludeSource field 7 import to Server_Survey_Documents::ES_AccountSource field 8 import to Server_Survey_Documents::ES_Device_ID ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SERVER: SERVEYS HOBBIES" ]
+#================================================================================
+Go to Layout [ “Server_Surveys_Hobbies” (Server_Survey_Hobbies) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_SHO__Survey_Hobbies”; Using layout: “SHO__Survey_Hobbies” (SHO__Survey_Hobbies) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_Survey_Hobbies”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_Survey_Hobbies::Survey_Hobby_IDSource field 2 import to Server_Survey_Hobbies::HobbySource field 3 import to Server_Survey_Hobbies::ES_Record_UUIDSource field 4 import to Server_Survey_Hobbies::ES_UTC_TimeSource field 5 import to Server_Survey_Hobbies::ES_ExcludeSource field 6 import to Server_Survey_Hobbies::Survey_IDSource field 7 import to Server_Survey_Hobbies::ES_AccountSource field 8 import to Server_Survey_Hobbies::ES_Device_ID ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SERVER: EASYSYNC" ]
+#================================================================================
+Go to Layout [ “Server_EasySync” (Server_EasySync) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+If [ Get ( FoundCount ) ]
+Delete All Records[ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+End If
+#
+Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Go to Related Record [ From table: “sel_dsf_ESY__EasySync”; Using layout: “ESY__EasySync” (ESY__EasySync) ][ Show only related records ]
+If [ Get ( LastError ) = 101/* this table is not supposed to have any records, so don't import */ ]
+Else
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_EasySync::ES_Payload_UUIDSource field 2 import to Server_EasySync::Creator_AccountSource field 3 import to Server_EasySync::Created_TimeStampSource field 4 import to Server_EasySync::PayloadSource field 5 import to Server_EasySync::Payload_TypeSource field 6 import to Server_EasySync::ES_Child_Record_UUIDSource field 7 import to Server_EasySync::ES_Parent_Payload_UUIDSource field 8 import to Server_EasySync::ES_Last_Push_UTC_TimeSource field 9 import to Server_EasySync::ES_Last_Pull_UTC_TimeSource field 10 import to Server_EasySync::ES_Last_Full_SyncSource field 11 import to Server_EasySync::Created_TimeStamp_UTCSource field 12 import to Server_EasySync::ES_Deleted_Record_UUID ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "after import" ) ;		True	)) ]
+End If
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"RESTORE CONTEXT" ]
+#================================================================================
+Go to Layout [ original layout ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+#================================================================================
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+If [ ErrorFound ( $error ) ]
+Set Variable [ $dataToLog; Value:/** * Data used in this script that may be relevent for debugging. *  * Save this data to a variable so it can easily be duplicated and logged both when there is an error, * or when detailed logging is enabled. This is easier to maintain than if it was defined in the script * parameter to the Logger script. * * For performance reasons, do not save this variable unless a log entry is supposed to be created. */# ( "runtime" ; $~script.runtime ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "exit script, " & $~script.runtime )& $dataToLog& $error ]
+Perform Script [ “Show Message From ( error )”; Parameter: # ( "error" ; $error ) ]
+Else If [ LogWriteEnabled ( LogLevel4Debug ) ]
+Set Variable [ $dataToLog; Value:/** * Data used in this script that may be relevent for debugging. *  * Save this data to a variable so it can easily be duplicated and logged both when there is an error, * or when detailed logging is enabled. This is easier to maintain than if it was defined in the script * parameter to the Logger script. * * For performance reasons, do not save this variable unless a log entry is supposed to be created. */# ( "runtime" ; $~script.runtime ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; "exit script, " & $~script.runtime )& $dataToLog& # ( "~script.section" ; $~script.section ) ]
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [ Result: # ( "error" ; $error )& # ( "runtime" ; $~script.runtime ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '91'
+  name: Push to EasySync ( id_DataSet )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '########################################################################################################################'
+      Text: '#######################################################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#PURPOSE:'
+      Text: 'PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\tReplace all records in EasySync Client and Server sample files
+        with the current data set."
+      Text: "\tReplace all records in EasySync Client and Server sample files with
+        the current data set."
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#CONTEXT:'
+      Text: 'CONTEXT:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\tDataSet"
+      Text: "\tDataSet"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#PARAMETERS:'
+      Text: 'PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t$id_DataSet | id of the data set to push to EasySync files"
+      Text: "\t$id_DataSet | id of the data set to push to EasySync files"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#RETURNS:'
+      Text: 'RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t$error | a dictionary containing error data"
+      Text: "\t$error | a dictionary containing error data"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t$runtime | number of seconds this script was running (with millisecond
+        precision)"
+      Text: "\t$runtime | number of seconds this script was running (with millisecond
+        precision)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#VARIABLES:'
+      Text: 'VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#DEPENDENCIES:'
+      Text: 'DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#NOTES:'
+      Text: 'NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#REVISIONS:'
+      Text: 'REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t\n2015-SEP-02 Daniel Smith\n\t- Created"
+      Text: "\t\n2015-SEP-02 Daniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '########################################################################################################################'
+      Text: '#######################################################################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel5Trace ) ]
+      Calculation: LogWriteEnabled ( LogLevel5Trace )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel5Trace
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData
+        ( LogLevel5Trace ; "start script" ) ]'
+      Calculation: LogData ( LogLevel5Trace ; "start script" )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel5Trace
+        - ' ; "start script" )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#single-pass loop for error trapping'
+      Text: single-pass loop for error trapping
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+      Value:
+        Calculation: '"ASSIGN PARAMETERS"'
+        DisplayCalculation:
+          Chunk: '"ASSIGN PARAMETERS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ // save script parameters to local variables\nnot #Assign (\n\t#Filter
+        (\n\t\tGet ( ScriptParameter ) ;\n\t\tScriptRequiredParameterList ( \"\" )
+        & ScriptOptionalParameterList ( \"\" )\n\t)\n)\nor\nnot VerifyVariablesNotEmpty
+        ( ScriptRequiredParameterList ( \"\" ) ) ]"
+      Calculation: "// save script parameters to local variables\nnot #Assign (\n\t#Filter
+        (\n\t\tGet ( ScriptParameter ) ;\n\t\tScriptRequiredParameterList ( \"\" )
+        & ScriptOptionalParameterList ( \"\" )\n\t)\n)\nor\nnot VerifyVariablesNotEmpty
+        ( ScriptRequiredParameterList ( \"\" ) )"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // save script parameters to local variables
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#Assign'
+        - " (\n\t"
+        - '#Filter'
+        - " (\n\t\t"
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ;\n\t\t"
+        - ScriptRequiredParameterList
+        - ' ( "" ) & '
+        - ScriptOptionalParameterList
+        - " ( \"\" )\n\t)\n)\n"
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - type: NoRef
+          __content__: ' '
+        - VerifyVariablesNotEmpty
+        - ' ( '
+        - ScriptRequiredParameterList
+        - ' ( "" ) )'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorApp ( 2 ; \"\" ) ;\n\tTrue\n)
+        ]"
+      Calculation: "Let (\n\t$error = ErrorApp ( 2 ; \"\" ) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorApp
+        - " ( 2 ; \"\" ) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SET ENVIRONMENT" ]
+      Value:
+        Calculation: '"SET ENVIRONMENT"'
+        DisplayCalculation:
+          Chunk: '"SET ENVIRONMENT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '79'
+      name: Freeze Window
+      StepText: Freeze Window
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+      Value:
+        Calculation: '"SET VARIABLES"'
+        DisplayCalculation:
+          Chunk: '"SET VARIABLES"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $thisFilePath; Value:Get ( FilePath ) ]
+      Value:
+        Calculation: Get ( FilePath )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - FilePath
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $thisFilePath
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SELECT CLIENT DATASETFILE
+        ID" ]
+      Value:
+        Calculation: '"SELECT CLIENT DATASETFILE ID"'
+        DisplayCalculation:
+          Chunk: '"SELECT CLIENT DATASETFILE ID"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $id_DataSetFile; Value:Let ( [\n\t$sqlQuery =\n\t\t\"SELECT
+        \"\n\t\t\t& SQLField ( DSF__DataSetFile::id )\n\t\t& \"¶FROM \"\n\t\t\t& SQLTable
+        ( DSF__DataSetFile::id )\n\t\t& \"¶WHERE \"\n\t\t\t& SQLField ( DSF__DataSetFile::id_DataSet
+        )\n\t\t\t& \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& SQLField ( DSF__DataSetFile::name
+        )\n\t\t\t& \" = ? \"\n\t;\n\t$sqlParameter1 = $id_DataSet ;\n\t$sqlParameter2
+        = \"Client\" ;\n\t$sqlResult = ExecuteSQL (\n\t\t$sqlQuery ;\n\t\t\"\" ;\n\t\t\"\"
+        ;\n\t\t$sqlParameter1 ;\n\t\t$sqlParameter2\n\t) ;\n\t$error = If ( $sqlResult
+        = \"?\" ;\n\t\tErrorApp ( 17 ; \"\" ) & # ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n]
+        ;\n\t$sqlResult\n) ]"
+      Value:
+        Calculation: "Let ( [\n\t$sqlQuery =\n\t\t\"SELECT \"\n\t\t\t& SQLField (
+          DSF__DataSetFile::id )\n\t\t& \"¶FROM \"\n\t\t\t& SQLTable ( DSF__DataSetFile::id
+          )\n\t\t& \"¶WHERE \"\n\t\t\t& SQLField ( DSF__DataSetFile::id_DataSet )\n\t\t\t&
+          \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& SQLField ( DSF__DataSetFile::name )\n\t\t\t&
+          \" = ? \"\n\t;\n\t$sqlParameter1 = $id_DataSet ;\n\t$sqlParameter2 = \"Client\"
+          ;\n\t$sqlResult = ExecuteSQL (\n\t\t$sqlQuery ;\n\t\t\"\" ;\n\t\t\"\" ;\n\t\t$sqlParameter1
+          ;\n\t\t$sqlParameter2\n\t) ;\n\t$error = If ( $sqlResult = \"?\" ;\n\t\tErrorApp
+          ( 17 ; \"\" ) & # ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n] ;\n\t$sqlResult\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( [\n\t$sqlQuery =\n\t\t\"SELECT \"\n\t\t\t& "
+          - SQLField
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '1'
+              name: id
+          - " )\n\t\t& \"¶FROM \"\n\t\t\t& "
+          - SQLTable
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '1'
+              name: id
+          - " )\n\t\t& \"¶WHERE \"\n\t\t\t& "
+          - SQLField
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '7'
+              name: id_DataSet
+          - " )\n\t\t\t& \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& "
+          - SQLField
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '2'
+              name: name
+          - " )\n\t\t\t& \" = ? \"\n\t;\n\t$sqlParameter1 = $id_DataSet ;\n\t$sqlParameter2
+            = \"Client\" ;\n\t$sqlResult = "
+          - ExecuteSQL
+          - " (\n\t\t$sqlQuery ;\n\t\t\"\" ;\n\t\t\"\" ;\n\t\t$sqlParameter1 ;\n\t\t$sqlParameter2\n\t)
+            ;\n\t$error = "
+          - If
+          - " ( $sqlResult = \"?\" ;\n\t\t"
+          - ErrorApp
+          - ' ( 17 ; "" ) & '
+          - '#'
+          - " ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n] ;\n\t$sqlResult\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $id_DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tIsEmpty ( $id_DataSetFile );\n\tLet (\n\t\t$error
+        = ErrorApp ( 13 ; \"$id_DataSetFile was empty after ExecuteSQL\" ) ;\n\t\tTrue\n\t)\n)
+        ]"
+      Calculation: "If (\n\tIsEmpty ( $id_DataSetFile );\n\tLet (\n\t\t$error = ErrorApp
+        ( 13 ; \"$id_DataSetFile was empty after ExecuteSQL\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - IsEmpty
+        - " ( $id_DataSetFile );\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorApp
+        - " ( 13 ; \"$id_DataSetFile was empty after ExecuteSQL\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ SEL__SELECTOR::idList_DataSetFile; $id_DataSetFile ]
+      Calculation: $id_DataSetFile
+      DisplayCalculation:
+        Chunk: $id_DataSetFile
+      Field:
+        table: SEL__SELECTOR
+        id: '2'
+        name: idList_DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"CLIENT: SERVEYS" ]'
+      Value:
+        Calculation: '"CLIENT: SERVEYS"'
+        DisplayCalculation:
+          Chunk: '"CLIENT: SERVEYS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Client_Surveys” (Client_Surveys) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '14'
+        name: Client_Surveys
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_SUR__Surveys”; Using layout: “SUR__Surveys” (SUR__Surveys) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065099'
+        name: sel_dsf_SUR__Surveys
+      Layout:
+        id: '2'
+        name: SUR__Surveys
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_Surveys”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_Surveys::Survey_ID
+        Source field 2 import to Client_Surveys::DateTime_Created
+        Source field 3 import to Client_Surveys::First_Name
+        Source field 4 import to Client_Surveys::Last_Name
+        Source field 5 import to Client_Surveys::Organization
+        Source field 6 import to Client_Surveys::Street_Address_1
+        Source field 7 import to Client_Surveys::Street_Address_2
+        Source field 8 import to Client_Surveys::City
+        Source field 9 import to Client_Surveys::State
+        Source field 10 import to Client_Surveys::Zip
+        Source field 11 import to Client_Surveys::Certifications
+        Source field 12 import to Client_Surveys::Interests
+        Source field 13 import to Client_Surveys::Favorite_New_Feature
+        Source field 14 import to Client_Surveys::DevCon_Attendee
+        Source field 15 import to Client_Surveys::Comments
+        Source field 16 import to Client_Surveys::ES_Record_UUID
+        Source field 17 import to Client_Surveys::ES_UTC_Time
+        Source field 18 import to Client_Surveys::Phone_Number
+        Source field 19 import to Client_Surveys::Email_Address
+        Source field 20 import to Client_Surveys::ES_Exclude
+        Source field 22 import to Client_Surveys::ES_Account
+        Source field 23 import to Client_Surveys::Repeater
+        Source field 24 import to Client_Surveys::ES_Device_ID
+        Source field 25 import to Client_Surveys::Global ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065090'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065090'
+          BaseTable: '130'
+          Size: '27'
+          InputField:
+          - id: '1'
+          - id: '2'
+          - id: '3'
+          - id: '4'
+          - id: '5'
+          - id: '6'
+          - id: '7'
+          - id: '8'
+          - id: '9'
+          - id: '10'
+          - id: '11'
+          - id: '12'
+          - id: '13'
+          - id: '14'
+          - id: '15'
+          - id: '18'
+          - id: '19'
+          - id: '20'
+          - id: '21'
+          - id: '22'
+          - id: '26'
+          - id: '28'
+          - id: '30'
+          - id: '31'
+          - id: '32'
+          - id: '33'
+          - id: '34'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065101'
+        name: Client_Surveys
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: Survey_ID
+        - map: Import
+          id: '2'
+          name: DateTime_Created
+        - map: Import
+          id: '3'
+          name: First_Name
+        - map: Import
+          id: '4'
+          name: Last_Name
+        - map: Import
+          id: '5'
+          name: Organization
+        - map: Import
+          id: '6'
+          name: Street_Address_1
+        - map: Import
+          id: '7'
+          name: Street_Address_2
+        - map: Import
+          id: '8'
+          name: City
+        - map: Import
+          id: '9'
+          name: State
+        - map: Import
+          id: '10'
+          name: Zip
+        - map: Import
+          id: '11'
+          name: Certifications
+        - map: Import
+          id: '12'
+          name: Interests
+        - map: Import
+          id: '13'
+          name: Favorite_New_Feature
+        - map: Import
+          id: '14'
+          name: DevCon_Attendee
+        - map: Import
+          id: '15'
+          name: Comments
+        - map: Import
+          id: '18'
+          name: ES_Record_UUID
+        - map: Import
+          id: '19'
+          name: ES_UTC_Time
+        - map: Import
+          id: '20'
+          name: Phone_Number
+        - map: Import
+          id: '21'
+          name: Email_Address
+        - map: Import
+          id: '24'
+          name: ES_Exclude
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: Import
+          id: '26'
+          name: ES_Account
+        - map: Import
+          id: '28'
+          name: Repeater
+        - map: Import
+          id: '29'
+          name: ES_Device_ID
+        - map: Import
+          id: '30'
+          name: Global
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"CLIENT: SERVEYS DOCUMENTS"
+        ]'
+      Value:
+        Calculation: '"CLIENT: SERVEYS DOCUMENTS"'
+        DisplayCalculation:
+          Chunk: '"CLIENT: SERVEYS DOCUMENTS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Client_Surveys_Documents” (Client_Survey_Documents)
+        ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '15'
+        name: Client_Surveys_Documents
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_SDO__Survey_Documents”; Using layout: “SDO__Survey_Documents” (SDO__Survey_Documents) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065097'
+        name: sel_dsf_SDO__Survey_Documents
+      Layout:
+        id: '4'
+        name: SDO__Survey_Documents
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_Survey_Documents”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_Survey_Documents::Survey_Document_ID
+        Source field 2 import to Client_Survey_Documents::Document
+        Source field 3 import to Client_Survey_Documents::Survey_ID
+        Source field 4 import to Client_Survey_Documents::ES_Record_UUID
+        Source field 5 import to Client_Survey_Documents::ES_UTC_Time
+        Source field 6 import to Client_Survey_Documents::ES_Exclude
+        Source field 7 import to Client_Survey_Documents::ES_Account
+        Source field 8 import to Client_Survey_Documents::ES_Device_ID ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065092'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065092'
+          BaseTable: '132'
+          Size: '10'
+          InputField:
+          - id: '1'
+          - id: '16'
+          - id: '27'
+          - id: '28'
+          - id: '29'
+          - id: '30'
+          - id: '31'
+          - id: '34'
+          - id: '35'
+          - id: '36'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065104'
+        name: Client_Survey_Documents
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: Survey_Document_ID
+        - map: Import
+          id: '16'
+          name: Document
+        - map: Import
+          id: '27'
+          name: Survey_ID
+        - map: Import
+          id: '28'
+          name: ES_Record_UUID
+        - map: Import
+          id: '29'
+          name: ES_UTC_Time
+        - map: Import
+          id: '30'
+          name: ES_Exclude
+        - map: Import
+          id: '31'
+          name: ES_Account
+        - map: Import
+          id: '34'
+          name: ES_Device_ID
+        - map: DoNotImport
+          id: '32'
+          name: Document_Info
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '23'
+          name: B64_Document
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"CLIENT: SERVEYS HOBBIES"
+        ]'
+      Value:
+        Calculation: '"CLIENT: SERVEYS HOBBIES"'
+        DisplayCalculation:
+          Chunk: '"CLIENT: SERVEYS HOBBIES"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Client_Surveys_Hobbies” (Client_Survey_Hobbies) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '16'
+        name: Client_Surveys_Hobbies
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_SHO__Survey_Hobbies”; Using layout: “SHO__Survey_Hobbies” (SHO__Survey_Hobbies) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065096'
+        name: sel_dsf_SHO__Survey_Hobbies
+      Layout:
+        id: '3'
+        name: SHO__Survey_Hobbies
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_Survey_Hobbies”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_Survey_Hobbies::Survey_Hobby_ID
+        Source field 2 import to Client_Survey_Hobbies::Hobby
+        Source field 3 import to Client_Survey_Hobbies::ES_Record_UUID
+        Source field 4 import to Client_Survey_Hobbies::ES_UTC_Time
+        Source field 5 import to Client_Survey_Hobbies::ES_Exclude
+        Source field 6 import to Client_Survey_Hobbies::Survey_ID
+        Source field 7 import to Client_Survey_Hobbies::ES_Account
+        Source field 8 import to Client_Survey_Hobbies::ES_Device_ID ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065091'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065091'
+          BaseTable: '131'
+          Size: '10'
+          InputField:
+          - id: '1'
+          - id: '2'
+          - id: '3'
+          - id: '4'
+          - id: '5'
+          - id: '6'
+          - id: '7'
+          - id: '9'
+          - id: '10'
+          - id: '11'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065102'
+        name: Client_Survey_Hobbies
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: Survey_Hobby_ID
+        - map: Import
+          id: '2'
+          name: Hobby
+        - map: Import
+          id: '3'
+          name: ES_Record_UUID
+        - map: Import
+          id: '4'
+          name: ES_UTC_Time
+        - map: Import
+          id: '5'
+          name: ES_Exclude
+        - map: Import
+          id: '6'
+          name: Survey_ID
+        - map: Import
+          id: '7'
+          name: ES_Account
+        - map: Import
+          id: '9'
+          name: ES_Device_ID
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"CLIENT: EASYSYNC" ]'
+      Value:
+        Calculation: '"CLIENT: EASYSYNC"'
+        DisplayCalculation:
+          Chunk: '"CLIENT: EASYSYNC"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Client_EasySync” (Client_EasySync) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '17'
+        name: Client_EasySync
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_ESY__EasySync”; Using layout: “ESY__EasySync” (ESY__EasySync) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065098'
+        name: sel_dsf_ESY__EasySync
+      Layout:
+        id: '5'
+        name: ESY__EasySync
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Client_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Client_EasySync::ES_Payload_UUID
+        Source field 2 import to Client_EasySync::Creator_Account
+        Source field 3 import to Client_EasySync::Created_TimeStamp
+        Source field 4 import to Client_EasySync::Payload
+        Source field 5 import to Client_EasySync::Payload_Type
+        Source field 6 import to Client_EasySync::ES_Child_Record_UUID
+        Source field 7 import to Client_EasySync::ES_Parent_Payload_UUID
+        Source field 8 import to Client_EasySync::ES_Last_Push_UTC_Time
+        Source field 9 import to Client_EasySync::ES_Last_Pull_UTC_Time
+        Source field 10 import to Client_EasySync::ES_Last_Full_Sync
+        Source field 11 import to Client_EasySync::Created_TimeStamp_UTC
+        Source field 12 import to Client_EasySync::ES_Deleted_Record_UUID ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065093'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065093'
+          BaseTable: '133'
+          Size: '14'
+          InputField:
+          - id: '1'
+          - id: '2'
+          - id: '3'
+          - id: '4'
+          - id: '11'
+          - id: '12'
+          - id: '13'
+          - id: '15'
+          - id: '16'
+          - id: '17'
+          - id: '18'
+          - id: '19'
+          - id: '20'
+          - id: '21'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065103'
+        name: Client_EasySync
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: ES_Payload_UUID
+        - map: Import
+          id: '2'
+          name: Creator_Account
+        - map: Import
+          id: '3'
+          name: Created_TimeStamp
+        - map: Import
+          id: '4'
+          name: Payload
+        - map: Import
+          id: '11'
+          name: Payload_Type
+        - map: Import
+          id: '12'
+          name: ES_Child_Record_UUID
+        - map: Import
+          id: '13'
+          name: ES_Parent_Payload_UUID
+        - map: Import
+          id: '14'
+          name: ES_Last_Push_UTC_Time
+        - map: Import
+          id: '15'
+          name: ES_Last_Pull_UTC_Time
+        - map: Import
+          id: '16'
+          name: ES_Last_Full_Sync
+        - map: Import
+          id: '18'
+          name: Created_TimeStamp_UTC
+        - map: Import
+          id: '17'
+          name: ES_Deleted_Record_UUID
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SELECT SERVER DATASETFILE
+        ID" ]
+      Value:
+        Calculation: '"SELECT SERVER DATASETFILE ID"'
+        DisplayCalculation:
+          Chunk: '"SELECT SERVER DATASETFILE ID"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $id_DataSetFile; Value:Let ( [\n\t$sqlQuery =\n\t\t\"SELECT
+        \"\n\t\t\t& SQLField ( DSF__DataSetFile::id )\n\t\t& \"¶FROM \"\n\t\t\t& SQLTable
+        ( DSF__DataSetFile::id )\n\t\t& \"¶WHERE \"\n\t\t\t& SQLField ( DSF__DataSetFile::id_DataSet
+        )\n\t\t\t& \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& SQLField ( DSF__DataSetFile::name
+        )\n\t\t\t& \" = ? \"\n\t;\n\t$sqlParameter1 = $id_DataSet ;\n\t$sqlParameter2
+        = \"Server\" ;\n\t$sqlResult = ExecuteSQL (\n\t\t$sqlQuery ;\n\t\t\"\" ;\n\t\t\"\"
+        ;\n\t\t$sqlParameter1 ;\n\t\t$sqlParameter2\n\t) ;\n\t$error = If ( $sqlResult
+        = \"?\" ;\n\t\tErrorApp ( 17 ; \"\" ) & # ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n]
+        ;\n\t$sqlResult\n) ]"
+      Value:
+        Calculation: "Let ( [\n\t$sqlQuery =\n\t\t\"SELECT \"\n\t\t\t& SQLField (
+          DSF__DataSetFile::id )\n\t\t& \"¶FROM \"\n\t\t\t& SQLTable ( DSF__DataSetFile::id
+          )\n\t\t& \"¶WHERE \"\n\t\t\t& SQLField ( DSF__DataSetFile::id_DataSet )\n\t\t\t&
+          \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& SQLField ( DSF__DataSetFile::name )\n\t\t\t&
+          \" = ? \"\n\t;\n\t$sqlParameter1 = $id_DataSet ;\n\t$sqlParameter2 = \"Server\"
+          ;\n\t$sqlResult = ExecuteSQL (\n\t\t$sqlQuery ;\n\t\t\"\" ;\n\t\t\"\" ;\n\t\t$sqlParameter1
+          ;\n\t\t$sqlParameter2\n\t) ;\n\t$error = If ( $sqlResult = \"?\" ;\n\t\tErrorApp
+          ( 17 ; \"\" ) & # ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n] ;\n\t$sqlResult\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( [\n\t$sqlQuery =\n\t\t\"SELECT \"\n\t\t\t& "
+          - SQLField
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '1'
+              name: id
+          - " )\n\t\t& \"¶FROM \"\n\t\t\t& "
+          - SQLTable
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '1'
+              name: id
+          - " )\n\t\t& \"¶WHERE \"\n\t\t\t& "
+          - SQLField
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '7'
+              name: id_DataSet
+          - " )\n\t\t\t& \" = ? \"\n\t\t& \"¶AND \"\n\t\t\t& "
+          - SQLField
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: DSF__DataSetFile
+              id: '2'
+              name: name
+          - " )\n\t\t\t& \" = ? \"\n\t;\n\t$sqlParameter1 = $id_DataSet ;\n\t$sqlParameter2
+            = \"Server\" ;\n\t$sqlResult = "
+          - ExecuteSQL
+          - " (\n\t\t$sqlQuery ;\n\t\t\"\" ;\n\t\t\"\" ;\n\t\t$sqlParameter1 ;\n\t\t$sqlParameter2\n\t)
+            ;\n\t$error = "
+          - If
+          - " ( $sqlResult = \"?\" ;\n\t\t"
+          - ErrorApp
+          - ' ( 17 ; "" ) & '
+          - '#'
+          - " ( \"sqlQuery\" ; $sqlQuery ) ;\n\t\t$error\n\t)\n] ;\n\t$sqlResult\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $id_DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tIsEmpty ( $id_DataSetFile );\n\tLet (\n\t\t$error
+        = ErrorApp ( 13 ; \"$id_DataSetFile was empty after ExecuteSQL\" ) ;\n\t\tTrue\n\t)\n)
+        ]"
+      Calculation: "If (\n\tIsEmpty ( $id_DataSetFile );\n\tLet (\n\t\t$error = ErrorApp
+        ( 13 ; \"$id_DataSetFile was empty after ExecuteSQL\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - IsEmpty
+        - " ( $id_DataSetFile );\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorApp
+        - " ( 13 ; \"$id_DataSetFile was empty after ExecuteSQL\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ SEL__SELECTOR::idList_DataSetFile; $id_DataSetFile ]
+      Calculation: $id_DataSetFile
+      DisplayCalculation:
+        Chunk: $id_DataSetFile
+      Field:
+        table: SEL__SELECTOR
+        id: '2'
+        name: idList_DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"SERVER: SERVEYS" ]'
+      Value:
+        Calculation: '"SERVER: SERVEYS"'
+        DisplayCalculation:
+          Chunk: '"SERVER: SERVEYS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Server_Surveys” (Server_Surveys) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '18'
+        name: Server_Surveys
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_SUR__Surveys”; Using layout: “SUR__Surveys” (SUR__Surveys) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065099'
+        name: sel_dsf_SUR__Surveys
+      Layout:
+        id: '2'
+        name: SUR__Surveys
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_Surveys”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_Surveys::Survey_ID
+        Source field 2 import to Server_Surveys::DateTime_Created
+        Source field 3 import to Server_Surveys::First_Name
+        Source field 4 import to Server_Surveys::Last_Name
+        Source field 5 import to Server_Surveys::Organization
+        Source field 6 import to Server_Surveys::Street_Address_1
+        Source field 7 import to Server_Surveys::Street_Address_2
+        Source field 8 import to Server_Surveys::City
+        Source field 9 import to Server_Surveys::State
+        Source field 10 import to Server_Surveys::Zip
+        Source field 11 import to Server_Surveys::Certifications
+        Source field 12 import to Server_Surveys::Interests
+        Source field 13 import to Server_Surveys::Favorite_New_Feature
+        Source field 14 import to Server_Surveys::DevCon_Attendee
+        Source field 15 import to Server_Surveys::Comments
+        Source field 16 import to Server_Surveys::ES_Record_UUID
+        Source field 17 import to Server_Surveys::ES_UTC_Time
+        Source field 18 import to Server_Surveys::Phone_Number
+        Source field 19 import to Server_Surveys::Email_Address
+        Source field 20 import to Server_Surveys::ES_Exclude
+        Source field 21 import to Server_Surveys::EXCL_Salary
+        Source field 22 import to Server_Surveys::ES_Account
+        Source field 23 import to Server_Surveys::Repeater
+        Source field 24 import to Server_Surveys::ES_Device_ID
+        Source field 25 import to Server_Surveys::Global ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065090'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065090'
+          BaseTable: '130'
+          Size: '27'
+          InputField:
+          - id: '1'
+          - id: '2'
+          - id: '3'
+          - id: '4'
+          - id: '5'
+          - id: '6'
+          - id: '7'
+          - id: '8'
+          - id: '9'
+          - id: '10'
+          - id: '11'
+          - id: '12'
+          - id: '13'
+          - id: '14'
+          - id: '15'
+          - id: '18'
+          - id: '19'
+          - id: '20'
+          - id: '21'
+          - id: '22'
+          - id: '26'
+          - id: '28'
+          - id: '30'
+          - id: '31'
+          - id: '32'
+          - id: '33'
+          - id: '34'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065106'
+        name: Server_Surveys
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: Survey_ID
+        - map: Import
+          id: '2'
+          name: DateTime_Created
+        - map: Import
+          id: '3'
+          name: First_Name
+        - map: Import
+          id: '4'
+          name: Last_Name
+        - map: Import
+          id: '5'
+          name: Organization
+        - map: Import
+          id: '6'
+          name: Street_Address_1
+        - map: Import
+          id: '7'
+          name: Street_Address_2
+        - map: Import
+          id: '8'
+          name: City
+        - map: Import
+          id: '9'
+          name: State
+        - map: Import
+          id: '10'
+          name: Zip
+        - map: Import
+          id: '11'
+          name: Certifications
+        - map: Import
+          id: '12'
+          name: Interests
+        - map: Import
+          id: '13'
+          name: Favorite_New_Feature
+        - map: Import
+          id: '14'
+          name: DevCon_Attendee
+        - map: Import
+          id: '15'
+          name: Comments
+        - map: Import
+          id: '18'
+          name: ES_Record_UUID
+        - map: Import
+          id: '19'
+          name: ES_UTC_Time
+        - map: Import
+          id: '20'
+          name: Phone_Number
+        - map: Import
+          id: '21'
+          name: Email_Address
+        - map: Import
+          id: '22'
+          name: ES_Exclude
+        - map: Import
+          id: '26'
+          name: EXCL_Salary
+        - map: Import
+          id: '28'
+          name: ES_Account
+        - map: Import
+          id: '30'
+          name: Repeater
+        - map: Import
+          id: '31'
+          name: ES_Device_ID
+        - map: Import
+          id: '32'
+          name: Global
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"SERVER: SERVEYS DOCUMENTS"
+        ]'
+      Value:
+        Calculation: '"SERVER: SERVEYS DOCUMENTS"'
+        DisplayCalculation:
+          Chunk: '"SERVER: SERVEYS DOCUMENTS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Server_Surveys_Documents” (Server_Survey_Documents)
+        ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '19'
+        name: Server_Surveys_Documents
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_SDO__Survey_Documents”; Using layout: “SDO__Survey_Documents” (SDO__Survey_Documents) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065097'
+        name: sel_dsf_SDO__Survey_Documents
+      Layout:
+        id: '4'
+        name: SDO__Survey_Documents
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_Survey_Documents”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_Survey_Documents::Survey_Document_ID
+        Source field 2 import to Server_Survey_Documents::Document
+        Source field 3 import to Server_Survey_Documents::Survey_ID
+        Source field 4 import to Server_Survey_Documents::ES_Record_UUID
+        Source field 5 import to Server_Survey_Documents::ES_UTC_Time
+        Source field 6 import to Server_Survey_Documents::ES_Exclude
+        Source field 7 import to Server_Survey_Documents::ES_Account
+        Source field 8 import to Server_Survey_Documents::ES_Device_ID ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065092'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065092'
+          BaseTable: '132'
+          Size: '10'
+          InputField:
+          - id: '1'
+          - id: '16'
+          - id: '27'
+          - id: '28'
+          - id: '29'
+          - id: '30'
+          - id: '31'
+          - id: '34'
+          - id: '35'
+          - id: '36'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065109'
+        name: Server_Survey_Documents
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: Survey_Document_ID
+        - map: Import
+          id: '16'
+          name: Document
+        - map: Import
+          id: '27'
+          name: Survey_ID
+        - map: Import
+          id: '28'
+          name: ES_Record_UUID
+        - map: Import
+          id: '29'
+          name: ES_UTC_Time
+        - map: Import
+          id: '30'
+          name: ES_Exclude
+        - map: Import
+          id: '31'
+          name: ES_Account
+        - map: Import
+          id: '34'
+          name: ES_Device_ID
+        - map: DoNotImport
+          id: '32'
+          name: Document_Info
+        - map: DoNotImport
+          id: '23'
+          name: B64_Document
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"SERVER: SERVEYS HOBBIES"
+        ]'
+      Value:
+        Calculation: '"SERVER: SERVEYS HOBBIES"'
+        DisplayCalculation:
+          Chunk: '"SERVER: SERVEYS HOBBIES"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Server_Surveys_Hobbies” (Server_Survey_Hobbies) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '20'
+        name: Server_Surveys_Hobbies
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_SHO__Survey_Hobbies”; Using layout: “SHO__Survey_Hobbies” (SHO__Survey_Hobbies) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065096'
+        name: sel_dsf_SHO__Survey_Hobbies
+      Layout:
+        id: '3'
+        name: SHO__Survey_Hobbies
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_Survey_Hobbies”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_Survey_Hobbies::Survey_Hobby_ID
+        Source field 2 import to Server_Survey_Hobbies::Hobby
+        Source field 3 import to Server_Survey_Hobbies::ES_Record_UUID
+        Source field 4 import to Server_Survey_Hobbies::ES_UTC_Time
+        Source field 5 import to Server_Survey_Hobbies::ES_Exclude
+        Source field 6 import to Server_Survey_Hobbies::Survey_ID
+        Source field 7 import to Server_Survey_Hobbies::ES_Account
+        Source field 8 import to Server_Survey_Hobbies::ES_Device_ID ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065091'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065091'
+          BaseTable: '131'
+          Size: '10'
+          InputField:
+          - id: '1'
+          - id: '2'
+          - id: '3'
+          - id: '4'
+          - id: '5'
+          - id: '6'
+          - id: '7'
+          - id: '9'
+          - id: '10'
+          - id: '11'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065108'
+        name: Server_Survey_Hobbies
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: Survey_Hobby_ID
+        - map: Import
+          id: '2'
+          name: Hobby
+        - map: Import
+          id: '3'
+          name: ES_Record_UUID
+        - map: Import
+          id: '4'
+          name: ES_UTC_Time
+        - map: Import
+          id: '5'
+          name: ES_Exclude
+        - map: Import
+          id: '6'
+          name: Survey_ID
+        - map: Import
+          id: '7'
+          name: ES_Account
+        - map: Import
+          id: '9'
+          name: ES_Device_ID
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: 'Set Variable [ $~script.section; Value:"SERVER: EASYSYNC" ]'
+      Value:
+        Calculation: '"SERVER: EASYSYNC"'
+        DisplayCalculation:
+          Chunk: '"SERVER: EASYSYNC"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “Server_EasySync” (Server_EasySync) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '21'
+        name: Server_EasySync
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) ]
+      Calculation: Get ( FoundCount )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' )'
+    - enable: 'True'
+      id: '10'
+      name: Delete All Records
+      StepText: |-
+        Delete All Records
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “DSF__DataSetFile” (DSF__DataSetFile) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '27'
+        name: DSF__DataSetFile
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “sel_dsf_ESY__EasySync”; Using layout: “ESY__EasySync” (ESY__EasySync) ]
+        [ Show only related records ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'False'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065098'
+        name: sel_dsf_ESY__EasySync
+      Layout:
+        id: '5'
+        name: ESY__EasySync
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */ ]
+      Calculation: |-
+        Get ( LastError ) = 101
+
+        /* this table is not supposed to have any records, so don't import */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastError
+        - |2-
+           ) = 101
+
+          /* this table is not supposed to have any records, so don't import */
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '35'
+      name: Import Records
+      StepText: |-
+        Import Records [ Source: “$thisFilePath” OR “file:TestDataSets.fmp12”; Target: “Server_EasySync”; Method: Add; Character Set: “Windows ANSI”; Field Mapping: Source field 1 import to Server_EasySync::ES_Payload_UUID
+        Source field 2 import to Server_EasySync::Creator_Account
+        Source field 3 import to Server_EasySync::Created_TimeStamp
+        Source field 4 import to Server_EasySync::Payload
+        Source field 5 import to Server_EasySync::Payload_Type
+        Source field 6 import to Server_EasySync::ES_Child_Record_UUID
+        Source field 7 import to Server_EasySync::ES_Parent_Payload_UUID
+        Source field 8 import to Server_EasySync::ES_Last_Push_UTC_Time
+        Source field 9 import to Server_EasySync::ES_Last_Pull_UTC_Time
+        Source field 10 import to Server_EasySync::ES_Last_Full_Sync
+        Source field 11 import to Server_EasySync::Created_TimeStamp_UTC
+        Source field 12 import to Server_EasySync::ES_Deleted_Record_UUID ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      DataSourceType:
+        value: File
+      Profile:
+        table: '1065093'
+        FirstRowIsData: 'False'
+        DataType: FMPR
+        List:
+          id: '1065093'
+          BaseTable: '133'
+          Size: '14'
+          InputField:
+          - id: '1'
+          - id: '2'
+          - id: '3'
+          - id: '4'
+          - id: '11'
+          - id: '12'
+          - id: '13'
+          - id: '15'
+          - id: '16'
+          - id: '17'
+          - id: '18'
+          - id: '19'
+          - id: '20'
+          - id: '21'
+      UniversalPathList: $thisFilePath;file:TestDataSets.fmp12
+      ImportOptions:
+        CharacterSet: Windows
+        PreserveContainer: 'False'
+        AutoEnter: 'False'
+        SplitRepetitions: 'False'
+        method: Add
+      Table:
+        id: '1065107'
+        name: Server_EasySync
+      TargetFields:
+        Field:
+        - map: Import
+          id: '1'
+          name: ES_Payload_UUID
+        - map: Import
+          id: '2'
+          name: Creator_Account
+        - map: Import
+          id: '3'
+          name: Created_TimeStamp
+        - map: Import
+          id: '4'
+          name: Payload
+        - map: Import
+          id: '11'
+          name: Payload_Type
+        - map: Import
+          id: '12'
+          name: ES_Child_Record_UUID
+        - map: Import
+          id: '13'
+          name: ES_Parent_Payload_UUID
+        - map: Import
+          id: '15'
+          name: ES_Last_Push_UTC_Time
+        - map: Import
+          id: '16'
+          name: ES_Last_Pull_UTC_Time
+        - map: Import
+          id: '17'
+          name: ES_Last_Full_Sync
+        - map: Import
+          id: '18'
+          name: Created_TimeStamp_UTC
+        - map: Import
+          id: '19'
+          name: ES_Deleted_Record_UUID
+        - map: DoNotImport
+          id: '0'
+          name: ''
+        - map: DoNotImport
+          id: '0'
+          name: ''
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"after import\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"after import\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"after import\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#end single-pass loop for error trapping'
+      Text: end single-pass loop for error trapping
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"RESTORE CONTEXT" ]
+      Value:
+        Calculation: '"RESTORE CONTEXT"'
+        DisplayCalculation:
+          Chunk: '"RESTORE CONTEXT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ original layout ]
+      LayoutDestination:
+        value: OriginalLayout
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+      Value:
+        Calculation: '"HANDLE ERROR"'
+        DisplayCalculation:
+          Chunk: '"HANDLE ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dataToLog; Value:/**\n * Data used in this script
+        that may be relevent for debugging.\n * \n * Save this data to a variable
+        so it can easily be duplicated and logged both when there is an error,\n *
+        or when detailed logging is enabled. This is easier to maintain than if it
+        was defined in the script\n * parameter to the Logger script.\n *\n * For
+        performance reasons, do not save this variable unless a log entry is supposed
+        to be created.\n */\n\n# ( \"runtime\" ; $~script.runtime ) ]"
+      Value:
+        Calculation: "/**\n * Data used in this script that may be relevent for debugging.\n
+          * \n * Save this data to a variable so it can easily be duplicated and logged
+          both when there is an error,\n * or when detailed logging is enabled. This
+          is easier to maintain than if it was defined in the script\n * parameter
+          to the Logger script.\n *\n * For performance reasons, do not save this
+          variable unless a log entry is supposed to be created.\n */\n\n# ( \"runtime\"
+          ; $~script.runtime )"
+        DisplayCalculation:
+          Chunk:
+          - "/**\n * Data used in this script that may be relevent for debugging.\n
+            * \n * Save this data to a variable so it can easily be duplicated and
+            logged both when there is an error,\n * or when detailed logging is enabled.
+            This is easier to maintain than if it was defined in the script\n * parameter
+            to the Logger script.\n *\n * For performance reasons, do not save this
+            variable unless a log entry is supposed to be created.\n */\n\n"
+          - '#'
+          - ' ( "runtime" ; $~script.runtime )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dataToLog
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & $error ]
+      Calculation: |-
+        LogData ( LogLevelByError ( $error ) ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & $error
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevelByError
+        - |2-
+           ( $error ) ; "exit script, " & $~script.runtime )
+          & $dataToLog
+          & $error
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Show Message From ( error )”; Parameter: # ( "error"
+        ; $error ) ]'
+      Calculation: '# ( "error" ; $error )'
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - ' ( "error" ; $error )'
+      Script:
+        id: '79'
+        name: Show Message From ( error )
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ LogWriteEnabled ( LogLevel4Debug ) ]
+      Calculation: LogWriteEnabled ( LogLevel4Debug )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel4Debug
+        - ' )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $dataToLog; Value:/**\n * Data used in this script
+        that may be relevent for debugging.\n * \n * Save this data to a variable
+        so it can easily be duplicated and logged both when there is an error,\n *
+        or when detailed logging is enabled. This is easier to maintain than if it
+        was defined in the script\n * parameter to the Logger script.\n *\n * For
+        performance reasons, do not save this variable unless a log entry is supposed
+        to be created.\n */\n\n# ( \"runtime\" ; $~script.runtime ) ]"
+      Value:
+        Calculation: "/**\n * Data used in this script that may be relevent for debugging.\n
+          * \n * Save this data to a variable so it can easily be duplicated and logged
+          both when there is an error,\n * or when detailed logging is enabled. This
+          is easier to maintain than if it was defined in the script\n * parameter
+          to the Logger script.\n *\n * For performance reasons, do not save this
+          variable unless a log entry is supposed to be created.\n */\n\n# ( \"runtime\"
+          ; $~script.runtime )"
+        DisplayCalculation:
+          Chunk:
+          - "/**\n * Data used in this script that may be relevent for debugging.\n
+            * \n * Save this data to a variable so it can easily be duplicated and
+            logged both when there is an error,\n * or when detailed logging is enabled.
+            This is easier to maintain than if it was defined in the script\n * parameter
+            to the Logger script.\n *\n * For performance reasons, do not save this
+            variable unless a log entry is supposed to be created.\n */\n\n"
+          - '#'
+          - ' ( "runtime" ; $~script.runtime )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dataToLog
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & # ( "~script.section" ; $~script.section ) ]
+      Calculation: |-
+        LogData ( LogLevel4Debug ; "exit script, " & $~script.runtime )
+        & $dataToLog
+        & # ( "~script.section" ; $~script.section )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel4Debug
+        - " ; \"exit script, \" & $~script.runtime )\n& $dataToLog\n& "
+        - '#'
+        - ' ( "~script.section" ; $~script.section )'
+      Script:
+        id: '86'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: # ( "error" ; $error )
+        & # ( "runtime" ; $~script.runtime ) ]
+      Calculation: |-
+        # ( "error" ; $error )
+        & # ( "runtime" ; $~script.runtime )
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - " ( \"error\" ; $error )\n& "
+        - '#'
+        - ' ( "runtime" ; $~script.runtime )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,29 @@
+     Layout name:  Client_Surveys_Documents 
+              id:  15                       
+           Table:  Client_Survey_Documents  
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '15'
+  name: Client_Surveys_Documents
+  Table:
+    id: '1065104'
+    name: Client_Survey_Documents
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'False'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

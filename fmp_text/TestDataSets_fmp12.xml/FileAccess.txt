@@ -1,0 +1,7 @@
+Authorization required: False
+
+
+
+---
+AuthFileCatalog:
+  requireAuthorization: 'False'

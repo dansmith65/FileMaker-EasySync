@@ -1,0 +1,71 @@
+/**
+ * =====================================
+ * LayoutID ( file ; theLayoutName )
+ *
+ * RETURNS:
+ *		FileMaker's internal ID for a layout.
+ *
+ * PARAMETERS:
+ *		file: The name of the FileMaker file containing the layout.
+ *		theLayoutName
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		MODIFIED on 2012-01-26 by Jeremy Bante to accept the file parameter.
+ *		CREATED on 2011-06-01 by Jeremy Bante <http://scr.im/jbante>.
+ *		INSPIRED by custom functions by Fabrice Nordman.
+ * =====================================
+ */
+
+Let ( [
+	~nameList = ¶ & LayoutNames ( file ) & ¶;
+	~value =
+		Position ( ~nameList ; ¶ & theLayoutName & ¶ ; 1 ; 1 );
+	~value = PatternCount ( Left ( ~nameList ; ~value ) ; ¶ )
+];
+	GetValue ( LayoutIDs ( file ) ; ~value )
+)
+
+---
+CustomFunction:
+  id: '46'
+  functionArity: '2'
+  visible: 'True'
+  parameters: file;theLayoutName
+  name: LayoutID
+  Calculation: "/**\n * =====================================\n * LayoutID ( file
+    ; theLayoutName )\n *\n * RETURNS:\n *\t\tFileMaker's internal ID for a layout.\n
+    *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker file containing the layout.\n
+    *\t\ttheLayoutName\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED
+    on 2012-01-26 by Jeremy Bante to accept the file parameter.\n *\t\tCREATED on
+    2011-06-01 by Jeremy Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions
+    by Fabrice Nordman.\n * =====================================\n */\n\nLet ( [\n\t~nameList
+    = ¶ & LayoutNames ( file ) & ¶;\n\t~value =\n\t\tPosition ( ~nameList ; ¶ & theLayoutName
+    & ¶ ; 1 ; 1 );\n\t~value = PatternCount ( Left ( ~nameList ; ~value ) ; ¶ )\n];\n\tGetValue
+    ( LayoutIDs ( file ) ; ~value )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * LayoutID ( file ; theLayoutName
+      )\n *\n * RETURNS:\n *\t\tFileMaker's internal ID for a layout.\n *\n * PARAMETERS:\n
+      *\t\tfile: The name of the FileMaker file containing the layout.\n *\t\ttheLayoutName\n
+      *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on 2012-01-26 by Jeremy
+      Bante to accept the file parameter.\n *\t\tCREATED on 2011-06-01 by Jeremy Bante
+      <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions by Fabrice Nordman.\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~nameList = ¶ & "
+    - LayoutNames
+    - " ( file ) & ¶;\n\t~value =\n\t\t"
+    - Position
+    - " ( ~nameList ; ¶ & theLayoutName & ¶ ; 1 ; 1 );\n\t~value = "
+    - PatternCount
+    - ' ( '
+    - Left
+    - " ( ~nameList ; ~value ) ; ¶ )\n];\n\t"
+    - GetValue
+    - ' ( '
+    - LayoutIDs
+    - |2-
+       ( file ) ; ~value )
+      )

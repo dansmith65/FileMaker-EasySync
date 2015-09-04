@@ -1,0 +1,63 @@
+/**
+ * =====================================
+ * LayoutIDNumber ( file ; theLayoutID )
+ *
+ * RETURNS:
+ *		The current number of a FileMaker layout, based on its ID.
+ *
+ * PARAMETERS:
+ *		file: The name of the FileMaker file containing the layout.
+ *		theLayoutID: FileMaker's internal ID for the layout.
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		CREATED on 2012-09-05 by Jeremy Bante <http://scr.im/jbante>.
+ *		INSPIRED by custom functions by Fabrice Nordman.
+ * =====================================
+ */
+
+Let ( [
+	~idList = ¶ & LayoutIDs ( file ) & ¶;
+	~value =
+		Position ( ~idList ; ¶ & theLayoutID & ¶ ; 1 ; 1 );
+	~value = PatternCount ( Left ( ~idList ; ~value ) ; ¶ )
+];
+	~value
+)
+
+---
+CustomFunction:
+  id: '48'
+  functionArity: '2'
+  visible: 'True'
+  parameters: file;theLayoutID
+  name: LayoutIDNumber
+  Calculation: "/**\n * =====================================\n * LayoutIDNumber (
+    file ; theLayoutID )\n *\n * RETURNS:\n *\t\tThe current number of a FileMaker
+    layout, based on its ID.\n *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker
+    file containing the layout.\n *\t\ttheLayoutID: FileMaker's internal ID for the
+    layout.\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED on 2012-09-05
+    by Jeremy Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions by
+    Fabrice Nordman.\n * =====================================\n */\n\nLet ( [\n\t~idList
+    = ¶ & LayoutIDs ( file ) & ¶;\n\t~value =\n\t\tPosition ( ~idList ; ¶ & theLayoutID
+    & ¶ ; 1 ; 1 );\n\t~value = PatternCount ( Left ( ~idList ; ~value ) ; ¶ )\n];\n\t~value\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * LayoutIDNumber ( file ; theLayoutID
+      )\n *\n * RETURNS:\n *\t\tThe current number of a FileMaker layout, based on
+      its ID.\n *\n * PARAMETERS:\n *\t\tfile: The name of the FileMaker file containing
+      the layout.\n *\t\ttheLayoutID: FileMaker's internal ID for the layout.\n *\n
+      * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED on 2012-09-05 by Jeremy
+      Bante <http://scr.im/jbante>.\n *\t\tINSPIRED by custom functions by Fabrice
+      Nordman.\n * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~idList = ¶ & "
+    - LayoutIDs
+    - " ( file ) & ¶;\n\t~value =\n\t\t"
+    - Position
+    - " ( ~idList ; ¶ & theLayoutID & ¶ ; 1 ; 1 );\n\t~value = "
+    - PatternCount
+    - ' ( '
+    - Left
+    - " ( ~idList ; ~value ) ; ¶ )\n];\n\t~value\n)"

@@ -1,0 +1,1160 @@
+     Layout name:  SDO__Survey_Documents    
+              id:  4                        
+           Table:  SDO__Survey_Documents    
+           Theme:  Enlightened              
+
+         Objects:                           
+                    Type              'Name'                             
+                    ----              ------                             
+                    Field             SDO__Survey_Documents::Survey_Document_ID
+                    Field             SDO__Survey_Documents::Document    
+                    Field             SDO__Survey_Documents::Survey_ID   
+                    Field             SDO__Survey_Documents::ES_Record_UUID
+                    Field             SDO__Survey_Documents::ES_UTC_Time 
+                    Field             SDO__Survey_Documents::ES_Exclude  
+                    Field             SDO__Survey_Documents::ES_Account  
+                    Field             SDO__Survey_Documents::ES_Device_ID
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '4'
+  name: SDO__Survey_Documents
+  Table:
+    id: '1065092'
+    name: SDO__Survey_Documents
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'True'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'
+  Object:
+  - type: Text
+    key: '1'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '55.0000000'
+      left: '3.0000000'
+      bottom: '73.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Survey_Document_ID
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: Survey_Document_ID
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '2'
+    LabelKey: '1'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '52.0000000'
+      left: '138.0000000'
+      bottom: '74.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::Survey_Document_ID
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: Survey_Document_ID
+          id: '1'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents
+  - type: Text
+    key: '3'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '79.0000000'
+      left: '65.0000000'
+      bottom: '97.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Document
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: Document
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '4'
+    LabelKey: '3'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '76.0000000'
+      left: '138.0000000'
+      bottom: '201.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::Document
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: Document
+          id: '16'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents
+  - type: Text
+    key: '7'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '230.0000000'
+      left: '67.0000000'
+      bottom: '248.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: Survey_ID
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: Survey_ID
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '8'
+    LabelKey: '7'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '227.0000000'
+      left: '138.0000000'
+      bottom: '249.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::Survey_ID
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: Survey_ID
+          id: '27'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents
+  - type: Text
+    key: '9'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '254.0000000'
+      left: '22.0000000'
+      bottom: '272.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: ES_Record_UUID
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: ES_Record_UUID
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '10'
+    LabelKey: '9'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '251.0000000'
+      left: '138.0000000'
+      bottom: '273.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::ES_Record_UUID
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: ES_Record_UUID
+          id: '28'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents
+  - type: Text
+    key: '11'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '278.0000000'
+      left: '39.0000000'
+      bottom: '296.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: ES_UTC_Time
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: ES_UTC_Time
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '12'
+    LabelKey: '11'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '275.0000000'
+      left: '138.0000000'
+      bottom: '297.0000000'
+      right: '217.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::ES_UTC_Time
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: ES_UTC_Time
+          id: '29'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents
+  - type: Text
+    key: '13'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '302.0000000'
+      left: '56.0000000'
+      bottom: '320.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: ES_Exclude
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: ES_Exclude
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '14'
+    LabelKey: '13'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '299.0000000'
+      left: '138.0000000'
+      bottom: '321.0000000'
+      right: '217.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::ES_Exclude
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: ES_Exclude
+          id: '30'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents
+  - type: Text
+    key: '15'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '326.0000000'
+      left: '56.0000000'
+      bottom: '344.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: ES_Account
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: ES_Account
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '16'
+    LabelKey: '15'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '323.0000000'
+      left: '138.0000000'
+      bottom: '345.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::ES_Account
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: ES_Account
+          id: '31'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents
+  - type: Text
+    key: '19'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '374.0000000'
+      left: '43.0000000'
+      bottom: '392.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: ES_Device_ID
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: ES_Device_ID
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '20'
+    LabelKey: '19'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '371.0000000'
+      left: '138.0000000'
+      bottom: '393.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: SDO__Survey_Documents::ES_Device_ID
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: ES_Device_ID
+          id: '34'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SDO__Survey_Documents

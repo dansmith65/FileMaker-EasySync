@@ -1,0 +1,67 @@
+If ( 
+
+//the sql call results in an error, return empty so the error will be returned
+_executeSQL = "?" ; "" ; 
+
+//the sql call is executed correctly, just return the result
+_executeSQL
+)
+
+// ===================================
+/*
+
+    This function is published on FileMaker Custom Functions
+    to check for updates and provide feedback and bug reports
+    please visit http://www.fmfunctions.com/fid/335
+
+    Prototype: sql.debug( _executeSQL )
+    Function Author: Andries Heylen (http://www.fmfunctions.com/mid/57)
+    Last updated: 28 July 2012
+    Version: 2.2
+
+*/
+// ===================================
+
+---
+CustomFunction:
+  id: '73'
+  functionArity: '1'
+  visible: 'True'
+  parameters: _executeSQL
+  name: sql.debug
+  Calculation: "If ( \n\n//the sql call results in an error, return empty so the error
+    will be returned\n_executeSQL = \"?\" ; \"\" ; \n\n//the sql call is executed
+    correctly, just return the result\n_executeSQL\n)\n\n// ===================================\n/*\n\n    This
+    function is published on FileMaker Custom Functions\n    to check for updates
+    and provide feedback and bug reports\n    please visit http://www.fmfunctions.com/fid/335\n\n    Prototype:
+    sql.debug( _executeSQL )\n    Function Author: Andries Heylen (http://www.fmfunctions.com/mid/57)\n    Last
+    updated: 28 July 2012\n    Version: 2.2\n\n*/\n// ==================================="
+  DisplayCalculation:
+    Chunk:
+    - If
+    - " ( \n\n"
+    - |
+      //the sql call results in an error, return empty so the error will be returned
+    - "_executeSQL = \"?\" ; \"\" ; \n\n"
+    - |
+      //the sql call is executed correctly, just return the result
+    - |+
+      _executeSQL
+      )
+
+    - |
+      // ===================================
+    - |
+      /*
+
+          This function is published on FileMaker Custom Functions
+          to check for updates and provide feedback and bug reports
+          please visit http://www.fmfunctions.com/fid/335
+
+          Prototype: sql.debug( _executeSQL )
+          Function Author: Andries Heylen (http://www.fmfunctions.com/mid/57)
+          Last updated: 28 July 2012
+          Version: 2.2
+
+      */
+    - // ===================================

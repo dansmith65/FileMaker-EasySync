@@ -1,0 +1,54 @@
+/* 
+PURPOSE: Function takes a date in the format YYYY-MM-DD and turns it into a date
+
+PARAMETERS:  date as text in the format YYYY-MM-DD
+DEPENDENCIES:
+none
+
+REVISIONS:  Created 16-DEC-2014  Bruce Herbach
+
+################################################################# */
+
+Let([
+
+Ldate = Substitute(datetext; "-"; "¶");
+
+yr = GetValue( Ldate;1);
+mn = GetValue( Ldate ; 2);
+dy = GetValue( Ldate ;3 ) ];
+
+GetAsDate( mn & "/" & dy & "/" & yr ) )
+
+---
+CustomFunction:
+  id: '74'
+  functionArity: '1'
+  visible: 'True'
+  parameters: datetext
+  name: SQLDate
+  Calculation: "/* \nPURPOSE: Function takes a date in the format YYYY-MM-DD and turns
+    it into a date\n\nPARAMETERS:  date as text in the format YYYY-MM-DD\nDEPENDENCIES:\nnone\n\nREVISIONS:
+    \ Created 16-DEC-2014  Bruce Herbach\n\n#################################################################
+    */\n\nLet([\n\nLdate = Substitute(datetext; \"-\"; \"¶\");\n\nyr = GetValue( Ldate;1);\nmn
+    = GetValue( Ldate ; 2);\ndy = GetValue( Ldate ;3 ) ];\n\nGetAsDate( mn & \"/\"
+    & dy & \"/\" & yr ) )"
+  DisplayCalculation:
+    Chunk:
+    - "/* \nPURPOSE: Function takes a date in the format YYYY-MM-DD and turns it into
+      a date\n\nPARAMETERS:  date as text in the format YYYY-MM-DD\nDEPENDENCIES:\nnone\n\nREVISIONS:
+      \ Created 16-DEC-2014  Bruce Herbach\n\n#################################################################
+      */\n\n"
+    - Let
+    - "([\n\nLdate = "
+    - Substitute
+    - "(datetext; \"-\"; \"¶\");\n\nyr = "
+    - GetValue
+    - "( Ldate;1);\nmn = "
+    - GetValue
+    - "( Ldate ; 2);\ndy = "
+    - GetValue
+    - |+
+      ( Ldate ;3 ) ];
+
+    - GetAsDate
+    - ( mn & "/" & dy & "/" & yr ) )

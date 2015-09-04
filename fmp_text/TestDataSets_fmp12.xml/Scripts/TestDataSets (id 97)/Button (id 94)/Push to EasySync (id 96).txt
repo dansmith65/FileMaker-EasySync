@@ -1,0 +1,331 @@
+#
+#
+#
+#
+#
+#
+Loop
+#single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CALL API SCRIPT" ]
+#================================================================================
+Perform Script [ “Push to EasySync ( id_DataSet )”; Parameter: # ( "id_DataSet" ; DSE__DataSet::id ) ]
+Exit Loop If [ not #AssignScriptResultAndSetError (	"" ;	/* requiredResultList */	"" ;	/* optionalResultList */	"")/* * NOTE: * If optionalResultList or requiredResultList parameter contains a value * only the results listed will be saved as local $variables */ ]
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SHOW RESULT" ]
+#================================================================================
+Refresh Window
+If [ ErrorFound ( $error ) ]
+Perform Script [ “Show Message From ( error )”; Parameter: # ( "error" ; $error ) ]
+Else
+Show Custom Dialog [ Title: "Success!"; Message: Get ( ScriptName ) & " completed."; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#
+#
+Exit Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '96'
+  name: Push to EasySync
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#single-pass loop for error trapping'
+      Text: single-pass loop for error trapping
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"CALL API SCRIPT" ]
+      Value:
+        Calculation: '"CALL API SCRIPT"'
+        DisplayCalculation:
+          Chunk: '"CALL API SCRIPT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Push to EasySync ( id_DataSet )”; Parameter: #
+        ( "id_DataSet" ; DSE__DataSet::id ) ]'
+      Calculation: '# ( "id_DataSet" ; DSE__DataSet::id )'
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - ' ( "id_DataSet" ; '
+        - type: FieldRef
+          Field:
+            table: DSE__DataSet
+            id: '1'
+            name: id
+        - ' )'
+      Script:
+        id: '91'
+        name: Push to EasySync ( id_DataSet )
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ not #AssignScriptResultAndSetError (\n\t\"\" ;\n\n\t/*
+        requiredResultList */\n\t\"\" ;\n\n\t/* optionalResultList */\n\t\"\"\n)\n\n/*\n
+        * NOTE:\n * If optionalResultList or requiredResultList parameter contains
+        a value\n * only the results listed will be saved as local $variables\n */
+        ]"
+      Calculation: "not #AssignScriptResultAndSetError (\n\t\"\" ;\n\n\t/* requiredResultList
+        */\n\t\"\" ;\n\n\t/* optionalResultList */\n\t\"\"\n)\n\n/*\n * NOTE:\n *
+        If optionalResultList or requiredResultList parameter contains a value\n *
+        only the results listed will be saved as local $variables\n */"
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#AssignScriptResultAndSetError'
+        - " (\n\t\"\" ;\n\n\t/* requiredResultList */\n\t\"\" ;\n\n\t/* optionalResultList
+          */\n\t\"\"\n)\n\n/*\n * NOTE:\n * If optionalResultList or requiredResultList
+          parameter contains a value\n * only the results listed will be saved as
+          local $variables\n */"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#end single-pass loop for error trapping'
+      Text: end single-pass loop for error trapping
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SHOW RESULT" ]
+      Value:
+        Calculation: '"SHOW RESULT"'
+        DisplayCalculation:
+          Chunk: '"SHOW RESULT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '80'
+      name: Refresh Window
+      StepText: Refresh Window
+      Option:
+        state: 'False'
+      FlushSQLData:
+        state: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Show Message From ( error )”; Parameter: # ( "error"
+        ; $error ) ]'
+      Calculation: '# ( "error" ; $error )'
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - ' ( "error" ; $error )'
+      Script:
+        id: '79'
+        name: Show Message From ( error )
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Success!"; Message: Get ( ScriptName
+        ) & " completed."; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Success!"'
+        DisplayCalculation:
+          Chunk: '"Success!"'
+      Message:
+        Calculation: Get ( ScriptName ) & " completed."
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptName
+          - ' ) & " completed."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

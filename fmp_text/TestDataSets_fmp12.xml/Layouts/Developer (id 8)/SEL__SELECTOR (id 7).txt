@@ -1,0 +1,737 @@
+     Layout name:  SEL__SELECTOR            
+              id:  7                        
+           Table:  SEL__SELECTOR            
+           Theme:  Enlightened              
+
+         Objects:                           
+                    Type              'Name'                             
+                    ----              ------                             
+                    Field             SEL__SELECTOR::idList_DataSetFile  
+                    Field             SEL__SELECTOR::idList_Survey_Documents
+                    Field             SEL__SELECTOR::idList_Survey_Hobbies
+                    Field             SEL__SELECTOR::idList_Surveys      
+                    Field             SEL__SELECTOR::xJoin               
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'False'
+  id: '7'
+  name: SEL__SELECTOR
+  Table:
+    id: '1065095'
+    name: SEL__SELECTOR
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'True'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'
+  Object:
+  - type: Text
+    key: '1'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '55.0000000'
+      left: '23.0000000'
+      bottom: '73.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: idList_DataSetFile
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: idList_DataSetFile
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '2'
+    LabelKey: '1'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '52.0000000'
+      left: '138.0000000'
+      bottom: '74.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: SEL__SELECTOR::idList_DataSetFile
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: idList_DataSetFile
+          id: '2'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SEL__SELECTOR
+  - type: Text
+    key: '3'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '79.0000000'
+      left: '0.0000000'
+      bottom: '97.0000000'
+      right: '149.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: idList_Survey_Documents
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: idList_Survey_Documents
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '4'
+    LabelKey: '3'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '76.0000000'
+      left: '138.0000000'
+      bottom: '98.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: SEL__SELECTOR::idList_Survey_Documents
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: idList_Survey_Documents
+          id: '5'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SEL__SELECTOR
+  - type: Text
+    key: '5'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '103.0000000'
+      left: '0.0000000'
+      bottom: '121.0000000'
+      right: '132.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: idList_Survey_Hobbies
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: idList_Survey_Hobbies
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '6'
+    LabelKey: '5'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '100.0000000'
+      left: '138.0000000'
+      bottom: '122.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: SEL__SELECTOR::idList_Survey_Hobbies
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: idList_Survey_Hobbies
+          id: '4'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SEL__SELECTOR
+  - type: Text
+    key: '7'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '127.0000000'
+      left: '42.0000000'
+      bottom: '145.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: idList_Surveys
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: idList_Surveys
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '8'
+    LabelKey: '7'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '124.0000000'
+      left: '138.0000000'
+      bottom: '146.0000000'
+      right: '391.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: SEL__SELECTOR::idList_Surveys
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: idList_Surveys
+          id: '3'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SEL__SELECTOR
+  - type: Text
+    key: '9'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '151.0000000'
+      left: '94.0000000'
+      bottom: '169.0000000'
+      right: '127.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: xJoin
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: xJoin
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '10'
+    LabelKey: '9'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '148.0000000'
+      left: '138.0000000'
+      bottom: '170.0000000'
+      right: '217.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: SEL__SELECTOR::xJoin
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '1'
+          dayStyle: '1'
+          separator: '45'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: xJoin
+          id: '1'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SEL__SELECTOR

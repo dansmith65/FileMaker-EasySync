@@ -1,0 +1,81 @@
+/**
+ * ============================================================================
+ * IsWindowMaximized (  )
+ *
+ * PURPOSE:
+ *		Return true if on Windows and the current window is maximized.
+ *
+ * NOTES:
+ *		Content width is 17px less than Window Width when the window is maximized and 37pt less when it's not. For best chance of future compatibility, I split the difference and toggle at 27px.
+ *
+ * HISTORY:
+ *		2013-MAR-14 Daniel Smith http://scr.im/dansmith
+ *			- only support FM 12+
+ *		2013-MAR-14 Daniel Smith http://scr.im/dansmith
+ *			- added support for FM 12
+ *		2010-OCT-01 Daniel Smith http://scr.im/dansmith
+ *			- no notes from this modification
+ *		Created by Nicholas Orr of Goya Pty Ltd
+ *			- http://www.goya.com.au/blog/detecting-maximised-windows-filemaker
+ * ============================================================================
+ */
+
+Get ( SystemPlatform ) = -2
+and
+Get ( WindowContentWidth ) + 27
+>
+Get ( WindowWidth )
+
+---
+CustomFunction:
+  id: '45'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: IsWindowMaximized
+  Calculation: "/**\n * ============================================================================\n
+    * IsWindowMaximized (  )\n *\n * PURPOSE:\n *\t\tReturn true if on Windows and
+    the current window is maximized.\n *\n * NOTES:\n *\t\tContent width is 17px less
+    than Window Width when the window is maximized and 37pt less when it's not. For
+    best chance of future compatibility, I split the difference and toggle at 27px.\n
+    *\n * HISTORY:\n *\t\t2013-MAR-14 Daniel Smith http://scr.im/dansmith\n *\t\t\t-
+    only support FM 12+\n *\t\t2013-MAR-14 Daniel Smith http://scr.im/dansmith\n *\t\t\t-
+    added support for FM 12\n *\t\t2010-OCT-01 Daniel Smith http://scr.im/dansmith\n
+    *\t\t\t- no notes from this modification\n *\t\tCreated by Nicholas Orr of Goya
+    Pty Ltd\n *\t\t\t- http://www.goya.com.au/blog/detecting-maximised-windows-filemaker\n
+    * ============================================================================\n
+    */\n\nGet ( SystemPlatform ) = -2\nand\nGet ( WindowContentWidth ) + 27\n>\nGet
+    ( WindowWidth )"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * IsWindowMaximized (  )\n *\n * PURPOSE:\n *\t\tReturn true if on Windows and
+      the current window is maximized.\n *\n * NOTES:\n *\t\tContent width is 17px
+      less than Window Width when the window is maximized and 37pt less when it's
+      not. For best chance of future compatibility, I split the difference and toggle
+      at 27px.\n *\n * HISTORY:\n *\t\t2013-MAR-14 Daniel Smith http://scr.im/dansmith\n
+      *\t\t\t- only support FM 12+\n *\t\t2013-MAR-14 Daniel Smith http://scr.im/dansmith\n
+      *\t\t\t- added support for FM 12\n *\t\t2010-OCT-01 Daniel Smith http://scr.im/dansmith\n
+      *\t\t\t- no notes from this modification\n *\t\tCreated by Nicholas Orr of Goya
+      Pty Ltd\n *\t\t\t- http://www.goya.com.au/blog/detecting-maximised-windows-filemaker\n
+      * ============================================================================\n
+      */\n\n"
+    - Get
+    - ' ( '
+    - SystemPlatform
+    - |2
+       ) = -2
+    - and
+    - type: NoRef
+      __content__: |2+
+
+    - Get
+    - ' ( '
+    - WindowContentWidth
+    - |2
+       ) + 27
+      >
+    - Get
+    - ' ( '
+    - WindowWidth
+    - ' )'

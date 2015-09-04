@@ -1,0 +1,310 @@
+/**
+ * =====================================
+ * # ( name ; value )
+ *
+ * RETURNS:
+ *		An name-value pair in Let notation.
+ *
+ * PARAMETERS:
+ *		name: The name for the returned name-value pair. name can be any value
+ *		that would be a valid Let() variable name.
+ *		value: The value for the returned name-value pair.
+ *
+ * EXAMPLE:
+ *		# ( "name"; $value ) & # ( "foo" ; "bar" )
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to return
+ *		an error if name contains a carriage return (Char ( 13 )), and removing
+ *		explicit encoding for line feeds.
+ *		MODIFIED on 2013-12-12 by John Jones <john.christopher@alumni.virginia.edu>
+ *		to explicitly encode line feed characters in text values.
+ *		MODIFIED on 2013-09-02 by Daniel Smith dansmith65@gmail.com to fix a
+ *		type misidentification bug.
+ *		MODIFIED on 2013-07-27 by Jeremy Bante <http://scr.im/jbante> to fix a
+ *		type misidentification bug.
+ *		MODIFIED on 2013-04-15 by Jeremy Bante <http://scr.im/jbante> to not
+ *		wrap numbers in GetAsNumber.
+ *		MODIFIED on 2013-01-14 by Daniel Smith dansmith65@gmail.com to include
+ *		trailing return on error result and accept a value of "?"
+ *		MODIFIED on 2012-12-12 by Daniel Smith dansmith65@gmail.com to preserve
+ *		data type of value
+ *		MODIFIED on 2012-12-07 by Jeremy Bante <http://scr.im/jbante> where an
+ *		error result could create invalid sytax for values containing a comment
+ *		close sequence.
+ *		MODIFIED on 2012-11-28 by Jeremy Bante <http://scr.im/jbante> to return
+ *		error feedback, and to prefix names with "$".
+ *		CREATED on 2012-11-10 by Jeremy Bante <http://scr.im/jbante>.
+ *
+ * REFERENCES:
+ *		https://github.com/filemakerstandards/fmpstandards/blob/master/Functions/%23Name-Value/%23.fmfn
+ * =====================================
+ */
+
+Let ( [
+	~name =	// strip leading "$$" and "$"
+		Substitute (
+			"/*start*/" & name ;
+			[ "/*start*/$$" ; "" ] ;
+			[ "/*start*/$" ; "" ] ;
+			[ "/*start*/" ; "" ]
+		) ;
+	~text = GetAsText ( value ) ;
+	~number = GetAsNumber ( value ) ;
+	~validDate =
+		IsValid ( GetAsDate ( ~text ) )
+		and not IsEmpty ( ~number ) ;
+	~validTime =
+		IsValid ( GetAsTime ( ~text ) )
+		and Position ( ~text ; ":" ; 1 ; 1 ) > 0
+		and not IsEmpty ( ~number ) ;
+	~value =
+		Case (
+			value = "" or value = "?" ;
+				Quote ( value ) ;
+
+			~validTime and ~validDate ;
+				"GetAsTimestamp ( " & Quote ( value ) & " )" ;
+
+			~validTime ;
+				"GetAsTime ( " & Quote ( value ) & " )" ;
+
+			~validDate ;
+				"GetAsDate ( " & Quote ( value ) & " )" ;
+
+			~text ≠ GetAsText ( ~number ) ;
+				Quote ( value ) ;
+
+			/* Else */
+				~number
+		) ;
+	~result =
+		"$"
+		& ~name
+		& " = "
+		& ~value
+		& " ;¶" ;
+	~testExpression =
+		"Let ( [ "
+		& ~result
+		& " ~ = \"\" ]; \"\" )" ;
+	~error =
+		Case (
+			IsEmpty ( ~name ) or Position ( ~name ; ¶ ; 1 ; 1 ) ≠ 0 ;
+				11 ;	// Name is not valid
+
+			not IsValidExpression ( ~testExpression ) ;
+				1200	// Generic calculation error
+		)
+];
+	If ( ~error ;	// prevent bad pairs from affecting evaluation by commenting
+		"/* Error "
+		& ~error
+		& " name: "
+		& Quote (
+			Substitute (	// escape comment character sequences
+				name ;
+				[ "*/" ; "\*\/" ] ;
+				[ "/*" ; "\/\*" ]
+			)
+		)
+		& " value: "
+		& Quote (
+			Substitute (	// escape comment character sequences
+				value ;
+				[ "*/" ; "\*\/" ] ;
+				[ "/*" ; "\/\*" ]
+			)
+		)
+		& " */"
+		& ¶ ;
+	/* Else */
+		~result
+	)
+)
+
+---
+CustomFunction:
+  id: '1'
+  functionArity: '2'
+  visible: 'True'
+  parameters: name;value
+  name: '#'
+  Calculation: "/**\n * =====================================\n * # ( name ; value
+    )\n *\n * RETURNS:\n *\t\tAn name-value pair in Let notation.\n *\n * PARAMETERS:\n
+    *\t\tname: The name for the returned name-value pair. name can be any value\n
+    *\t\tthat would be a valid Let() variable name.\n *\t\tvalue: The value for the
+    returned name-value pair.\n *\n * EXAMPLE:\n *\t\t# ( \"name\"; $value ) & # (
+    \"foo\" ; \"bar\" )\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED
+    on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to return\n *\t\tan error
+    if name contains a carriage return (Char ( 13 )), and removing\n *\t\texplicit
+    encoding for line feeds.\n *\t\tMODIFIED on 2013-12-12 by John Jones <john.christopher@alumni.virginia.edu>\n
+    *\t\tto explicitly encode line feed characters in text values.\n *\t\tMODIFIED
+    on 2013-09-02 by Daniel Smith dansmith65@gmail.com to fix a\n *\t\ttype misidentification
+    bug.\n *\t\tMODIFIED on 2013-07-27 by Jeremy Bante <http://scr.im/jbante> to fix
+    a\n *\t\ttype misidentification bug.\n *\t\tMODIFIED on 2013-04-15 by Jeremy Bante
+    <http://scr.im/jbante> to not\n *\t\twrap numbers in GetAsNumber.\n *\t\tMODIFIED
+    on 2013-01-14 by Daniel Smith dansmith65@gmail.com to include\n *\t\ttrailing
+    return on error result and accept a value of \"?\"\n *\t\tMODIFIED on 2012-12-12
+    by Daniel Smith dansmith65@gmail.com to preserve\n *\t\tdata type of value\n *\t\tMODIFIED
+    on 2012-12-07 by Jeremy Bante <http://scr.im/jbante> where an\n *\t\terror result
+    could create invalid sytax for values containing a comment\n *\t\tclose sequence.\n
+    *\t\tMODIFIED on 2012-11-28 by Jeremy Bante <http://scr.im/jbante> to return\n
+    *\t\terror feedback, and to prefix names with \"$\".\n *\t\tCREATED on 2012-11-10
+    by Jeremy Bante <http://scr.im/jbante>.\n *\n * REFERENCES:\n *\t\thttps://github.com/filemakerstandards/fmpstandards/blob/master/Functions/%23Name-Value/%23.fmfn\n
+    * =====================================\n */\n\nLet ( [\n\t~name =\t// strip leading
+    \"$$\" and \"$\"\n\t\tSubstitute (\n\t\t\t\"/*start*/\" & name ;\n\t\t\t[ \"/*start*/$$\"
+    ; \"\" ] ;\n\t\t\t[ \"/*start*/$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/\" ; \"\" ]\n\t\t)
+    ;\n\t~text = GetAsText ( value ) ;\n\t~number = GetAsNumber ( value ) ;\n\t~validDate
+    =\n\t\tIsValid ( GetAsDate ( ~text ) )\n\t\tand not IsEmpty ( ~number ) ;\n\t~validTime
+    =\n\t\tIsValid ( GetAsTime ( ~text ) )\n\t\tand Position ( ~text ; \":\" ; 1 ;
+    1 ) > 0\n\t\tand not IsEmpty ( ~number ) ;\n\t~value =\n\t\tCase (\n\t\t\tvalue
+    = \"\" or value = \"?\" ;\n\t\t\t\tQuote ( value ) ;\n\n\t\t\t~validTime and ~validDate
+    ;\n\t\t\t\t\"GetAsTimestamp ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\t~validTime
+    ;\n\t\t\t\t\"GetAsTime ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\t~validDate ;\n\t\t\t\t\"GetAsDate
+    ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\t~text ≠ GetAsText ( ~number ) ;\n\t\t\t\tQuote
+    ( value ) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t) ;\n\t~result =\n\t\t\"$\"\n\t\t&
+    ~name\n\t\t& \" = \"\n\t\t& ~value\n\t\t& \" ;¶\" ;\n\t~testExpression =\n\t\t\"Let
+    ( [ \"\n\t\t& ~result\n\t\t& \" ~ = \\\"\\\" ]; \\\"\\\" )\" ;\n\t~error =\n\t\tCase
+    (\n\t\t\tIsEmpty ( ~name ) or Position ( ~name ; ¶ ; 1 ; 1 ) ≠ 0 ;\n\t\t\t\t11
+    ;\t// Name is not valid\n\n\t\t\tnot IsValidExpression ( ~testExpression ) ;\n\t\t\t\t1200\t//
+    Generic calculation error\n\t\t)\n];\n\tIf ( ~error ;\t// prevent bad pairs from
+    affecting evaluation by commenting\n\t\t\"/* Error \"\n\t\t& ~error\n\t\t& \"
+    name: \"\n\t\t& Quote (\n\t\t\tSubstitute (\t// escape comment character sequences\n\t\t\t\tname
+    ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t&
+    \" value: \"\n\t\t& Quote (\n\t\t\tSubstitute (\t// escape comment character sequences\n\t\t\t\tvalue
+    ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t&
+    \" */\"\n\t\t& ¶ ;\n\t/* Else */\n\t\t~result\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * # ( name ; value )\n *\n
+      * RETURNS:\n *\t\tAn name-value pair in Let notation.\n *\n * PARAMETERS:\n
+      *\t\tname: The name for the returned name-value pair. name can be any value\n
+      *\t\tthat would be a valid Let() variable name.\n *\t\tvalue: The value for
+      the returned name-value pair.\n *\n * EXAMPLE:\n *\t\t# ( \"name\"; $value )
+      & # ( \"foo\" ; \"bar\" )\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED
+      on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to return\n *\t\tan error
+      if name contains a carriage return (Char ( 13 )), and removing\n *\t\texplicit
+      encoding for line feeds.\n *\t\tMODIFIED on 2013-12-12 by John Jones <john.christopher@alumni.virginia.edu>\n
+      *\t\tto explicitly encode line feed characters in text values.\n *\t\tMODIFIED
+      on 2013-09-02 by Daniel Smith dansmith65@gmail.com to fix a\n *\t\ttype misidentification
+      bug.\n *\t\tMODIFIED on 2013-07-27 by Jeremy Bante <http://scr.im/jbante> to
+      fix a\n *\t\ttype misidentification bug.\n *\t\tMODIFIED on 2013-04-15 by Jeremy
+      Bante <http://scr.im/jbante> to not\n *\t\twrap numbers in GetAsNumber.\n *\t\tMODIFIED
+      on 2013-01-14 by Daniel Smith dansmith65@gmail.com to include\n *\t\ttrailing
+      return on error result and accept a value of \"?\"\n *\t\tMODIFIED on 2012-12-12
+      by Daniel Smith dansmith65@gmail.com to preserve\n *\t\tdata type of value\n
+      *\t\tMODIFIED on 2012-12-07 by Jeremy Bante <http://scr.im/jbante> where an\n
+      *\t\terror result could create invalid sytax for values containing a comment\n
+      *\t\tclose sequence.\n *\t\tMODIFIED on 2012-11-28 by Jeremy Bante <http://scr.im/jbante>
+      to return\n *\t\terror feedback, and to prefix names with \"$\".\n *\t\tCREATED
+      on 2012-11-10 by Jeremy Bante <http://scr.im/jbante>.\n *\n * REFERENCES:\n
+      *\t\thttps://github.com/filemakerstandards/fmpstandards/blob/master/Functions/%23Name-Value/%23.fmfn\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~name =\t"
+    - |
+      // strip leading "$$" and "$"
+    - type: NoRef
+      __content__: "\t\t"
+    - Substitute
+    - " (\n\t\t\t\"/*start*/\" & name ;\n\t\t\t[ \"/*start*/$$\" ; \"\" ] ;\n\t\t\t[
+      \"/*start*/$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/\" ; \"\" ]\n\t\t) ;\n\t~text
+      = "
+    - GetAsText
+    - " ( value ) ;\n\t~number = "
+    - GetAsNumber
+    - " ( value ) ;\n\t~validDate =\n\t\t"
+    - IsValid
+    - ' ( '
+    - GetAsDate
+    - " ( ~text ) )\n\t\t"
+    - and
+    - type: NoRef
+      __content__: ' '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( ~number ) ;\n\t~validTime =\n\t\t"
+    - IsValid
+    - ' ( '
+    - GetAsTime
+    - " ( ~text ) )\n\t\t"
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Position
+    - " ( ~text ; \":\" ; 1 ; 1 ) > 0\n\t\t"
+    - and
+    - type: NoRef
+      __content__: ' '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( ~number ) ;\n\t~value =\n\t\t"
+    - Case
+    - " (\n\t\t\tvalue = \"\" "
+    - or
+    - " value = \"?\" ;\n\t\t\t\t"
+    - Quote
+    - " ( value ) ;\n\n\t\t\t~validTime "
+    - and
+    - " ~validDate ;\n\t\t\t\t\"GetAsTimestamp ( \" & "
+    - Quote
+    - " ( value ) & \" )\" ;\n\n\t\t\t~validTime ;\n\t\t\t\t\"GetAsTime ( \" & "
+    - Quote
+    - " ( value ) & \" )\" ;\n\n\t\t\t~validDate ;\n\t\t\t\t\"GetAsDate ( \" & "
+    - Quote
+    - " ( value ) & \" )\" ;\n\n\t\t\t~text ≠ "
+    - GetAsText
+    - " ( ~number ) ;\n\t\t\t\t"
+    - Quote
+    - " ( value ) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t) ;\n\t~result =\n\t\t\"$\"\n\t\t&
+      ~name\n\t\t& \" = \"\n\t\t& ~value\n\t\t& \" ;¶\" ;\n\t~testExpression =\n\t\t\"Let
+      ( [ \"\n\t\t& ~result\n\t\t& \" ~ = \\\"\\\" ]; \\\"\\\" )\" ;\n\t~error =\n\t\t"
+    - Case
+    - " (\n\t\t\t"
+    - IsEmpty
+    - ' ( ~name ) '
+    - or
+    - type: NoRef
+      __content__: ' '
+    - Position
+    - " ( ~name ; ¶ ; 1 ; 1 ) ≠ 0 ;\n\t\t\t\t11 ;\t"
+    - |
+      // Name is not valid
+    - type: NoRef
+      __content__: "\n\t\t\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsValidExpression
+    - " ( ~testExpression ) ;\n\t\t\t\t1200\t"
+    - |
+      // Generic calculation error
+    - "\t\t)\n];\n\t"
+    - If
+    - " ( ~error ;\t"
+    - |
+      // prevent bad pairs from affecting evaluation by commenting
+    - "\t\t\"/* Error \"\n\t\t& ~error\n\t\t& \" name: \"\n\t\t& "
+    - Quote
+    - " (\n\t\t\t"
+    - Substitute
+    - " (\t"
+    - |
+      // escape comment character sequences
+    - "\t\t\t\tname ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\"
+      ]\n\t\t\t)\n\t\t)\n\t\t& \" value: \"\n\t\t& "
+    - Quote
+    - " (\n\t\t\t"
+    - Substitute
+    - " (\t"
+    - |
+      // escape comment character sequences
+    - "\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\"
+      ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t& ¶ ;\n\t/* Else */\n\t\t~result\n\t)\n)"

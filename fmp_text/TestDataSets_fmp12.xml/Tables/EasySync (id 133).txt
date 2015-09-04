@@ -1,0 +1,180 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+    15   ES_Last_Push_UTC_Time       Number           Normal            The date and time of the last successful push. (Applies to client only.)
+    16   ES_Last_Pull_UTC_Time       Number           Normal            The date and time of the last successful pull. (Applies to client only.)
+    17   ES_Last_Full_Sync           Text             Normal            The date/time of the last successful sync (push and pull). Designed for use in the mobile UI.
+    20   id_DataSetFile              Text             Normal                                                              
+    21   xJoin                       Number           Normal                                                              
+
+
+---
+BaseTable:
+  id: '133'
+  records: '2'
+  name: EasySync
+  FieldCatalog:
+    Field:
+    - id: '15'
+      dataType: Number
+      fieldType: Normal
+      name: ES_Last_Push_UTC_Time
+      Comment: The date and time of the last successful push. (Applies to client only.)
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '16'
+      dataType: Number
+      fieldType: Normal
+      name: ES_Last_Pull_UTC_Time
+      Comment: The date and time of the last successful pull. (Applies to client only.)
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '17'
+      dataType: Text
+      fieldType: Normal
+      name: ES_Last_Full_Sync
+      Comment: The date/time of the last successful sync (push and pull). Designed
+        for use in the mobile UI.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '20'
+      dataType: Text
+      fieldType: Normal
+      name: id_DataSetFile
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '21'
+      dataType: Number
+      fieldType: Normal
+      name: xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'

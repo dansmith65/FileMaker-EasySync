@@ -1,0 +1,29 @@
+     Layout name:  -                        
+              id:  25                       
+           Table:  DSE__DataSet             
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '25'
+  name: '-'
+  Table:
+    id: '1065089'
+    name: DSE__DataSet
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '01'
+  Options:
+    showRecordIndicator: 'True'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

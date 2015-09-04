@@ -1,0 +1,29 @@
+     Layout name:  -                        
+              id:  28                       
+           Table:  SDO__Survey_Documents    
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '28'
+  name: '-'
+  Table:
+    id: '1065092'
+    name: SDO__Survey_Documents
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '02'
+  Options:
+    showRecordIndicator: 'True'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

@@ -1,0 +1,119 @@
+/**
+ * ============================================================================
+ * VerifyVariablesNotEmpty ( parameterNameList )
+ *
+ * RETURNS:
+ *		Returns True (1) if each of the parameters in parameterNameList has 
+ *		been assigned to a non-empty local script variable of the same name.
+ *		Returns False (0) if any variable defined by parameterNameList is empty.
+ *
+ * PARAMETERS:
+ *		parameterNameList: return-delimited list
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		CREATED on 2012-11-15 by Daniel Smith dansmith65@gmail.com
+ * ============================================================================
+ */
+
+Let ( [
+	~count = ValueCount ( parameterNameList ) ;
+	
+	// get first value
+	~name = GetValue ( parameterNameList ; 1 ) ;
+	
+	// determine if name exists
+	~error = EvaluationError ( Evaluate ( "$" & ~name ) ) ;
+	~exists = Evaluate ( "not isempty ( $" & ~name & ")" )
+];
+	Case (
+		~count = 0 ;
+		True ;
+		
+		Length ( ~name ) = 0 ;
+		VerifyVariablesNotEmpty (
+			RightValues ( parameterNameList ; ~count - 1 )
+		) ;
+		
+		~error or not ~exists ;
+		False ;
+		
+		VerifyVariablesNotEmpty (
+			RightValues ( parameterNameList ; ~count - 1 )
+		)
+	)
+)
+
+---
+CustomFunction:
+  id: '95'
+  functionArity: '1'
+  visible: 'True'
+  parameters: parameterNameList
+  name: VerifyVariablesNotEmpty
+  Calculation: "/**\n * ============================================================================\n
+    * VerifyVariablesNotEmpty ( parameterNameList )\n *\n * RETURNS:\n *\t\tReturns
+    True (1) if each of the parameters in parameterNameList has \n *\t\tbeen assigned
+    to a non-empty local script variable of the same name.\n *\t\tReturns False (0)
+    if any variable defined by parameterNameList is empty.\n *\n * PARAMETERS:\n *\t\tparameterNameList:
+    return-delimited list\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tCREATED
+    on 2012-11-15 by Daniel Smith dansmith65@gmail.com\n * ============================================================================\n
+    */\n\nLet ( [\n\t~count = ValueCount ( parameterNameList ) ;\n\t\n\t// get first
+    value\n\t~name = GetValue ( parameterNameList ; 1 ) ;\n\t\n\t// determine if name
+    exists\n\t~error = EvaluationError ( Evaluate ( \"$\" & ~name ) ) ;\n\t~exists
+    = Evaluate ( \"not isempty ( $\" & ~name & \")\" )\n];\n\tCase (\n\t\t~count =
+    0 ;\n\t\tTrue ;\n\t\t\n\t\tLength ( ~name ) = 0 ;\n\t\tVerifyVariablesNotEmpty
+    (\n\t\t\tRightValues ( parameterNameList ; ~count - 1 )\n\t\t) ;\n\t\t\n\t\t~error
+    or not ~exists ;\n\t\tFalse ;\n\t\t\n\t\tVerifyVariablesNotEmpty (\n\t\t\tRightValues
+    ( parameterNameList ; ~count - 1 )\n\t\t)\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * VerifyVariablesNotEmpty ( parameterNameList )\n *\n * RETURNS:\n *\t\tReturns
+      True (1) if each of the parameters in parameterNameList has \n *\t\tbeen assigned
+      to a non-empty local script variable of the same name.\n *\t\tReturns False
+      (0) if any variable defined by parameterNameList is empty.\n *\n * PARAMETERS:\n
+      *\t\tparameterNameList: return-delimited list\n *\n * DEPENDENCIES: none\n *\n
+      * HISTORY:\n *\t\tCREATED on 2012-11-15 by Daniel Smith dansmith65@gmail.com\n
+      * ============================================================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\t~count = "
+    - ValueCount
+    - " ( parameterNameList ) ;\n\t\n\t"
+    - |
+      // get first value
+    - "\t~name = "
+    - GetValue
+    - " ( parameterNameList ; 1 ) ;\n\t\n\t"
+    - |
+      // determine if name exists
+    - "\t~error = "
+    - EvaluationError
+    - ' ( '
+    - Evaluate
+    - " ( \"$\" & ~name ) ) ;\n\t~exists = "
+    - Evaluate
+    - " ( \"not isempty ( $\" & ~name & \")\" )\n];\n\t"
+    - Case
+    - " (\n\t\t~count = 0 ;\n\t\t"
+    - 'True'
+    - " ;\n\t\t\n\t\t"
+    - Length
+    - " ( ~name ) = 0 ;\n\t\t"
+    - VerifyVariablesNotEmpty
+    - " (\n\t\t\t"
+    - RightValues
+    - " ( parameterNameList ; ~count - 1 )\n\t\t) ;\n\t\t\n\t\t~error "
+    - or
+    - type: NoRef
+      __content__: ' '
+    - not
+    - " ~exists ;\n\t\t"
+    - 'False'
+    - " ;\n\t\t\n\t\t"
+    - VerifyVariablesNotEmpty
+    - " (\n\t\t\t"
+    - RightValues
+    - " ( parameterNameList ; ~count - 1 )\n\t\t)\n\t)\n)"
