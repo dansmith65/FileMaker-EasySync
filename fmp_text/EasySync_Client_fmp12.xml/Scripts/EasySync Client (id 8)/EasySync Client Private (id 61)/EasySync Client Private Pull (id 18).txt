@@ -9,7 +9,7 @@
 # RETURNS:
 #    $error | a dictionary containing error data
 #    $runtime | number of seconds this script was running (with millisecond precision)
-#    $nothingToPull | boolean | True if no errors were encounted and there were no changes to pull from to the server.
+#    $record_count | number | Count of records pulled.
 #
 # VARIABLES:
 #
@@ -260,7 +260,7 @@ Set Variable [ $record_count; Value:PatternCount ( $payload; $record_delimiter )
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE  ≥ 4 ]
 Set Variable [ $~script.subtract.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Set Variable [ $~script.section.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start ) / 1000-$~script.section.subtract.runtime ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section & " end, runtime: " & $~script.section.runtime] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section.runtime = " & $~script.section.runtime & " ;¶"	& "$~script.section.subtract.runtime = " & GetAsNumber ( $~script.section.subtract.runtime ) & " ;¶"	& "$record_count = " & GetAsNumber ( $record_count ) & " ;¶") ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section & " end, runtime: " & $~script.section.runtime] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section.runtime = " & $~script.section.runtime & " ;¶"	& "$~script.section.subtract.runtime = " & GetAsNumber ( $~script.section.subtract.runtime ) & " ;¶"	& "$record_count = " & GetAsNumber ( $record_count ) & " ;¶"	& "$tables = " & Quote ( $tables ) & " ;¶") ]
 Set Variable [ $~script.subtract.runtime; Value:$~script.subtract.runtime+$~script.section.subtract.runtime+( Get ( CurrentTimeUTCMilliseconds ) - $~script.subtract.start ) / 1000 ]
 End If
 #========================================
@@ -276,9 +276,7 @@ Set Variable [ $~script.section.start; Value:Get ( CurrentTimeUTCMilliseconds ) 
 Set Variable [ $~script.section.subtract.runtime; Value:/* clear this value so it can be appended to by sub-sections, then reported at the end of this section */"" ]
 #================================================================================
 #If there are no records to sync...
-If [ $record_count = 0 ]
-Set Variable [ $nothingToPull; Value:True ]
-Else
+If [ $record_count > 0 ]
 Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Processing " & $record_count & " records received from server..." ]
 #
 #Loop over the records.
@@ -489,12 +487,13 @@ Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
 #================================================================================
 Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000-$~script.subtract.runtime ]
 If [ /** * assign error info to local variables * then evaluate the errorCode as a Boolean *  */GetAsBoolean ( Evaluate (	"Let ( [¶"	& $error	& "! = \"\" ] ; $errorCode )") ) ]
+Set Variable [ $record_count; Value:0 ]
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "exit script with error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$error = " & Quote ( $error ) & " ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
 End If
 Else
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"	& "$~script.subtract.runtime = " & $~script.subtract.runtime & " ;¶") ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"	& "$~script.subtract.runtime = " & $~script.subtract.runtime & " ;¶"	& "$record_count = " & Max ( 0 ; $record_count ) & " ;¶") ]
 End If
 If [ $$show_successful_pullsand/* is client application */Left ( Get ( ApplicationVersion ) ; 3 ) = "Pro"orLeft ( Get ( ApplicationVersion ) ; 7 ) = "Runtime"orGet ( SystemPlatform ) = 3	 // iOSorGet ( SystemPlatform ) = 4	 // WebDirect ]
 Show Custom Dialog [ Title: "Pull Success"; Message: "Remote data has been successfully pulled from the server. (Elapsed Time: " & GetAsTime ( $~script.runtime ) & ")"; Default Button: “OK”, Commit: “Yes” ]
@@ -504,7 +503,7 @@ End If
 #
 #
 Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
-Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶" ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$record_count = " & Max ( 0 ; $record_count ) & " ;¶" ]
 #
 
 
@@ -573,10 +572,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#    $nothingToPull | boolean | True if no errors were encounted
-        and there were no changes to pull from to the server.'
-      Text: '    $nothingToPull | boolean | True if no errors were encounted and there
-        were no changes to pull from to the server.'
+      StepText: '#    $record_count | number | Count of records pulled.'
+      Text: '    $record_count | number | Count of records pulled.'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -4386,7 +4383,7 @@ Script:
         ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" & $~script.section.runtime
         & \" ;¶\"\n\t& \"$~script.section.subtract.runtime = \" & GetAsNumber ( $~script.section.subtract.runtime
         ) & \" ;¶\"\n\n\t& \"$record_count = \" & GetAsNumber ( $record_count ) &
-        \" ;¶\"\n) ]"
+        \" ;¶\"\n\t& \"$tables = \" & Quote ( $tables ) & \" ;¶\"\n) ]"
       Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = $~script.section & \"
         end, runtime: \" & $~script.section.runtime\n] ;\n\t\"$LogLevel = \" & ~logLevel
         & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
@@ -4397,7 +4394,7 @@ Script:
         ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" & $~script.section.runtime
         & \" ;¶\"\n\t& \"$~script.section.subtract.runtime = \" & GetAsNumber ( $~script.section.subtract.runtime
         ) & \" ;¶\"\n\n\t& \"$record_count = \" & GetAsNumber ( $record_count ) &
-        \" ;¶\"\n)"
+        \" ;¶\"\n\t& \"$tables = \" & Quote ( $tables ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
         - Let
@@ -4434,8 +4431,10 @@ Script:
         - " ( $~script.section.subtract.runtime ) & \" ;¶\"\n\n\t& \"$record_count
           = \" & "
         - GetAsNumber
+        - " ( $record_count ) & \" ;¶\"\n\t& \"$tables = \" & "
+        - Quote
         - |2-
-           ( $record_count ) & " ;¶"
+           ( $tables ) & " ;¶"
           )
       Script:
         id: '66'
@@ -4572,27 +4571,10 @@ Script:
     - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $record_count = 0 ]
-      Calculation: $record_count = 0
+      StepText: If [ $record_count > 0 ]
+      Calculation: $record_count > 0
       DisplayCalculation:
-        Chunk: $record_count = 0
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $nothingToPull; Value:True ]
-      Value:
-        Calculation: 'True'
-        DisplayCalculation:
-          Chunk: 'True'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $nothingToPull
-    - enable: 'True'
-      id: '69'
-      name: Else
-      StepText: Else
+        Chunk: $record_count > 0
     - enable: 'True'
       id: '1'
       name: Perform Script
@@ -7138,6 +7120,19 @@ Script:
         - " (\n\t\"Let ( [¶\"\n\t& $error\n\t& \"! = \\\"\\\" ] ; $errorCode )\"\n)
           )"
     - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $record_count; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $record_count
+    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2 ]
@@ -7225,7 +7220,8 @@ Script:
         ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
         ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
         = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n\t& \"$~script.subtract.runtime
-        = \" & $~script.subtract.runtime & \" ;¶\"\n) ]"
+        = \" & $~script.subtract.runtime & \" ;¶\"\n\t& \"$record_count = \" & Max
+        ( 0 ; $record_count ) & \" ;¶\"\n) ]"
       Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without
         error\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
         = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
@@ -7233,7 +7229,8 @@ Script:
         ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
         ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
         = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n\t& \"$~script.subtract.runtime
-        = \" & $~script.subtract.runtime & \" ;¶\"\n)"
+        = \" & $~script.subtract.runtime & \" ;¶\"\n\t& \"$record_count = \" & Max
+        ( 0 ; $record_count ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
         - Let
@@ -7263,7 +7260,11 @@ Script:
         - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime = \" & "
         - GetAsNumber
         - " ( $~script.runtime ) & \" ;¶\"\n\t& \"$~script.subtract.runtime = \" &
-          $~script.subtract.runtime & \" ;¶\"\n)"
+          $~script.subtract.runtime & \" ;¶\"\n\t& \"$record_count = \" & "
+        - Max
+        - |2-
+           ( 0 ; $record_count ) & " ;¶"
+          )
       Script:
         id: '66'
         name: 'EasySync Client: Config: Create Log Entry'
@@ -7418,20 +7419,20 @@ Script:
       StepText: |-
         Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
         & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
-        & "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶" ]
+        & "$record_count = " & Max ( 0 ; $record_count ) & " ;¶" ]
       Calculation: |-
         "$error = " & Quote ( $error ) & " ;¶"
         & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
-        & "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶"
+        & "$record_count = " & Max ( 0 ; $record_count ) & " ;¶"
       DisplayCalculation:
         Chunk:
         - '"$error = " & '
         - Quote
         - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
         - GetAsNumber
-        - " ( $~script.runtime ) & \" ;¶\"\n& \"$nothingToPull = \" & "
-        - GetAsBoolean
-        - ( $nothingToPull ) & " ;¶"
+        - " ( $~script.runtime ) & \" ;¶\"\n& \"$record_count = \" & "
+        - Max
+        - ' ( 0 ; $record_count ) & " ;¶"'
     - enable: 'True'
       id: '89'
       name: Comment

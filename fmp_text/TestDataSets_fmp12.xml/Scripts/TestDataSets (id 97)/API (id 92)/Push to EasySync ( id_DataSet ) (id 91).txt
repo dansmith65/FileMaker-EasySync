@@ -78,6 +78,7 @@ Set Variable [ $~script.section; Value:"CLIENT: SERVEYS" ]
 Go to Layout [ “Client_Surveys” (Client_Surveys) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -102,6 +103,7 @@ Set Variable [ $~script.section; Value:"CLIENT: SERVEYS DOCUMENTS" ]
 Go to Layout [ “Client_Surveys_Documents” (Client_Survey_Documents) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -126,6 +128,7 @@ Set Variable [ $~script.section; Value:"CLIENT: SERVEYS HOBBIES" ]
 Go to Layout [ “Client_Surveys_Hobbies” (Client_Survey_Hobbies) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -150,6 +153,7 @@ Set Variable [ $~script.section; Value:"CLIENT: EASYSYNC" ]
 Go to Layout [ “Client_EasySync” (Client_EasySync) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -189,6 +193,7 @@ Set Variable [ $~script.section; Value:"SERVER: SERVEYS" ]
 Go to Layout [ “Server_Surveys” (Server_Surveys) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -213,6 +218,7 @@ Set Variable [ $~script.section; Value:"SERVER: SERVEYS DOCUMENTS" ]
 Go to Layout [ “Server_Surveys_Documents” (Server_Survey_Documents) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -237,6 +243,7 @@ Set Variable [ $~script.section; Value:"SERVER: SERVEYS HOBBIES" ]
 Go to Layout [ “Server_Surveys_Hobbies” (Server_Survey_Hobbies) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -261,6 +268,7 @@ Set Variable [ $~script.section; Value:"SERVER: EASYSYNC" ]
 Go to Layout [ “Server_EasySync” (Server_EasySync) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 #
+Show All Records
 If [ Get ( FoundCount ) ]
 Delete All Records[ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -964,6 +972,10 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ Get ( FoundCount ) ]
@@ -1375,6 +1387,10 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ Get ( FoundCount ) ]
@@ -1719,6 +1735,10 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ Get ( FoundCount ) ]
@@ -2043,6 +2063,10 @@ Script:
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
     - enable: 'True'
       id: '68'
       name: If
@@ -2586,6 +2610,10 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ Get ( FoundCount ) ]
@@ -2998,6 +3026,10 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ Get ( FoundCount ) ]
@@ -3324,6 +3356,10 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
       id: '68'
       name: If
       StepText: If [ Get ( FoundCount ) ]
@@ -3648,6 +3684,10 @@ Script:
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
     - enable: 'True'
       id: '68'
       name: If

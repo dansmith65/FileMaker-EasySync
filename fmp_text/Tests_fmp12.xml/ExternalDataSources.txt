@@ -1,6 +1,8 @@
        id  File Reference             Path List                
        --  --------------             ---------                
         1  Log                        file:Log                 
+        4  TestDataSets               file:TestDataSets.fmp12  
+        5  EasySync_Client            file:EasySync_Client.fmp12
 
        id  ODBC Source                DSN                        Link                     
        --  -----------                ---                        ----                     
@@ -9,6 +11,14 @@
 ---
 ExternalDataSourcesCatalog:
   FileReference:
-    id: '1'
+  - id: '1'
     pathList: file:Log
     name: Log
+  - link: TestDataSets_fmp12.xml
+    id: '4'
+    pathList: file:TestDataSets.fmp12
+    name: TestDataSets
+  - link: EasySync_Client_fmp12.xml
+    id: '5'
+    pathList: file:EasySync_Client.fmp12
+    name: EasySync_Client

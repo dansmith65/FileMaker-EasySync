@@ -9,7 +9,7 @@
 # RETURNS:
 #    $error | a dictionary containing error data
 #    $runtime | number of seconds this script was running (with millisecond precision)
-#    $nothingToPull | boolean | True if no errors were encounted and there were no changes to pull from to the server.
+#    $record_count | number | Count of records pulled.
 #
 # VARIABLES:
 #
@@ -136,13 +136,13 @@ If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 2 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 2 ;	~message = "exit script with error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$error = " & Quote ( $error ) & " ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
 End If
 Else If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE ≥ 4 ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶") ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "exit script without error"] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"	& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"	& "$record_count = " & Max ( 0 ; $record_count ) & " ;¶") ]
 End If
 #
 #
 #
 Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
-Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶" ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$record_count = " & Max ( 0 ; $record_count ) & " ;¶" ]
 #
 
 
@@ -211,10 +211,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#    $nothingToPull | boolean | True if no errors were encounted
-        and there were no changes to pull from to the server.'
-      Text: '    $nothingToPull | boolean | True if no errors were encounted and there
-        were no changes to pull from to the server.'
+      StepText: '#    $record_count | number | Count of records pulled.'
+      Text: '    $record_count | number | Count of records pulled.'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1664,14 +1662,16 @@ Script:
         ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
         ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
         ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
-        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n) ]"
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n\t& \"$record_count = \"
+        & Max ( 0 ; $record_count ) & \" ;¶\"\n) ]"
       Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"exit script without
         error\"\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
         = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
         ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
         ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
         ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime
-        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n)"
+        = \" & GetAsNumber ( $~script.runtime ) & \" ;¶\"\n\t& \"$record_count = \"
+        & Max ( 0 ; $record_count ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
         - Let
@@ -1700,8 +1700,10 @@ Script:
         - CurrentTimeUTCMilliseconds
         - " ) / 1000 ) ) & \" ) ;¶\"\n\n\t& \"$runtime = \" & "
         - GetAsNumber
+        - " ( $~script.runtime ) & \" ;¶\"\n\t& \"$record_count = \" & "
+        - Max
         - |2-
-           ( $~script.runtime ) & " ;¶"
+           ( 0 ; $record_count ) & " ;¶"
           )
       Script:
         id: '66'
@@ -1765,20 +1767,20 @@ Script:
       StepText: |-
         Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
         & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
-        & "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶" ]
+        & "$record_count = " & Max ( 0 ; $record_count ) & " ;¶" ]
       Calculation: |-
         "$error = " & Quote ( $error ) & " ;¶"
         & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
-        & "$nothingToPull = " & GetAsBoolean( $nothingToPull ) & " ;¶"
+        & "$record_count = " & Max ( 0 ; $record_count ) & " ;¶"
       DisplayCalculation:
         Chunk:
         - '"$error = " & '
         - Quote
         - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
         - GetAsNumber
-        - " ( $~script.runtime ) & \" ;¶\"\n& \"$nothingToPull = \" & "
-        - GetAsBoolean
-        - ( $nothingToPull ) & " ;¶"
+        - " ( $~script.runtime ) & \" ;¶\"\n& \"$record_count = \" & "
+        - Max
+        - ' ( 0 ; $record_count ) & " ;¶"'
     - enable: 'True'
       id: '89'
       name: Comment

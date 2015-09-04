@@ -18,7 +18,7 @@
 ---
 BaseTable:
   id: '134'
-  records: '0'
+  records: '2'
   name: TestParameter
   FieldCatalog:
     Field:

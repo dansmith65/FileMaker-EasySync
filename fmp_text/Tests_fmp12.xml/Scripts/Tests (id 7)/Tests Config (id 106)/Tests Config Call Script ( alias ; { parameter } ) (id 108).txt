@@ -28,6 +28,8 @@ Set Variable [ $~script.section; Value:"CALL SCRIPTS TO TEST" ]
 Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 If [  ]
 #
+#
+#
 # file: local
 #================================================================================
 Else If [ $alias = "Tests: Evaluate" ]
@@ -45,19 +47,29 @@ Perform Script [ “~Tests: Pause { seconds }”; Parameter: $parameter ]
 #================================================================================
 #
 #
-# file: your file
+#
+# file: TestDataSets
 #================================================================================
-Else If [ $alias = "yourScript" ]
-Perform Script [ <unknown> ]
+Else If [ $alias = "TestDataSets: Push to EasySync" ]
+Perform Script [ “Push to EasySync ( id_DataSet )” from file: “TestDataSets”; Parameter: $parameter ]
 #
 #================================================================================
+#
+#
+#
+# file: EasySync_Client
+#================================================================================
+Else If [ $alias = "EasySync Client: Pull" ]
+Perform Script [ “EasySync Client: API: Pull” from file: “EasySync_Client”; Parameter: $parameter ]
+#
+#================================================================================
+#
 #
 #
 Else
 Exit Loop If [ Let (	$error = ErrorUnitTest ( 13 ; "script alias was not accounted for: " & $alias		& "¶¶make sure the parameter for this test is calling a script alias by the exact name as defined in '"		& Get ( ScriptName )		& "'"	) ;	True) ]
 End If
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
-#
 #
 #
 #
@@ -316,6 +328,14 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
       StepText: '# file: local'
       Text: ' file: local'
     - enable: 'True'
@@ -427,8 +447,12 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '# file: your file'
-      Text: ' file: your file'
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# file: TestDataSets'
+      Text: ' file: TestDataSets'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -437,14 +461,25 @@ Script:
     - enable: 'True'
       id: '125'
       name: Else If
-      StepText: Else If [ $alias = "yourScript" ]
-      Calculation: $alias = "yourScript"
+      StepText: 'Else If [ $alias = "TestDataSets: Push to EasySync" ]'
+      Calculation: '$alias = "TestDataSets: Push to EasySync"'
       DisplayCalculation:
-        Chunk: $alias = "yourScript"
+        Chunk: '$alias = "TestDataSets: Push to EasySync"'
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: Perform Script [ <unknown> ]
+      StepText: 'Perform Script [ “Push to EasySync ( id_DataSet )” from file: “TestDataSets”;
+        Parameter: $parameter ]'
+      FileReference:
+        id: '4'
+        name: TestDataSets
+        UniversalPathList: file:TestDataSets.fmp12
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '91'
+        name: Push to EasySync ( id_DataSet )
     - enable: 'True'
       id: '89'
       name: Comment
@@ -454,6 +489,63 @@ Script:
       name: Comment
       StepText: '#================================================================================'
       Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# file: EasySync_Client'
+      Text: ' file: EasySync_Client'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "EasySync Client: Pull" ]'
+      Calculation: '$alias = "EasySync Client: Pull"'
+      DisplayCalculation:
+        Chunk: '$alias = "EasySync Client: Pull"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: API: Pull” from file: “EasySync_Client”;
+        Parameter: $parameter ]'
+      FileReference:
+        id: '5'
+        name: EasySync_Client
+        UniversalPathList: file:EasySync_Client.fmp12
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '85'
+        name: 'EasySync Client: API: Pull'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -518,10 +610,6 @@ Script:
         - " ( \"\" ) ;\n\t\t"
         - 'True'
         - "\n\t)\n)"
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
     - enable: 'True'
       id: '89'
       name: Comment

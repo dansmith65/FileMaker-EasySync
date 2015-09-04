@@ -3,7 +3,9 @@ Tests: Manual Step: Ask Question
 Tests: Open URL
 Tests: Pause
 -
-Add Your values to this Value List
+TestDataSets: Push to EasySync
+-
+EasySync Client: Pull
 -
 
 ---
@@ -19,7 +21,9 @@ ValueList:
       Tests: Open URL
       Tests: Pause
       -
-      Add Your values to this Value List
+      TestDataSets: Push to EasySync
+      -
+      EasySync Client: Pull
       -
   PrimaryField:
     show: 'True'
