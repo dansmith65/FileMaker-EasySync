@@ -1,0 +1,56 @@
+Set Variable [ $url; Value:Get ( ScriptParameter ) ]
+Open URL [ $url ][ No dialog ]
+Exit Script [ Result: # ( "error" ; $error )& # ( "url" ; $url ) ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '167'
+  name: '~Tests: Open URL [ url ]'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $url; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $url
+    - enable: 'True'
+      id: '111'
+      name: Open URL
+      StepText: |-
+        Open URL [ $url ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Calculation: $url
+      DisplayCalculation:
+        Chunk: $url
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: # ( "error" ; $error )
+        & # ( "url" ; $url ) ]
+      Calculation: |-
+        # ( "error" ; $error )
+        & # ( "url" ; $url )
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - " ( \"error\" ; $error )\n& "
+        - '#'
+        - ' ( "url" ; $url )'

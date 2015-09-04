@@ -1,0 +1,71 @@
+#
+#
+Set Field [ SEL__SELECTOR::FILTER_TESTGROUP_NAME; "" ]
+#
+Perform Script [ “Filter TestGroup OnTimer” ]
+#
+Go to Field [ SEL__SELECTOR::FILTER_TESTGROUP_NAME ]
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '170'
+  name: 'Filter TestGroup: Clear'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ SEL__SELECTOR::FILTER_TESTGROUP_NAME; "" ]
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+      Field:
+        table: SEL__SELECTOR
+        id: '9'
+        name: FILTER_TESTGROUP_NAME
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Filter TestGroup OnTimer” ]
+      Script:
+        id: '169'
+        name: Filter TestGroup OnTimer
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '17'
+      name: Go to Field
+      StepText: Go to Field [ SEL__SELECTOR::FILTER_TESTGROUP_NAME ]
+      SelectAll:
+        state: 'False'
+      Field:
+        table: SEL__SELECTOR
+        id: '9'
+        name: FILTER_TESTGROUP_NAME
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

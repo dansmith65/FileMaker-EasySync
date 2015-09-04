@@ -1,0 +1,96 @@
+/**
+ * =====================================
+ * jsonPrettyPrint ( json ; whiteSpace )
+ *
+ *   Pretty Prints a json Object with an indent.
+ *
+ * RETURNS:
+ *		the prettified JSON Object
+ *
+ * PARAMETERS:
+ *		json - the json string to pretty print
+ *		whiteSpace - string - the character or characters to use as whiteSpace
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ *		MODIFED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com
+ *			added second parameter to set the white space character
+ *		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+Let([
+
+js =
+List(
+"var json = " & json & " ; " ;
+"var whiteSpace = " & Quote(whiteSpace) & " ; " ;
+)&
+"¶¶"&
+"if (whiteSpace === \"\"){"&"¶"&
+"    whiteSpace = \"  \""&"¶"&
+"}"&"¶"&
+""&"¶"&
+"json = JSON.stringify(json, null , whiteSpace);"&"¶"&
+""
+];
+BE_EvaluateJavaScript( js )
+)
+
+---
+CustomFunction:
+  id: '46'
+  functionArity: '2'
+  visible: 'True'
+  parameters: json;whiteSpace
+  name: jsonPrettyPrint
+  Calculation: "/**\n * =====================================\n * jsonPrettyPrint
+    ( json ; whiteSpace )\n *\n *   Pretty Prints a json Object with an indent.\n
+    *\n * RETURNS:\n *\t\tthe prettified JSON Object\n *\n * PARAMETERS:\n *\t\tjson
+    - the json string to pretty print\n *\t\twhiteSpace - string - the character or
+    characters to use as whiteSpace\n *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin
+    version 3.0 or greater\n *\n * HISTORY:\n *\t\tMODIFED on 2015-JAN-07 Todd Geist,
+    todd@geistinteractive.com\n *\t\t\tadded second parameter to set the white space
+    character\n *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+    *\n * =====================================\n */\n\nLet([\n\njs =\nList(\n\"var
+    json = \" & json & \" ; \" ;\n\"var whiteSpace = \" & Quote(whiteSpace) & \" ;
+    \" ;\n)&\n\"¶¶\"&\n\"if (whiteSpace === \\\"\\\"){\"&\"¶\"&\n\"    whiteSpace
+    = \\\"  \\\"\"&\"¶\"&\n\"}\"&\"¶\"&\n\"\"&\"¶\"&\n\"json = JSON.stringify(json,
+    null , whiteSpace);\"&\"¶\"&\n\"\"\n];\nBE_EvaluateJavaScript( js )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonPrettyPrint ( json ;
+      whiteSpace )\n *\n *   Pretty Prints a json Object with an indent.\n *\n * RETURNS:\n
+      *\t\tthe prettified JSON Object\n *\n * PARAMETERS:\n *\t\tjson - the json string
+      to pretty print\n *\t\twhiteSpace - string - the character or characters to
+      use as whiteSpace\n *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0
+      or greater\n *\n * HISTORY:\n *\t\tMODIFED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+      *\t\t\tadded second parameter to set the white space character\n *\t\tCREATED
+      on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+      */\n\n"
+    - Let
+    - |
+      ([
+
+      js =
+    - List
+    - "(\n\"var json = \" & json & \" ; \" ;\n\"var whiteSpace = \" & "
+    - Quote
+    - |
+      (whiteSpace) & " ; " ;
+      )&
+      "¶¶"&
+      "if (whiteSpace === \"\"){"&"¶"&
+      "    whiteSpace = \"  \""&"¶"&
+      "}"&"¶"&
+      ""&"¶"&
+      "json = JSON.stringify(json, null , whiteSpace);"&"¶"&
+      ""
+      ];
+    - BE_EvaluateJavaScript
+    - |-
+      ( js )
+      )

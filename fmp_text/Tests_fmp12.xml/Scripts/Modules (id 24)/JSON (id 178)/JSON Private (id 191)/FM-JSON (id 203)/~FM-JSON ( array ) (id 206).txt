@@ -1,0 +1,292 @@
+################################################################################
+# PURPOSE:
+#    Convert an array into JSON.
+#
+# PARAMETERS:
+#    array | text encoded like a value in let notation and delemited by returns.
+#
+# RETURNS:
+#    JSON encoded text.
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $array; Value:Get ( ScriptParameter ) ]
+Set Variable [ $count; Value:ValueCount ( $array ) ]
+#
+#
+Set Variable [ $result; Value:"[" ]
+Loop
+Exit Loop If [ // For $i from 1 to $countLet ( $i = $i + 1 ; If ( $i > $count ; Let ( $i = "" ; True ) ) ) ]
+Set Variable [ $value; Value:GetValue ( $array ; $i ) ]
+#
+Perform Script [ “~FM-JSON { value }”; Parameter: $value ]
+Set Variable [ $value; Value:Get ( ScriptResult ) ]
+#
+Set Variable [ $result; Value:$result& $value& If ( $i ≠ $count ;	",") ]
+End Loop
+Set Variable [ $result; Value:$result & "]" ]
+#
+#
+Exit Script [ Result: $result ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '206'
+  name: ~FM-JSON ( array )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Convert an array into JSON.'
+      Text: '    Convert an array into JSON.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    array | text encoded like a value in let notation and delemited
+        by returns.'
+      Text: '    array | text encoded like a value in let notation and delemited by
+        returns.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    JSON encoded text.'
+      Text: '    JSON encoded text.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $array; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $array
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $count; Value:ValueCount ( $array ) ]
+      Value:
+        Calculation: ValueCount ( $array )
+        DisplayCalculation:
+          Chunk:
+          - ValueCount
+          - ' ( $array )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $count
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:"[" ]
+      Value:
+        Calculation: '"["'
+        DisplayCalculation:
+          Chunk: '"["'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: |-
+        Exit Loop If [ // For $i from 1 to $count
+        Let ( $i = $i + 1 ; If ( $i > $count ; Let ( $i = "" ; True ) ) ) ]
+      Calculation: |-
+        // For $i from 1 to $count
+        Let ( $i = $i + 1 ; If ( $i > $count ; Let ( $i = "" ; True ) ) )
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i from 1 to $count
+        - Let
+        - ' ( $i = $i + 1 ; '
+        - If
+        - ' ( $i > $count ; '
+        - Let
+        - ' ( $i = "" ; '
+        - 'True'
+        - ' ) ) )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $value; Value:GetValue ( $array ; $i ) ]
+      Value:
+        Calculation: GetValue ( $array ; $i )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $array ; $i )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $value
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON { value }”; Parameter: $value ]'
+      Calculation: $value
+      DisplayCalculation:
+        Chunk: $value
+      Script:
+        id: '204'
+        name: ~FM-JSON { value }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $value; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $value
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:$result\n& $value\n& If ( $i ≠ $count
+        ;\n\t\",\"\n) ]"
+      Value:
+        Calculation: "$result\n& $value\n& If ( $i ≠ $count ;\n\t\",\"\n)"
+        DisplayCalculation:
+          Chunk:
+          - "$result\n& $value\n& "
+          - If
+          - " ( $i ≠ $count ;\n\t\",\"\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:$result & "]" ]
+      Value:
+        Calculation: $result & "]"
+        DisplayCalculation:
+          Chunk: $result & "]"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result

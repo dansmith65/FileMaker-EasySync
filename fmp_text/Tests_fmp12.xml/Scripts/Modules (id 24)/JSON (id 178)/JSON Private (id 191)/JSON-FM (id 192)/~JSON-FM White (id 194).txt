@@ -1,0 +1,123 @@
+################################################################################
+# PURPOSE:
+#    Skip whitespace
+#
+# PARAMETERS: none
+#
+# RETURNS: none
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Loop
+Exit Loop If [ IsEmpty ( $$~JSON.CH )or $$~JSON.CH > " " ]
+Perform Script [ “~JSON-FM Next { character }” ]
+End Loop
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '194'
+  name: ~JSON-FM White
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Skip whitespace'
+      Text: '    Skip whitespace'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS: none'
+      Text: ' RETURNS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: |-
+        Exit Loop If [ IsEmpty ( $$~JSON.CH )
+        or $$~JSON.CH > " " ]
+      Calculation: |-
+        IsEmpty ( $$~JSON.CH )
+        or $$~JSON.CH > " "
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - |2
+           ( $$~JSON.CH )
+        - or
+        - ' $$~JSON.CH > " "'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Next { character }” ]
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

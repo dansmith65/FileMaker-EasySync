@@ -1,0 +1,48 @@
+#
+#
+Install OnTimer Script [ “Filter TestGroup OnTimer”; Interval: .5 ]
+#
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '168'
+  name: Filter TestGroup OOKeystroke Trigger
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '148'
+      name: Install OnTimer Script
+      StepText: 'Install OnTimer Script [ “Filter TestGroup OnTimer”; Interval: .5
+        ]'
+      Interval:
+        Calculation: '.5'
+        DisplayCalculation:
+          Chunk: '.5'
+      Script:
+        id: '169'
+        name: Filter TestGroup OnTimer
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

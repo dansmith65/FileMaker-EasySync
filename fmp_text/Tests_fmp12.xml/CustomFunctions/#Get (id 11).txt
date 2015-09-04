@@ -1,0 +1,136 @@
+/**
+ * =====================================
+ * #Get ( parameters ; name )
+ *
+ * RETURNS:
+ *		A named value from a string of name-value pairs.
+ *
+ * PARAMETERS:
+ *		parameters: A string of name-value pairs
+ *		name: The name to retrieve the value of
+ *
+ * DEPENDENCIES: none
+ *
+ * NOTES:
+ *		When a name is defined more than once in parameters, the last value is
+ *		returned.
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-01-08 by Jeremy Bante <http://scr.im/jbante> to handle
+ *		leading $$ and $ in the name parameter the same as the
+ *		# ( name ; value ) function, based on a comment by Dan Smith.
+ *		CREATED on 2012-12-05 by Jeremy Bante <http://scr.im/jbante>.
+ * =====================================
+ */
+
+Let ( [
+	parameters = ¶ & parameters & ¶;
+	name =	// strip any leading $$ or $ for backwards compatibility
+		Substitute ( ¶ & name ; [ "¶$$" ; "" ] ; [ "¶$" ; "" ] ; [ ¶ ; "" ] ) ;
+
+	~length = Length ( parameters );
+	~namePosition =	// position of last occurrence of name
+		Position ( parameters ; "¶$" & name & " = " ; ~length ; -1 );
+	~namePosition =	// check for $$global name for backwards compatibility
+		If ( ~namePosition > 0;
+			~namePosition;
+		/* Else */
+			Position ( parameters ; "¶$$" & name & " = " ; ~length ; -1 )
+		);
+
+	~valueStart = Position ( parameters ; " = " ; ~namePosition ; 1 ) + 3;
+	~valueEnd = Position ( parameters ; ";¶" ; ~namePosition ; 1 );
+	~value = Middle ( parameters ; ~valueStart ; ~valueEnd - ~valueStart )
+];
+	// check that ~value exists and is valid
+	If ( ~namePosition > 0 and IsValidExpression ( ~value );
+		Evaluate ( ~value )
+	)
+)
+
+---
+CustomFunction:
+  id: '11'
+  functionArity: '2'
+  visible: 'True'
+  parameters: parameters;name
+  name: '#Get'
+  Calculation: "/**\n * =====================================\n * #Get ( parameters
+    ; name )\n *\n * RETURNS:\n *\t\tA named value from a string of name-value pairs.\n
+    *\n * PARAMETERS:\n *\t\tparameters: A string of name-value pairs\n *\t\tname:
+    The name to retrieve the value of\n *\n * DEPENDENCIES: none\n *\n * NOTES:\n
+    *\t\tWhen a name is defined more than once in parameters, the last value is\n
+    *\t\treturned.\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-01-08 by Jeremy Bante
+    <http://scr.im/jbante> to handle\n *\t\tleading $$ and $ in the name parameter
+    the same as the\n *\t\t# ( name ; value ) function, based on a comment by Dan
+    Smith.\n *\t\tCREATED on 2012-12-05 by Jeremy Bante <http://scr.im/jbante>.\n
+    * =====================================\n */\n\nLet ( [\n\tparameters = ¶ & parameters
+    & ¶;\n\tname =\t// strip any leading $$ or $ for backwards compatibility\n\t\tSubstitute
+    ( ¶ & name ; [ \"¶$$\" ; \"\" ] ; [ \"¶$\" ; \"\" ] ; [ ¶ ; \"\" ] ) ;\n\n\t~length
+    = Length ( parameters );\n\t~namePosition =\t// position of last occurrence of
+    name\n\t\tPosition ( parameters ; \"¶$\" & name & \" = \" ; ~length ; -1 );\n\t~namePosition
+    =\t// check for $$global name for backwards compatibility\n\t\tIf ( ~namePosition
+    > 0;\n\t\t\t~namePosition;\n\t\t/* Else */\n\t\t\tPosition ( parameters ; \"¶$$\"
+    & name & \" = \" ; ~length ; -1 )\n\t\t);\n\n\t~valueStart = Position ( parameters
+    ; \" = \" ; ~namePosition ; 1 ) + 3;\n\t~valueEnd = Position ( parameters ; \";¶\"
+    ; ~namePosition ; 1 );\n\t~value = Middle ( parameters ; ~valueStart ; ~valueEnd
+    - ~valueStart )\n];\n\t// check that ~value exists and is valid\n\tIf ( ~namePosition
+    > 0 and IsValidExpression ( ~value );\n\t\tEvaluate ( ~value )\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #Get ( parameters ; name
+      )\n *\n * RETURNS:\n *\t\tA named value from a string of name-value pairs.\n
+      *\n * PARAMETERS:\n *\t\tparameters: A string of name-value pairs\n *\t\tname:
+      The name to retrieve the value of\n *\n * DEPENDENCIES: none\n *\n * NOTES:\n
+      *\t\tWhen a name is defined more than once in parameters, the last value is\n
+      *\t\treturned.\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-01-08 by Jeremy Bante
+      <http://scr.im/jbante> to handle\n *\t\tleading $$ and $ in the name parameter
+      the same as the\n *\t\t# ( name ; value ) function, based on a comment by Dan
+      Smith.\n *\t\tCREATED on 2012-12-05 by Jeremy Bante <http://scr.im/jbante>.\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\tparameters = ¶ & parameters & ¶;\n\tname =\t"
+    - |
+      // strip any leading $$ or $ for backwards compatibility
+    - type: NoRef
+      __content__: "\t\t"
+    - Substitute
+    - " ( ¶ & name ; [ \"¶$$\" ; \"\" ] ; [ \"¶$\" ; \"\" ] ; [ ¶ ; \"\" ] ) ;\n\n\t~length
+      = "
+    - Length
+    - " ( parameters );\n\t~namePosition =\t"
+    - |
+      // position of last occurrence of name
+    - type: NoRef
+      __content__: "\t\t"
+    - Position
+    - " ( parameters ; \"¶$\" & name & \" = \" ; ~length ; -1 );\n\t~namePosition
+      =\t"
+    - |
+      // check for $$global name for backwards compatibility
+    - type: NoRef
+      __content__: "\t\t"
+    - If
+    - " ( ~namePosition > 0;\n\t\t\t~namePosition;\n\t\t/* Else */\n\t\t\t"
+    - Position
+    - " ( parameters ; \"¶$$\" & name & \" = \" ; ~length ; -1 )\n\t\t);\n\n\t~valueStart
+      = "
+    - Position
+    - " ( parameters ; \" = \" ; ~namePosition ; 1 ) + 3;\n\t~valueEnd = "
+    - Position
+    - " ( parameters ; \";¶\" ; ~namePosition ; 1 );\n\t~value = "
+    - Middle
+    - " ( parameters ; ~valueStart ; ~valueEnd - ~valueStart )\n];\n\t"
+    - |
+      // check that ~value exists and is valid
+    - type: NoRef
+      __content__: "\t"
+    - If
+    - ' ( ~namePosition > 0 '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - IsValidExpression
+    - " ( ~value );\n\t\t"
+    - Evaluate
+    - " ( ~value )\n\t)\n)"

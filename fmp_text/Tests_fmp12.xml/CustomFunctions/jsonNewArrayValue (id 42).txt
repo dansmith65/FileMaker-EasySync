@@ -1,0 +1,101 @@
+/**
+ * =====================================
+ * jsonNewArrayValue ( value )
+ *
+ * RETURNS:
+ *		prepares a string for inclusion as an element in a JSON array
+ *
+ * PARAMETERS:
+ *		value = string - the value of the Array element
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ *		MODIFIED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com
+ *			changed name to jsonNewArrayValue ( value )
+ *		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+
+If (
+    Left (value;1) = "[" and Right (value;1) = "]" or  Left (value;1) = "{" and Right (value;1) = "}" ; value ;
+   Let(
+    [
+      value = BE_JSON_Encode ( "" ; value);
+      value = Right(value; Length(value) -3 )
+    ];
+      value
+  )
+
+
+)
+
+ & ","
+
+---
+CustomFunction:
+  id: '42'
+  functionArity: '1'
+  visible: 'True'
+  parameters: value
+  name: jsonNewArrayValue
+  Calculation: "/**\n * =====================================\n * jsonNewArrayValue
+    ( value )\n *\n * RETURNS:\n *\t\tprepares a string for inclusion as an element
+    in a JSON array\n *\n * PARAMETERS:\n *\t\tvalue = string - the value of the Array
+    element\n *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n
+    *\n * HISTORY:\n *\t\tMODIFIED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+    *\t\t\tchanged name to jsonNewArrayValue ( value )\n *\t\tCREATED on 2015-JAN-06
+    Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+    */\n\n\nIf (\n    Left (value;1) = \"[\" and Right (value;1) = \"]\" or  Left
+    (value;1) = \"{\" and Right (value;1) = \"}\" ; value ;\n   Let(\n    [\n      value
+    = BE_JSON_Encode ( \"\" ; value);\n      value = Right(value; Length(value) -3
+    )\n    ];\n      value\n  )\n\n\n)\n\n & \",\""
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonNewArrayValue ( value
+      )\n *\n * RETURNS:\n *\t\tprepares a string for inclusion as an element in a
+      JSON array\n *\n * PARAMETERS:\n *\t\tvalue = string - the value of the Array
+      element\n *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n
+      *\n * HISTORY:\n *\t\tMODIFIED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+      *\t\t\tchanged name to jsonNewArrayValue ( value )\n *\t\tCREATED on 2015-JAN-06
+      Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+      */\n\n\n"
+    - If
+    - " (\n    "
+    - Left
+    - ' (value;1) = "[" '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Right
+    - ' (value;1) = "]" '
+    - or
+    - type: NoRef
+      __content__: '  '
+    - Left
+    - ' (value;1) = "{" '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Right
+    - " (value;1) = \"}\" ; value ;\n   "
+    - Let
+    - "(\n    [\n      value = "
+    - BE_JSON_Encode
+    - " ( \"\" ; value);\n      value = "
+    - Right
+    - '(value; '
+    - Length
+    - |-
+      (value) -3 )
+          ];
+            value
+        )
+
+
+      )
+
+       & ","

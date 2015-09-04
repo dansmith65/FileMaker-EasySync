@@ -1,0 +1,74 @@
+/**
+ * =====================================
+ * jsonNewObject ( properties )
+ *
+ *   wraps and prepares a series of jsonObjectMembers for inclusion in a JSON Object
+ *
+ * RETURNS:
+ *		the json Object
+ *
+ * PARAMETERS:
+ *		properties - a series of json object properties created by the cf jsonNewObjectProperty
+ *
+ * DEPENDENCIES:
+ *		None
+ *
+ * HISTORY:
+ *		MODIFIED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com
+ *			changed name to jsonNewObject ( properties )
+ *		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+
+Let ( [
+		properties =
+		If (
+			Right ( properties ; 1 ) = "," ;
+			Left ( properties ; Length ( properties ) - 1 ) ;
+			properties
+		)
+	] ;
+	"{ " & properties & " }"
+)
+
+---
+CustomFunction:
+  id: '44'
+  functionArity: '1'
+  visible: 'True'
+  parameters: properties
+  name: jsonNewObject
+  Calculation: "/**\n * =====================================\n * jsonNewObject (
+    properties )\n *\n *   wraps and prepares a series of jsonObjectMembers for inclusion
+    in a JSON Object\n *\n * RETURNS:\n *\t\tthe json Object\n *\n * PARAMETERS:\n
+    *\t\tproperties - a series of json object properties created by the cf jsonNewObjectProperty\n
+    *\n * DEPENDENCIES:\n *\t\tNone\n *\n * HISTORY:\n *\t\tMODIFIED on 2015-JAN-07
+    Todd Geist, todd@geistinteractive.com\n *\t\t\tchanged name to jsonNewObject (
+    properties )\n *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+    *\n * =====================================\n */\n\n\nLet ( [\n\t\tproperties
+    =\n\t\tIf (\n\t\t\tRight ( properties ; 1 ) = \",\" ;\n\t\t\tLeft ( properties
+    ; Length ( properties ) - 1 ) ;\n\t\t\tproperties\n\t\t)\n\t] ;\n\t\"{ \" & properties
+    & \" }\"\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonNewObject ( properties
+      )\n *\n *   wraps and prepares a series of jsonObjectMembers for inclusion in
+      a JSON Object\n *\n * RETURNS:\n *\t\tthe json Object\n *\n * PARAMETERS:\n
+      *\t\tproperties - a series of json object properties created by the cf jsonNewObjectProperty\n
+      *\n * DEPENDENCIES:\n *\t\tNone\n *\n * HISTORY:\n *\t\tMODIFIED on 2015-JAN-07
+      Todd Geist, todd@geistinteractive.com\n *\t\t\tchanged name to jsonNewObject
+      ( properties )\n *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+      *\n * =====================================\n */\n\n\n"
+    - Let
+    - " ( [\n\t\tproperties =\n\t\t"
+    - If
+    - " (\n\t\t\t"
+    - Right
+    - " ( properties ; 1 ) = \",\" ;\n\t\t\t"
+    - Left
+    - ' ( properties ; '
+    - Length
+    - " ( properties ) - 1 ) ;\n\t\t\tproperties\n\t\t)\n\t] ;\n\t\"{ \" & properties
+      & \" }\"\n)"

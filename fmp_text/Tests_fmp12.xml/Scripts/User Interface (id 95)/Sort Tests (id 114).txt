@@ -1,0 +1,45 @@
+Sort Records [ Keep records in sorted order; Specified Sort Order: tes_TGR__TestGroup::sortOrder; ascendingTES__Test::sortOrder; ascendingTES__Test::name; ascending ][ Restore; No dialog ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '114'
+  name: Sort Tests
+  StepList:
+    Step:
+      enable: 'True'
+      id: '39'
+      name: Sort Records
+      StepText: |-
+        Sort Records [ Keep records in sorted order; Specified Sort Order: tes_TGR__TestGroup::sortOrder; ascending
+        TES__Test::sortOrder; ascending
+        TES__Test::name; ascending ]
+        [ Restore; No dialog ]
+      NoInteract:
+        state: 'True'
+      Restore:
+        state: 'True'
+      SortList:
+        Maintain: 'True'
+        value: 'True'
+        Sort:
+        - type: Ascending
+          PrimaryField:
+            Field:
+              table: tes_TGR__TestGroup
+              id: '7'
+              name: sortOrder
+        - type: Ascending
+          PrimaryField:
+            Field:
+              table: TES__Test
+              id: '18'
+              name: sortOrder
+        - type: Ascending
+          PrimaryField:
+            Field:
+              table: TES__Test
+              id: '6'
+              name: name

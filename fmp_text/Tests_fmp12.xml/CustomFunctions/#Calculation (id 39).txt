@@ -1,0 +1,185 @@
+/**
+ * =====================================
+ * #Calculation ( name ; value )
+ *
+ * RETURNS:
+ *		An name-value pair in Let notation.
+ *
+ * PARAMETERS:
+ *		name: The name for the returned name-value pair. name can be any value
+ *			that would be a valid Let() variable name.
+ *		value: The value for the returned name-value pair. If it's a valid
+ *			calculation, it will be evaluated at time of retrieval.
+ *
+ * EXAMPLE:
+ *		# ( "name"; "Get ( CurrentTimestamp )" ) & # ( "foo" ; "$bar" )
+ *
+ * DEPENDENCIES: none
+ *
+ * NOTES:
+ *		Am not validating the value as a valid calculation because it might not
+ *		be valid in the current context even though it is valid in the intended
+ *		context.
+ *		Use this function with caution, if the value is not a valid calculation
+ *		it may prevent access to the entire dictionary, or produce other
+ *		unexpected results.
+ *
+ * HISTORY:
+ *		CREATED on 2013-DEC-05 by Daniel Smith dansmith65@gmail.com
+ *			- idea by Jeremy Bante <http://scr.im/jbante>.
+ * =====================================
+ */
+
+Let ( [
+	~name =	// strip leading "$$" and "$"
+		Substitute (
+			"/*start*/" & name ;
+			[ "/*start*/$$" ; "" ] ;
+			[ "/*start*/$" ; "" ] ;
+			[ "/*start*/" ; "" ]
+		) ;
+	~result =
+		"$"
+		& ~name
+		& " = "
+		& value
+		& " ;¶" ;
+	~testExpression =
+		"Let ( [ "
+		& ~result
+		& " ~ = \"\" ]; \"\" )" ;
+	~error =
+		Case (
+			IsEmpty ( ~name ) ;
+				11 ;	// Name is not valid
+
+			not IsValidExpression ( ~testExpression ) ;
+				1200	// Generic calculation error
+		)
+];
+	If ( ~error ;	// prevent bad pairs from affecting evaluation by commenting
+		"/* Error "
+		& ~error
+		& " name: "
+		& Quote (
+			Substitute (	// escape comment character sequences
+				name ;
+				[ "*/" ; "\*\/" ] ;
+				[ "/*" ; "\/\*" ]
+			)
+		)
+		& " value: "
+		& Quote (
+			Substitute (	// escape comment character sequences
+				value ;
+				[ "*/" ; "\*\/" ] ;
+				[ "/*" ; "\/\*" ]
+			)
+		)
+		& " */"
+		& ¶ ;
+	/* Else */
+		~result
+	)
+)
+
+---
+CustomFunction:
+  id: '39'
+  functionArity: '2'
+  visible: 'True'
+  parameters: name;value
+  name: '#Calculation'
+  Calculation: "/**\n * =====================================\n * #Calculation ( name
+    ; value )\n *\n * RETURNS:\n *\t\tAn name-value pair in Let notation.\n *\n *
+    PARAMETERS:\n *\t\tname: The name for the returned name-value pair. name can be
+    any value\n *\t\t\tthat would be a valid Let() variable name.\n *\t\tvalue: The
+    value for the returned name-value pair. If it's a valid\n *\t\t\tcalculation,
+    it will be evaluated at time of retrieval.\n *\n * EXAMPLE:\n *\t\t# ( \"name\";
+    \"Get ( CurrentTimestamp )\" ) & # ( \"foo\" ; \"$bar\" )\n *\n * DEPENDENCIES:
+    none\n *\n * NOTES:\n *\t\tAm not validating the value as a valid calculation
+    because it might not\n *\t\tbe valid in the current context even though it is
+    valid in the intended\n *\t\tcontext.\n *\t\tUse this function with caution, if
+    the value is not a valid calculation\n *\t\tit may prevent access to the entire
+    dictionary, or produce other\n *\t\tunexpected results.\n *\n * HISTORY:\n *\t\tCREATED
+    on 2013-DEC-05 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- idea by Jeremy
+    Bante <http://scr.im/jbante>.\n * =====================================\n */\n\nLet
+    ( [\n\t~name =\t// strip leading \"$$\" and \"$\"\n\t\tSubstitute (\n\t\t\t\"/*start*/\"
+    & name ;\n\t\t\t[ \"/*start*/$$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/$\" ; \"\" ]
+    ;\n\t\t\t[ \"/*start*/\" ; \"\" ]\n\t\t) ;\n\t~result =\n\t\t\"$\"\n\t\t& ~name\n\t\t&
+    \" = \"\n\t\t& value\n\t\t& \" ;¶\" ;\n\t~testExpression =\n\t\t\"Let ( [ \"\n\t\t&
+    ~result\n\t\t& \" ~ = \\\"\\\" ]; \\\"\\\" )\" ;\n\t~error =\n\t\tCase (\n\t\t\tIsEmpty
+    ( ~name ) ;\n\t\t\t\t11 ;\t// Name is not valid\n\n\t\t\tnot IsValidExpression
+    ( ~testExpression ) ;\n\t\t\t\t1200\t// Generic calculation error\n\t\t)\n];\n\tIf
+    ( ~error ;\t// prevent bad pairs from affecting evaluation by commenting\n\t\t\"/*
+    Error \"\n\t\t& ~error\n\t\t& \" name: \"\n\t\t& Quote (\n\t\t\tSubstitute (\t//
+    escape comment character sequences\n\t\t\t\tname ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\"
+    ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" value: \"\n\t\t&
+    Quote (\n\t\t\tSubstitute (\t// escape comment character sequences\n\t\t\t\tvalue
+    ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t&
+    \" */\"\n\t\t& ¶ ;\n\t/* Else */\n\t\t~result\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #Calculation ( name ; value
+      )\n *\n * RETURNS:\n *\t\tAn name-value pair in Let notation.\n *\n * PARAMETERS:\n
+      *\t\tname: The name for the returned name-value pair. name can be any value\n
+      *\t\t\tthat would be a valid Let() variable name.\n *\t\tvalue: The value for
+      the returned name-value pair. If it's a valid\n *\t\t\tcalculation, it will
+      be evaluated at time of retrieval.\n *\n * EXAMPLE:\n *\t\t# ( \"name\"; \"Get
+      ( CurrentTimestamp )\" ) & # ( \"foo\" ; \"$bar\" )\n *\n * DEPENDENCIES: none\n
+      *\n * NOTES:\n *\t\tAm not validating the value as a valid calculation because
+      it might not\n *\t\tbe valid in the current context even though it is valid
+      in the intended\n *\t\tcontext.\n *\t\tUse this function with caution, if the
+      value is not a valid calculation\n *\t\tit may prevent access to the entire
+      dictionary, or produce other\n *\t\tunexpected results.\n *\n * HISTORY:\n *\t\tCREATED
+      on 2013-DEC-05 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- idea by Jeremy
+      Bante <http://scr.im/jbante>.\n * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~name =\t"
+    - |
+      // strip leading "$$" and "$"
+    - type: NoRef
+      __content__: "\t\t"
+    - Substitute
+    - " (\n\t\t\t\"/*start*/\" & name ;\n\t\t\t[ \"/*start*/$$\" ; \"\" ] ;\n\t\t\t[
+      \"/*start*/$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/\" ; \"\" ]\n\t\t) ;\n\t~result
+      =\n\t\t\"$\"\n\t\t& ~name\n\t\t& \" = \"\n\t\t& value\n\t\t& \" ;¶\" ;\n\t~testExpression
+      =\n\t\t\"Let ( [ \"\n\t\t& ~result\n\t\t& \" ~ = \\\"\\\" ]; \\\"\\\" )\" ;\n\t~error
+      =\n\t\t"
+    - Case
+    - " (\n\t\t\t"
+    - IsEmpty
+    - " ( ~name ) ;\n\t\t\t\t11 ;\t"
+    - |
+      // Name is not valid
+    - type: NoRef
+      __content__: "\n\t\t\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsValidExpression
+    - " ( ~testExpression ) ;\n\t\t\t\t1200\t"
+    - |
+      // Generic calculation error
+    - "\t\t)\n];\n\t"
+    - If
+    - " ( ~error ;\t"
+    - |
+      // prevent bad pairs from affecting evaluation by commenting
+    - "\t\t\"/* Error \"\n\t\t& ~error\n\t\t& \" name: \"\n\t\t& "
+    - Quote
+    - " (\n\t\t\t"
+    - Substitute
+    - " (\t"
+    - |
+      // escape comment character sequences
+    - "\t\t\t\tname ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\"
+      ]\n\t\t\t)\n\t\t)\n\t\t& \" value: \"\n\t\t& "
+    - Quote
+    - " (\n\t\t\t"
+    - Substitute
+    - " (\t"
+    - |
+      // escape comment character sequences
+    - "\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\"
+      ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t& ¶ ;\n\t/* Else */\n\t\t~result\n\t)\n)"

@@ -1,0 +1,509 @@
+#################################################################################
+#
+#
+# JSON
+#
+# Created by Daniel Smith, dansmith65@gmail.com
+#	
+# Provides native support for JSON in FileMaker.
+#
+# http://www.modularfilemaker.org/module/json/
+#
+#
+#################################################################################
+#
+#
+#
+# REQUIRES
+#        No strict dependencies, see installation section for optional dependencies.
+#
+#
+#
+# INTEGRATION
+# ( it's wise to check the Import.log file for errors, as you add elements to your database )
+#        1. import module script folder
+#
+#        2. review all scripts in the module Config folder, adjust as necessary
+#
+#        3. import custom functions:
+#                for retrieving values from parsed JSON:
+#                (these are optional since you could manually extract the values)
+#                        - [optional] #Get
+#                        - [optional] #ListGet
+#                        - [optional] #GetNameList(is helpful when you want to iterate through all objects)
+#                for creating FileMaker Let notation in the format the FM-JSON script expects:
+#                (these are optional since you could manually encode the values)
+#                        - [optional] #
+#                        - [optional] #List
+#                Other useful custom functions in this suite can be found in the #Parameters modulehttp://www.modularfilemaker.org/module/parameters/
+#
+#
+#
+# INSTRUCTIONS FOR USE
+#        Please refer to the "FM > JSON: Sandbox" section of the demo file for examples of how to access data from a parsed json string.
+#        The unit tests serve as documentation for the values you should expect to get from this module.
+#
+#
+#
+# KNOWN ISSUES
+#        1. Object name's in JSON do not have any restrictions on the characters that can be used; FileMaker Let Notation does.The JSON-FM scripts removes invalid characters from object names, so you may need to account for this when accessing objects. See unit test titled "object name with invalid characters" for an example of this.This issue could be resolved by using an encoding/decoding format that fully escapes an object name, like the one available here: http://sixfriedrice.com/wp/passing-multiple-parameters-to-scripts-advanced/.To make this change, two scripts need to be modified:    1. ~JSON-FM Array            Set Variable step followed by the comment "encode value"    2. ~JSON-FM Object            Set Variable step followed by the comment "encode object"            Set Variable step followed by the comment "remove characters that are invalid for use in a let variable"The FM-JSON scripts do not provide the ability to create JSON with certain character in an objects name, it is restricted to the name being a valid let variable name. These scripts are completely dependent on the storage format used, so to implement a storage format that allows for any name in an object, you would need to modify most (if not all) of the FM-JSON scripts.
+#        2. True/False are not used - only 1/0.- when converting from FM-JSON
+#        3. null is used instead of empty string- when converting from FM-JSON
+#
+#
+#
+# UPGRADE PROCESS
+# ( use these instructions when you already have the JSON module installed, but want to upgrade to the latest version )
+#        1. Review the change log in the "JSON: Version X.X.X" script for version-specific update steps.
+#        2. Delete the "JSON: Private" script folder
+#        3. Import the "JSON: Private" script folder from the updated module
+#        4. Edit every script in the "JSON: Public" folder:
+#                a. delete all script steps
+#                b. copy/paste all script steps from the same script in the updated module
+#
+#
+#
+# LICENSE:
+#        The MIT License (MIT)Copyright (c) 2014 Daniel SmithPermission is hereby granted, free of charge, to any person obtaining a copyof this software and associated documentation files (the "Software"), to dealin the Software without restriction, including without limitation the rightsto use, copy, modify, merge, publish, distribute, sublicense, and/or sellcopies of the Software, and to permit persons to whom the Software isfurnished to do so, subject to the following conditions:The above copyright notice and this permission notice shall be included inall copies or substantial portions of the Software.THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS ORIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THEAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHERLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS INTHE SOFTWARE.
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '180'
+  name: 'JSON: READ ME'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# JSON'
+      Text: ' JSON'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created by Daniel Smith, dansmith65@gmail.com'
+      Text: ' Created by Daniel Smith, dansmith65@gmail.com'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t"
+      Text: "\t"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Provides native support for JSON in FileMaker.'
+      Text: ' Provides native support for JSON in FileMaker.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# http://www.modularfilemaker.org/module/json/'
+      Text: ' http://www.modularfilemaker.org/module/json/'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#################################################################################'
+      Text: '################################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REQUIRES'
+      Text: ' REQUIRES'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        No strict dependencies, see installation section for optional
+        dependencies.'
+      Text: '        No strict dependencies, see installation section for optional
+        dependencies.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# INTEGRATION'
+      Text: ' INTEGRATION'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# ( it''s wise to check the Import.log file for errors, as you add
+        elements to your database )'
+      Text: ' ( it''s wise to check the Import.log file for errors, as you add elements
+        to your database )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |
+        #        1. import module script folder
+      Text: |2
+                1. import module script folder
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        2. review all scripts in the module Config folder, adjust
+        as necessary'
+      Text: '        2. review all scripts in the module Config folder, adjust as
+        necessary'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        3. import custom functions:'
+      Text: '        3. import custom functions:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                for retrieving values from parsed JSON:'
+      Text: '                for retrieving values from parsed JSON:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                (these are optional since you could manually extract
+        the values)'
+      Text: '                (these are optional since you could manually extract
+        the values)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - [optional] #Get'
+      Text: '                        - [optional] #Get'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - [optional] #ListGet'
+      Text: '                        - [optional] #ListGet'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #                        - [optional] #GetNameList
+
+        (is helpful when you want to iterate through all objects)
+      Text: |2-
+                                - [optional] #GetNameList
+
+        (is helpful when you want to iterate through all objects)
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                for creating FileMaker Let notation in the format
+        the FM-JSON script expects:'
+      Text: '                for creating FileMaker Let notation in the format the
+        FM-JSON script expects:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                (these are optional since you could manually encode
+        the values)'
+      Text: '                (these are optional since you could manually encode the
+        values)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - [optional] #'
+      Text: '                        - [optional] #'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - [optional] #List'
+      Text: '                        - [optional] #List'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #                Other useful custom functions in this suite can be found in the #Parameters module
+
+        http://www.modularfilemaker.org/module/parameters/
+      Text: |2-
+                        Other useful custom functions in this suite can be found in the #Parameters module
+
+        http://www.modularfilemaker.org/module/parameters/
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# INSTRUCTIONS FOR USE'
+      Text: ' INSTRUCTIONS FOR USE'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        Please refer to the "FM > JSON: Sandbox" section of the
+        demo file for examples of how to access data from a parsed json string.'
+      Text: '        Please refer to the "FM > JSON: Sandbox" section of the demo
+        file for examples of how to access data from a parsed json string.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        The unit tests serve as documentation for the values you
+        should expect to get from this module.'
+      Text: '        The unit tests serve as documentation for the values you should
+        expect to get from this module.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# KNOWN ISSUES'
+      Text: ' KNOWN ISSUES'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #        1. Object name's in JSON do not have any restrictions on the characters that can be used; FileMaker Let Notation does.
+
+        The JSON-FM scripts removes invalid characters from object names, so you may need to account for this when accessing objects. See unit test titled "object name with invalid characters" for an example of this.
+
+        This issue could be resolved by using an encoding/decoding format that fully escapes an object name, like the one available here: http://sixfriedrice.com/wp/passing-multiple-parameters-to-scripts-advanced/.
+        To make this change, two scripts need to be modified:
+            1. ~JSON-FM Array
+                    Set Variable step followed by the comment "encode value"
+            2. ~JSON-FM Object
+                    Set Variable step followed by the comment "encode object"
+                    Set Variable step followed by the comment "remove characters that are invalid for use in a let variable"
+
+        The FM-JSON scripts do not provide the ability to create JSON with certain character in an objects name, it is restricted to the name being a valid let variable name. These scripts are completely dependent on the storage format used, so to implement a storage format that allows for any name in an object, you would need to modify most (if not all) of the FM-JSON scripts.
+      Text: |2-
+                1. Object name's in JSON do not have any restrictions on the characters that can be used; FileMaker Let Notation does.
+
+        The JSON-FM scripts removes invalid characters from object names, so you may need to account for this when accessing objects. See unit test titled "object name with invalid characters" for an example of this.
+
+        This issue could be resolved by using an encoding/decoding format that fully escapes an object name, like the one available here: http://sixfriedrice.com/wp/passing-multiple-parameters-to-scripts-advanced/.
+        To make this change, two scripts need to be modified:
+            1. ~JSON-FM Array
+                    Set Variable step followed by the comment "encode value"
+            2. ~JSON-FM Object
+                    Set Variable step followed by the comment "encode object"
+                    Set Variable step followed by the comment "remove characters that are invalid for use in a let variable"
+
+        The FM-JSON scripts do not provide the ability to create JSON with certain character in an objects name, it is restricted to the name being a valid let variable name. These scripts are completely dependent on the storage format used, so to implement a storage format that allows for any name in an object, you would need to modify most (if not all) of the FM-JSON scripts.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #        2. True/False are not used - only 1/0.
+
+        - when converting from FM-JSON
+      Text: |2-
+                2. True/False are not used - only 1/0.
+
+        - when converting from FM-JSON
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #        3. null is used instead of empty string
+
+        - when converting from FM-JSON
+      Text: |2-
+                3. null is used instead of empty string
+
+        - when converting from FM-JSON
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# UPGRADE PROCESS'
+      Text: ' UPGRADE PROCESS'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# ( use these instructions when you already have the JSON module
+        installed, but want to upgrade to the latest version )'
+      Text: ' ( use these instructions when you already have the JSON module installed,
+        but want to upgrade to the latest version )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        1. Review the change log in the "JSON: Version X.X.X" script
+        for version-specific update steps.'
+      Text: '        1. Review the change log in the "JSON: Version X.X.X" script
+        for version-specific update steps.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        2. Delete the "JSON: Private" script folder'
+      Text: '        2. Delete the "JSON: Private" script folder'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        3. Import the "JSON: Private" script folder from the updated
+        module'
+      Text: '        3. Import the "JSON: Private" script folder from the updated
+        module'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        4. Edit every script in the "JSON: Public" folder:'
+      Text: '        4. Edit every script in the "JSON: Public" folder:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                a. delete all script steps'
+      Text: '                a. delete all script steps'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                b. copy/paste all script steps from the same script
+        in the updated module'
+      Text: '                b. copy/paste all script steps from the same script in
+        the updated module'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# LICENSE:'
+      Text: ' LICENSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #        The MIT License (MIT)
+
+        Copyright (c) 2014 Daniel Smith
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+        THE SOFTWARE.
+      Text: |2-
+                The MIT License (MIT)
+
+        Copyright (c) 2014 Daniel Smith
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+        THE SOFTWARE.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

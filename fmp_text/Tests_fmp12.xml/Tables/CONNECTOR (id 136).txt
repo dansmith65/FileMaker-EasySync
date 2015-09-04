@@ -1,0 +1,46 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   z_xJoin                     Number           Normal                                                              
+
+
+---
+BaseTable:
+  id: '136'
+  records: '1'
+  name: CONNECTOR
+  FieldCatalog:
+    Field:
+      id: '1'
+      dataType: Number
+      fieldType: Normal
+      name: z_xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'

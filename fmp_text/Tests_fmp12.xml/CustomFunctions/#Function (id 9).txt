@@ -1,0 +1,78 @@
+Let(
+[
+  // turn into list if not already
+params = Substitute( 
+                  parameterNames ; 
+                  [","; ";"];
+                  [";"; "¶"]
+                );
+
+// turn into let Vars
+params = Substitute(  
+                   params ;
+                   ["¶" ; "=\"\";" ]
+                ) & "=\"\";" ;
+
+expression = "Let([¶" & 
+params & 
+"¶null=\"\"¶];¶" &
+functionBody
+& "¶)" ;
+$#Assign.error =""
+
+
+];
+
+Case(
+    IsValidExpression ( expression ) ; functionBody;
+     Let ( $#Assign.error = EvaluationError ( Evaluate(expression) ); "?" )
+)
+
+)
+
+---
+CustomFunction:
+  id: '9'
+  functionArity: '2'
+  visible: 'True'
+  parameters: functionBody;parameterNames
+  name: '#Function'
+  Calculation: "Let(\n[\n  // turn into list if not already\nparams = Substitute(
+    \n                  parameterNames ; \n                  [\",\"; \";\"];\n                  [\";\";
+    \"¶\"]\n                );\n\n// turn into let Vars\nparams = Substitute(  \n
+    \                  params ;\n                   [\"¶\" ; \"=\\\"\\\";\" ]\n                )
+    & \"=\\\"\\\";\" ;\n\nexpression = \"Let([¶\" & \nparams & \n\"¶null=\\\"\\\"¶];¶\"
+    &\nfunctionBody\n& \"¶)\" ;\n$#Assign.error =\"\"\n\n\n];\n\nCase(\n    IsValidExpression
+    ( expression ) ; functionBody;\n     Let ( $#Assign.error = EvaluationError (
+    Evaluate(expression) ); \"?\" )\n)\n\n)"
+  DisplayCalculation:
+    Chunk:
+    - Let
+    - "(\n[\n  "
+    - |
+      // turn into list if not already
+    - 'params = '
+    - Substitute
+    - "( \n                  parameterNames ; \n                  [\",\"; \";\"];\n
+      \                 [\";\"; \"¶\"]\n                );\n\n"
+    - |
+      // turn into let Vars
+    - 'params = '
+    - Substitute
+    - "(  \n                   params ;\n                   [\"¶\" ; \"=\\\"\\\";\"
+      ]\n                ) & \"=\\\"\\\";\" ;\n\nexpression = \"Let([¶\" & \nparams
+      & \n\"¶null=\\\"\\\"¶];¶\" &\nfunctionBody\n& \"¶)\" ;\n$#Assign.error =\"\"\n\n\n];\n\n"
+    - Case
+    - "(\n    "
+    - IsValidExpression
+    - " ( expression ) ; functionBody;\n     "
+    - Let
+    - ' ( $#Assign.error = '
+    - EvaluationError
+    - ' ( '
+    - Evaluate
+    - |-
+      (expression) ); "?" )
+      )
+
+      )

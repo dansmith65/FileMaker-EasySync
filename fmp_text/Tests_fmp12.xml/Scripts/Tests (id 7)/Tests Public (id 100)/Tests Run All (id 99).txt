@@ -1,0 +1,156 @@
+#
+#
+# confirmation
+Show Custom Dialog [ Title: "Confirm"; Message: "Run all tests?"; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+If [ Get ( LastMessageChoice ) = 2	 /* Cancel */ ]
+Exit Script [  ]
+End If
+#
+#
+Show All Records
+If [ $runOnServer ]
+Commit Records/Requests[ No dialog ]
+Perform Script on Server [ “~Tests: Run ( idList_Test )”; Parameter: TES__Test::summaryListOfId ]
+Else
+Perform Script [ “Tests: Run Found” ]
+End If
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '99'
+  name: 'Tests: Run All'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# confirmation'
+      Text: ' confirmation'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Confirm"; Message: "Run all tests?";
+        Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]'
+      Title:
+        Calculation: '"Confirm"'
+        DisplayCalculation:
+          Chunk: '"Confirm"'
+      Message:
+        Calculation: '"Run all tests?"'
+        DisplayCalculation:
+          Chunk: '"Run all tests?"'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Get ( LastMessageChoice ) = 2\t /* Cancel */ ]"
+      Calculation: "Get ( LastMessageChoice ) = 2\t /* Cancel */"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - " ) = 2\t /* Cancel */"
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $runOnServer ]
+      Calculation: $runOnServer
+      DisplayCalculation:
+        Chunk: $runOnServer
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '164'
+      name: Perform Script on Server
+      StepText: 'Perform Script on Server [ “~Tests: Run ( idList_Test )”; Parameter:
+        TES__Test::summaryListOfId ]'
+      WaitForCompletion:
+        state: 'False'
+      Calculation: TES__Test::summaryListOfId
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: TES__Test
+            id: '21'
+            name: summaryListOfId
+      Script:
+        id: '214'
+        name: '~Tests: Run ( idList_Test )'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Tests: Run Found” ]'
+      Script:
+        id: '98'
+        name: 'Tests: Run Found'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

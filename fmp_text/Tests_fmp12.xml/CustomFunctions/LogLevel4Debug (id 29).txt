@@ -1,0 +1,59 @@
+/**
+ * =====================================
+ * LogLevel4Debug
+ *
+ * RETURNS:
+ *		(number) log level
+ *
+ * EXAMPLE:
+ *		LogData ( LogLevel4Debug )
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com
+ *			- add NOTES section describing when this log level should be used
+ *		CREATED on 2014-JAN-15 Daniel Smith dansmith65@gmail.com
+ *
+ * NOTES:
+ *		Just about everything that doesn't make the "info" cut. Any message
+ *		that is helpful in tracking the flow through the system and isolating
+ *		issues, especially during the development and QA phases. We use "debug"
+ *		level logs for entry/exit of most non-trivial methods and marking
+ *		interesting events and decision points inside methods.
+ *
+ * REFERENCE:
+ *		http://filemakerstandards.org/display/props/Logging
+ * =====================================
+ */
+
+ 4
+
+---
+CustomFunction:
+  id: '29'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: LogLevel4Debug
+  Calculation: "/**\n * =====================================\n * LogLevel4Debug\n
+    *\n * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel4Debug
+    )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+    on 2014-JAN-15 Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tJust about
+    everything that doesn't make the \"info\" cut. Any message\n *\t\tthat is helpful
+    in tracking the flow through the system and isolating\n *\t\tissues, especially
+    during the development and QA phases. We use \"debug\"\n *\t\tlevel logs for entry/exit
+    of most non-trivial methods and marking\n *\t\tinteresting events and decision
+    points inside methods.\n *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n
+    * =====================================\n */\n\n 4"
+  DisplayCalculation:
+    Chunk: "/**\n * =====================================\n * LogLevel4Debug\n *\n
+      * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel4Debug
+      )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+      on 2014-JAN-15 Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tJust
+      about everything that doesn't make the \"info\" cut. Any message\n *\t\tthat
+      is helpful in tracking the flow through the system and isolating\n *\t\tissues,
+      especially during the development and QA phases. We use \"debug\"\n *\t\tlevel
+      logs for entry/exit of most non-trivial methods and marking\n *\t\tinteresting
+      events and decision points inside methods.\n *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n
+      * =====================================\n */\n\n 4"

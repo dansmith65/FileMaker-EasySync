@@ -1,0 +1,479 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   id                          Text             Normal                                                              
+     2   id_Test                     Text             Normal                                                              
+     3   scriptAlias                 Text             Normal            alias of script to be called; this script must be called by "Tests: Config: Call Script ( alias ; { parameter } )"
+     4   parameterExpression         Text             Normal            FileMaker calculation stored as text that is evaluated to determine what tests should be run. See documentation in testing scripts for the expected format.
+     5   result                      Text             Normal            result of script call                             
+     6   resultTestExpression        Text             Normal            FileMaker calculation stored as text that is evaluated after all tests are run. This expression should return True (1) if the test passed.
+     7   sortOrder                   Number           Normal            order the tests should be run in                  
+     8   resultPass                  Number           Normal            Boolean; True = test passed                       
+     9   resultAsJson                Text             Normal            result converted to json                          
+    10   description                 Text             Normal            purpose of this test                              
+    11   parameterEvaluated          Text             Normal            stored when the test is run; allows for viewing the exact data sent to the script
+    12   z_xJoin                     Number           Normal                                                              
+    13   runtime                     Number           Normal            in seconds                                        
+
+
+---
+BaseTable:
+  id: '134'
+  records: '0'
+  name: TestParameter
+  FieldCatalog:
+    Field:
+    - id: '1'
+      dataType: Text
+      fieldType: Normal
+      name: id
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        overwriteExistingValue: 'True'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( UUID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - UUID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: Always
+        NotEmpty:
+          value: 'True'
+        Unique:
+          value: 'True'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'True'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '2'
+      dataType: Text
+      fieldType: Normal
+      name: id_Test
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '3'
+      dataType: Text
+      fieldType: Normal
+      name: scriptAlias
+      Comment: 'alias of script to be called; this script must be called by "Tests:
+        Config: Call Script ( alias ; { parameter } )"'
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '4'
+      dataType: Text
+      fieldType: Normal
+      name: parameterExpression
+      Comment: FileMaker calculation stored as text that is evaluated to determine
+        what tests should be run. See documentation in testing scripts for the expected
+        format.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '5'
+      dataType: Text
+      fieldType: Normal
+      name: result
+      Comment: result of script call
+      AutoEnter:
+        allowEditing: 'False'
+        value: ConstantData
+        constant: 'True'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '6'
+      dataType: Text
+      fieldType: Normal
+      name: resultTestExpression
+      Comment: FileMaker calculation stored as text that is evaluated after all tests
+        are run. This expression should return True (1) if the test passed.
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '7'
+      dataType: Number
+      fieldType: Normal
+      name: sortOrder
+      Comment: order the tests should be run in
+      AutoEnter:
+        allowEditing: 'True'
+        overwriteExistingValue: 'False'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( ActivePortalRowNumber )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ActivePortalRowNumber
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '8'
+      dataType: Number
+      fieldType: Normal
+      name: resultPass
+      Comment: Boolean; True = test passed
+      AutoEnter:
+        allowEditing: 'True'
+        value: ConstantData
+        constant: 'True'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: Always
+        StrictDataType:
+          value: Numeric
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        Range:
+          to: '1'
+          from: '0'
+        StrictValidation:
+          value: 'True'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '9'
+      dataType: Text
+      fieldType: Normal
+      name: resultAsJson
+      Comment: result converted to json
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '10'
+      dataType: Text
+      fieldType: Normal
+      name: description
+      Comment: purpose of this test
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '11'
+      dataType: Text
+      fieldType: Normal
+      name: parameterEvaluated
+      Comment: stored when the test is run; allows for viewing the exact data sent
+        to the script
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '12'
+      dataType: Number
+      fieldType: Normal
+      name: z_xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '13'
+      dataType: Number
+      fieldType: Normal
+      name: runtime
+      Comment: in seconds
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'

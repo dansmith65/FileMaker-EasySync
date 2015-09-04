@@ -1,0 +1,2839 @@
+     Layout name:  Test: List               
+              id:  6                        
+           Table:  TES__Test                
+           Theme:  gi Base Theme            
+
+         Objects:                           
+                    Type              'Name'                             
+                    ----              ------                             
+                    Button                                               
+                    Button                                               
+                    Button                                               
+                    Button                                               
+                    Button                                               
+                    Button                                               
+                    Button                                               
+                    Button                                               
+                    Button                                               
+                    Field             tes_TGR__TestGroup::name           
+                    Field             TES__Test::name                    
+                    Field             TES__Test::resultPass              
+                    Field             TES__Test::lastRunTimestamp        
+                    Field             TES__Test::runtime                 
+                    Field             SEL__SELECTOR::logLevelToWrite     
+                    Field             TES__Test::sortOrder               
+                    Field             tes_TGR__TestGroup::sortOrder      
+                    Field             TES__Test::summaryTotalRuntime     
+                    Field             tes_TGR__TestGroup::name           
+                    Field             tes_TGR__TestGroup::sortOrder      
+                    GroupButton                                          
+
+
+---
+Layout:
+  width: '952'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '6'
+  name: 'Test: List'
+  Table:
+    id: '1065091'
+    name: TES__Test
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: gi Base Theme
+    id: '02'
+  Options:
+    showRecordIndicator: 'False'
+    showFieldFramesCurrentRecord: 'False'
+    showFieldFrames: 'False'
+    saveRecord: 'True'
+  ScriptTriggers:
+    Trigger:
+    - event: OnLayoutEnter
+      id: '101'
+      triggerFlags: '1'
+      Script:
+        id: '113'
+        name: Sort Tests Trigger
+        __content__: |2+
+
+      TriggerText: '"Sort Tests Trigger"'
+    - event: OnRecordCommit
+      id: '104'
+      triggerFlags: '1'
+      Script:
+        id: '163'
+        name: Test Record ORCommit [ scriptName ]
+        Parameter: Get ( ScriptName )
+        Calculation: Get ( ScriptName )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptName
+          - ' )'
+      TriggerText: '"Test Record ORCommit [ scriptName ]"; Parameter: Get ( ScriptName
+        )'
+    - event: OnModeEnter
+      id: '106'
+      triggerFlags: '7'
+      Script:
+        id: '113'
+        name: Sort Tests Trigger
+        __content__: |2+
+
+      TriggerText: '"Sort Tests Trigger"'
+  Object:
+  - type: Button
+    key: '28'
+    LabelKey: '0'
+    flags: '1342242816'
+    rotation: '0'
+    Bounds:
+      top: '8.0000000'
+      left: '702.0000000'
+      bottom: '40.0000000'
+      right: '823.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: Run Found Tests
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Run Found Tests
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: 'Perform Script [ “Tests: Run Found” ]'
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '98'
+          name: 'Tests: Run Found'
+  - type: Button
+    key: '29'
+    LabelKey: '0'
+    flags: '1342242816'
+    rotation: '0'
+    Bounds:
+      top: '8.0000000'
+      left: '837.0000000'
+      bottom: '40.0000000'
+      right: '936.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: Run All Tests
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Run All Tests
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: 'Perform Script [ “Tests: Run All” ]'
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '99'
+          name: 'Tests: Run All'
+  - type: Button
+    key: '33'
+    LabelKey: '0'
+    flags: '65536'
+    rotation: '0'
+    Bounds:
+      top: '8.0000000'
+      left: '16.0000000'
+      bottom: '40.0000000'
+      right: '88.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: Detail
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Detail
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '6'
+        name: Go to Layout
+        StepText: 'Go to Layout [ “Test: Detail” (TES__Test) ]'
+        LayoutDestination:
+          value: SelectedLayout
+        Layout:
+          id: '3'
+          name: 'Test: Detail'
+  - type: Field
+    key: '34'
+    LabelKey: '35'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '80.0000000'
+      bottom: '97.0000000'
+      right: '512.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: tes_TGR__TestGroup::name
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List Edit
+      DDRInfo:
+        Field:
+          name: name
+          id: '6'
+          repetition: '1'
+          maxRepetition: '1'
+          table: tes_TGR__TestGroup
+  - type: Text
+    key: '35'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '80.0000000'
+      bottom: '64.0000000'
+      right: '309.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: TX Column Label
+      CharacterStyleVector:
+        Style:
+          Data: group
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: group
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '38'
+    LabelKey: '39'
+    flags: '1073741824'
+    rotation: '0'
+    Bounds:
+      top: '112.0000000'
+      left: '288.0000000'
+      bottom: '137.0000000'
+      right: '608.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: TES__Test::name
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List Edit
+      DDRInfo:
+        Field:
+          name: name
+          id: '6'
+          repetition: '1'
+          maxRepetition: '1'
+          table: TES__Test
+  - type: Text
+    key: '39'
+    LabelKey: '0'
+    flags: '1073741824'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '288.0000000'
+      bottom: '64.0000000'
+      right: '608.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: TX Column Label
+      CharacterStyleVector:
+        Style:
+          Data: name
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: name
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '40'
+    LabelKey: '41'
+    flags: '1342177281'
+    rotation: '0'
+    ConditionalFormatting:
+      Item:
+        id: '0'
+        flags: '7'
+        Condition:
+          op: '0'
+          Calculation: not IsEmpty ( Self ) and not Self
+          DisplayCalculation:
+            Chunk:
+            - not
+            - type: NoRef
+              __content__: ' '
+            - IsEmpty
+            - ' ( '
+            - Self
+            - ' ) '
+            - and
+            - type: NoRef
+              __content__: ' '
+            - not
+            - type: NoRef
+              __content__: ' '
+            - Self
+          RangeBegin: 
+          RangeEnd: 
+        Format:
+          Styles:
+            LocalCSS: "\nself\n{\n\tbackground-color: rgba(100%,15.2941%,7.05882%,1);\n\tfont-weight:
+              bold;\n\tcolor: rgba(100%,100%,100%,1);\n\ttext-transform: uppercase;\n}\n"
+    Bounds:
+      top: '112.0000000'
+      left: '816.0000000'
+      bottom: '137.0000000'
+      right: '872.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32802'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: TES__Test::resultPass
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '32'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: '#'
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: pass
+          falseString: fail
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List Result
+      DDRInfo:
+        Field:
+          name: resultPass
+          id: '9'
+          repetition: '1'
+          maxRepetition: '1'
+          table: TES__Test
+  - type: Text
+    key: '41'
+    LabelKey: '0'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '816.0000000'
+      bottom: '64.0000000'
+      right: '872.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: center;\n}\nself .inner_border\n{\n\tpadding-right:
+          6pt;\n}\n"
+        CustomStyles:
+          Name: TX Column Label
+      CharacterStyleVector:
+        Style:
+          Data: result
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: result
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Button
+    key: '45'
+    LabelKey: '0'
+    flags: '1342242816'
+    rotation: '0'
+    Bounds:
+      top: '112.0000000'
+      left: '880.0000000'
+      bottom: '137.0000000'
+      right: '936.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: Run
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Run
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: 'Perform Script [ “Tests: Run Current” ]'
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '97'
+          name: 'Tests: Run Current'
+  - type: Field
+    key: '46'
+    LabelKey: '47'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '112.0000000'
+      left: '664.0000000'
+      bottom: '137.0000000'
+      right: '816.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32804'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: TES__Test::lastRunTimestamp
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List
+      DDRInfo:
+        Field:
+          name: lastRunTimestamp
+          id: '5'
+          repetition: '1'
+          maxRepetition: '1'
+          table: TES__Test
+  - type: Text
+    key: '47'
+    LabelKey: '0'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '664.0000000'
+      bottom: '64.0000000'
+      right: '816.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: TX Column Label
+      CharacterStyleVector:
+        Style:
+          Data: last run
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: last run
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '48'
+    LabelKey: '49'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '112.0000000'
+      left: '608.0000000'
+      bottom: '137.0000000'
+      right: '664.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32804'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: TES__Test::runtime
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: center;\n}\nself .text\n{\n\tmargin-top:
+          3pt;\n\tmargin-right: 0pt;\n\tmargin-left: 0pt;\n}\n"
+        CustomStyles:
+          Name: EB List
+      DDRInfo:
+        Field:
+          name: runtime
+          id: '12'
+          repetition: '1'
+          maxRepetition: '1'
+          table: TES__Test
+  - type: Text
+    key: '49'
+    LabelKey: '0'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '608.0000000'
+      bottom: '64.0000000'
+      right: '664.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: center;\n}\nself .inner_border\n{\n\tpadding-left:
+          0pt;\n}\n"
+        CustomStyles:
+          Name: TX Column Label
+      CharacterStyleVector:
+        Style:
+          Data: runtime
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: runtime
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '50'
+    LabelKey: '51'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '11.0000000'
+      left: '248.0000000'
+      bottom: '36.0000000'
+      right: '296.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '34'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: SEL__SELECTOR::logLevelToWrite
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: logLevelToWrite
+          id: '4'
+          repetition: '1'
+          maxRepetition: '1'
+          table: SEL__SELECTOR
+  - type: Text
+    key: '51'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '13.0000000'
+      left: '143.0000000'
+      bottom: '34.0000000'
+      right: '240.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: TX Label
+      CharacterStyleVector:
+        Style:
+          Data: logLevelToWrite
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: logLevelToWrite
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Button
+    key: '53'
+    LabelKey: '0'
+    flags: '65536'
+    rotation: '0'
+    Bounds:
+      top: '104.0000000'
+      left: '208.0000000'
+      bottom: '144.0000000'
+      right: '232.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: BT Icon Go
+      CharacterStyleVector:
+        Style:
+          Data: 
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Tahoma
+            Font_size: '12'
+            Face: '0'
+            Color: '#4D4D4D'
+      ParagraphStyleVector:
+        Style:
+          Data: 
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '6'
+        name: Go to Layout
+        StepText: 'Go to Layout [ “Test: Detail” (TES__Test) ]'
+        LayoutDestination:
+          value: SelectedLayout
+        Layout:
+          id: '3'
+          name: 'Test: Detail'
+  - type: Text
+    key: '54'
+    LabelKey: '0'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '144.0000000'
+      left: '968.0000000'
+      bottom: '168.0000000'
+      right: '1272.0000000'
+    TextObj:
+      flags: '10'
+      tableViewVisibility: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: passed <<summaryTotalPass>>/{{FoundCount}}
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: passed <<summaryTotalPass>>/{{FoundCount}}
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+      FieldList:
+        quickFind: 'False'
+        Field:
+          table: TES__Test
+          id: '10'
+          name: summaryTotalPass
+  - type: Text
+    key: '58'
+    LabelKey: '0'
+    flags: '1342177284'
+    rotation: '0'
+    Bounds:
+      top: '144.0000000'
+      left: '688.0000000'
+      bottom: '176.0000000'
+      right: '936.0000000'
+    TextObj:
+      flags: '10'
+      tableViewVisibility: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '256'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: '#'
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '0'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tfont-weight: bold;\n\tfont-size: 18pt;\n\tcolor: rgba(100%,15.2941%,7.05882%,1);\n\ttext-align:
+          right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: 'fail: <<summaryTotalFail>>'
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '18'
+            Face: '256'
+            Color: '#FF2712'
+      ParagraphStyleVector:
+        Style:
+          Data: 'fail: <<summaryTotalFail>>'
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+      FieldList:
+        quickFind: 'False'
+        Field:
+          table: TES__Test
+          id: '17'
+          name: summaryTotalFail
+    HideCondition:
+      Calculation: TES__Test::summaryTotalFail = 0
+      DisplayCalculation:
+        Chunk:
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '17'
+            name: summaryTotalFail
+        - ' = 0'
+  - type: Text
+    key: '56'
+    LabelKey: '0'
+    flags: '1342177284'
+    rotation: '0'
+    Bounds:
+      top: '144.0000000'
+      left: '608.0000000'
+      bottom: '176.0000000'
+      right: '848.0000000'
+    TextObj:
+      flags: '10'
+      tableViewVisibility: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '256'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: '#'
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '0'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tfont-size: 14pt;\n\tcolor: rgba(33.3333%,55.6863%,15.6863%,1);\n\ttext-align:
+          right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: 'pass: <<summaryTotalPass>>'
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '14'
+            Face: '0'
+            Color: '#558E28'
+      ParagraphStyleVector:
+        Style:
+          Data: 'pass: <<summaryTotalPass>>'
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+      FieldList:
+        quickFind: 'False'
+        Field:
+          table: TES__Test
+          id: '10'
+          name: summaryTotalPass
+    HideCondition:
+      Calculation: TES__Test::summaryTotalPass = 0
+      DisplayCalculation:
+        Chunk:
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '10'
+            name: summaryTotalPass
+        - ' = 0'
+  - type: Text
+    key: '52'
+    LabelKey: '0'
+    flags: '1342177284'
+    rotation: '0'
+    Bounds:
+      top: '144.0000000'
+      left: '536.0000000'
+      bottom: '176.0000000'
+      right: '768.0000000'
+    TextObj:
+      flags: '10'
+      tableViewVisibility: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '256'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: '#'
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '0'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tfont-size: 14pt;\n\tcolor: rgba(50.1961%,50.1961%,50.1961%,1);\n\ttext-align:
+          right;\n\t-fm-text-vertical-align: center;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: 'not run: <<summaryTotalNotRun>>'
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '14'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: 'not run: <<summaryTotalNotRun>>'
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+      FieldList:
+        quickFind: 'False'
+        Field:
+          table: TES__Test
+          id: '16'
+          name: summaryTotalNotRun
+    HideCondition:
+      Calculation: TES__Test::summaryTotalNotRun = 0
+      DisplayCalculation:
+        Chunk:
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '16'
+            name: summaryTotalNotRun
+        - ' = 0'
+  - type: Button
+    key: '60'
+    LabelKey: '0'
+    flags: '65536'
+    rotation: '0'
+    Bounds:
+      top: '8.0000000'
+      left: '328.0000000'
+      bottom: '40.0000000'
+      right: '408.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: Open Log
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Open Log
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: Perform Script [ “Open Log” ]
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '112'
+          name: Open Log
+  - type: Field
+    key: '61'
+    LabelKey: '62'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '112.0000000'
+      left: '232.0000000'
+      bottom: '137.0000000'
+      right: '288.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32802'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: TES__Test::sortOrder
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List Right Edit
+      DDRInfo:
+        Field:
+          name: sortOrder
+          id: '18'
+          repetition: '1'
+          maxRepetition: '1'
+          table: TES__Test
+  - type: Text
+    key: '62'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '232.0000000'
+      bottom: '64.0000000'
+      right: '288.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: TX Column Label Right
+      CharacterStyleVector:
+        Style:
+          Data: sort
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: sort
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Text
+    key: '64'
+    LabelKey: '0'
+    flags: '4'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '80.0000000'
+      bottom: '97.0000000'
+      right: '199.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tborder-top-color: rgba(87.0588%,87.0588%,87.0588%,1);\n\tborder-right-color:
+          rgba(87.0588%,87.0588%,87.0588%,1);\n\tborder-bottom-color: rgba(87.0588%,87.0588%,87.0588%,1);\n\tborder-left-color:
+          rgba(87.0588%,87.0588%,87.0588%,1);\n\tborder-top-width: 1pt;\n\tborder-right-width:
+          1pt;\n\tborder-bottom-width: 1pt;\n\tborder-left-width: 1pt;\n\tfont-style:
+          italic;\n\tcolor: rgba(30.1961%,30.1961%,30.1961%,1);\n\t-fm-text-vertical-align:
+          top;\n}\nself:focus\n{\n\tborder-top-color: rgba(20%,20%,20%,1);\n\tborder-right-color:
+          rgba(20%,20%,20%,1);\n\tborder-bottom-color: rgba(20%,20%,20%,1);\n\tborder-left-color:
+          rgba(20%,20%,20%,1);\n\tbox-shadow: 0pt 0pt 2pt 1pt rgba(0%,43.9216%,81.1765%,1);\n}\nself
+          .inner_border\n{\n\tborder-top-right-radius: 2pt 2pt;\n\tborder-bottom-right-radius:
+          2pt 2pt;\n\tborder-bottom-left-radius: 2pt 2pt;\n\tborder-top-left-radius:
+          2pt 2pt;\n\tpadding-left: 0pt;\n}\nself:droptarget .inner_border\n{\n\tbox-shadow:
+          inset 0pt 0pt 2pt 1pt rgba(0%,43.9216%,81.1765%,1);\n}\nself .text\n{\n\tmargin-top:
+          2pt;\n\tmargin-right: 6pt;\n\tmargin-bottom: 2pt;\n\tmargin-left: 6pt;\n\theight:
+          auto;\n\ttop: 0pt;\n\tright: 0pt;\n\tbottom: 0pt;\n\tleft: 0pt;\n\tposition:
+          absolute;\n}\nself .baseline\n{\n\tborder-bottom-width: 1pt;\n}\n"
+        CustomStyles:
+          Name: TX Column Label
+      CharacterStyleVector:
+        Style:
+          Data: no group
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '512'
+            Color: '#4D4D4D'
+      ParagraphStyleVector:
+        Style:
+          Data: no group
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    HideCondition:
+      Calculation: not IsEmpty ( tes_TGR__TestGroup::id )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: tes_TGR__TestGroup
+            id: '3'
+            name: id
+        - ' )'
+  - type: Text
+    key: '65'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '40.0000000'
+      left: '24.0000000'
+      bottom: '64.0000000'
+      right: '80.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '18'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: TX Column Label Right
+      CharacterStyleVector:
+        Style:
+          Data: sort
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#808080'
+      ParagraphStyleVector:
+        Style:
+          Data: sort
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+  - type: Field
+    key: '66'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '24.0000000'
+      bottom: '97.0000000'
+      right: '80.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32802'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: tes_TGR__TestGroup::sortOrder
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List Right Edit
+      DDRInfo:
+        Field:
+          name: sortOrder
+          id: '7'
+          repetition: '1'
+          maxRepetition: '1'
+          table: tes_TGR__TestGroup
+  - type: Field
+    key: '68'
+    LabelKey: '0'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '148.0000000'
+      left: '608.0000000'
+      bottom: '173.0000000'
+      right: '664.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '36'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: TES__Test::summaryTotalRuntime
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: center;\n}\nself .text\n{\n\tmargin-top:
+          3pt;\n\tmargin-right: 0pt;\n\tmargin-left: 0pt;\n}\n"
+        CustomStyles:
+          Name: EB List
+      DDRInfo:
+        Field:
+          name: summaryTotalRuntime
+          id: '19'
+          repetition: '1'
+          maxRepetition: '1'
+          table: TES__Test
+  - type: Button
+    key: '70'
+    LabelKey: '0'
+    flags: '65536'
+    rotation: '0'
+    Bounds:
+      top: '64.0000000'
+      left: '0.0000000'
+      bottom: '104.0000000'
+      right: '24.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: BT Icon Go
+      CharacterStyleVector:
+        Style:
+          Data: 
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Tahoma
+            Font_size: '12'
+            Face: '0'
+            Color: '#4D4D4D'
+      ParagraphStyleVector:
+        Style:
+          Data: 
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '6'
+        name: Go to Layout
+        StepText: 'Go to Layout [ “Test: Detail” (TES__Test) ]'
+        LayoutDestination:
+          value: SelectedLayout
+        Layout:
+          id: '3'
+          name: 'Test: Detail'
+  - type: Button
+    key: '71'
+    LabelKey: '0'
+    flags: '65536'
+    rotation: '0'
+    Bounds:
+      top: '104.0000000'
+      left: '0.0000000'
+      bottom: '144.0000000'
+      right: '24.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: BT Icon Go
+      CharacterStyleVector:
+        Style:
+          Data: 
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Tahoma
+            Font_size: '12'
+            Face: '0'
+            Color: '#4D4D4D'
+      ParagraphStyleVector:
+        Style:
+          Data: 
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '6'
+        name: Go to Layout
+        StepText: 'Go to Layout [ “Test: Detail” (TES__Test) ]'
+        LayoutDestination:
+          value: SelectedLayout
+        Layout:
+          id: '3'
+          name: 'Test: Detail'
+  - type: Field
+    key: '72'
+    LabelKey: '0'
+    flags: '4'
+    rotation: '0'
+    Bounds:
+      top: '112.0000000'
+      left: '80.0000000'
+      bottom: '137.0000000'
+      right: '208.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32800'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '1'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: tes_TGR__TestGroup::name
+      ValueList: TestGroup Name
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List Edit
+      DDRInfo:
+        Field:
+          name: name
+          id: '6'
+          repetition: '1'
+          maxRepetition: '1'
+          table: tes_TGR__TestGroup
+        ValueList:
+          name: TestGroup Name
+          id: '5'
+    HideCondition:
+      Calculation: |-
+        True
+
+        /* hide when not in find mode */
+      DisplayCalculation:
+        Chunk:
+        - 'True'
+        - "\r\n\r\n/* hide when not in find mode */"
+  - type: Field
+    key: '73'
+    LabelKey: '0'
+    flags: '4'
+    rotation: '0'
+    Bounds:
+      top: '112.0000000'
+      left: '25.0000000'
+      bottom: '137.0000000'
+      right: '81.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32802'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '0'
+      pictFormat: '5'
+      Name: tes_TGR__TestGroup::sortOrder
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        CustomStyles:
+          Name: EB List Right Edit
+      DDRInfo:
+        Field:
+          name: sortOrder
+          id: '7'
+          repetition: '1'
+          maxRepetition: '1'
+          table: tes_TGR__TestGroup
+    HideCondition:
+      Calculation: |-
+        True
+
+        /* hide when not in find mode */
+      DisplayCalculation:
+        Chunk:
+        - 'True'
+        - "\r\n\r\n/* hide when not in find mode */"
+  - type: Button
+    key: '75'
+    LabelKey: '0'
+    flags: '1342242816'
+    rotation: '0'
+    Bounds:
+      top: '72.0000000'
+      left: '864.0000000'
+      bottom: '97.0000000'
+      right: '952.0000000'
+    TextObj:
+      flags: '2'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles: |2+
+
+      CharacterStyleVector:
+        Style:
+          Data: Run Group
+          CharacterStyle:
+            mask: '32695'
+            Font_family: Trebuchet MS
+            Font_size: '12'
+            Face: '0'
+            Color: '#000000'
+      ParagraphStyleVector:
+        Style:
+          Data: Run Group
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+
+    ButtonObj:
+      buttonFlags: '0'
+      Step:
+        enable: 'True'
+        id: '1'
+        name: Perform Script
+        StepText: 'Perform Script [ “Tests: Run Found Group” ]'
+        CurrentScript:
+          value: Pause
+        Script:
+          id: '164'
+          name: 'Tests: Run Found Group'
+  - type: GroupButton
+    key: '76'
+    LabelKey: '0'
+    flags: '1342177280'
+    rotation: '0'
+    Bounds:
+      top: '11.0000000'
+      left: '564.0000000'
+      bottom: '36.0000000'
+      right: '697.0000000'
+    GroupButtonObj:
+      numOfObjs: '2'
+      Styles: |2+
+
+      Object:
+      - type: Field
+        key: '77'
+        LabelKey: '78'
+        flags: '1342177280'
+        rotation: '0'
+        Bounds:
+          top: '0.0000000'
+          left: '85.0000000'
+          bottom: '25.0000000'
+          right: '133.0000000'
+        FieldObj:
+          numOfReps: '1'
+          flags: '34'
+          inputMode: '0'
+          keyboardType: '1'
+          displayType: '0'
+          tableViewVisibility: '0'
+          quickFind: '0'
+          pictFormat: '5'
+          Name: SEL__SELECTOR::runOnServer
+          ExtendedAttributes:
+            fontHeight: '15'
+            graphicFormat: '5'
+            NumFormat:
+              flags: '32'
+              charStyle: '0'
+              negativeStyle: '0'
+              currencySymbol: '#'
+              thousandsSep: '44'
+              decimalPoint: '46'
+              negativeColor: '#DD000000'
+              decimalDigits: '2'
+              trueString: 'Yes'
+              falseString: 'No'
+            DateFormat:
+              format: '0'
+              charStyle: '0'
+              monthStyle: '0'
+              dayStyle: '0'
+              separator: '47'
+              DateElement:
+              - '3'
+              - '6'
+              - '1'
+              - '8'
+              DateElementSep:
+              - index: '0'
+              - ', '
+              - index: '2'
+                __content__: ' '
+              - ', '
+              - index: '4'
+            TimeFormat:
+              flags: '143'
+              charStyle: '0'
+              hourStyle: '0'
+              minsecStyle: '1'
+              separator: '58'
+              amString: ' AM'
+              pmString: ' PM'
+              ampmString: ''
+          Styles: |2+
+
+          DDRInfo:
+            Field:
+              name: runOnServer
+              id: '10'
+              repetition: '1'
+              maxRepetition: '1'
+              table: SEL__SELECTOR
+      - type: Text
+        key: '78'
+        LabelKey: '0'
+        flags: '1342177280'
+        rotation: '0'
+        Bounds:
+          top: '2.0000000'
+          left: '0.0000000'
+          bottom: '23.0000000'
+          right: '79.0000000'
+        TextObj:
+          flags: '0'
+          ExtendedAttributes:
+            fontHeight: '18'
+            graphicFormat: '0'
+            NumFormat:
+              flags: '0'
+              charStyle: '0'
+              negativeStyle: '0'
+              currencySymbol: ''
+              thousandsSep: '0'
+              decimalPoint: '0'
+              negativeColor: '#0'
+              decimalDigits: '0'
+              trueString: ''
+              falseString: ''
+            DateFormat:
+              format: '0'
+              charStyle: '0'
+              monthStyle: '0'
+              dayStyle: '0'
+              separator: '0'
+              DateElement:
+              - '0'
+              - '0'
+              - '0'
+              - '0'
+              DateElementSep:
+              - index: '0'
+              - index: '1'
+              - index: '2'
+              - index: '3'
+              - index: '4'
+            TimeFormat:
+              flags: '0'
+              charStyle: '0'
+              hourStyle: '0'
+              minsecStyle: '0'
+              separator: '0'
+              amString: ''
+              pmString: ''
+              ampmString: ''
+          Styles:
+            CustomStyles:
+              Name: TX Label
+          CharacterStyleVector:
+            Style:
+              Data: runOnServer
+              CharacterStyle:
+                mask: '32695'
+                Font_family: Trebuchet MS
+                Font_size: '12'
+                Face: '0'
+                Color: '#808080'
+          ParagraphStyleVector:
+            Style:
+              Data: runOnServer
+              ParagraphStyle:
+                mask: '0'
+                __content__: |2+
+

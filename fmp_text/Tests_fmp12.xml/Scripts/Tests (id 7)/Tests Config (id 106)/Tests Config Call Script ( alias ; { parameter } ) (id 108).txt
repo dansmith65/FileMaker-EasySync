@@ -1,0 +1,784 @@
+################################################################################
+# PURPOSE:
+#    Call any script that needs to be tested.
+#    (as defined by value in the Test::scriptAlias field)
+################################################################################
+#
+#
+#
+Loop
+# single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+#================================================================================
+If [ // save script parameters to local variablesnot #Assign ( Get ( ScriptParameter ) )ornot VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) ) ]
+Exit Loop If [ Let (	$error = ErrorUnitTest ( 2 ; "" ) ;	True) ]
+End If
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CALL SCRIPTS TO TEST" ]
+# list all test scripts that need to be called here
+#================================================================================
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+If [  ]
+#
+# file: local
+#================================================================================
+Else If [ $alias = "Tests: Evaluate" ]
+Perform Script [ “~Tests: Evaluate”; Parameter: $parameter ]
+#
+Else If [ $alias = "Tests: Manual Step: Ask Question" ]
+Perform Script [ “~Tests: Manual Step: Ask Question ( dialogMessage { dialogTitle ; button1 ; button2 } )”; Parameter: $parameter ]
+#
+Else If [ $alias = "Tests: Open URL" ]
+Perform Script [ “~Tests: Open URL [ url ]”; Parameter: $parameter ]
+#
+Else If [ $alias = "Tests: Pause" ]
+Perform Script [ “~Tests: Pause { seconds }”; Parameter: $parameter ]
+#
+#================================================================================
+#
+#
+# file: your file
+#================================================================================
+Else If [ $alias = "yourScript" ]
+Perform Script [ <unknown> ]
+#
+#================================================================================
+#
+#
+Else
+Exit Loop If [ Let (	$error = ErrorUnitTest ( 13 ; "script alias was not accounted for: " & $alias		& "¶¶make sure the parameter for this test is calling a script alias by the exact name as defined in '"		& Get ( ScriptName )		& "'"	) ;	True) ]
+End If
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#================================================================================
+# SAVE RUNTIME OF CALLED SCRIPT
+#================================================================================
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+Set Field [ sel_TPA__TestParameter::runtime; $~script.runtime ]
+#
+#
+#
+#================================================================================
+# HANDLE ERROR
+#================================================================================
+If [ ErrorFound ( $error ) ]
+# if this script generates an error, then the test script probably didn't run, so just return the error
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "" )& $error ]
+Set Variable [ $scriptResult; Value:# ( "error" ; $error ) ]
+Else
+# assume the sub-script ran, and returned a result (if necessary), so return that result to the calling script
+Set Variable [ $scriptResult; Value:Get ( ScriptResult ) ]
+End If
+#
+#
+#
+Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
+Exit Script [ Result: $scriptResult ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '108'
+  name: 'Tests: Config: Call Script ( alias ; { parameter } )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Call any script that needs to be tested.'
+      Text: '    Call any script that needs to be tested.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    (as defined by value in the Test::scriptAlias field)'
+      Text: '    (as defined by value in the Test::scriptAlias field)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# single-pass loop for error trapping'
+      Text: ' single-pass loop for error trapping'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+      Value:
+        Calculation: '"ASSIGN PARAMETERS"'
+        DisplayCalculation:
+          Chunk: '"ASSIGN PARAMETERS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ // save script parameters to local variables
+        not #Assign ( Get ( ScriptParameter ) )
+        or
+        not VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) ) ]
+      Calculation: |-
+        // save script parameters to local variables
+        not #Assign ( Get ( ScriptParameter ) )
+        or
+        not VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) )
+      DisplayCalculation:
+        Chunk:
+        - |
+          // save script parameters to local variables
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#Assign'
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - |2
+           ) )
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - type: NoRef
+          __content__: ' '
+        - VerifyVariablesNotEmpty
+        - ' ( '
+        - ScriptRequiredParameterList
+        - ' ( "" ) )'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorUnitTest ( 2 ; \"\" ) ;\n\tTrue\n)
+        ]"
+      Calculation: "Let (\n\t$error = ErrorUnitTest ( 2 ; \"\" ) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorUnitTest
+        - " ( 2 ; \"\" ) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"CALL SCRIPTS TO TEST" ]
+      Value:
+        Calculation: '"CALL SCRIPTS TO TEST"'
+        DisplayCalculation:
+          Chunk: '"CALL SCRIPTS TO TEST"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# list all test scripts that need to be called here'
+      Text: ' list all test scripts that need to be called here'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# file: local'
+      Text: ' file: local'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "Tests: Evaluate" ]'
+      Calculation: '$alias = "Tests: Evaluate"'
+      DisplayCalculation:
+        Chunk: '$alias = "Tests: Evaluate"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Evaluate”; Parameter: $parameter ]'
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '155'
+        name: '~Tests: Evaluate'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "Tests: Manual Step: Ask Question" ]'
+      Calculation: '$alias = "Tests: Manual Step: Ask Question"'
+      DisplayCalculation:
+        Chunk: '$alias = "Tests: Manual Step: Ask Question"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Manual Step: Ask Question ( dialogMessage
+        { dialogTitle ; button1 ; button2 } )”; Parameter: $parameter ]'
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '159'
+        name: '~Tests: Manual Step: Ask Question ( dialogMessage { dialogTitle ; button1
+          ; button2 } )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "Tests: Open URL" ]'
+      Calculation: '$alias = "Tests: Open URL"'
+      DisplayCalculation:
+        Chunk: '$alias = "Tests: Open URL"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Open URL [ url ]”; Parameter: $parameter
+        ]'
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '167'
+        name: '~Tests: Open URL [ url ]'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "Tests: Pause" ]'
+      Calculation: '$alias = "Tests: Pause"'
+      DisplayCalculation:
+        Chunk: '$alias = "Tests: Pause"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Pause { seconds }”; Parameter: $parameter
+        ]'
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '213'
+        name: '~Tests: Pause { seconds }'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# file: your file'
+      Text: ' file: your file'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $alias = "yourScript" ]
+      Calculation: $alias = "yourScript"
+      DisplayCalculation:
+        Chunk: $alias = "yourScript"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ <unknown> ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorUnitTest ( 13 ; \"script alias
+        was not accounted for: \" & $alias\n\t\t& \"¶¶make sure the parameter for
+        this test is calling a script alias by the exact name as defined in '\"\n\t\t&
+        Get ( ScriptName )\n\t\t& \"'\"\n\t) ;\n\tTrue\n) ]"
+      Calculation: "Let (\n\t$error = ErrorUnitTest ( 13 ; \"script alias was not
+        accounted for: \" & $alias\n\t\t& \"¶¶make sure the parameter for this test
+        is calling a script alias by the exact name as defined in '\"\n\t\t& Get (
+        ScriptName )\n\t\t& \"'\"\n\t) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorUnitTest
+        - " ( 13 ; \"script alias was not accounted for: \" & $alias\n\t\t& \"¶¶make
+          sure the parameter for this test is calling a script alias by the exact
+          name as defined in '\"\n\t\t& "
+        - Get
+        - ' ( '
+        - ScriptName
+        - " )\n\t\t& \"'\"\n\t) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# end single-pass loop for error trapping'
+      Text: ' end single-pass loop for error trapping'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# SAVE RUNTIME OF CALLED SCRIPT'
+      Text: ' SAVE RUNTIME OF CALLED SCRIPT'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ sel_TPA__TestParameter::runtime; $~script.runtime ]
+      Calculation: $~script.runtime
+      DisplayCalculation:
+        Chunk: $~script.runtime
+      Field:
+        table: sel_TPA__TestParameter
+        id: '13'
+        name: runtime
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HANDLE ERROR'
+      Text: ' HANDLE ERROR'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# if this script generates an error, then the test script probably
+        didn''t run, so just return the error'
+      Text: ' if this script generates an error, then the test script probably didn''t
+        run, so just return the error'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "" )
+        & $error ]
+      Calculation: |-
+        LogData ( LogLevelByError ( $error ) ; "" )
+        & $error
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevelByError
+        - |2-
+           ( $error ) ; "" )
+          & $error
+      Script:
+        id: '32'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $scriptResult; Value:# ( "error" ; $error ) ]
+      Value:
+        Calculation: '# ( "error" ; $error )'
+        DisplayCalculation:
+          Chunk:
+          - '#'
+          - ' ( "error" ; $error )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $scriptResult
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# assume the sub-script ran, and returned a result (if necessary),
+        so return that result to the calling script'
+      Text: ' assume the sub-script ran, and returned a result (if necessary), so
+        return that result to the calling script'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $scriptResult; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $scriptResult
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $!; Value:""
+        /**
+         * This is a step that will not return an error.
+         *
+         * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+         * Get ( LastError ) to test if an error occurred with the Perform Script step.
+         *
+         */ ]
+      Value:
+        Calculation: |-
+          ""
+          /**
+           * This is a step that will not return an error.
+           *
+           * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+           * Get ( LastError ) to test if an error occurred with the Perform Script step.
+           *
+           */
+        DisplayCalculation:
+          Chunk: |-
+            ""
+            /**
+             * This is a step that will not return an error.
+             *
+             * It's used to clear any errors reported by Get ( LastError ), so a calling script can use
+             * Get ( LastError ) to test if an error occurred with the Perform Script step.
+             *
+             */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $!
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $scriptResult ]'
+      Calculation: $scriptResult
+      DisplayCalculation:
+        Chunk: $scriptResult
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

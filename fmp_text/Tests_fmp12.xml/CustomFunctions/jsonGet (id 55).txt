@@ -1,0 +1,142 @@
+/**
+ * =====================================
+ * jsonGet ( json ; keyOrIndex )
+ *
+ *  a convenience function that handles the most comm JSONPath cases
+ *  Works with JSON Objects and JSON Arrays
+ *
+ * RETURNS:
+ *		the value specfied by the keyOrIndex
+ *
+ * PARAMETERS:
+ *		json - the json string
+ *		keyOrIndex - use a "key" for objects, and an "index" for number
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ *		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+Let ( [
+	json = BE_JSONPath ( json ; "$" ) ;  //normalize the json
+	start = Left ( json ; 1 ) ;
+	end = Right ( json ; 1 ) ;
+	type = 
+		Case ( 
+			( start = "[" ) and ( end = "]" ) ; "array" ;
+			( start = "{" ) and ( end = "}" ) ; "object" ;
+			"other"
+		) ;
+	keyOrValue =
+		Case ( type = "array" ; GetAsNumber ( keyOrIndex ) ; keyOrIndex ) ;
+	path = "$" &
+		Case ( type = "array" ; "[" & keyOrIndex & "]" ; "." & keyOrValue );
+
+	result = 
+		Case (
+			json = "?" ; BE_JSON_Error_Description	;
+			type = "array" and IsEmpty ( keyOrIndex ) ;"" ;
+			type = "other" ; "" ;					
+
+			BE_JSONPath ( json ; path )	
+		) 
+
+
+] ;
+
+Case(
+   result <> "?" ; result;
+   IsEmpty( FilterValues(  jsonGetKeyList ( json ) ; keyOrValue  ) ) ; "" ; // the keyOrValue did not exist
+   BE_JSON_Error_Description
+) 
+)
+
+---
+CustomFunction:
+  id: '55'
+  functionArity: '2'
+  visible: 'True'
+  parameters: json;keyOrIndex
+  name: jsonGet
+  Calculation: "/**\n * =====================================\n * jsonGet ( json ;
+    keyOrIndex )\n *\n *  a convenience function that handles the most comm JSONPath
+    cases\n *  Works with JSON Objects and JSON Arrays\n *\n * RETURNS:\n *\t\tthe
+    value specfied by the keyOrIndex\n *\n * PARAMETERS:\n *\t\tjson - the json string\n
+    *\t\tkeyOrIndex - use a \"key\" for objects, and an \"index\" for number\n *\n
+    * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n * HISTORY:\n
+    *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+    */\n\nLet ( [\n\tjson = BE_JSONPath ( json ; \"$\" ) ;  //normalize the json\n\tstart
+    = Left ( json ; 1 ) ;\n\tend = Right ( json ; 1 ) ;\n\ttype = \n\t\tCase ( \n\t\t\t(
+    start = \"[\" ) and ( end = \"]\" ) ; \"array\" ;\n\t\t\t( start = \"{\" ) and
+    ( end = \"}\" ) ; \"object\" ;\n\t\t\t\"other\"\n\t\t) ;\n\tkeyOrValue =\n\t\tCase
+    ( type = \"array\" ; GetAsNumber ( keyOrIndex ) ; keyOrIndex ) ;\n\tpath = \"$\"
+    &\n\t\tCase ( type = \"array\" ; \"[\" & keyOrIndex & \"]\" ; \".\" & keyOrValue
+    );\n\n\tresult = \n\t\tCase (\n\t\t\tjson = \"?\" ; BE_JSON_Error_Description\t;\n\t\t\ttype
+    = \"array\" and IsEmpty ( keyOrIndex ) ;\"\" ;\n\t\t\ttype = \"other\" ; \"\"
+    ;\t\t\t\t\t\n\n\t\t\tBE_JSONPath ( json ; path )\t\n\t\t) \n\n\n] ;\n\nCase(\n
+    \  result <> \"?\" ; result;\n   IsEmpty( FilterValues(  jsonGetKeyList ( json
+    ) ; keyOrValue  ) ) ; \"\" ; // the keyOrValue did not exist\n   BE_JSON_Error_Description\n)
+    \n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonGet ( json ; keyOrIndex
+      )\n *\n *  a convenience function that handles the most comm JSONPath cases\n
+      *  Works with JSON Objects and JSON Arrays\n *\n * RETURNS:\n *\t\tthe value
+      specfied by the keyOrIndex\n *\n * PARAMETERS:\n *\t\tjson - the json string\n
+      *\t\tkeyOrIndex - use a \"key\" for objects, and an \"index\" for number\n *\n
+      * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n * HISTORY:\n
+      *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\tjson = "
+    - BE_JSONPath
+    - ' ( json ; "$" ) ;  '
+    - |
+      //normalize the json
+    - "\tstart = "
+    - Left
+    - " ( json ; 1 ) ;\n\tend = "
+    - Right
+    - " ( json ; 1 ) ;\n\ttype = \n\t\t"
+    - Case
+    - " ( \n\t\t\t( start = \"[\" ) "
+    - and
+    - " ( end = \"]\" ) ; \"array\" ;\n\t\t\t( start = \"{\" ) "
+    - and
+    - " ( end = \"}\" ) ; \"object\" ;\n\t\t\t\"other\"\n\t\t) ;\n\tkeyOrValue =\n\t\t"
+    - Case
+    - ' ( type = "array" ; '
+    - GetAsNumber
+    - " ( keyOrIndex ) ; keyOrIndex ) ;\n\tpath = \"$\" &\n\t\t"
+    - Case
+    - " ( type = \"array\" ; \"[\" & keyOrIndex & \"]\" ; \".\" & keyOrValue );\n\n\tresult
+      = \n\t\t"
+    - Case
+    - " (\n\t\t\tjson = \"?\" ; "
+    - BE_JSON_Error_Description
+    - "\t;\n\t\t\ttype = \"array\" "
+    - and
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( keyOrIndex ) ;\"\" ;\n\t\t\ttype = \"other\" ; \"\" ;\t\t\t\t\t\n\n\t\t\t"
+    - BE_JSONPath
+    - " ( json ; path )\t\n\t\t) \n\n\n] ;\n\n"
+    - Case
+    - "(\n   result <> \"?\" ; result;\n   "
+    - IsEmpty
+    - '( '
+    - FilterValues
+    - '(  '
+    - jsonGetKeyList
+    - ' ( json ) ; keyOrValue  ) ) ; "" ; '
+    - |
+      // the keyOrValue did not exist
+    - type: NoRef
+      __content__: '   '
+    - BE_JSON_Error_Description
+    - "\n) \n)"

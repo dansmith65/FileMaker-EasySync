@@ -1,0 +1,250 @@
+/**
+ * =====================================
+ * #List ( value )
+ *
+ * RETURNS:
+ *		Encoded value with trailing return and data type preserved.
+ *
+ * PARAMETERS:
+ *		value: The value to encode.
+ *
+ * EXAMPLE:
+ *		#List ( "value1" )
+ *		& #List (
+ *			#List ( "subValue" )
+ *			&  #List ( "subValue2" )
+ *		)
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		MODIFIED on 2015-01-08 by Daniel Smith dansmith65@gmail.com to prevent
+ *		from returning an EvaluationError.
+ *		MODIFIED on 2014-06-06 by Jeremy Bante <http://scr.im/jbante> to fix an
+ *		issue where long sequences of digits could be interpreted as timestamps.
+ *		MODIFIED on 2014-05-26 by Jeremy Bante <http://scr.im/jbante> to detect
+ *		type using a different method suggested by Arnold Kegebein.
+ *		MODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to
+ *		specially encode newline characters in values, and to update type
+ *		detection to match the # function.
+ *		MODIFIED on 2013-MAY-09 by Daniel Smith dansmith65@gmail.com to encode
+ *		a value like the current version of # ( name ; value ) custom function
+ *		CREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com
+ * =====================================
+ */
+
+Let ( [
+	~plusOneText = GetAsText ( value + 1 ) ;
+	~isValidDate = not EvaluationError ( GetAsDate ( value ) ) ;
+	~isValidTime = not EvaluationError ( GetAsTime ( value ) ) ;
+	~number = GetAsNumber ( value ) ;
+	~value =
+		Case (
+			value = "" or value = "?" or ~number = "?" ;
+				Quote ( value ) ;
+
+			~isValidDate
+			and ~isValidTime
+			and GetAsText ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText ;
+				"GetAsTimestamp ( " & Quote ( value ) & " )" ;
+
+			~isValidTime
+			and GetAsText ( GetAsTime ( value ) + 1 ) = ~plusOneText ;
+				"GetAsTime ( " & Quote ( value ) & " )" ;
+
+			~isValidDate
+			and GetAsText ( GetAsDate ( value ) + 1 ) = ~plusOneText ;
+				"GetAsDate ( " & Quote ( value ) & " )" ;
+
+			value ≠ ~number ;
+				Substitute ( Quote ( value ) ;
+					[ Char ( 10 ) ; "\" & Char ( 10 ) & \"" ] ;
+					[ Char ( 8232 ) ; "\" & Char ( 8232 ) & \"" ] ;
+					[ Char ( 8233 ) ; "\" & Char ( 8233 ) & \"" ]
+				) ;
+
+			/* Else */
+				~number
+		)
+] ;
+	Case (
+		IsValidExpression ( ~value )
+			/**
+			 * the following Evaluate statement causes the function to calculate
+			 *  ~30% slower, so it may be best to comment it in a production
+			 * environment and only use it for development/testing
+			 */
+			// and Evaluate ( ~value ) = value
+		;
+		~value & ¶ ;
+
+		//else, ~value is not a valid expression...
+		"/* Error "
+		& 1200	// Generic calculation error
+		& " value: "
+		& Quote (
+			Substitute (	// escape comment character sequences
+				value ;
+				[ "*/" ; "\*\/" ] ;
+				[ "/*" ; "\/\*" ]
+			)
+		)
+		& " */"
+		& ¶
+	)
+)
+
+---
+CustomFunction:
+  id: '13'
+  functionArity: '1'
+  visible: 'True'
+  parameters: value
+  name: '#List'
+  Calculation: "/**\n * =====================================\n * #List ( value )\n
+    *\n * RETURNS:\n *\t\tEncoded value with trailing return and data type preserved.\n
+    *\n * PARAMETERS:\n *\t\tvalue: The value to encode.\n *\n * EXAMPLE:\n *\t\t#List
+    ( \"value1\" )\n *\t\t& #List (\n *\t\t\t#List ( \"subValue\" )\n *\t\t\t&  #List
+    ( \"subValue2\" )\n *\t\t)\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED
+    on 2015-01-08 by Daniel Smith dansmith65@gmail.com to prevent\n *\t\tfrom returning
+    an EvaluationError.\n *\t\tMODIFIED on 2014-06-06 by Jeremy Bante <http://scr.im/jbante>
+    to fix an\n *\t\tissue where long sequences of digits could be interpreted as
+    timestamps.\n *\t\tMODIFIED on 2014-05-26 by Jeremy Bante <http://scr.im/jbante>
+    to detect\n *\t\ttype using a different method suggested by Arnold Kegebein.\n
+    *\t\tMODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to\n *\t\tspecially
+    encode newline characters in values, and to update type\n *\t\tdetection to match
+    the # function.\n *\t\tMODIFIED on 2013-MAY-09 by Daniel Smith dansmith65@gmail.com
+    to encode\n *\t\ta value like the current version of # ( name ; value ) custom
+    function\n *\t\tCREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n
+    * =====================================\n */\n\nLet ( [\n\t~plusOneText = GetAsText
+    ( value + 1 ) ;\n\t~isValidDate = not EvaluationError ( GetAsDate ( value ) )
+    ;\n\t~isValidTime = not EvaluationError ( GetAsTime ( value ) ) ;\n\t~number =
+    GetAsNumber ( value ) ;\n\t~value =\n\t\tCase (\n\t\t\tvalue = \"\" or value =
+    \"?\" or ~number = \"?\" ;\n\t\t\t\tQuote ( value ) ;\n\n\t\t\t~isValidDate\n\t\t\tand
+    ~isValidTime\n\t\t\tand GetAsText ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText
+    ;\n\t\t\t\t\"GetAsTimestamp ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\t~isValidTime\n\t\t\tand
+    GetAsText ( GetAsTime ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime (
+    \" & Quote ( value ) & \" )\" ;\n\n\t\t\t~isValidDate\n\t\t\tand GetAsText ( GetAsDate
+    ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsDate ( \" & Quote ( value ) &
+    \" )\" ;\n\n\t\t\tvalue ≠ ~number ;\n\t\t\t\tSubstitute ( Quote ( value ) ;\n\t\t\t\t\t[
+    Char ( 10 ) ; \"\\\" & Char ( 10 ) & \\\"\" ] ;\n\t\t\t\t\t[ Char ( 8232 ) ; \"\\\"
+    & Char ( 8232 ) & \\\"\" ] ;\n\t\t\t\t\t[ Char ( 8233 ) ; \"\\\" & Char ( 8233
+    ) & \\\"\" ]\n\t\t\t\t) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t)\n] ;\n\tCase
+    (\n\t\tIsValidExpression ( ~value )\n\t\t\t/**\n\t\t\t * the following Evaluate
+    statement causes the function to calculate\n\t\t\t *  ~30% slower, so it may be
+    best to comment it in a production\n\t\t\t * environment and only use it for development/testing\n\t\t\t
+    */\n\t\t\t// and Evaluate ( ~value ) = value\n\t\t;\n\t\t~value & ¶ ;\n\n\t\t//else,
+    ~value is not a valid expression...\n\t\t\"/* Error \"\n\t\t& 1200\t// Generic
+    calculation error\n\t\t& \" value: \"\n\t\t& Quote (\n\t\t\tSubstitute (\t// escape
+    comment character sequences\n\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ]
+    ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t& ¶\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #List ( value )\n *\n * RETURNS:\n
+      *\t\tEncoded value with trailing return and data type preserved.\n *\n * PARAMETERS:\n
+      *\t\tvalue: The value to encode.\n *\n * EXAMPLE:\n *\t\t#List ( \"value1\"
+      )\n *\t\t& #List (\n *\t\t\t#List ( \"subValue\" )\n *\t\t\t&  #List ( \"subValue2\"
+      )\n *\t\t)\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on 2015-01-08
+      by Daniel Smith dansmith65@gmail.com to prevent\n *\t\tfrom returning an EvaluationError.\n
+      *\t\tMODIFIED on 2014-06-06 by Jeremy Bante <http://scr.im/jbante> to fix an\n
+      *\t\tissue where long sequences of digits could be interpreted as timestamps.\n
+      *\t\tMODIFIED on 2014-05-26 by Jeremy Bante <http://scr.im/jbante> to detect\n
+      *\t\ttype using a different method suggested by Arnold Kegebein.\n *\t\tMODIFIED
+      on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to\n *\t\tspecially encode
+      newline characters in values, and to update type\n *\t\tdetection to match the
+      # function.\n *\t\tMODIFIED on 2013-MAY-09 by Daniel Smith dansmith65@gmail.com
+      to encode\n *\t\ta value like the current version of # ( name ; value ) custom
+      function\n *\t\tCREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~plusOneText = "
+    - GetAsText
+    - " ( value + 1 ) ;\n\t~isValidDate = "
+    - not
+    - type: NoRef
+      __content__: ' '
+    - EvaluationError
+    - ' ( '
+    - GetAsDate
+    - " ( value ) ) ;\n\t~isValidTime = "
+    - not
+    - type: NoRef
+      __content__: ' '
+    - EvaluationError
+    - ' ( '
+    - GetAsTime
+    - " ( value ) ) ;\n\t~number = "
+    - GetAsNumber
+    - " ( value ) ;\n\t~value =\n\t\t"
+    - Case
+    - " (\n\t\t\tvalue = \"\" "
+    - or
+    - ' value = "?" '
+    - or
+    - " ~number = \"?\" ;\n\t\t\t\t"
+    - Quote
+    - " ( value ) ;\n\n\t\t\t~isValidDate\n\t\t\t"
+    - and
+    - " ~isValidTime\n\t\t\t"
+    - and
+    - type: NoRef
+      __content__: ' '
+    - GetAsText
+    - ' ( '
+    - GetAsTimestamp
+    - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTimestamp ( \" & "
+    - Quote
+    - " ( value ) & \" )\" ;\n\n\t\t\t~isValidTime\n\t\t\t"
+    - and
+    - type: NoRef
+      __content__: ' '
+    - GetAsText
+    - ' ( '
+    - GetAsTime
+    - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime ( \" & "
+    - Quote
+    - " ( value ) & \" )\" ;\n\n\t\t\t~isValidDate\n\t\t\t"
+    - and
+    - type: NoRef
+      __content__: ' '
+    - GetAsText
+    - ' ( '
+    - GetAsDate
+    - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsDate ( \" & "
+    - Quote
+    - " ( value ) & \" )\" ;\n\n\t\t\tvalue ≠ ~number ;\n\t\t\t\t"
+    - Substitute
+    - ' ( '
+    - Quote
+    - " ( value ) ;\n\t\t\t\t\t[ "
+    - Char
+    - " ( 10 ) ; \"\\\" & Char ( 10 ) & \\\"\" ] ;\n\t\t\t\t\t[ "
+    - Char
+    - " ( 8232 ) ; \"\\\" & Char ( 8232 ) & \\\"\" ] ;\n\t\t\t\t\t[ "
+    - Char
+    - " ( 8233 ) ; \"\\\" & Char ( 8233 ) & \\\"\" ]\n\t\t\t\t) ;\n\n\t\t\t/* Else
+      */\n\t\t\t\t~number\n\t\t)\n] ;\n\t"
+    - Case
+    - " (\n\t\t"
+    - IsValidExpression
+    - " ( ~value )\n\t\t\t/**\n\t\t\t * the following Evaluate statement causes the
+      function to calculate\n\t\t\t *  ~30% slower, so it may be best to comment it
+      in a production\n\t\t\t * environment and only use it for development/testing\n\t\t\t
+      */\n\t\t\t"
+    - |
+      // and Evaluate ( ~value ) = value
+    - "\t\t;\n\t\t~value & ¶ ;\n\n\t\t"
+    - |
+      //else, ~value is not a valid expression...
+    - "\t\t\"/* Error \"\n\t\t& 1200\t"
+    - |
+      // Generic calculation error
+    - "\t\t& \" value: \"\n\t\t& "
+    - Quote
+    - " (\n\t\t\t"
+    - Substitute
+    - " (\t"
+    - |
+      // escape comment character sequences
+    - "\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\"
+      ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t& ¶\n\t)\n)"

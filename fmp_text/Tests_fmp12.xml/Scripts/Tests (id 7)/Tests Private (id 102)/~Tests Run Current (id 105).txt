@@ -1,0 +1,1566 @@
+################################################################################
+# PURPOSE:
+#    Call a series of scripts in specified order and evaluate the result.
+#
+# NOTES:
+#
+#
+################################################################################
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+#
+#
+#
+Loop
+# single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+If [ /* is client application */Left ( Get ( ApplicationVersion ) ; 3 ) = "Pro"orLeft ( Get ( ApplicationVersion ) ; 7 ) = "Runtime"orGet ( SystemPlatform ) = 3	 // iOSorGet ( SystemPlatform ) = 4	 // WebDirect ]
+Freeze Window
+End If
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"start with a failed test and mark as true if it passes" ]
+#================================================================================
+# clear all results for all scripts (so it's easy to see which scripts ran, and which didn't, if an error occurs)
+Set Field [ SEL__SELECTOR::idList_TestParameter; List ( TES_TPR__TestParameter::id ) ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Replace Field Contents [ sel_TPA__TestParameter::result; Replace with calculation: "" ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Replace Field Contents [ sel_TPA__TestParameter::resultPass; Replace with calculation: "" ][ No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+Set Field [ TES__Test::resultPass; False ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Set Field [ TES__Test::lastRunTimestamp; "" ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+Commit Records/Requests[ Skip data entry validation; No dialog ]
+Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+#================================================================================
+Set Variable [ $idList_TestParameter; Value:List ( TES_TPR__TestParameter::id )/* this relationship must be sorted so these id's are retrieved in order */ ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"CALL TEST SCRIPTS" ]
+#================================================================================
+Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds )/* if the script get's to this section, re-start the runtime timer */ ]
+Set Variable [ $count; Value:ValueCount ( $idList_TestParameter ) ]
+Loop
+Exit Loop If [ // For $i from 1 to $countLet (	$i = $i + 1 ;	If ( $i > $count ;		Let ( $i = "" ; True )	)) ]
+#
+# set selector field to give access to the correct test record
+Set Field [ SEL__SELECTOR::idList_TestParameter; GetValue ( $idList_TestParameter ; $i ) ]
+#
+# save script to variable
+Set Variable [ $scriptAlias; Value:sel_TPA__TestParameter::scriptAlias ]
+# save parameter to variable
+//  If [ not IsValidExpression ( sel_TPA__TestParameter::parameterExpression ) ]
+//  Exit Loop If [ Let (	$error = ErrorUnitTest ( 2 ; "parameterExpression is not valid" )		& # ( "EvaluationError" ; EvaluationError ( Evaluate ( sel_TPA__TestParameter::parameterExpression ) ) )	;	True) ]
+//  Else If [ Let ( [	$EvaluationErrorCode = EvaluationError ( Evaluate ( sel_TPA__TestParameter::parameterExpression ) )] ;	$EvaluationErrorCode) ]
+//  Exit Loop If [ Let (	$error = ErrorUnitTest ( 2 ; "parameterExpression is not valid" )		& # ( "EvaluationErrorCode" ; $EvaluationErrorCode )	;	True) ]
+//  End If
+Set Variable [ $scriptParameter; Value:Evaluate ( sel_TPA__TestParameter::parameterExpression ) ]
+Set Field [ sel_TPA__TestParameter::parameterEvaluated; $scriptParameter ]
+#
+# call script
+If [ LogWriteEnabled ( LogLevel4Debug ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData (	LogLevel4Debug ;	"calling script alias: " & $scriptAlias)& # ( "scriptParameter" ; $scriptParameter )& # ( "i" ; $i ) ]
+End If
+#
+Perform Script [ “Tests: Config: Call Script ( alias ; { parameter } )”; Parameter: # ( "alias" ; $scriptAlias )& # ( "parameter" ; $scriptParameter ) ]
+Exit Loop If [ /* FileMaker error */If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "perform script: Tests: Config: Call Script" ) ;		True	)) ]
+If [ Let ( [	~error = #Get ( Get ( ScriptResult ) ; "error" )] ;	ErrorFound ( ~error )	and #Get ( ~error ; "errorType" ) = "UnitTests") ]
+Exit Loop If [ Let ( [	$error = #Get ( Get ( ScriptResult ) ; "error" )] ;	True) ]
+End If
+Set Variable [ $results[$i]; Value:/* save all results to a variable that can be accessed by the parameter for successive scripts */Get ( ScriptResult ) ]
+Set Field [ sel_TPA__TestParameter::result; /* save result to field for viewing */Get ( ScriptResult ) ]
+#
+If [ LogWriteEnabled ( LogLevel3Info ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData (	LogLevel3Info ;	$scriptAlias	& " result")& # ( "scriptParameter" ; $scriptParameter ) ]
+End If
+#
+# test result
+Perform Script [ “~Tests: Evaluate Script Result { scriptResult }”; Parameter: # ( "scriptResult" ; $results[$i] ) ]
+Exit Loop If [ not #AssignScriptResultAndSetError (	" ~Tests: Evaluate Script Result" ;		/* performScriptName */	"" ;					/* requiredResultList */	""					/* optionalResultList */) ]
+#
+#
+End Loop
+Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"SAVE METADATA" ]
+#================================================================================
+Set Field [ TES__Test::resultPass; /* if all TestParameter's passed, mark the test as passed */Sum ( TES_TPR__TestParameter::resultPass ) = Count ( TES_TPR__TestParameter::id ) ]
+Set Field [ TES__Test::runtime; $~script.runtime ]
+Set Field [ TES__Test::lastRunTimestamp; Get ( CurrentTimeStamp ) ]
+Commit Records/Requests[ Skip data entry validation; No dialog ]
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+#================================================================================
+If [ ErrorFound ( $error ) ]
+# result may not have been saved, so attempt to do that now
+Set Field [ TES__Test::resultPass; False ]
+Set Field [ TES__Test::runtime; ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000 ]
+Set Field [ TES__Test::lastRunTimestamp; Get ( CurrentTimeStamp ) ]
+Set Field [ sel_TPA__TestParameter::result; # ( "error" ; $error )& # ( "scriptResult" ; sel_TPA__TestParameter::result ) ]
+Commit Records/Requests[ Skip data entry validation; No dialog ]
+#
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "" )& $error ]
+Else If [ LogWriteEnabled ( LogLevel5Trace ) ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; "exit script" )& # ( "~script.section" ; $~script.section )& # ( "result" ; TES__Test::resultPass ) ]
+End If
+#
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '105'
+  name: '~Tests: Run Current'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Call a series of scripts in specified order and evaluate the
+        result.'
+      Text: '    Call a series of scripts in specified order and evaluate the result.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# single-pass loop for error trapping'
+      Text: ' single-pass loop for error trapping'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* is client application */\n\nLeft ( Get ( ApplicationVersion
+        ) ; 3 ) = \"Pro\"\nor\nLeft ( Get ( ApplicationVersion ) ; 7 ) = \"Runtime\"\nor\nGet
+        ( SystemPlatform ) = 3\t // iOS\nor\nGet ( SystemPlatform ) = 4\t // WebDirect
+        ]"
+      Calculation: "/* is client application */\n\nLeft ( Get ( ApplicationVersion
+        ) ; 3 ) = \"Pro\"\nor\nLeft ( Get ( ApplicationVersion ) ; 7 ) = \"Runtime\"\nor\nGet
+        ( SystemPlatform ) = 3\t // iOS\nor\nGet ( SystemPlatform ) = 4\t // WebDirect"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* is client application */
+
+        - Left
+        - ' ( '
+        - Get
+        - ' ( '
+        - ApplicationVersion
+        - |2
+           ) ; 3 ) = "Pro"
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - Left
+        - ' ( '
+        - Get
+        - ' ( '
+        - ApplicationVersion
+        - |2
+           ) ; 7 ) = "Runtime"
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - " ) = 3\t "
+        - |
+          // iOS
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - " ) = 4\t "
+        - // WebDirect
+    - enable: 'True'
+      id: '79'
+      name: Freeze Window
+      StepText: Freeze Window
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"start with a failed test and
+        mark as true if it passes" ]
+      Value:
+        Calculation: '"start with a failed test and mark as true if it passes"'
+        DisplayCalculation:
+          Chunk: '"start with a failed test and mark as true if it passes"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# clear all results for all scripts (so it''s easy to see which scripts
+        ran, and which didn''t, if an error occurs)'
+      Text: ' clear all results for all scripts (so it''s easy to see which scripts
+        ran, and which didn''t, if an error occurs)'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ SEL__SELECTOR::idList_TestParameter; List ( TES_TPR__TestParameter::id
+        ) ]
+      Calculation: List ( TES_TPR__TestParameter::id )
+      DisplayCalculation:
+        Chunk:
+        - List
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: TES_TPR__TestParameter
+            id: '1'
+            name: id
+        - ' )'
+      Field:
+        table: SEL__SELECTOR
+        id: '6'
+        name: idList_TestParameter
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '91'
+      name: Replace Field Contents
+      StepText: |-
+        Replace Field Contents [ sel_TPA__TestParameter::result; Replace with calculation: "" ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      With:
+        value: Calculation
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+      SerialNumbers:
+        UpdateEntryOptions: 'False'
+        UseEntryOptions: 'True'
+      Field:
+        table: sel_TPA__TestParameter
+        id: '5'
+        name: result
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '91'
+      name: Replace Field Contents
+      StepText: |-
+        Replace Field Contents [ sel_TPA__TestParameter::resultPass; Replace with calculation: "" ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      With:
+        value: Calculation
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+      SerialNumbers:
+        UpdateEntryOptions: 'False'
+        UseEntryOptions: 'True'
+      Field:
+        table: sel_TPA__TestParameter
+        id: '8'
+        name: resultPass
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::resultPass; False ]
+      Calculation: 'False'
+      DisplayCalculation:
+        Chunk: 'False'
+      Field:
+        table: TES__Test
+        id: '9'
+        name: resultPass
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::lastRunTimestamp; "" ]
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+      Field:
+        table: TES__Test
+        id: '5'
+        name: lastRunTimestamp
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ Skip data entry validation; No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'True'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error =
+        ErrorFmpGetLast ( \"\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "If (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error = ErrorFmpGetLast
+        ( \"\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SET VARIABLES" ]
+      Value:
+        Calculation: '"SET VARIABLES"'
+        DisplayCalculation:
+          Chunk: '"SET VARIABLES"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $idList_TestParameter; Value:List ( TES_TPR__TestParameter::id )
+
+        /* this relationship must be sorted so these id's are retrieved in order */ ]
+      Value:
+        Calculation: |-
+          List ( TES_TPR__TestParameter::id )
+
+          /* this relationship must be sorted so these id's are retrieved in order */
+        DisplayCalculation:
+          Chunk:
+          - List
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: TES_TPR__TestParameter
+              id: '1'
+              name: id
+          - |2-
+             )
+
+            /* this relationship must be sorted so these id's are retrieved in order */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $idList_TestParameter
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"CALL TEST SCRIPTS" ]
+      Value:
+        Calculation: '"CALL TEST SCRIPTS"'
+        DisplayCalculation:
+          Chunk: '"CALL TEST SCRIPTS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $~script.start; Value:Get ( CurrentTimeUTCMilliseconds )
+
+        /* if the script get's to this section, re-start the runtime timer */ ]
+      Value:
+        Calculation: |-
+          Get ( CurrentTimeUTCMilliseconds )
+
+          /* if the script get's to this section, re-start the runtime timer */
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - |2-
+             )
+
+            /* if the script get's to this section, re-start the runtime timer */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $count; Value:ValueCount ( $idList_TestParameter )
+        ]
+      Value:
+        Calculation: ValueCount ( $idList_TestParameter )
+        DisplayCalculation:
+          Chunk:
+          - ValueCount
+          - ' ( $idList_TestParameter )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $count
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ // For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf
+        ( $i > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n) ]"
+      Calculation: "// For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf ( $i
+        > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i from 1 to $count
+        - Let
+        - " (\n\t$i = $i + 1 ;\n\t"
+        - If
+        - " ( $i > $count ;\n\t\t"
+        - Let
+        - ' ( $i = "" ; '
+        - 'True'
+        - " )\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# set selector field to give access to the correct test record'
+      Text: ' set selector field to give access to the correct test record'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ SEL__SELECTOR::idList_TestParameter; GetValue ( $idList_TestParameter
+        ; $i ) ]
+      Calculation: GetValue ( $idList_TestParameter ; $i )
+      DisplayCalculation:
+        Chunk:
+        - GetValue
+        - ' ( $idList_TestParameter ; $i )'
+      Field:
+        table: SEL__SELECTOR
+        id: '6'
+        name: idList_TestParameter
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# save script to variable'
+      Text: ' save script to variable'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $scriptAlias; Value:sel_TPA__TestParameter::scriptAlias
+        ]
+      Value:
+        Calculation: sel_TPA__TestParameter::scriptAlias
+        DisplayCalculation:
+          Chunk:
+            type: FieldRef
+            Field:
+              table: sel_TPA__TestParameter
+              id: '3'
+              name: scriptAlias
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $scriptAlias
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# save parameter to variable'
+      Text: ' save parameter to variable'
+    - enable: 'False'
+      id: '68'
+      name: If
+      StepText: //  If [ not IsValidExpression ( sel_TPA__TestParameter::parameterExpression
+        ) ]
+      Calculation: not IsValidExpression ( sel_TPA__TestParameter::parameterExpression
+        )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsValidExpression
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: sel_TPA__TestParameter
+            id: '4'
+            name: parameterExpression
+        - ' )'
+    - enable: 'False'
+      id: '72'
+      name: Exit Loop If
+      StepText: "//  Exit Loop If [ Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression
+        is not valid\" )\n\t\t& # ( \"EvaluationError\" ; EvaluationError ( Evaluate
+        ( sel_TPA__TestParameter::parameterExpression ) ) )\n\t;\n\tTrue\n) ]"
+      Calculation: "Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression is
+        not valid\" )\n\t\t& # ( \"EvaluationError\" ; EvaluationError ( Evaluate
+        ( sel_TPA__TestParameter::parameterExpression ) ) )\n\t;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorUnitTest
+        - " ( 2 ; \"parameterExpression is not valid\" )\n\t\t& "
+        - '#'
+        - ' ( "EvaluationError" ; '
+        - EvaluationError
+        - ' ( '
+        - Evaluate
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: sel_TPA__TestParameter
+            id: '4'
+            name: parameterExpression
+        - " ) ) )\n\t;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'False'
+      id: '125'
+      name: Else If
+      StepText: "//  Else If [ Let ( [\n\t$EvaluationErrorCode = EvaluationError (
+        Evaluate ( sel_TPA__TestParameter::parameterExpression ) )\n] ;\n\t$EvaluationErrorCode\n)
+        ]"
+      Calculation: "Let ( [\n\t$EvaluationErrorCode = EvaluationError ( Evaluate (
+        sel_TPA__TestParameter::parameterExpression ) )\n] ;\n\t$EvaluationErrorCode\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t$EvaluationErrorCode = "
+        - EvaluationError
+        - ' ( '
+        - Evaluate
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: sel_TPA__TestParameter
+            id: '4'
+            name: parameterExpression
+        - " ) )\n] ;\n\t$EvaluationErrorCode\n)"
+    - enable: 'False'
+      id: '72'
+      name: Exit Loop If
+      StepText: "//  Exit Loop If [ Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression
+        is not valid\" )\n\t\t& # ( \"EvaluationErrorCode\" ; $EvaluationErrorCode
+        )\n\t;\n\tTrue\n) ]"
+      Calculation: "Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression is
+        not valid\" )\n\t\t& # ( \"EvaluationErrorCode\" ; $EvaluationErrorCode )\n\t;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorUnitTest
+        - " ( 2 ; \"parameterExpression is not valid\" )\n\t\t& "
+        - '#'
+        - " ( \"EvaluationErrorCode\" ; $EvaluationErrorCode )\n\t;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'False'
+      id: '70'
+      name: End If
+      StepText: //  End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $scriptParameter; Value:Evaluate ( sel_TPA__TestParameter::parameterExpression
+        ) ]
+      Value:
+        Calculation: Evaluate ( sel_TPA__TestParameter::parameterExpression )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( '
+          - type: FieldRef
+            Field:
+              table: sel_TPA__TestParameter
+              id: '4'
+              name: parameterExpression
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $scriptParameter
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ sel_TPA__TestParameter::parameterEvaluated; $scriptParameter
+        ]
+      Calculation: $scriptParameter
+      DisplayCalculation:
+        Chunk: $scriptParameter
+      Field:
+        table: sel_TPA__TestParameter
+        id: '11'
+        name: parameterEvaluated
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# call script'
+      Text: ' call script'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel4Debug ) ]
+      Calculation: LogWriteEnabled ( LogLevel4Debug )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel4Debug
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData
+        (\n\tLogLevel4Debug ;\n\t\"calling script alias: \" & $scriptAlias\n)\n& #
+        ( \"scriptParameter\" ; $scriptParameter )\n& # ( \"i\" ; $i ) ]"
+      Calculation: "LogData (\n\tLogLevel4Debug ;\n\t\"calling script alias: \" &
+        $scriptAlias\n)\n& # ( \"scriptParameter\" ; $scriptParameter )\n& # ( \"i\"
+        ; $i )"
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - " (\n\t"
+        - LogLevel4Debug
+        - " ;\n\t\"calling script alias: \" & $scriptAlias\n)\n& "
+        - '#'
+        - " ( \"scriptParameter\" ; $scriptParameter )\n& "
+        - '#'
+        - ' ( "i" ; $i )'
+      Script:
+        id: '32'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Tests: Config: Call Script ( alias ; { parameter } )”; Parameter: # ( "alias" ; $scriptAlias )
+        & # ( "parameter" ; $scriptParameter ) ]
+      Calculation: |-
+        # ( "alias" ; $scriptAlias )
+        & # ( "parameter" ; $scriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - " ( \"alias\" ; $scriptAlias )\n& "
+        - '#'
+        - ' ( "parameter" ; $scriptParameter )'
+      Script:
+        id: '108'
+        name: 'Tests: Config: Call Script ( alias ; { parameter } )'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /* FileMaker error */\n\nIf (\n\tGet ( LastError )
+        ;\n\tLet (\n\t\t$error = ErrorFmpGetLast ( \"perform script: Tests: Config:
+        Call Script\" ) ;\n\t\tTrue\n\t)\n) ]"
+      Calculation: "/* FileMaker error */\n\nIf (\n\tGet ( LastError ) ;\n\tLet (\n\t\t$error
+        = ErrorFmpGetLast ( \"perform script: Tests: Config: Call Script\" ) ;\n\t\tTrue\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* FileMaker error */
+
+        - If
+        - " (\n\t"
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\t"
+        - Let
+        - " (\n\t\t$error = "
+        - ErrorFmpGetLast
+        - " ( \"perform script: Tests: Config: Call Script\" ) ;\n\t\t"
+        - 'True'
+        - "\n\t)\n)"
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Let ( [\n\t~error = #Get ( Get ( ScriptResult ) ; \"error\"
+        )\n] ;\n\tErrorFound ( ~error )\n\tand #Get ( ~error ; \"errorType\" ) = \"UnitTests\"\n)
+        ]"
+      Calculation: "Let ( [\n\t~error = #Get ( Get ( ScriptResult ) ; \"error\" )\n]
+        ;\n\tErrorFound ( ~error )\n\tand #Get ( ~error ; \"errorType\" ) = \"UnitTests\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~error = "
+        - '#Get'
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - " ) ; \"error\" )\n] ;\n\t"
+        - ErrorFound
+        - " ( ~error )\n\t"
+        - and
+        - type: NoRef
+          __content__: ' '
+        - '#Get'
+        - |2-
+           ( ~error ; "errorType" ) = "UnitTests"
+          )
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\t$error = #Get ( Get ( ScriptResult ) ;
+        \"error\" )\n] ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\t$error = #Get ( Get ( ScriptResult ) ; \"error\" )\n]
+        ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t$error = "
+        - '#Get'
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - " ) ; \"error\" )\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $results[$i]; Value:/* save all results to a variable that can be accessed by the parameter for successive scripts */
+
+        Get ( ScriptResult ) ]
+      Value:
+        Calculation: |-
+          /* save all results to a variable that can be accessed by the parameter for successive scripts */
+
+          Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - |+
+            /* save all results to a variable that can be accessed by the parameter for successive scripts */
+
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $results
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: |-
+        Set Field [ sel_TPA__TestParameter::result; /* save result to field for viewing */
+
+        Get ( ScriptResult ) ]
+      Calculation: |-
+        /* save result to field for viewing */
+
+        Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* save result to field for viewing */
+
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+      Field:
+        table: sel_TPA__TestParameter
+        id: '5'
+        name: result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ LogWriteEnabled ( LogLevel3Info ) ]
+      Calculation: LogWriteEnabled ( LogLevel3Info )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel3Info
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData
+        (\n\tLogLevel3Info ;\n\t$scriptAlias\n\t& \" result\"\n)\n& # ( \"scriptParameter\"
+        ; $scriptParameter ) ]"
+      Calculation: "LogData (\n\tLogLevel3Info ;\n\t$scriptAlias\n\t& \" result\"\n)\n&
+        # ( \"scriptParameter\" ; $scriptParameter )"
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - " (\n\t"
+        - LogLevel3Info
+        - " ;\n\t$scriptAlias\n\t& \" result\"\n)\n& "
+        - '#'
+        - ' ( "scriptParameter" ; $scriptParameter )'
+      Script:
+        id: '32'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# test result'
+      Text: ' test result'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Evaluate Script Result { scriptResult }”;
+        Parameter: # ( "scriptResult" ; $results[$i] ) ]'
+      Calculation: '# ( "scriptResult" ; $results[$i] )'
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - ' ( "scriptResult" ; $results[$i] )'
+      Script:
+        id: '118'
+        name: '~Tests: Evaluate Script Result { scriptResult }'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ not #AssignScriptResultAndSetError (\n\t\" ~Tests:
+        Evaluate Script Result\" ;\t\t/* performScriptName */\n\t\"\" ;\t\t\t\t\t/*
+        requiredResultList */\n\t\"\"\t\t\t\t\t/* optionalResultList */\n) ]"
+      Calculation: "not #AssignScriptResultAndSetError (\n\t\" ~Tests: Evaluate Script
+        Result\" ;\t\t/* performScriptName */\n\t\"\" ;\t\t\t\t\t/* requiredResultList
+        */\n\t\"\"\t\t\t\t\t/* optionalResultList */\n)"
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#AssignScriptResultAndSetError'
+        - " (\n\t\" ~Tests: Evaluate Script Result\" ;\t\t/* performScriptName */\n\t\"\"
+          ;\t\t\t\t\t/* requiredResultList */\n\t\"\"\t\t\t\t\t/* optionalResultList
+          */\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Value:
+        Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.start ) / 1000'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.runtime
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"SAVE METADATA" ]
+      Value:
+        Calculation: '"SAVE METADATA"'
+        DisplayCalculation:
+          Chunk: '"SAVE METADATA"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: |-
+        Set Field [ TES__Test::resultPass; /* if all TestParameter's passed, mark the test as passed */
+
+        Sum ( TES_TPR__TestParameter::resultPass ) = Count ( TES_TPR__TestParameter::id ) ]
+      Calculation: |-
+        /* if all TestParameter's passed, mark the test as passed */
+
+        Sum ( TES_TPR__TestParameter::resultPass ) = Count ( TES_TPR__TestParameter::id )
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* if all TestParameter's passed, mark the test as passed */
+
+        - Sum
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: TES_TPR__TestParameter
+            id: '8'
+            name: resultPass
+        - ' ) = '
+        - Count
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: TES_TPR__TestParameter
+            id: '1'
+            name: id
+        - ' )'
+      Field:
+        table: TES__Test
+        id: '9'
+        name: resultPass
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::runtime; $~script.runtime ]
+      Calculation: $~script.runtime
+      DisplayCalculation:
+        Chunk: $~script.runtime
+      Field:
+        table: TES__Test
+        id: '12'
+        name: runtime
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::lastRunTimestamp; Get ( CurrentTimeStamp )
+        ]
+      Calculation: Get ( CurrentTimeStamp )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - CurrentTimeStamp
+        - ' )'
+      Field:
+        table: TES__Test
+        id: '5'
+        name: lastRunTimestamp
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ Skip data entry validation; No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'True'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# end single-pass loop for error trapping'
+      Text: ' end single-pass loop for error trapping'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"HANDLE ERROR" ]
+      Value:
+        Calculation: '"HANDLE ERROR"'
+        DisplayCalculation:
+          Chunk: '"HANDLE ERROR"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ ErrorFound ( $error ) ]
+      Calculation: ErrorFound ( $error )
+      DisplayCalculation:
+        Chunk:
+        - ErrorFound
+        - ' ( $error )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# result may not have been saved, so attempt to do that now'
+      Text: ' result may not have been saved, so attempt to do that now'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::resultPass; False ]
+      Calculation: 'False'
+      DisplayCalculation:
+        Chunk: 'False'
+      Field:
+        table: TES__Test
+        id: '9'
+        name: resultPass
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::runtime; ( Get ( CurrentTimeUTCMilliseconds
+        ) - $~script.start ) / 1000 ]
+      Calculation: ( Get ( CurrentTimeUTCMilliseconds ) - $~script.start ) / 1000
+      DisplayCalculation:
+        Chunk:
+        - '( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - ' ) - $~script.start ) / 1000'
+      Field:
+        table: TES__Test
+        id: '12'
+        name: runtime
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::lastRunTimestamp; Get ( CurrentTimeStamp )
+        ]
+      Calculation: Get ( CurrentTimeStamp )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - CurrentTimeStamp
+        - ' )'
+      Field:
+        table: TES__Test
+        id: '5'
+        name: lastRunTimestamp
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: |-
+        Set Field [ sel_TPA__TestParameter::result; # ( "error" ; $error )
+        & # ( "scriptResult" ; sel_TPA__TestParameter::result ) ]
+      Calculation: |-
+        # ( "error" ; $error )
+        & # ( "scriptResult" ; sel_TPA__TestParameter::result )
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - " ( \"error\" ; $error )\n& "
+        - '#'
+        - ' ( "scriptResult" ; '
+        - type: FieldRef
+          Field:
+            table: sel_TPA__TestParameter
+            id: '5'
+            name: result
+        - ' )'
+      Field:
+        table: sel_TPA__TestParameter
+        id: '5'
+        name: result
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ Skip data entry validation; No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'True'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevelByError ( $error ) ; "" )
+        & $error ]
+      Calculation: |-
+        LogData ( LogLevelByError ( $error ) ; "" )
+        & $error
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevelByError
+        - |2-
+           ( $error ) ; "" )
+          & $error
+      Script:
+        id: '32'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ LogWriteEnabled ( LogLevel5Trace ) ]
+      Calculation: LogWriteEnabled ( LogLevel5Trace )
+      DisplayCalculation:
+        Chunk:
+        - LogWriteEnabled
+        - ' ( '
+        - LogLevel5Trace
+        - ' )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Logger: Create Entry ( logData )”; Parameter: LogData ( LogLevel4Debug ; "exit script" )
+        & # ( "~script.section" ; $~script.section )
+        & # ( "result" ; TES__Test::resultPass ) ]
+      Calculation: |-
+        LogData ( LogLevel4Debug ; "exit script" )
+        & # ( "~script.section" ; $~script.section )
+        & # ( "result" ; TES__Test::resultPass )
+      DisplayCalculation:
+        Chunk:
+        - LogData
+        - ' ( '
+        - LogLevel4Debug
+        - " ; \"exit script\" )\n& "
+        - '#'
+        - " ( \"~script.section\" ; $~script.section )\n& "
+        - '#'
+        - ' ( "result" ; '
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '9'
+            name: resultPass
+        - ' )'
+      Script:
+        id: '32'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

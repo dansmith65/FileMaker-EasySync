@@ -1,0 +1,14 @@
+       id  File Reference             Path List                
+       --  --------------             ---------                
+        1  Log                        file:Log                 
+
+       id  ODBC Source                DSN                        Link                     
+       --  -----------                ---                        ----                     
+
+
+---
+ExternalDataSourcesCatalog:
+  FileReference:
+    id: '1'
+    pathList: file:Log
+    name: Log

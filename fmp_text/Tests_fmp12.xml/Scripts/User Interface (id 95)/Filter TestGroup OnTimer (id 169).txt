@@ -1,0 +1,98 @@
+#
+#
+Set Field [ SEL__SELECTOR::FILTER_TESTGROUP_NAME; SEL__SELECTOR::FILTER_TESTGROUP_NAME ]
+#
+#
+Set Field [ TES__Test::z_xJoin; 0 ]
+Set Field [ TES__Test::z_xJoin; 1 ]
+#
+#
+# cancel OnTimer trigger
+Install OnTimer Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '169'
+  name: Filter TestGroup OnTimer
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ SEL__SELECTOR::FILTER_TESTGROUP_NAME; SEL__SELECTOR::FILTER_TESTGROUP_NAME
+        ]
+      Calculation: SEL__SELECTOR::FILTER_TESTGROUP_NAME
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: SEL__SELECTOR
+            id: '9'
+            name: FILTER_TESTGROUP_NAME
+      Field:
+        table: SEL__SELECTOR
+        id: '9'
+        name: FILTER_TESTGROUP_NAME
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::z_xJoin; 0 ]
+      Calculation: '0'
+      DisplayCalculation:
+        Chunk: '0'
+      Field:
+        table: TES__Test
+        id: '20'
+        name: z_xJoin
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::z_xJoin; 1 ]
+      Calculation: '1'
+      DisplayCalculation:
+        Chunk: '1'
+      Field:
+        table: TES__Test
+        id: '20'
+        name: z_xJoin
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# cancel OnTimer trigger'
+      Text: ' cancel OnTimer trigger'
+    - enable: 'True'
+      id: '148'
+      name: Install OnTimer Script
+      StepText: Install OnTimer Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

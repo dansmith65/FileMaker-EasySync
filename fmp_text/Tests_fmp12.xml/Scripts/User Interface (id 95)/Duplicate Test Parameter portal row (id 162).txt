@@ -1,0 +1,512 @@
+################################################################################
+# PURPOSE:
+#    Duplicate the active Test Parameter portal row record.
+################################################################################
+#
+#
+#
+# confirm
+Show Custom Dialog [ Title: "Confirm"; Message: "Duplicate Portal Row?"; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+If [ Get ( LastMessageChoice ) = 2	 /* Cancel */ ]
+Exit Script [  ]
+End If
+#
+#
+#
+# setup
+Freeze Window
+Set Variable [ $ActivePortalRowNumber; Value:Get ( ActivePortalRowNumber ) ]
+Set Variable [ $id; Value:TES_TPR__TestParameter::id ]
+Commit Records/Requests[ No dialog ]
+Go to Portal Row [ $ActivePortalRowNumber ][ No dialog ]
+#
+#
+#
+# validate
+If [ $id ≠ TES_TPR__TestParameter::idor Get ( ActivePortalRowNumber ) = 0 ]
+Beep
+Exit Script [  ]
+End If
+#
+#
+#
+# isolate related records on related tables layout
+Go to Related Record [ From table: “TES_TPR__TestParameter”; Using layout: “TPA__TestParameter” (TPA__TestParameter) ][ Show only related records; New window ]
+#
+#
+#
+# validate
+If [ $id ≠ TPA__TestParameter::id ]
+Beep
+Exit Script [  ]
+End If
+#
+#
+#
+# duplicate record
+Duplicate Record/Request
+Commit Records/Requests[ No dialog ]
+#
+#
+#
+Close Window [ Current Window ]
+#
+#
+#
+# select the new record
+Commit Records/Requests[ No dialog ]
+Go to Portal Row [ $ActivePortalRowNumber ][ No dialog ]
+Go to Portal Row[ Next ]
+Go to Field [ TES_TPR__TestParameter::sortOrder ][ Select/perform ]
+#
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '162'
+  name: Duplicate Test Parameter portal row
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Duplicate the active Test Parameter portal row record.'
+      Text: '    Duplicate the active Test Parameter portal row record.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# confirm'
+      Text: ' confirm'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Confirm"; Message: "Duplicate Portal
+        Row?"; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No”
+        ]'
+      Title:
+        Calculation: '"Confirm"'
+        DisplayCalculation:
+          Chunk: '"Confirm"'
+      Message:
+        Calculation: '"Duplicate Portal Row?"'
+        DisplayCalculation:
+          Chunk: '"Duplicate Portal Row?"'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Get ( LastMessageChoice ) = 2\t /* Cancel */ ]"
+      Calculation: "Get ( LastMessageChoice ) = 2\t /* Cancel */"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - " ) = 2\t /* Cancel */"
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# setup'
+      Text: ' setup'
+    - enable: 'True'
+      id: '79'
+      name: Freeze Window
+      StepText: Freeze Window
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ActivePortalRowNumber; Value:Get ( ActivePortalRowNumber
+        ) ]
+      Value:
+        Calculation: Get ( ActivePortalRowNumber )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ActivePortalRowNumber
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ActivePortalRowNumber
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $id; Value:TES_TPR__TestParameter::id ]
+      Value:
+        Calculation: TES_TPR__TestParameter::id
+        DisplayCalculation:
+          Chunk:
+            type: FieldRef
+            Field:
+              table: TES_TPR__TestParameter
+              id: '1'
+              name: id
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $id
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '99'
+      name: Go to Portal Row
+      StepText: |-
+        Go to Portal Row [ $ActivePortalRowNumber ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      SelectAll:
+        state: 'False'
+      RowPageLocation:
+        value: ByCalculation
+      Calculation: $ActivePortalRowNumber
+      DisplayCalculation:
+        Chunk: $ActivePortalRowNumber
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# validate'
+      Text: ' validate'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ $id ≠ TES_TPR__TestParameter::id
+        or Get ( ActivePortalRowNumber ) = 0 ]
+      Calculation: |-
+        $id ≠ TES_TPR__TestParameter::id
+        or Get ( ActivePortalRowNumber ) = 0
+      DisplayCalculation:
+        Chunk:
+        - '$id ≠ '
+        - type: FieldRef
+          Field:
+            table: TES_TPR__TestParameter
+            id: '1'
+            name: id
+        - type: NoRef
+          __content__: |2+
+
+        - or
+        - type: NoRef
+          __content__: ' '
+        - Get
+        - ' ( '
+        - ActivePortalRowNumber
+        - ' ) = 0'
+    - enable: 'True'
+      id: '93'
+      name: Beep
+      StepText: Beep
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# isolate related records on related tables layout'
+      Text: ' isolate related records on related tables layout'
+    - enable: 'True'
+      id: '74'
+      name: Go to Related Record
+      StepText: |-
+        Go to Related Record [ From table: “TES_TPR__TestParameter”; Using layout: “TPA__TestParameter” (TPA__TestParameter) ]
+        [ Show only related records; New window ]
+      Option:
+        state: 'False'
+      MatchAllRecords:
+        state: 'False'
+      ShowInNewWindow:
+        state: 'True'
+      Restore:
+        state: 'True'
+      LayoutDestination:
+        value: SelectedLayout
+      NewWndStyles:
+        Styles: '983554'
+      Table:
+        id: '1065098'
+        name: TES_TPR__TestParameter
+      Layout:
+        id: '8'
+        name: TPA__TestParameter
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# validate'
+      Text: ' validate'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $id ≠ TPA__TestParameter::id ]
+      Calculation: $id ≠ TPA__TestParameter::id
+      DisplayCalculation:
+        Chunk:
+        - '$id ≠ '
+        - type: FieldRef
+          Field:
+            table: TPA__TestParameter
+            id: '1'
+            name: id
+    - enable: 'True'
+      id: '93'
+      name: Beep
+      StepText: Beep
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# duplicate record'
+      Text: ' duplicate record'
+    - enable: 'True'
+      id: '8'
+      name: Duplicate Record/Request
+      StepText: Duplicate Record/Request
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '121'
+      name: Close Window
+      StepText: Close Window [ Current Window ]
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# select the new record'
+      Text: ' select the new record'
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '99'
+      name: Go to Portal Row
+      StepText: |-
+        Go to Portal Row [ $ActivePortalRowNumber ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      SelectAll:
+        state: 'False'
+      RowPageLocation:
+        value: ByCalculation
+      Calculation: $ActivePortalRowNumber
+      DisplayCalculation:
+        Chunk: $ActivePortalRowNumber
+    - enable: 'True'
+      id: '99'
+      name: Go to Portal Row
+      StepText: |-
+        Go to Portal Row
+        [ Next ]
+      NoInteract:
+        state: 'False'
+      SelectAll:
+        state: 'False'
+      Exit:
+        state: 'False'
+      RowPageLocation:
+        value: Next
+    - enable: 'True'
+      id: '17'
+      name: Go to Field
+      StepText: |-
+        Go to Field [ TES_TPR__TestParameter::sortOrder ]
+        [ Select/perform ]
+      SelectAll:
+        state: 'True'
+      Field:
+        table: TES_TPR__TestParameter
+        id: '7'
+        name: sortOrder
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

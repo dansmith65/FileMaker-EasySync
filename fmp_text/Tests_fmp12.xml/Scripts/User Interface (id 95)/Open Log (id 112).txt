@@ -1,0 +1,22 @@
+Perform Script [ “Log Viewer: FM: Open Window” from file: “Log” ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '112'
+  name: Open Log
+  StepList:
+    Step:
+      enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Log Viewer: FM: Open Window” from file: “Log” ]'
+      FileReference:
+        id: '1'
+        name: Log
+        UniversalPathList: file:Log
+      Script:
+        id: '109'
+        name: 'Log Viewer: FM: Open Window'

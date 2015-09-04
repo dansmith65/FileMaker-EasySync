@@ -1,0 +1,333 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   creationAccount             Text             Normal                                                              
+     2   creationTimestamp           TimeStamp        Normal                                                              
+     3   id                          Text             Normal                                                              
+     4   modificationAccount         Text             Normal                                                              
+     5   modificationTimestamp       TimeStamp        Normal                                                              
+     6   name                        Text             Normal            brief description of what is being tested         
+     7   sortOrder                   Number           Normal            order the tests should be run in                  
+     8   z_xJoin                     Number           Normal                                                              
+     9   sortOrderAndName            Text             Calculated                                                          
+
+
+---
+BaseTable:
+  id: '132'
+  records: '0'
+  name: TestGroup
+  FieldCatalog:
+    Field:
+    - id: '1'
+      dataType: Text
+      fieldType: Normal
+      name: creationAccount
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        value: CreationAccountName
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '2'
+      dataType: TimeStamp
+      fieldType: Normal
+      name: creationTimestamp
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        value: CreationTimeStamp
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '3'
+      dataType: Text
+      fieldType: Normal
+      name: id
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        overwriteExistingValue: 'False'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( UUID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - UUID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: Always
+        NotEmpty:
+          value: 'True'
+        Unique:
+          value: 'True'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'True'
+      Storage:
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '4'
+      dataType: Text
+      fieldType: Normal
+      name: modificationAccount
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        value: ModificationAccountName
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '5'
+      dataType: TimeStamp
+      fieldType: Normal
+      name: modificationTimestamp
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        value: ModificationTimeStamp
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '6'
+      dataType: Text
+      fieldType: Normal
+      name: name
+      Comment: brief description of what is being tested
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '7'
+      dataType: Number
+      fieldType: Normal
+      name: sortOrder
+      Comment: order the tests should be run in
+      AutoEnter:
+        allowEditing: 'True'
+        overwriteExistingValue: 'False'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( RecordID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - RecordID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '8'
+      dataType: Number
+      fieldType: Normal
+      name: z_xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '9'
+      dataType: Text
+      fieldType: Calculated
+      name: sortOrderAndName
+      Calculation: sortOrder & " " & name
+      DisplayCalculation:
+        Chunk:
+        - type: FieldRef
+          Field:
+            table: TGR__TestGroup
+            id: '7'
+            name: sortOrder
+        - ' & " " & '
+        - type: FieldRef
+          Field:
+            table: TGR__TestGroup
+            id: '6'
+            name: name
+      Comment: 
+      AutoEnter:
+        alwaysEvaluate: 'False'
+      Storage:
+        storeCalculationResults: 'True'
+        autoIndex: 'True'
+        index: Minimal
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'

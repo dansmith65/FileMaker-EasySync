@@ -1,0 +1,30 @@
+Tests: Evaluate
+Tests: Manual Step: Ask Question
+Tests: Open URL
+Tests: Pause
+-
+Add Your values to this Value List
+-
+
+---
+ValueList:
+  id: '4'
+  name: Script Alias
+  Source:
+    value: Custom
+  CustomValues:
+    Text: |-
+      Tests: Evaluate
+      Tests: Manual Step: Ask Question
+      Tests: Open URL
+      Tests: Pause
+      -
+      Add Your values to this Value List
+      -
+  PrimaryField:
+    show: 'True'
+    sort: 'True'
+    Field:
+      table: TPA__TestParameter
+      id: '3'
+      name: scriptAlias

@@ -1,0 +1,310 @@
+/**
+ * =====================================
+ * #AssignScriptResultAndSetError ( performScriptName ; requiredResultList ; optionalResultList )
+ *
+ * PURPOSE:
+ *		Parses a Let dictionary of name-value parameters into a series of
+ *		locally scoped $variables.
+ *
+ * RETURNS:
+ *		False (0) if an error occurred. True (1) otherwise.
+ *		If False (0), the error will be saved to: $error.
+ *
+ * PARAMETERS:
+ *		performScriptName: name of the script just performed
+ *			Used to find the section of the script that generated an error
+ *		requiredResultList: return-delimited list of results the sub-script MUST return
+ *			if any of these values are null, it will trigger an error
+ *		optionalResultList: return-delimited list of results the sub-script can return
+ *			if optionalResultList or requiredResultList parameter contain a value, only the
+ *			results listed will be saved as local $variables
+ *
+ * EXAMPLES:
+ *		#AssignScriptResultAndError ( "Create Invoice" ; "" )
+ *			- Assign all let notation variables in Get ( ScriptResult )
+ *			  to local variables.
+ *			- If an error occurs, $error will contain info about the
+ *			  error, which will contain the text: "Create Invoice".
+ *		#AssignScriptResultAndError ( "Create Invoice" ; "( id_Invoice )" )
+ *			- ONLY assign id_Invoice to a local variable; if
+ *			  Get ( ScriptResult ) contains any other values (like 'error')
+ *			  they will NOT be assigned to local variables.
+ *			- Return an error if $id_Invoice variable is empty.
+ *		#AssignScriptResultAndError ( "Create Invoice" ; "( id_Invoice { error } )" )
+ *			- ONLY assign id_Invoice and error to local variables.
+ *			- If $error variable is empty, will NOT return an error.
+ *		#AssignScriptResultAndError ( "" ; "" )
+ *			- Assign all script results to local variables.
+ *			- If an error occurs, $error will NOT contain a reference to
+ *			  the script that just ran, so if your script has multiple
+ *			  'Perform Script' steps, it will be difficult to determine
+ *			  which section of your script generated this error.
+ *
+ * DEPENDENCIES:
+ *		Custom Functions:
+ *			ErrorFmpGetLast
+ *			ErrorFmp
+ *			ErrorApp
+ *			VerifyVariablesNotEmpty
+ *			#Assign
+ *			#Filter
+ *		Variables:
+ *			$error
+ *
+ * NOTES:
+ *		Only use this function if you need to #Assign the sub-script result to local variables.
+ *
+ * HISTORY:
+ *		CREATED on 2014-FEB-09 by Daniel Smith dansmith65@gmail.com
+ * =====================================
+ */
+
+not (
+	// check for FileMaker error
+	If ( Get ( LastError ) ;
+		Let ( $error = ErrorFmpGetLast ( "perform script: " & performScriptName ) ; True )
+	)
+
+
+	// assign script result to local variables, test for error in this function
+	or If ( not #Assign (
+			If (
+				not IsEmpty ( List ( requiredResultList ; optionalResultList ) ) ;
+				// only assign specified variables
+				#Filter (
+					Get ( ScriptResult ) ;
+					List ( requiredResultList ; optionalResultList )
+				) ;
+				// else: assign ALL variables in script result
+				Get ( ScriptResult )
+			)
+		) ;
+		Let ( $error = ErrorFMP ( $#Assign.error ; "#Assign error after perform script: " & performScriptName ) ; True )
+	)
+
+
+	// confirm required values exist
+	or If (
+		not IsEmpty ( requiredResultList )
+			and not VerifyVariablesNotEmpty ( requiredResultList )
+		;
+		Let (
+			$error = ErrorApp ( 3 ; "required results did not exist after perform script: " & performScriptName )
+				& # ( "requiredResultList" ; requiredResultList )
+			;
+			True
+		)
+	)
+
+
+	// check for sub-script returning an error
+	or If ( ErrorFound ( $error ) ;
+		Let ( $error = ErrorAddScriptStack ( $error ; "" ) ; True )
+	)
+)
+
+---
+CustomFunction:
+  id: '37'
+  functionArity: '3'
+  visible: 'True'
+  parameters: performScriptName;requiredResultList;optionalResultList
+  name: '#AssignScriptResultAndSetError'
+  Calculation: "/**\n * =====================================\n * #AssignScriptResultAndSetError
+    ( performScriptName ; requiredResultList ; optionalResultList )\n *\n * PURPOSE:\n
+    *\t\tParses a Let dictionary of name-value parameters into a series of\n *\t\tlocally
+    scoped $variables.\n *\n * RETURNS:\n *\t\tFalse (0) if an error occurred. True
+    (1) otherwise.\n *\t\tIf False (0), the error will be saved to: $error.\n *\n
+    * PARAMETERS:\n *\t\tperformScriptName: name of the script just performed\n *\t\t\tUsed
+    to find the section of the script that generated an error\n *\t\trequiredResultList:
+    return-delimited list of results the sub-script MUST return\n *\t\t\tif any of
+    these values are null, it will trigger an error\n *\t\toptionalResultList: return-delimited
+    list of results the sub-script can return\n *\t\t\tif optionalResultList or requiredResultList
+    parameter contain a value, only the\n *\t\t\tresults listed will be saved as local
+    $variables\n *\n * EXAMPLES:\n *\t\t#AssignScriptResultAndError ( \"Create Invoice\"
+    ; \"\" )\n *\t\t\t- Assign all let notation variables in Get ( ScriptResult )\n
+    *\t\t\t  to local variables.\n *\t\t\t- If an error occurs, $error will contain
+    info about the\n *\t\t\t  error, which will contain the text: \"Create Invoice\".\n
+    *\t\t#AssignScriptResultAndError ( \"Create Invoice\" ; \"( id_Invoice )\" )\n
+    *\t\t\t- ONLY assign id_Invoice to a local variable; if\n *\t\t\t  Get ( ScriptResult
+    ) contains any other values (like 'error')\n *\t\t\t  they will NOT be assigned
+    to local variables.\n *\t\t\t- Return an error if $id_Invoice variable is empty.\n
+    *\t\t#AssignScriptResultAndError ( \"Create Invoice\" ; \"( id_Invoice { error
+    } )\" )\n *\t\t\t- ONLY assign id_Invoice and error to local variables.\n *\t\t\t-
+    If $error variable is empty, will NOT return an error.\n *\t\t#AssignScriptResultAndError
+    ( \"\" ; \"\" )\n *\t\t\t- Assign all script results to local variables.\n *\t\t\t-
+    If an error occurs, $error will NOT contain a reference to\n *\t\t\t  the script
+    that just ran, so if your script has multiple\n *\t\t\t  'Perform Script' steps,
+    it will be difficult to determine\n *\t\t\t  which section of your script generated
+    this error.\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:\n *\t\t\tErrorFmpGetLast\n
+    *\t\t\tErrorFmp\n *\t\t\tErrorApp\n *\t\t\tVerifyVariablesNotEmpty\n *\t\t\t#Assign\n
+    *\t\t\t#Filter\n *\t\tVariables:\n *\t\t\t$error\n *\n * NOTES:\n *\t\tOnly use
+    this function if you need to #Assign the sub-script result to local variables.\n
+    *\n * HISTORY:\n *\t\tCREATED on 2014-FEB-09 by Daniel Smith dansmith65@gmail.com\n
+    * =====================================\n */\n\nnot (\n\t// check for FileMaker
+    error\n\tIf ( Get ( LastError ) ;\n\t\tLet ( $error = ErrorFmpGetLast ( \"perform
+    script: \" & performScriptName ) ; True )\n\t)\n\n\n\t// assign script result
+    to local variables, test for error in this function\n\tor If ( not #Assign (\n\t\t\tIf
+    (\n\t\t\t\tnot IsEmpty ( List ( requiredResultList ; optionalResultList ) ) ;\n\t\t\t\t//
+    only assign specified variables\n\t\t\t\t#Filter (\n\t\t\t\t\tGet ( ScriptResult
+    ) ;\n\t\t\t\t\tList ( requiredResultList ; optionalResultList )\n\t\t\t\t) ;\n\t\t\t\t//
+    else: assign ALL variables in script result\n\t\t\t\tGet ( ScriptResult )\n\t\t\t)\n\t\t)
+    ;\n\t\tLet ( $error = ErrorFMP ( $#Assign.error ; \"#Assign error after perform
+    script: \" & performScriptName ) ; True )\n\t)\n\n\n\t// confirm required values
+    exist\n\tor If (\n\t\tnot IsEmpty ( requiredResultList )\n\t\t\tand not VerifyVariablesNotEmpty
+    ( requiredResultList )\n\t\t;\n\t\tLet (\n\t\t\t$error = ErrorApp ( 3 ; \"required
+    results did not exist after perform script: \" & performScriptName )\n\t\t\t\t&
+    # ( \"requiredResultList\" ; requiredResultList )\n\t\t\t;\n\t\t\tTrue\n\t\t)\n\t)\n\n\n\t//
+    check for sub-script returning an error\n\tor If ( ErrorFound ( $error ) ;\n\t\tLet
+    ( $error = ErrorAddScriptStack ( $error ; \"\" ) ; True )\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #AssignScriptResultAndSetError
+      ( performScriptName ; requiredResultList ; optionalResultList )\n *\n * PURPOSE:\n
+      *\t\tParses a Let dictionary of name-value parameters into a series of\n *\t\tlocally
+      scoped $variables.\n *\n * RETURNS:\n *\t\tFalse (0) if an error occurred. True
+      (1) otherwise.\n *\t\tIf False (0), the error will be saved to: $error.\n *\n
+      * PARAMETERS:\n *\t\tperformScriptName: name of the script just performed\n
+      *\t\t\tUsed to find the section of the script that generated an error\n *\t\trequiredResultList:
+      return-delimited list of results the sub-script MUST return\n *\t\t\tif any
+      of these values are null, it will trigger an error\n *\t\toptionalResultList:
+      return-delimited list of results the sub-script can return\n *\t\t\tif optionalResultList
+      or requiredResultList parameter contain a value, only the\n *\t\t\tresults listed
+      will be saved as local $variables\n *\n * EXAMPLES:\n *\t\t#AssignScriptResultAndError
+      ( \"Create Invoice\" ; \"\" )\n *\t\t\t- Assign all let notation variables in
+      Get ( ScriptResult )\n *\t\t\t  to local variables.\n *\t\t\t- If an error occurs,
+      $error will contain info about the\n *\t\t\t  error, which will contain the
+      text: \"Create Invoice\".\n *\t\t#AssignScriptResultAndError ( \"Create Invoice\"
+      ; \"( id_Invoice )\" )\n *\t\t\t- ONLY assign id_Invoice to a local variable;
+      if\n *\t\t\t  Get ( ScriptResult ) contains any other values (like 'error')\n
+      *\t\t\t  they will NOT be assigned to local variables.\n *\t\t\t- Return an
+      error if $id_Invoice variable is empty.\n *\t\t#AssignScriptResultAndError (
+      \"Create Invoice\" ; \"( id_Invoice { error } )\" )\n *\t\t\t- ONLY assign id_Invoice
+      and error to local variables.\n *\t\t\t- If $error variable is empty, will NOT
+      return an error.\n *\t\t#AssignScriptResultAndError ( \"\" ; \"\" )\n *\t\t\t-
+      Assign all script results to local variables.\n *\t\t\t- If an error occurs,
+      $error will NOT contain a reference to\n *\t\t\t  the script that just ran,
+      so if your script has multiple\n *\t\t\t  'Perform Script' steps, it will be
+      difficult to determine\n *\t\t\t  which section of your script generated this
+      error.\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:\n *\t\t\tErrorFmpGetLast\n
+      *\t\t\tErrorFmp\n *\t\t\tErrorApp\n *\t\t\tVerifyVariablesNotEmpty\n *\t\t\t#Assign\n
+      *\t\t\t#Filter\n *\t\tVariables:\n *\t\t\t$error\n *\n * NOTES:\n *\t\tOnly
+      use this function if you need to #Assign the sub-script result to local variables.\n
+      *\n * HISTORY:\n *\t\tCREATED on 2014-FEB-09 by Daniel Smith dansmith65@gmail.com\n
+      * =====================================\n */\n\n"
+    - not
+    - " (\n\t"
+    - |
+      // check for FileMaker error
+    - type: NoRef
+      __content__: "\t"
+    - If
+    - ' ( '
+    - Get
+    - ' ( '
+    - LastError
+    - " ) ;\n\t\t"
+    - Let
+    - ' ( $error = '
+    - ErrorFmpGetLast
+    - ' ( "perform script: " & performScriptName ) ; '
+    - 'True'
+    - " )\n\t)\n\n\n\t"
+    - |
+      // assign script result to local variables, test for error in this function
+    - type: NoRef
+      __content__: "\t"
+    - or
+    - type: NoRef
+      __content__: ' '
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - '#Assign'
+    - " (\n\t\t\t"
+    - If
+    - " (\n\t\t\t\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - ' ( '
+    - List
+    - " ( requiredResultList ; optionalResultList ) ) ;\n\t\t\t\t"
+    - |
+      // only assign specified variables
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - '#Filter'
+    - " (\n\t\t\t\t\t"
+    - Get
+    - ' ( '
+    - ScriptResult
+    - " ) ;\n\t\t\t\t\t"
+    - List
+    - " ( requiredResultList ; optionalResultList )\n\t\t\t\t) ;\n\t\t\t\t"
+    - |
+      // else: assign ALL variables in script result
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - Get
+    - ' ( '
+    - ScriptResult
+    - " )\n\t\t\t)\n\t\t) ;\n\t\t"
+    - Let
+    - ' ( $error = '
+    - ErrorFMP
+    - ' ( $#Assign.error ; "#Assign error after perform script: " & performScriptName
+      ) ; '
+    - 'True'
+    - " )\n\t)\n\n\n\t"
+    - |
+      // confirm required values exist
+    - type: NoRef
+      __content__: "\t"
+    - or
+    - type: NoRef
+      __content__: ' '
+    - If
+    - " (\n\t\t"
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( requiredResultList )\n\t\t\t"
+    - and
+    - type: NoRef
+      __content__: ' '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - VerifyVariablesNotEmpty
+    - " ( requiredResultList )\n\t\t;\n\t\t"
+    - Let
+    - " (\n\t\t\t$error = "
+    - ErrorApp
+    - " ( 3 ; \"required results did not exist after perform script: \" & performScriptName
+      )\n\t\t\t\t& "
+    - '#'
+    - " ( \"requiredResultList\" ; requiredResultList )\n\t\t\t;\n\t\t\t"
+    - 'True'
+    - "\n\t\t)\n\t)\n\n\n\t"
+    - |
+      // check for sub-script returning an error
+    - type: NoRef
+      __content__: "\t"
+    - or
+    - type: NoRef
+      __content__: ' '
+    - If
+    - ' ( '
+    - ErrorFound
+    - " ( $error ) ;\n\t\t"
+    - Let
+    - ' ( $error = '
+    - ErrorAddScriptStack
+    - ' ( $error ; "" ) ; '
+    - 'True'
+    - " )\n\t)\n)"

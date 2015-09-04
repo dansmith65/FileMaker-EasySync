@@ -1,0 +1,72 @@
+#
+#
+Go to Record/Request/Page[ First ]
+Loop
+Perform Script [ “~Tests: Run Current” ]
+Go to Record/Request/Page[ Next; Exit after last ]
+End Loop
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '215'
+  name: '~Tests: Run Found'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '16'
+      name: Go to Record/Request/Page
+      StepText: |-
+        Go to Record/Request/Page
+        [ First ]
+      NoInteract:
+        state: 'False'
+      RowPageLocation:
+        value: First
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Run Current” ]'
+      Script:
+        id: '105'
+        name: '~Tests: Run Current'
+    - enable: 'True'
+      id: '16'
+      name: Go to Record/Request/Page
+      StepText: |-
+        Go to Record/Request/Page
+        [ Next; Exit after last ]
+      NoInteract:
+        state: 'False'
+      Exit:
+        state: 'True'
+      RowPageLocation:
+        value: Next
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

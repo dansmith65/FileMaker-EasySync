@@ -1,0 +1,86 @@
+/**
+ * =====================================
+ * #ListGet ( listOfValues ; valueNumber )
+ *
+ * PURPOSE:
+ *		Retrieve a value from a list created with the #List ( value ) function.
+ *		Preserve the data type and all special characters of the original value.
+ *
+ * RETURNS:
+ *		Original value before encoding with the original data type preserved.
+ *
+ * PARAMETERS:
+ *		listOfValues: Return delimeted and encoded values
+ *		valueNumber: The position of the value to retrieve
+ *			(1 being the first value)
+ *
+ * EXAMPLE:
+ *		#ListGet ( #List ( "value1" ) & #List ( "value2" ) ; 1 ) = "value1"
+ *		#ListGet ( #List ( "" ) & #List ( "value2" ) ; 2 ) = "value2"
+ *		#ListGet ( #List ( "value1" ) & #List ( "value2" ) ; 3 ) = ""
+ *		#ListGet ( "This is not a valid #List string" ; 1 ) = ""
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		CREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com
+ * =====================================
+ */
+
+Let ( [
+	~value = GetValue ( listOfValues ; valueNumber )
+] ;
+
+	If (
+		IsValidExpression ( ~value ) ;
+		Evaluate ( ~value )
+	)
+
+)
+
+---
+CustomFunction:
+  id: '14'
+  functionArity: '2'
+  visible: 'True'
+  parameters: listOfValues;valueNumber
+  name: '#ListGet'
+  Calculation: "/**\n * =====================================\n * #ListGet ( listOfValues
+    ; valueNumber )\n *\n * PURPOSE:\n *\t\tRetrieve a value from a list created with
+    the #List ( value ) function.\n *\t\tPreserve the data type and all special characters
+    of the original value.\n *\n * RETURNS:\n *\t\tOriginal value before encoding
+    with the original data type preserved.\n *\n * PARAMETERS:\n *\t\tlistOfValues:
+    Return delimeted and encoded values\n *\t\tvalueNumber: The position of the value
+    to retrieve\n *\t\t\t(1 being the first value)\n *\n * EXAMPLE:\n *\t\t#ListGet
+    ( #List ( \"value1\" ) & #List ( \"value2\" ) ; 1 ) = \"value1\"\n *\t\t#ListGet
+    ( #List ( \"\" ) & #List ( \"value2\" ) ; 2 ) = \"value2\"\n *\t\t#ListGet ( #List
+    ( \"value1\" ) & #List ( \"value2\" ) ; 3 ) = \"\"\n *\t\t#ListGet ( \"This is
+    not a valid #List string\" ; 1 ) = \"\"\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n
+    *\t\tCREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n * =====================================\n
+    */\n\nLet ( [\n\t~value = GetValue ( listOfValues ; valueNumber )\n] ;\n\n\tIf
+    (\n\t\tIsValidExpression ( ~value ) ;\n\t\tEvaluate ( ~value )\n\t)\n\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #ListGet ( listOfValues ;
+      valueNumber )\n *\n * PURPOSE:\n *\t\tRetrieve a value from a list created with
+      the #List ( value ) function.\n *\t\tPreserve the data type and all special
+      characters of the original value.\n *\n * RETURNS:\n *\t\tOriginal value before
+      encoding with the original data type preserved.\n *\n * PARAMETERS:\n *\t\tlistOfValues:
+      Return delimeted and encoded values\n *\t\tvalueNumber: The position of the
+      value to retrieve\n *\t\t\t(1 being the first value)\n *\n * EXAMPLE:\n *\t\t#ListGet
+      ( #List ( \"value1\" ) & #List ( \"value2\" ) ; 1 ) = \"value1\"\n *\t\t#ListGet
+      ( #List ( \"\" ) & #List ( \"value2\" ) ; 2 ) = \"value2\"\n *\t\t#ListGet (
+      #List ( \"value1\" ) & #List ( \"value2\" ) ; 3 ) = \"\"\n *\t\t#ListGet ( \"This
+      is not a valid #List string\" ; 1 ) = \"\"\n *\n * DEPENDENCIES: none\n *\n
+      * HISTORY:\n *\t\tCREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~value = "
+    - GetValue
+    - " ( listOfValues ; valueNumber )\n] ;\n\n\t"
+    - If
+    - " (\n\t\t"
+    - IsValidExpression
+    - " ( ~value ) ;\n\t\t"
+    - Evaluate
+    - " ( ~value )\n\t)\n\n)"

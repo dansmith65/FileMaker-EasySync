@@ -1,0 +1,195 @@
+################################################################################
+# PURPOSE:
+#    If a test is modified, mark it as not run.
+#
+# PARAMETERS: (single unencoded value)
+#    Get ( ScriptName ), as evaluated from the Trigger that calls this script. It allows this script to know if a script was running when triggered.
+################################################################################
+#
+#
+If [ /* no script was running: the user modified the record */IsEmpty ( Get ( ScriptParameter ) ) ]
+If [ Get ( LayoutTableName ) = GetValue (	Substitute (		GetFieldName ( TES__Test::id ) ;		[ "::" ; ¶ ]	) ;	1) ]
+Set Field [ TES__Test::resultPass; "" ]
+Else If [ Get ( LayoutTableName ) = GetValue (	Substitute (		GetFieldName ( TPA__TestParameter::id ) ;		[ "::" ; ¶ ]	) ;	1) ]
+Set Field [ tpa_TES__Test::resultPass; "" ]
+End If
+End If
+#
+#
+Exit Script [ Result: True ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '163'
+  name: Test Record ORCommit [ scriptName ]
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    If a test is modified, mark it as not run.'
+      Text: '    If a test is modified, mark it as not run.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: (single unencoded value)'
+      Text: ' PARAMETERS: (single unencoded value)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Get ( ScriptName ), as evaluated from the Trigger that calls
+        this script. It allows this script to know if a script was running when triggered.'
+      Text: '    Get ( ScriptName ), as evaluated from the Trigger that calls this
+        script. It allows this script to know if a script was running when triggered.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ /* no script was running: the user modified the record */
+
+        IsEmpty ( Get ( ScriptParameter ) ) ]
+      Calculation: |-
+        /* no script was running: the user modified the record */
+
+        IsEmpty ( Get ( ScriptParameter ) )
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* no script was running: the user modified the record */
+
+        - IsEmpty
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' ) )'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Get ( LayoutTableName ) = GetValue (\n\tSubstitute (\n\t\tGetFieldName
+        ( TES__Test::id ) ;\n\t\t[ \"::\" ; ¶ ]\n\t) ;\n\t1\n) ]"
+      Calculation: "Get ( LayoutTableName ) = GetValue (\n\tSubstitute (\n\t\tGetFieldName
+        ( TES__Test::id ) ;\n\t\t[ \"::\" ; ¶ ]\n\t) ;\n\t1\n)"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LayoutTableName
+        - ' ) = '
+        - GetValue
+        - " (\n\t"
+        - Substitute
+        - " (\n\t\t"
+        - GetFieldName
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '1'
+            name: id
+        - " ) ;\n\t\t[ \"::\" ; ¶ ]\n\t) ;\n\t1\n)"
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::resultPass; "" ]
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+      Field:
+        table: TES__Test
+        id: '9'
+        name: resultPass
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ Get ( LayoutTableName ) = GetValue (\n\tSubstitute (\n\t\tGetFieldName
+        ( TPA__TestParameter::id ) ;\n\t\t[ \"::\" ; ¶ ]\n\t) ;\n\t1\n) ]"
+      Calculation: "Get ( LayoutTableName ) = GetValue (\n\tSubstitute (\n\t\tGetFieldName
+        ( TPA__TestParameter::id ) ;\n\t\t[ \"::\" ; ¶ ]\n\t) ;\n\t1\n)"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LayoutTableName
+        - ' ) = '
+        - GetValue
+        - " (\n\t"
+        - Substitute
+        - " (\n\t\t"
+        - GetFieldName
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: TPA__TestParameter
+            id: '1'
+            name: id
+        - " ) ;\n\t\t[ \"::\" ; ¶ ]\n\t) ;\n\t1\n)"
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ tpa_TES__Test::resultPass; "" ]
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+      Field:
+        table: tpa_TES__Test
+        id: '9'
+        name: resultPass
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: True ]'
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

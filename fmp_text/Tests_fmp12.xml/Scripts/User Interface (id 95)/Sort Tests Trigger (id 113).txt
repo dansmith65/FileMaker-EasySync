@@ -1,0 +1,18 @@
+Perform Script [ “Sort Tests” ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '113'
+  name: Sort Tests Trigger
+  StepList:
+    Step:
+      enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Sort Tests” ]
+      Script:
+        id: '114'
+        name: Sort Tests

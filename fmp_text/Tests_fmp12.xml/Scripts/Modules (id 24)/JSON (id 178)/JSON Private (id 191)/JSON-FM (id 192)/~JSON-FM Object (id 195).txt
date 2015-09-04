@@ -1,0 +1,720 @@
+################################################################################
+# PURPOSE:
+#    Parse an object value.
+#
+# PARAMETERS: none
+#
+# RETURNS:
+#    object
+#
+# REVISIONS:
+#2014-JUL-29	 Daniel Smith	- update # ( name ; value ) function used in encode object section to version date 2014-06-06    2014-MAR-30	 Daniel Smith	- update # ( name ; value ) function used in encode object section2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $key ]
+Set Variable [ $object ]
+#
+#
+If [ $$~JSON.CH = "{" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "{" ]
+Perform Script [ “~JSON-FM White” ]
+If [ $$~JSON.CH = "}" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "}" ]
+Exit Script [ Result: $object // empty object ]
+End If
+#
+Loop
+Exit Loop If [ IsEmpty ( $$~JSON.CH ) ]
+Perform Script [ “~JSON-FM String” ]
+Set Variable [ $key; Value:Get ( ScriptResult ) ]
+# remove characters that are invalid for use in a let variable
+Set Variable [ $key; Value:Substitute ( 	$key ;	[ "," ; "" ] ;	[ "+" ; "" ] ;	[ "-" ; "" ] ;	[ "*" ; "" ] ;	[ "//" ; "" ] ;	[ "^" ; "" ] ;	[ "&" ; "" ] ;	[ "=" ; "" ] ;	[ "≠" ; "" ] ;	[ ">" ; "" ] ;	[ "<" ; "" ] ;	[ "(" ; "" ] ;	[ ")" ; "" ] ;	[ "[" ; "" ] ;	[ "]" ; "" ] ;	[ "{" ; "" ] ;	[ "}" ; "" ] ;	[ "\"" ; "" ] ;	[ ";" ; "" ] ;	[ ":" ; "" ]) ]
+Perform Script [ “~JSON-FM White” ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: ":" ]
+If [ // $object already contains $keyFalse ]
+# when using the custom functions available at the link below to access data, this section is not needed since new key's replace old keyshttp://filemakerstandards.org/x/loEI
+Perform Script [ “~JSON-FM Error { message }”; Parameter: "Duplicate key " & Quote ( $key ) ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+End If
+Perform Script [ “~JSON-FM Value” ]
+# encode object
+Set Variable [ $object; Value:$object// start of Let that wraps the custom function& Let ( [	name = $key ;	value = Get ( ScriptResult )] ;/** * ===================================== * # ( name ; value ) * * RETURNS: *		An name-value pair in Let notation. * * PARAMETERS: *		name: The name for the returned name-value pair. name can be any value *		that would be a valid Let() variable name. *		value: The value for the returned name-value pair. * * EXAMPLE: *		# ( "name"; $value ) & # ( "foo" ; "bar" ) * * DEPENDENCIES: none * * HISTORY: *		MODIFIED on 2014-06-06 by Jeremy Bante <http://scr.im/jbante> to fix an *		issue where long sequences of digits could be interpreted as timestamps. *		MODIFIED on 2014-05-25 by Jeremy Bante <http://scr.im/jbante> to detect *		type using a different method suggested by Arnold Kegebein. *		MODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to return *		an error if name contains a carriage return (Char ( 13 )), and removing *		explicit encoding for line feeds. *		MODIFIED on 2013-12-12 by John Jones <john.christopher@alumni.virginia.edu> *		to explicitly encode line feed characters in text values. *		MODIFIED on 2013-09-02 by Daniel Smith dansmith65@gmail.com to fix a *		type misidentification bug. *		MODIFIED on 2013-07-27 by Jeremy Bante <http://scr.im/jbante> to fix a *		type misidentification bug. *		MODIFIED on 2013-04-15 by Jeremy Bante <http://scr.im/jbante> to not *		wrap numbers in GetAsNumber. *		MODIFIED on 2013-01-14 by Daniel Smith dansmith65@gmail.com to include *		trailing return on error result and accept a value of "?" *		MODIFIED on 2012-12-12 by Daniel Smith dansmith65@gmail.com to preserve *		data type of value *		MODIFIED on 2012-12-07 by Jeremy Bante <http://scr.im/jbante> where an *		error result could create invalid sytax for values containing a comment *		close sequence. *		MODIFIED on 2012-11-28 by Jeremy Bante <http://scr.im/jbante> to return *		error feedback, and to prefix names with "$". *		CREATED on 2012-11-10 by Jeremy Bante <http://scr.im/jbante>. * * REFERENCES: *		https://github.com/filemakerstandards/fmpstandards/blob/master/Functions/%23Name-Value/%23.fmfn * ===================================== */Let ( [	~name =	// strip leading "$$" and "$"		Substitute (			"/*start*/" & name ;			[ "/*start*/$$" ; "" ] ;			[ "/*start*/$" ; "" ] ;			[ "/*start*/" ; "" ]		) ;	~plusOneText = GetAsText ( value + 1 ) ;	~number = GetAsNumber ( value ) ;	~value =		Case (			value = "" or value = "?" or ~number = "?" ;				Quote ( value ) ;			GetAsText ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText ;				"GetAsTimestamp ( " & Quote ( value ) & " )" ;			GetAsText ( GetAsTime ( value ) + 1 ) = ~plusOneText ;				"GetAsTime ( " & Quote ( value ) & " )" ;			GetAsText ( GetAsDate ( value ) + 1 ) = ~plusOneText ;				"GetAsDate ( " & Quote ( value ) & " )" ;			value ≠ ~number ;				Quote ( value ) ;			/* Else */				~number		) ;	~result =		"$"		& ~name		& " = "		& ~value		& " ;¶" ;	~testExpression =		"Let ( [ "		& ~result		& " ~ = \"\" ]; \"\" )" ;	~error =		Case (			IsEmpty ( ~name ) or Position ( ~name ; ¶ ; 1 ; 1 ) ≠ 0 ;				11 ;	// Name is not valid			not IsValidExpression ( ~testExpression ) ;				1200	// Generic calculation error		)];	If ( ~error ;	// prevent bad pairs from affecting evaluation by commenting		"/* Error "		& ~error		& " name: "		& Quote (			Substitute (	// escape comment character sequences				name ;				[ "*/" ; "\*\/" ] ;				[ "/*" ; "\/\*" ]			)		)		& " value: "		& Quote (			Substitute (	// escape comment character sequences				value ;				[ "*/" ; "\*\/" ] ;				[ "/*" ; "\/\*" ]			)		)		& " */"		& ¶ ;	/* Else */		~result	))) // end Let that wraps the custom function ]
+Perform Script [ “~JSON-FM White” ]
+If [ $$~JSON.CH = "}" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "}" ]
+Exit Script [ Result: $object ]
+End If
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "," ]
+Perform Script [ “~JSON-FM White” ]
+End Loop
+End If
+#
+Perform Script [ “~JSON-FM Error { message }”; Parameter: "Bad object" ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '195'
+  name: ~JSON-FM Object
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Parse an object value.'
+      Text: '    Parse an object value.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    object'
+      Text: '    object'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\n2014-JUL-29\t Daniel Smith\n\t- update # ( name ; value ) function
+        used in encode object section to version date 2014-06-06    \n2014-MAR-30\t
+        Daniel Smith\n\t- update # ( name ; value ) function used in encode object
+        section\n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "\n2014-JUL-29\t Daniel Smith\n\t- update # ( name ; value ) function
+        used in encode object section to version date 2014-06-06    \n2014-MAR-30\t
+        Daniel Smith\n\t- update # ( name ; value ) function used in encode object
+        section\n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $key ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $key
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $object ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $object
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "{" ]
+      Calculation: $$~JSON.CH = "{"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "{"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "{" ]'
+      Calculation: '"{"'
+      DisplayCalculation:
+        Chunk: '"{"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "}" ]
+      Calculation: $$~JSON.CH = "}"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "}"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "}" ]'
+      Calculation: '"}"'
+      DisplayCalculation:
+        Chunk: '"}"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $object // empty object ]'
+      Calculation: $object // empty object
+      DisplayCalculation:
+        Chunk:
+        - '$object '
+        - // empty object
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ IsEmpty ( $$~JSON.CH ) ]
+      Calculation: IsEmpty ( $$~JSON.CH )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $$~JSON.CH )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM String” ]
+      Script:
+        id: '197'
+        name: ~JSON-FM String
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $key; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $key
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# remove characters that are invalid for use in a let variable'
+      Text: ' remove characters that are invalid for use in a let variable'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $key; Value:Substitute ( \n\t$key ;\n\t[ \",\" ; \"\"
+        ] ;\n\t[ \"+\" ; \"\" ] ;\n\t[ \"-\" ; \"\" ] ;\n\t[ \"*\" ; \"\" ] ;\n\t[
+        \"//\" ; \"\" ] ;\n\t[ \"^\" ; \"\" ] ;\n\t[ \"&\" ; \"\" ] ;\n\t[ \"=\" ;
+        \"\" ] ;\n\t[ \"≠\" ; \"\" ] ;\n\t[ \">\" ; \"\" ] ;\n\t[ \"<\" ; \"\" ] ;\n\t[
+        \"(\" ; \"\" ] ;\n\t[ \")\" ; \"\" ] ;\n\t[ \"[\" ; \"\" ] ;\n\t[ \"]\" ;
+        \"\" ] ;\n\t[ \"{\" ; \"\" ] ;\n\t[ \"}\" ; \"\" ] ;\n\t[ \"\\\"\" ; \"\"
+        ] ;\n\t[ \";\" ; \"\" ] ;\n\t[ \":\" ; \"\" ]\n) ]"
+      Value:
+        Calculation: "Substitute ( \n\t$key ;\n\t[ \",\" ; \"\" ] ;\n\t[ \"+\" ; \"\"
+          ] ;\n\t[ \"-\" ; \"\" ] ;\n\t[ \"*\" ; \"\" ] ;\n\t[ \"//\" ; \"\" ] ;\n\t[
+          \"^\" ; \"\" ] ;\n\t[ \"&\" ; \"\" ] ;\n\t[ \"=\" ; \"\" ] ;\n\t[ \"≠\"
+          ; \"\" ] ;\n\t[ \">\" ; \"\" ] ;\n\t[ \"<\" ; \"\" ] ;\n\t[ \"(\" ; \"\"
+          ] ;\n\t[ \")\" ; \"\" ] ;\n\t[ \"[\" ; \"\" ] ;\n\t[ \"]\" ; \"\" ] ;\n\t[
+          \"{\" ; \"\" ] ;\n\t[ \"}\" ; \"\" ] ;\n\t[ \"\\\"\" ; \"\" ] ;\n\t[ \";\"
+          ; \"\" ] ;\n\t[ \":\" ; \"\" ]\n)"
+        DisplayCalculation:
+          Chunk:
+          - Substitute
+          - " ( \n\t$key ;\n\t[ \",\" ; \"\" ] ;\n\t[ \"+\" ; \"\" ] ;\n\t[ \"-\"
+            ; \"\" ] ;\n\t[ \"*\" ; \"\" ] ;\n\t[ \"//\" ; \"\" ] ;\n\t[ \"^\" ; \"\"
+            ] ;\n\t[ \"&\" ; \"\" ] ;\n\t[ \"=\" ; \"\" ] ;\n\t[ \"≠\" ; \"\" ] ;\n\t[
+            \">\" ; \"\" ] ;\n\t[ \"<\" ; \"\" ] ;\n\t[ \"(\" ; \"\" ] ;\n\t[ \")\"
+            ; \"\" ] ;\n\t[ \"[\" ; \"\" ] ;\n\t[ \"]\" ; \"\" ] ;\n\t[ \"{\" ; \"\"
+            ] ;\n\t[ \"}\" ; \"\" ] ;\n\t[ \"\\\"\" ; \"\" ] ;\n\t[ \";\" ; \"\" ]
+            ;\n\t[ \":\" ; \"\" ]\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $key
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: ":" ]'
+      Calculation: '":"'
+      DisplayCalculation:
+        Chunk: '":"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ // $object already contains $key
+
+        False ]
+      Calculation: |-
+        // $object already contains $key
+
+        False
+      DisplayCalculation:
+        Chunk:
+        - |
+          // $object already contains $key
+        - type: NoRef
+          __content__: |2+
+
+        - 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        # when using the custom functions available at the link below to access data, this section is not needed since new key's replace old keys
+
+        http://filemakerstandards.org/x/loEI
+      Text: |2-
+         when using the custom functions available at the link below to access data, this section is not needed since new key's replace old keys
+
+        http://filemakerstandards.org/x/loEI
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Error { message }”; Parameter: "Duplicate
+        key " & Quote ( $key ) ]'
+      Calculation: '"Duplicate key " & Quote ( $key )'
+      DisplayCalculation:
+        Chunk:
+        - '"Duplicate key " & '
+        - Quote
+        - ' ( $key )'
+      Script:
+        id: '201'
+        name: ~JSON-FM Error { message }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Value” ]
+      Script:
+        id: '193'
+        name: ~JSON-FM Value
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# encode object'
+      Text: ' encode object'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $object; Value:$object\n\n// start of Let that wraps
+        the custom function\n& Let ( [\n\tname = $key ;\n\tvalue = Get ( ScriptResult
+        )\n] ;\n\n/**\n * =====================================\n * # ( name ; value
+        )\n *\n * RETURNS:\n *\t\tAn name-value pair in Let notation.\n *\n * PARAMETERS:\n
+        *\t\tname: The name for the returned name-value pair. name can be any value\n
+        *\t\tthat would be a valid Let() variable name.\n *\t\tvalue: The value for
+        the returned name-value pair.\n *\n * EXAMPLE:\n *\t\t# ( \"name\"; $value
+        ) & # ( \"foo\" ; \"bar\" )\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n
+        *\t\tMODIFIED on 2014-06-06 by Jeremy Bante <http://scr.im/jbante> to fix
+        an\n *\t\tissue where long sequences of digits could be interpreted as timestamps.\n
+        *\t\tMODIFIED on 2014-05-25 by Jeremy Bante <http://scr.im/jbante> to detect\n
+        *\t\ttype using a different method suggested by Arnold Kegebein.\n *\t\tMODIFIED
+        on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to return\n *\t\tan error
+        if name contains a carriage return (Char ( 13 )), and removing\n *\t\texplicit
+        encoding for line feeds.\n *\t\tMODIFIED on 2013-12-12 by John Jones <john.christopher@alumni.virginia.edu>\n
+        *\t\tto explicitly encode line feed characters in text values.\n *\t\tMODIFIED
+        on 2013-09-02 by Daniel Smith dansmith65@gmail.com to fix a\n *\t\ttype misidentification
+        bug.\n *\t\tMODIFIED on 2013-07-27 by Jeremy Bante <http://scr.im/jbante>
+        to fix a\n *\t\ttype misidentification bug.\n *\t\tMODIFIED on 2013-04-15
+        by Jeremy Bante <http://scr.im/jbante> to not\n *\t\twrap numbers in GetAsNumber.\n
+        *\t\tMODIFIED on 2013-01-14 by Daniel Smith dansmith65@gmail.com to include\n
+        *\t\ttrailing return on error result and accept a value of \"?\"\n *\t\tMODIFIED
+        on 2012-12-12 by Daniel Smith dansmith65@gmail.com to preserve\n *\t\tdata
+        type of value\n *\t\tMODIFIED on 2012-12-07 by Jeremy Bante <http://scr.im/jbante>
+        where an\n *\t\terror result could create invalid sytax for values containing
+        a comment\n *\t\tclose sequence.\n *\t\tMODIFIED on 2012-11-28 by Jeremy Bante
+        <http://scr.im/jbante> to return\n *\t\terror feedback, and to prefix names
+        with \"$\".\n *\t\tCREATED on 2012-11-10 by Jeremy Bante <http://scr.im/jbante>.\n
+        *\n * REFERENCES:\n *\t\thttps://github.com/filemakerstandards/fmpstandards/blob/master/Functions/%23Name-Value/%23.fmfn\n
+        * =====================================\n */\n\nLet ( [\n\t~name =\t// strip
+        leading \"$$\" and \"$\"\n\t\tSubstitute (\n\t\t\t\"/*start*/\" & name ;\n\t\t\t[
+        \"/*start*/$$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/\"
+        ; \"\" ]\n\t\t) ;\n\t~plusOneText = GetAsText ( value + 1 ) ;\n\t~number =
+        GetAsNumber ( value ) ;\n\t~value =\n\t\tCase (\n\t\t\tvalue = \"\" or value
+        = \"?\" or ~number = \"?\" ;\n\t\t\t\tQuote ( value ) ;\n\n\t\t\tGetAsText
+        ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTimestamp
+        ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\tGetAsText ( GetAsTime ( value )
+        + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime ( \" & Quote ( value ) & \" )\"
+        ;\n\n\t\t\tGetAsText ( GetAsDate ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsDate
+        ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\tvalue ≠ ~number ;\n\t\t\t\tQuote
+        ( value ) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t) ;\n\t~result =\n\t\t\"$\"\n\t\t&
+        ~name\n\t\t& \" = \"\n\t\t& ~value\n\t\t& \" ;¶\" ;\n\t~testExpression =\n\t\t\"Let
+        ( [ \"\n\t\t& ~result\n\t\t& \" ~ = \\\"\\\" ]; \\\"\\\" )\" ;\n\t~error =\n\t\tCase
+        (\n\t\t\tIsEmpty ( ~name ) or Position ( ~name ; ¶ ; 1 ; 1 ) ≠ 0 ;\n\t\t\t\t11
+        ;\t// Name is not valid\n\n\t\t\tnot IsValidExpression ( ~testExpression )
+        ;\n\t\t\t\t1200\t// Generic calculation error\n\t\t)\n];\n\tIf ( ~error ;\t//
+        prevent bad pairs from affecting evaluation by commenting\n\t\t\"/* Error
+        \"\n\t\t& ~error\n\t\t& \" name: \"\n\t\t& Quote (\n\t\t\tSubstitute (\t//
+        escape comment character sequences\n\t\t\t\tname ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\"
+        ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" value: \"\n\t\t&
+        Quote (\n\t\t\tSubstitute (\t// escape comment character sequences\n\t\t\t\tvalue
+        ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t&
+        \" */\"\n\t\t& ¶ ;\n\t/* Else */\n\t\t~result\n\t)\n)\n\n) // end Let that
+        wraps the custom function ]"
+      Value:
+        Calculation: "$object\n\n// start of Let that wraps the custom function\n&
+          Let ( [\n\tname = $key ;\n\tvalue = Get ( ScriptResult )\n] ;\n\n/**\n *
+          =====================================\n * # ( name ; value )\n *\n * RETURNS:\n
+          *\t\tAn name-value pair in Let notation.\n *\n * PARAMETERS:\n *\t\tname:
+          The name for the returned name-value pair. name can be any value\n *\t\tthat
+          would be a valid Let() variable name.\n *\t\tvalue: The value for the returned
+          name-value pair.\n *\n * EXAMPLE:\n *\t\t# ( \"name\"; $value ) & # ( \"foo\"
+          ; \"bar\" )\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED
+          on 2014-06-06 by Jeremy Bante <http://scr.im/jbante> to fix an\n *\t\tissue
+          where long sequences of digits could be interpreted as timestamps.\n *\t\tMODIFIED
+          on 2014-05-25 by Jeremy Bante <http://scr.im/jbante> to detect\n *\t\ttype
+          using a different method suggested by Arnold Kegebein.\n *\t\tMODIFIED on
+          2013-12-24 by Jeremy Bante <http://scr.im/jbante> to return\n *\t\tan error
+          if name contains a carriage return (Char ( 13 )), and removing\n *\t\texplicit
+          encoding for line feeds.\n *\t\tMODIFIED on 2013-12-12 by John Jones <john.christopher@alumni.virginia.edu>\n
+          *\t\tto explicitly encode line feed characters in text values.\n *\t\tMODIFIED
+          on 2013-09-02 by Daniel Smith dansmith65@gmail.com to fix a\n *\t\ttype
+          misidentification bug.\n *\t\tMODIFIED on 2013-07-27 by Jeremy Bante <http://scr.im/jbante>
+          to fix a\n *\t\ttype misidentification bug.\n *\t\tMODIFIED on 2013-04-15
+          by Jeremy Bante <http://scr.im/jbante> to not\n *\t\twrap numbers in GetAsNumber.\n
+          *\t\tMODIFIED on 2013-01-14 by Daniel Smith dansmith65@gmail.com to include\n
+          *\t\ttrailing return on error result and accept a value of \"?\"\n *\t\tMODIFIED
+          on 2012-12-12 by Daniel Smith dansmith65@gmail.com to preserve\n *\t\tdata
+          type of value\n *\t\tMODIFIED on 2012-12-07 by Jeremy Bante <http://scr.im/jbante>
+          where an\n *\t\terror result could create invalid sytax for values containing
+          a comment\n *\t\tclose sequence.\n *\t\tMODIFIED on 2012-11-28 by Jeremy
+          Bante <http://scr.im/jbante> to return\n *\t\terror feedback, and to prefix
+          names with \"$\".\n *\t\tCREATED on 2012-11-10 by Jeremy Bante <http://scr.im/jbante>.\n
+          *\n * REFERENCES:\n *\t\thttps://github.com/filemakerstandards/fmpstandards/blob/master/Functions/%23Name-Value/%23.fmfn\n
+          * =====================================\n */\n\nLet ( [\n\t~name =\t// strip
+          leading \"$$\" and \"$\"\n\t\tSubstitute (\n\t\t\t\"/*start*/\" & name ;\n\t\t\t[
+          \"/*start*/$$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/\"
+          ; \"\" ]\n\t\t) ;\n\t~plusOneText = GetAsText ( value + 1 ) ;\n\t~number
+          = GetAsNumber ( value ) ;\n\t~value =\n\t\tCase (\n\t\t\tvalue = \"\" or
+          value = \"?\" or ~number = \"?\" ;\n\t\t\t\tQuote ( value ) ;\n\n\t\t\tGetAsText
+          ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTimestamp
+          ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\tGetAsText ( GetAsTime ( value
+          ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime ( \" & Quote ( value ) & \"
+          )\" ;\n\n\t\t\tGetAsText ( GetAsDate ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsDate
+          ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\tvalue ≠ ~number ;\n\t\t\t\tQuote
+          ( value ) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t) ;\n\t~result =\n\t\t\"$\"\n\t\t&
+          ~name\n\t\t& \" = \"\n\t\t& ~value\n\t\t& \" ;¶\" ;\n\t~testExpression =\n\t\t\"Let
+          ( [ \"\n\t\t& ~result\n\t\t& \" ~ = \\\"\\\" ]; \\\"\\\" )\" ;\n\t~error
+          =\n\t\tCase (\n\t\t\tIsEmpty ( ~name ) or Position ( ~name ; ¶ ; 1 ; 1 )
+          ≠ 0 ;\n\t\t\t\t11 ;\t// Name is not valid\n\n\t\t\tnot IsValidExpression
+          ( ~testExpression ) ;\n\t\t\t\t1200\t// Generic calculation error\n\t\t)\n];\n\tIf
+          ( ~error ;\t// prevent bad pairs from affecting evaluation by commenting\n\t\t\"/*
+          Error \"\n\t\t& ~error\n\t\t& \" name: \"\n\t\t& Quote (\n\t\t\tSubstitute
+          (\t// escape comment character sequences\n\t\t\t\tname ;\n\t\t\t\t[ \"*/\"
+          ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t&
+          \" value: \"\n\t\t& Quote (\n\t\t\tSubstitute (\t// escape comment character
+          sequences\n\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[
+          \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t& ¶ ;\n\t/* Else
+          */\n\t\t~result\n\t)\n)\n\n) // end Let that wraps the custom function"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            $object
+
+          - |
+            // start of Let that wraps the custom function
+          - '& '
+          - Let
+          - " ( [\n\tname = $key ;\n\tvalue = "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " )\n] ;\n\n/**\n * =====================================\n * # ( name
+            ; value )\n *\n * RETURNS:\n *\t\tAn name-value pair in Let notation.\n
+            *\n * PARAMETERS:\n *\t\tname: The name for the returned name-value pair.
+            name can be any value\n *\t\tthat would be a valid Let() variable name.\n
+            *\t\tvalue: The value for the returned name-value pair.\n *\n * EXAMPLE:\n
+            *\t\t# ( \"name\"; $value ) & # ( \"foo\" ; \"bar\" )\n *\n * DEPENDENCIES:
+            none\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-06-06 by Jeremy Bante <http://scr.im/jbante>
+            to fix an\n *\t\tissue where long sequences of digits could be interpreted
+            as timestamps.\n *\t\tMODIFIED on 2014-05-25 by Jeremy Bante <http://scr.im/jbante>
+            to detect\n *\t\ttype using a different method suggested by Arnold Kegebein.\n
+            *\t\tMODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to
+            return\n *\t\tan error if name contains a carriage return (Char ( 13 )),
+            and removing\n *\t\texplicit encoding for line feeds.\n *\t\tMODIFIED
+            on 2013-12-12 by John Jones <john.christopher@alumni.virginia.edu>\n *\t\tto
+            explicitly encode line feed characters in text values.\n *\t\tMODIFIED
+            on 2013-09-02 by Daniel Smith dansmith65@gmail.com to fix a\n *\t\ttype
+            misidentification bug.\n *\t\tMODIFIED on 2013-07-27 by Jeremy Bante <http://scr.im/jbante>
+            to fix a\n *\t\ttype misidentification bug.\n *\t\tMODIFIED on 2013-04-15
+            by Jeremy Bante <http://scr.im/jbante> to not\n *\t\twrap numbers in GetAsNumber.\n
+            *\t\tMODIFIED on 2013-01-14 by Daniel Smith dansmith65@gmail.com to include\n
+            *\t\ttrailing return on error result and accept a value of \"?\"\n *\t\tMODIFIED
+            on 2012-12-12 by Daniel Smith dansmith65@gmail.com to preserve\n *\t\tdata
+            type of value\n *\t\tMODIFIED on 2012-12-07 by Jeremy Bante <http://scr.im/jbante>
+            where an\n *\t\terror result could create invalid sytax for values containing
+            a comment\n *\t\tclose sequence.\n *\t\tMODIFIED on 2012-11-28 by Jeremy
+            Bante <http://scr.im/jbante> to return\n *\t\terror feedback, and to prefix
+            names with \"$\".\n *\t\tCREATED on 2012-11-10 by Jeremy Bante <http://scr.im/jbante>.\n
+            *\n * REFERENCES:\n *\t\thttps://github.com/filemakerstandards/fmpstandards/blob/master/Functions/%23Name-Value/%23.fmfn\n
+            * =====================================\n */\n\n"
+          - Let
+          - " ( [\n\t~name =\t"
+          - |
+            // strip leading "$$" and "$"
+          - type: NoRef
+            __content__: "\t\t"
+          - Substitute
+          - " (\n\t\t\t\"/*start*/\" & name ;\n\t\t\t[ \"/*start*/$$\" ; \"\" ] ;\n\t\t\t[
+            \"/*start*/$\" ; \"\" ] ;\n\t\t\t[ \"/*start*/\" ; \"\" ]\n\t\t) ;\n\t~plusOneText
+            = "
+          - GetAsText
+          - " ( value + 1 ) ;\n\t~number = "
+          - GetAsNumber
+          - " ( value ) ;\n\t~value =\n\t\t"
+          - Case
+          - " (\n\t\t\tvalue = \"\" "
+          - or
+          - ' value = "?" '
+          - or
+          - " ~number = \"?\" ;\n\t\t\t\t"
+          - Quote
+          - " ( value ) ;\n\n\t\t\t"
+          - GetAsText
+          - ' ( '
+          - GetAsTimestamp
+          - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTimestamp ( \" & "
+          - Quote
+          - " ( value ) & \" )\" ;\n\n\t\t\t"
+          - GetAsText
+          - ' ( '
+          - GetAsTime
+          - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime ( \" & "
+          - Quote
+          - " ( value ) & \" )\" ;\n\n\t\t\t"
+          - GetAsText
+          - ' ( '
+          - GetAsDate
+          - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsDate ( \" & "
+          - Quote
+          - " ( value ) & \" )\" ;\n\n\t\t\tvalue ≠ ~number ;\n\t\t\t\t"
+          - Quote
+          - " ( value ) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t) ;\n\t~result
+            =\n\t\t\"$\"\n\t\t& ~name\n\t\t& \" = \"\n\t\t& ~value\n\t\t& \" ;¶\"
+            ;\n\t~testExpression =\n\t\t\"Let ( [ \"\n\t\t& ~result\n\t\t& \" ~ =
+            \\\"\\\" ]; \\\"\\\" )\" ;\n\t~error =\n\t\t"
+          - Case
+          - " (\n\t\t\t"
+          - IsEmpty
+          - ' ( ~name ) '
+          - or
+          - type: NoRef
+            __content__: ' '
+          - Position
+          - " ( ~name ; ¶ ; 1 ; 1 ) ≠ 0 ;\n\t\t\t\t11 ;\t"
+          - |
+            // Name is not valid
+          - type: NoRef
+            __content__: "\n\t\t\t"
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsValidExpression
+          - " ( ~testExpression ) ;\n\t\t\t\t1200\t"
+          - |
+            // Generic calculation error
+          - "\t\t)\n];\n\t"
+          - If
+          - " ( ~error ;\t"
+          - |
+            // prevent bad pairs from affecting evaluation by commenting
+          - "\t\t\"/* Error \"\n\t\t& ~error\n\t\t& \" name: \"\n\t\t& "
+          - Quote
+          - " (\n\t\t\t"
+          - Substitute
+          - " (\t"
+          - |
+            // escape comment character sequences
+          - "\t\t\t\tname ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ;
+            \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" value: \"\n\t\t& "
+          - Quote
+          - " (\n\t\t\t"
+          - Substitute
+          - " (\t"
+          - |
+            // escape comment character sequences
+          - "\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\"
+            ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t& ¶ ;\n\t/* Else */\n\t\t~result\n\t)\n)\n\n) "
+          - // end Let that wraps the custom function
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $object
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "}" ]
+      Calculation: $$~JSON.CH = "}"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "}"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "}" ]'
+      Calculation: '"}"'
+      DisplayCalculation:
+        Chunk: '"}"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $object ]'
+      Calculation: $object
+      DisplayCalculation:
+        Chunk: $object
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "," ]'
+      Calculation: '","'
+      DisplayCalculation:
+        Chunk: '","'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Error { message }”; Parameter: "Bad object"
+        ]'
+      Calculation: '"Bad object"'
+      DisplayCalculation:
+        Chunk: '"Bad object"'
+      Script:
+        id: '201'
+        name: ~JSON-FM Error { message }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

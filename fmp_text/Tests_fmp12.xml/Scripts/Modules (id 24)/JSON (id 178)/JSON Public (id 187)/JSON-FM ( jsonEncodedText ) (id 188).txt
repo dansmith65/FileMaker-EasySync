@@ -1,0 +1,307 @@
+################################################################################
+# PURPOSE:
+#    Parse JSON encoded text into a format that can be read via custom functions.
+#
+# PARAMETERS:
+#    jsonEncodedText | text | json encoded text
+#
+# RETURNS:
+#    encoded text
+#
+# VARIABLES:
+#    $$~JSON.AT
+#    $$~JSON.CH
+#    $$~JSON.TEXT
+#
+# NOTES:
+#    Copied as closely as possible from this code: https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+# Initiate global variables used by sub-scripts
+Set Variable [ $$~JSON.AT; Value:1 ]
+Set Variable [ $$~JSON.CH; Value:" " ]
+Set Variable [ $$~JSON.TEXT; Value:Get ( ScriptParameter ) ]
+#
+#
+Perform Script [ “~JSON-FM Value” ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+#
+#
+# Clear global variables
+Set Variable [ $$~JSON.AT; Value:"" ]
+Set Variable [ $$~JSON.CH; Value:"" ]
+Set Variable [ $$~JSON.TEXT; Value:"" ]
+#
+#
+Exit Script [ Result: $result ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '188'
+  name: JSON-FM ( jsonEncodedText )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Parse JSON encoded text into a format that can be read via custom
+        functions.'
+      Text: '    Parse JSON encoded text into a format that can be read via custom
+        functions.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    jsonEncodedText | text | json encoded text'
+      Text: '    jsonEncodedText | text | json encoded text'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    encoded text'
+      Text: '    encoded text'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# VARIABLES:'
+      Text: ' VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $$~JSON.AT'
+      Text: '    $$~JSON.AT'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $$~JSON.CH'
+      Text: '    $$~JSON.CH'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $$~JSON.TEXT'
+      Text: '    $$~JSON.TEXT'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Copied as closely as possible from this code: https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js'
+      Text: '    Copied as closely as possible from this code: https://github.com/douglascrockford/JSON-js/blob/master/json_parse.js'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Initiate global variables used by sub-scripts'
+      Text: ' Initiate global variables used by sub-scripts'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.AT; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.AT
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.CH; Value:" " ]
+      Value:
+        Calculation: '" "'
+        DisplayCalculation:
+          Chunk: '" "'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.CH
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.TEXT; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.TEXT
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Value” ]
+      Script:
+        id: '193'
+        name: ~JSON-FM Value
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Clear global variables'
+      Text: ' Clear global variables'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.AT; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.AT
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.CH; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.CH
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.TEXT; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.TEXT
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result

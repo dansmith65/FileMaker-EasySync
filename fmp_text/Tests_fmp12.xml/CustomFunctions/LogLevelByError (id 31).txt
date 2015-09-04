@@ -1,0 +1,199 @@
+/**
+ * =====================================
+ * logLevelByError ( theErrorData )
+ *
+ * PURPOSE:
+ *		Convert an error into the default log level for that error.
+ *
+ * RETURNS:
+ *		(number) log level
+ *
+ * PARAMETERS:
+ *		theErrorData = (let notation) output of Error custom function
+ *
+ * EXAMPLE:
+ *		logLevelByError ( $error )
+ *
+ * NOTES:
+ *		 It's probably not appropriate to use this function to specify the log
+ *		 level for every error, but it is useful for mapping common errors to
+ *		 common log levels.
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-FEB-08 Daniel Smith dansmith65@gmail.com
+ *			- increase log level for permissions related issues
+ *			- add comment explaining what each error code/group means
+ *		CREATED on 2014-JAN-31 Daniel Smith dansmith65@gmail.com
+ *
+ * REFERENCE:
+ *		http://filemakerstandards.org/display/props/Logging
+ * =====================================
+ */
+
+Let ( [
+	~errorType = #Get ( theErrorData ; "errorType" ) ;
+	~errorCode = #Get ( theErrorData ; "errorCode" )
+] ;
+	Case (
+		~errorCode = 0 ;
+		5 ;
+		
+		// APP
+		~errorType = "App" ;
+		Case (
+			~errorCode = 1 ;	4 ;
+			// default
+			2
+		) ;
+		
+		// FMP
+		~errorType = "Fmp" ;
+		Case (
+			~errorCode = 1 ;	4 ;	// User cancelled action
+			~errorCode = 9 ;	2 ;	// Insufficient privileges
+			~errorCode = 20 ;	4 ;	// Command/operation cancelled by triggered script
+			~errorCode ≥ 200 and ~errorCode <= 213 ;	2 ;	// misc. permissions errors
+			~errorCode ≥ 215 and ~errorCode <= 218 ;	2 ;	// misc. permissions errors
+			~errorCode ≥ 300 and ~errorCode <= 304 ;	3 ;	// in use by others
+			~errorCode = 400 ;	3 ;	// Find criteria are empty
+			~errorCode = 401 ;	3 ;	// No records match the request
+			~errorCode ≥ 500 and ~errorCode <= 599 ;	3 ;	// validation
+			~errorCode = 805 ;	1 ;	// File is damaged; use Recover command
+			~errorCode ≥ 807 and ~errorCode <= 810 ;	1 ;	// file/file system errors
+			~errorCode = 813 ;	1 ;	// Record Synchronization error on network
+			~errorCode = 824 ;	1 ;	// File is damaged or not a FileMaker file
+			// default
+			2
+		) ;
+		
+		// ALL OTHER
+		2
+	)
+)
+
+---
+CustomFunction:
+  id: '31'
+  functionArity: '1'
+  visible: 'True'
+  parameters: theErrorData
+  name: LogLevelByError
+  Calculation: "/**\n * =====================================\n * logLevelByError
+    ( theErrorData )\n *\n * PURPOSE:\n *\t\tConvert an error into the default log
+    level for that error.\n *\n * RETURNS:\n *\t\t(number) log level\n *\n * PARAMETERS:\n
+    *\t\ttheErrorData = (let notation) output of Error custom function\n *\n * EXAMPLE:\n
+    *\t\tlogLevelByError ( $error )\n *\n * NOTES:\n *\t\t It's probably not appropriate
+    to use this function to specify the log\n *\t\t level for every error, but it
+    is useful for mapping common errors to\n *\t\t common log levels.\n *\n * HISTORY:\n
+    *\t\tMODIFIED on 2014-FEB-08 Daniel Smith dansmith65@gmail.com\n *\t\t\t- increase
+    log level for permissions related issues\n *\t\t\t- add comment explaining what
+    each error code/group means\n *\t\tCREATED on 2014-JAN-31 Daniel Smith dansmith65@gmail.com\n
+    *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n
+    * =====================================\n */\n\nLet ( [\n\t~errorType = #Get (
+    theErrorData ; \"errorType\" ) ;\n\t~errorCode = #Get ( theErrorData ; \"errorCode\"
+    )\n] ;\n\tCase (\n\t\t~errorCode = 0 ;\n\t\t5 ;\n\t\t\n\t\t// APP\n\t\t~errorType
+    = \"App\" ;\n\t\tCase (\n\t\t\t~errorCode = 1 ;\t4 ;\n\t\t\t// default\n\t\t\t2\n\t\t)
+    ;\n\t\t\n\t\t// FMP\n\t\t~errorType = \"Fmp\" ;\n\t\tCase (\n\t\t\t~errorCode
+    = 1 ;\t4 ;\t// User cancelled action\n\t\t\t~errorCode = 9 ;\t2 ;\t// Insufficient
+    privileges\n\t\t\t~errorCode = 20 ;\t4 ;\t// Command/operation cancelled by triggered
+    script\n\t\t\t~errorCode ≥ 200 and ~errorCode <= 213 ;\t2 ;\t// misc. permissions
+    errors\n\t\t\t~errorCode ≥ 215 and ~errorCode <= 218 ;\t2 ;\t// misc. permissions
+    errors\n\t\t\t~errorCode ≥ 300 and ~errorCode <= 304 ;\t3 ;\t// in use by others\n\t\t\t~errorCode
+    = 400 ;\t3 ;\t// Find criteria are empty\n\t\t\t~errorCode = 401 ;\t3 ;\t// No
+    records match the request\n\t\t\t~errorCode ≥ 500 and ~errorCode <= 599 ;\t3 ;\t//
+    validation\n\t\t\t~errorCode = 805 ;\t1 ;\t// File is damaged; use Recover command\n\t\t\t~errorCode
+    ≥ 807 and ~errorCode <= 810 ;\t1 ;\t// file/file system errors\n\t\t\t~errorCode
+    = 813 ;\t1 ;\t// Record Synchronization error on network\n\t\t\t~errorCode = 824
+    ;\t1 ;\t// File is damaged or not a FileMaker file\n\t\t\t// default\n\t\t\t2\n\t\t)
+    ;\n\t\t\n\t\t// ALL OTHER\n\t\t2\n\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * logLevelByError ( theErrorData
+      )\n *\n * PURPOSE:\n *\t\tConvert an error into the default log level for that
+      error.\n *\n * RETURNS:\n *\t\t(number) log level\n *\n * PARAMETERS:\n *\t\ttheErrorData
+      = (let notation) output of Error custom function\n *\n * EXAMPLE:\n *\t\tlogLevelByError
+      ( $error )\n *\n * NOTES:\n *\t\t It's probably not appropriate to use this
+      function to specify the log\n *\t\t level for every error, but it is useful
+      for mapping common errors to\n *\t\t common log levels.\n *\n * HISTORY:\n *\t\tMODIFIED
+      on 2014-FEB-08 Daniel Smith dansmith65@gmail.com\n *\t\t\t- increase log level
+      for permissions related issues\n *\t\t\t- add comment explaining what each error
+      code/group means\n *\t\tCREATED on 2014-JAN-31 Daniel Smith dansmith65@gmail.com\n
+      *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t~errorType = "
+    - '#Get'
+    - " ( theErrorData ; \"errorType\" ) ;\n\t~errorCode = "
+    - '#Get'
+    - " ( theErrorData ; \"errorCode\" )\n] ;\n\t"
+    - Case
+    - " (\n\t\t~errorCode = 0 ;\n\t\t5 ;\n\t\t\n\t\t"
+    - |
+      // APP
+    - "\t\t~errorType = \"App\" ;\n\t\t"
+    - Case
+    - " (\n\t\t\t~errorCode = 1 ;\t4 ;\n\t\t\t"
+    - |
+      // default
+    - "\t\t\t2\n\t\t) ;\n\t\t\n\t\t"
+    - |
+      // FMP
+    - "\t\t~errorType = \"Fmp\" ;\n\t\t"
+    - Case
+    - " (\n\t\t\t~errorCode = 1 ;\t4 ;\t"
+    - |
+      // User cancelled action
+    - "\t\t\t~errorCode = 9 ;\t2 ;\t"
+    - |
+      // Insufficient privileges
+    - "\t\t\t~errorCode = 20 ;\t4 ;\t"
+    - |
+      // Command/operation cancelled by triggered script
+    - "\t\t\t~errorCode ≥ 200 "
+    - and
+    - " ~errorCode <= 213 ;\t2 ;\t"
+    - |
+      // misc. permissions errors
+    - "\t\t\t~errorCode ≥ 215 "
+    - and
+    - " ~errorCode <= 218 ;\t2 ;\t"
+    - |
+      // misc. permissions errors
+    - "\t\t\t~errorCode ≥ 300 "
+    - and
+    - " ~errorCode <= 304 ;\t3 ;\t"
+    - |
+      // in use by others
+    - "\t\t\t~errorCode = 400 ;\t3 ;\t"
+    - |
+      // Find criteria are empty
+    - "\t\t\t~errorCode = 401 ;\t3 ;\t"
+    - |
+      // No records match the request
+    - "\t\t\t~errorCode ≥ 500 "
+    - and
+    - " ~errorCode <= 599 ;\t3 ;\t"
+    - |
+      // validation
+    - "\t\t\t~errorCode = 805 ;\t1 ;\t"
+    - |
+      // File is damaged; use Recover command
+    - "\t\t\t~errorCode ≥ 807 "
+    - and
+    - " ~errorCode <= 810 ;\t1 ;\t"
+    - |
+      // file/file system errors
+    - "\t\t\t~errorCode = 813 ;\t1 ;\t"
+    - |
+      // Record Synchronization error on network
+    - "\t\t\t~errorCode = 824 ;\t1 ;\t"
+    - |
+      // File is damaged or not a FileMaker file
+    - type: NoRef
+      __content__: "\t\t\t"
+    - |
+      // default
+    - "\t\t\t2\n\t\t) ;\n\t\t\n\t\t"
+    - |
+      // ALL OTHER
+    - "\t\t2\n\t)\n)"

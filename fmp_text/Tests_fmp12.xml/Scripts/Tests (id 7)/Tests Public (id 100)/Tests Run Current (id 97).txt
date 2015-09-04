@@ -1,0 +1,147 @@
+#
+#
+Set Variable [ $runOnServer; Value:SEL__SELECTOR::runOnServerand/* hosted */not IsEmpty ( Get ( HostIPAddress ) ) ]
+#
+#
+If [ $runOnServer ]
+Commit Records/Requests[ No dialog ]
+Perform Script on Server [ “~Tests: Run ( idList_Test )”; Parameter: TES__Test::id ]
+Else
+Perform Script [ “~Tests: Run Current” ]
+End If
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '97'
+  name: 'Tests: Run Current'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $runOnServer; Value:SEL__SELECTOR::runOnServer
+
+        and
+
+        /* hosted */
+        not IsEmpty ( Get ( HostIPAddress ) ) ]
+      Value:
+        Calculation: |-
+          SEL__SELECTOR::runOnServer
+
+          and
+
+          /* hosted */
+          not IsEmpty ( Get ( HostIPAddress ) )
+        DisplayCalculation:
+          Chunk:
+          - type: FieldRef
+            Field:
+              table: SEL__SELECTOR
+              id: '10'
+              name: runOnServer
+          - type: NoRef
+            __content__: |2+
+
+
+          - and
+          - |2
+
+
+            /* hosted */
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( '
+          - Get
+          - ' ( '
+          - HostIPAddress
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $runOnServer
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $runOnServer ]
+      Calculation: $runOnServer
+      DisplayCalculation:
+        Chunk: $runOnServer
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '164'
+      name: Perform Script on Server
+      StepText: 'Perform Script on Server [ “~Tests: Run ( idList_Test )”; Parameter:
+        TES__Test::id ]'
+      WaitForCompletion:
+        state: 'False'
+      Calculation: TES__Test::id
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: TES__Test
+            id: '1'
+            name: id
+      Script:
+        id: '214'
+        name: '~Tests: Run ( idList_Test )'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Run Current” ]'
+      Script:
+        id: '105'
+        name: '~Tests: Run Current'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

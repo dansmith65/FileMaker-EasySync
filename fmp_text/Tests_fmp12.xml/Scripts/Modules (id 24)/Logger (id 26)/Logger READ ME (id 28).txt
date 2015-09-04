@@ -1,0 +1,440 @@
+###########################################################################
+#
+#
+# Logger
+#
+# Created by Daniel Smith, dansmith65@gmail.com
+#	
+# Provide an interface for logging.
+#
+# Rather than calling a logging routine directly, use this "interface" module, which provides these advantages:
+#    - can easily re-route all logging done by the file it's installed in to different destination
+#    - can programatically "filter" log entries before sending them to a log writer
+#    - use conditional logic to determine which log writer to use
+#    - provide a standardized/generic script name that can be referenced by other modules
+#
+#
+###########################################################################
+#
+#
+#
+# REQUIRES
+#        - a compatible Log Writer module in any accessable file
+#
+#
+#
+# INTEGRATION
+#        1. import custom functions:
+#                - [optional] Only required if using the sample Filter feature:
+#                        LogLevel* suite of functions
+#                        LogNotFiltered
+#
+#        2. import module script folder
+#
+#        3. adjust privileges:
+#                To allow a user to create log entries:
+#                        Scripts
+#                                - run all scripts in the module folder
+#
+#        4. modify "Logger: Create Entry ( logData )" script as nesscessary
+#                Some items to consider are:
+#                        - which file should the log be written to?
+#                        - can a more effiicent writer be used depending on the current platform?
+#                        - should every log entry be written, or should only logs of a specified severity be written?
+#                        - should the log entry be sent to multiple log writers?
+#                                - perhaps the highest log levels should generate an email?
+#
+#        5. run "Logger: Test Installation" script
+#
+#
+#
+# INSTRUCTIONS FOR USE
+#        - install this module in every file of your solution
+#        - call script: "Logger: Create Entry ( logData )" with the data you want logged in the parameter
+#        - it is highly recommended to generate logData by using the Error* and Log* suite of custom functions
+#                - after installing the ErrorApp function, review the NOTE section in it's documentation
+#        - consider installing a Log Viewer module for viewing log entries
+#
+#
+#
+# LICENSE:
+#        The MIT License (MIT)Copyright (c) 2014 Daniel SmithPermission is hereby granted, free of charge, to any person obtaining a copyof this software and associated documentation files (the "Software"), to dealin the Software without restriction, including without limitation the rightsto use, copy, modify, merge, publish, distribute, sublicense, and/or sellcopies of the Software, and to permit persons to whom the Software isfurnished to do so, subject to the following conditions:The above copyright notice and this permission notice shall be included inall copies or substantial portions of the Software.THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS ORIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THEAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHERLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS INTHE SOFTWARE.
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '28'
+  name: 'Logger: READ ME'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '###########################################################################'
+      Text: '##########################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Logger'
+      Text: ' Logger'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created by Daniel Smith, dansmith65@gmail.com'
+      Text: ' Created by Daniel Smith, dansmith65@gmail.com'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#\t"
+      Text: "\t"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Provide an interface for logging.'
+      Text: ' Provide an interface for logging.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Rather than calling a logging routine directly, use this "interface"
+        module, which provides these advantages:'
+      Text: ' Rather than calling a logging routine directly, use this "interface"
+        module, which provides these advantages:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    - can easily re-route all logging done by the file it''s installed
+        in to different destination'
+      Text: '    - can easily re-route all logging done by the file it''s installed
+        in to different destination'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    - can programatically "filter" log entries before sending them
+        to a log writer'
+      Text: '    - can programatically "filter" log entries before sending them to
+        a log writer'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    - use conditional logic to determine which log writer to use'
+      Text: '    - use conditional logic to determine which log writer to use'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    - provide a standardized/generic script name that can be referenced
+        by other modules'
+      Text: '    - provide a standardized/generic script name that can be referenced
+        by other modules'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '###########################################################################'
+      Text: '##########################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REQUIRES'
+      Text: ' REQUIRES'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        - a compatible Log Writer module in any accessable file'
+      Text: '        - a compatible Log Writer module in any accessable file'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# INTEGRATION'
+      Text: ' INTEGRATION'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        1. import custom functions:'
+      Text: '        1. import custom functions:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                - [optional] Only required if using the sample Filter
+        feature:'
+      Text: '                - [optional] Only required if using the sample Filter
+        feature:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        LogLevel* suite of functions'
+      Text: '                        LogLevel* suite of functions'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        LogNotFiltered'
+      Text: '                        LogNotFiltered'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |
+        #        2. import module script folder
+      Text: |2
+                2. import module script folder
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |
+        #        3. adjust privileges:
+      Text: |2
+                3. adjust privileges:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |
+        #                To allow a user to create log entries:
+      Text: |2
+                        To allow a user to create log entries:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |
+        #                        Scripts
+      Text: |2
+                                Scripts
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                                - run all scripts in the module
+        folder'
+      Text: '                                - run all scripts in the module folder'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        4. modify "Logger: Create Entry ( logData )" script as nesscessary'
+      Text: '        4. modify "Logger: Create Entry ( logData )" script as nesscessary'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                Some items to consider are:'
+      Text: '                Some items to consider are:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - which file should the log be written to?'
+      Text: '                        - which file should the log be written to?'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - can a more effiicent writer be used depending
+        on the current platform?'
+      Text: '                        - can a more effiicent writer be used depending
+        on the current platform?'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - should every log entry be written, or
+        should only logs of a specified severity be written?'
+      Text: '                        - should every log entry be written, or should
+        only logs of a specified severity be written?'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                        - should the log entry be sent to multiple
+        log writers?'
+      Text: '                        - should the log entry be sent to multiple log
+        writers?'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                                - perhaps the highest log levels
+        should generate an email?'
+      Text: '                                - perhaps the highest log levels should
+        generate an email?'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        5. run "Logger: Test Installation" script'
+      Text: '        5. run "Logger: Test Installation" script'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# INSTRUCTIONS FOR USE'
+      Text: ' INSTRUCTIONS FOR USE'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        - install this module in every file of your solution'
+      Text: '        - install this module in every file of your solution'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        - call script: "Logger: Create Entry ( logData )" with the
+        data you want logged in the parameter'
+      Text: '        - call script: "Logger: Create Entry ( logData )" with the data
+        you want logged in the parameter'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        - it is highly recommended to generate logData by using
+        the Error* and Log* suite of custom functions'
+      Text: '        - it is highly recommended to generate logData by using the Error*
+        and Log* suite of custom functions'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#                - after installing the ErrorApp function, review
+        the NOTE section in it''s documentation'
+      Text: '                - after installing the ErrorApp function, review the
+        NOTE section in it''s documentation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#        - consider installing a Log Viewer module for viewing log
+        entries'
+      Text: '        - consider installing a Log Viewer module for viewing log entries'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# LICENSE:'
+      Text: ' LICENSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        #        The MIT License (MIT)
+
+        Copyright (c) 2014 Daniel Smith
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+        THE SOFTWARE.
+      Text: |2-
+                The MIT License (MIT)
+
+        Copyright (c) 2014 Daniel Smith
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in
+        all copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+        THE SOFTWARE.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

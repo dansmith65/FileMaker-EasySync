@@ -1,0 +1,29 @@
+     Layout name:  -                        
+              id:  12                       
+           Table:  TPA__TestParameter       
+           Theme:  Enlightened              
+
+         Objects:                           
+
+
+---
+Layout:
+  width: '1024'
+  quickFind: 'True'
+  includeInMenu: 'True'
+  id: '12'
+  name: '-'
+  Table:
+    id: '1065097'
+    name: TPA__TestParameter
+  CustomMenuSet:
+    id: '0'
+    name: ''
+  Theme:
+    name: Enlightened
+    id: '03'
+  Options:
+    showRecordIndicator: 'True'
+    showFieldFramesCurrentRecord: 'True'
+    showFieldFrames: 'False'
+    saveRecord: 'True'

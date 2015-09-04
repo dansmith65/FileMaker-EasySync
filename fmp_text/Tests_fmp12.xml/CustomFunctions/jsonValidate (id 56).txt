@@ -1,0 +1,69 @@
+/**
+ * =====================================
+ * jsonValidate ( json )
+ *
+ *   validates a JSON String
+ *
+ * RETURNS:
+ *		1 if valid, and an error string if invalid. the errorString will equal FALSE
+ *
+ * PARAMETERS:
+ *		json - the json string to validate
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ *		CREATED on 2015-JAN-08 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+Let([
+json = BE_JSONPath ( json ; "$" )
+];
+
+Case(
+   json = "?" ; BE_JSON_Error_Description;
+   1
+)
+)
+
+---
+CustomFunction:
+  id: '56'
+  functionArity: '1'
+  visible: 'True'
+  parameters: json
+  name: jsonValidate
+  Calculation: "/**\n * =====================================\n * jsonValidate ( json
+    )\n *\n *   validates a JSON String\n *\n * RETURNS:\n *\t\t1 if valid, and an
+    error string if invalid. the errorString will equal FALSE\n *\n * PARAMETERS:\n
+    *\t\tjson - the json string to validate\n *\n * DEPENDENCIES:\n *\t\tBaseElements
+    Plugin version 3.0 or greater\n *\n * HISTORY:\n *\t\tCREATED on 2015-JAN-08 Todd
+    Geist, todd@geistinteractive.com\n *\n * =====================================\n
+    */\n\nLet([\njson = BE_JSONPath ( json ; \"$\" )\n];\n\nCase(\n   json = \"?\"
+    ; BE_JSON_Error_Description;\n   1\n)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonValidate ( json )\n *\n
+      *   validates a JSON String\n *\n * RETURNS:\n *\t\t1 if valid, and an error
+      string if invalid. the errorString will equal FALSE\n *\n * PARAMETERS:\n *\t\tjson
+      - the json string to validate\n *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin
+      version 3.0 or greater\n *\n * HISTORY:\n *\t\tCREATED on 2015-JAN-08 Todd Geist,
+      todd@geistinteractive.com\n *\n * =====================================\n */\n\n"
+    - Let
+    - "([\njson = "
+    - BE_JSONPath
+    - |2+
+       ( json ; "$" )
+      ];
+
+    - Case
+    - "(\n   json = \"?\" ; "
+    - BE_JSON_Error_Description
+    - |-
+      ;
+         1
+      )
+      )

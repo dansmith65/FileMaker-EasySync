@@ -1,0 +1,525 @@
+//time.Convert ( TmStamp ; offset ; FromForm ; ToForm)
+//Author: Rob Poelking rob@ohiokajukenbo.com
+//Version 1.0
+//2010-05-21
+/*
+Allowable form keys: FM, FileMaker, Unix, SQL, XML
+Offset entered as a signed number or time, or military time zone (valid exampls:  -5, +3:00, Z)
+Fractional seconds are rounded
+*/
+
+Let([
+	ts = TmStamp ;
+	fs = offset ;
+	Fr = FromForm ; 
+	To = ToForm ; 
+	
+	//	Validate inputs
+		FormList = List (
+				"fm";
+				"filemaker";
+				"unix";
+				"sql";
+				"xml");
+		FrValid = ValueCount ( FilterValues ( Fr ; FormList ) ) ;
+		ToValid = ValueCount ( FilterValues ( To ; FormList ) ) ; 
+		MilTZa = "ABCDEFGHIKLM";
+		MilTZb = "NOPQRSTUVWXY" ;
+		MilTZc = "Z" ; 
+		fs = Case (
+				IsEmpty ( fs )  ; 0 ; 
+				ValueCount( Filter (fs ; MilTZa ) ) ; -1 * GetAsNumber ( Position( MilTZa; Upper (fs); 1; 1 )) * 3600 ;
+				ValueCount( Filter (fs ; MilTZb ) ) ; +1 * GetAsNumber ( Position( MilTZb; Upper (fs); 1; 1 )) * 3600 ;
+				ValueCount( Filter (fs ; MilTZc ) ) ; 0 ;
+				PatternCount( fs; ":" )	; GetAsNumber ( GetAsTime ( Substitute ( fs ; "+" ; "" ))) / 3600 /*ss in one hour*/ ; 
+				GetAsNumber ( fs * 3600 )
+
+				) ;
+
+
+		fromFM = ValueCount( FilterValues( "FM¶FileMaker"; fr ) ) ; 
+		fromUnix = ValueCount( FilterValues( "unix"; fr ) ) ; 
+		fromSQL = ValueCount( FilterValues( "SQL"; fr ) ) ; 
+		fromXML = ValueCount( FilterValues( "XML"; fr ) ) ; 
+
+		toFM = ValueCount( FilterValues( "FM¶FileMaker"; to ) ) ; 
+		toUnix = ValueCount( FilterValues( "unix"; to ) ) ; 
+		toSQL = ValueCount( FilterValues( "SQL"; to ) ) ; 
+		toXML = ValueCount( FilterValues( "XML"; to ) ) ; 
+
+	//Format strings	
+		FMTSFormat = "mm/dd/yyyy hh:nn:ss" ;
+		NIXTSFormat = 0 ; //N/A Unix is a signed number value that represents dates from 1901-12-13 to 2038-1-19 03:14:07UTC
+		SQLTSFormat = "yyyy-mm-dd hh:nn:ss";
+		XMLTSFormat = "yyyy-mm-ddThh:nn:ss[~offset]" ; //optionally can have an offset
+
+		Valid = frValid and toValid ; 
+
+		fromTS = 
+			Case (
+				fromFM ; GetAsTimestamp ( ts ) ; 
+
+				fromUnix ; 
+					Let ([
+						ts = GetAsNumber ( ts ) ; 
+						epoch = GetAsNumber ( GetAsTimestamp ( "1/1/1970 0:00:00" ) ) ; //Unix standard epoch = 0
+						sgn = Sign ( ts ) ; 
+						fs = sgn * GetAsNumber (fs) 
+						] ; GetAsTimestamp ( epoch + ts + fs )) ; 
+
+				fromSQL ; 
+					Let ([
+						yyyy = Left ( ts ; 4 ) ; 
+						mm = Middle (ts ; 6 ; 2 ) ; 
+						dd = Middle ( ts ; 9 ;2 ) ; 
+						hh = Middle ( ts ; 12 ; 2 );
+						nn = Middle ( ts ; 15 ; 2 ) ; 
+						ss = Middle ( ts ; 18 ; 2 )
+						];GetAsTimestamp (  
+								(Substitute ( FMTSFormat ;
+								["yyyy" ; yyyy ];
+								["mm" ; mm];
+								["dd" ; dd];
+								["hh";hh];
+								["nn";nn];
+								["ss";ss]
+								)))) ; 
+
+				fromXML ; 
+					Let ([
+						yyyy = Left ( ts ; 4 ) ; 
+						mm = Middle (ts ; 6 ; 2 ) ; 
+						dd = Middle ( ts ; 9 ;2 ) ; 
+						hh = Middle ( ts ; 12 ; 2 );
+						nn = Middle ( ts ; 15 ; 2 ) ; 
+						ss = Middle ( ts ; 18 ; 2 );
+						fs1 =  GetAsTime ( Right ( ts ; Length ( ts) - 19 )) 
+						];GetAsTimestamp (  
+								(Substitute ( FMTSFormat ;
+								["yyyy" ; yyyy ];
+								["mm" ; mm];
+								["dd" ; dd];
+								["hh";hh];
+								["nn";nn];
+								["ss";ss]
+								)  ) )- fs1)
+				) ; 
+		toTS = Case (
+			toFM ; fromTS ; 
+			
+			toUnix ; 
+				Let ([
+					ts = fromTS ; 
+					epoch = GetAsNumber ( GetAsTimestamp ( "1/1/1970 0:00:00" ) ) ; //Unix standard epoch = 0
+					sgn = Sign ( ts ) ; 
+					fs = sgn * GetAsNumber (fs) 
+					] ; GetAsNumber (( ts - epoch + fs ))) ;
+					
+			toSQL ; 
+				Let ([
+					ts = fromTS ; 
+					yyyy = Year ( ts ) ; 
+					mm = Right ( "00" & Month ( ts) ; 2 ) ; 
+					dd = Right ( "00" & Day (ts) ; 2) ; 
+					hh = Right ( "00" & ( Hour (ts) ) ; 2 );
+					nn = Right ( "00" & Minute (ts) ; 2 ) ; 
+					ss = Right ( "00" & Seconds ( ts) ; 2)
+					] ;
+
+					Substitute ( SQLTSFormat ;
+						["yyyy" ; yyyy ];
+						["mm" ; mm];
+						["dd" ; dd];
+						["hh";hh];
+						["nn";nn];
+						["ss";ss]
+						)
+				);
+			
+			toXML ;  
+				Let ([
+					ts = fromTS ; 
+					yyyy = Year ( ts ) ; 
+					mm = Right ( "00" & Month (ts) ; 2 ) ; 
+					dd = Right ( "00" & Day (ts) ; 2) ; 
+					hh = Right ( "00" & Hour (ts) ; 2 );
+					nn = Right ( "00" & Minute (ts) ; 2 ) ; 
+					ss = Right ( "00" & Seconds (ts) ; 2) ;
+					sgn = Sign (fs) ; 
+					sg = If ( sgn > 1 ; "+" ; "-");
+					fs = 
+						Let ([
+							oh = Abs (Int (fs)) / 3600;
+							ohh = Right ( "00" & oh ; 2 ) ;
+							on = (Abs(fs)/3600 - oh) * 60 ; 
+							onn = Right ( "00" & on ; 2 ) 
+							]; sg & ohh & ":" & onn) 
+					] ;
+
+					Substitute ( XMLTSFormat ;
+						["yyyy" ; yyyy ];
+						["mm" ; mm];
+						["dd" ; dd];
+						["hh";hh];
+						["nn";nn];
+						["ss";ss];
+						["[~offset]"; fs]
+						)
+				)
+				
+			)
+		
+		] ;
+
+		tots
+
+		)
+/* Notes: Rob Poelking */
+
+---
+CustomFunction:
+  id: '1'
+  functionArity: '4'
+  visible: 'True'
+  parameters: TmStamp;Offset;FromForm;ToForm
+  name: time.Convert
+  Calculation: "//time.Convert ( TmStamp ; offset ; FromForm ; ToForm)\n//Author:
+    Rob Poelking rob@ohiokajukenbo.com\n//Version 1.0\n//2010-05-21\n/*\nAllowable
+    form keys: FM, FileMaker, Unix, SQL, XML\nOffset entered as a signed number or
+    time, or military time zone (valid exampls:  -5, +3:00, Z)\nFractional seconds
+    are rounded\n*/\n\nLet([\n\tts = TmStamp ;\n\tfs = offset ;\n\tFr = FromForm ;
+    \n\tTo = ToForm ; \n\t\n\t//\tValidate inputs\n\t\tFormList = List (\n\t\t\t\t\"fm\";\n\t\t\t\t\"filemaker\";\n\t\t\t\t\"unix\";\n\t\t\t\t\"sql\";\n\t\t\t\t\"xml\");\n\t\tFrValid
+    = ValueCount ( FilterValues ( Fr ; FormList ) ) ;\n\t\tToValid = ValueCount (
+    FilterValues ( To ; FormList ) ) ; \n\t\tMilTZa = \"ABCDEFGHIKLM\";\n\t\tMilTZb
+    = \"NOPQRSTUVWXY\" ;\n\t\tMilTZc = \"Z\" ; \n\t\tfs = Case (\n\t\t\t\tIsEmpty
+    ( fs )  ; 0 ; \n\t\t\t\tValueCount( Filter (fs ; MilTZa ) ) ; -1 * GetAsNumber
+    ( Position( MilTZa; Upper (fs); 1; 1 )) * 3600 ;\n\t\t\t\tValueCount( Filter (fs
+    ; MilTZb ) ) ; +1 * GetAsNumber ( Position( MilTZb; Upper (fs); 1; 1 )) * 3600
+    ;\n\t\t\t\tValueCount( Filter (fs ; MilTZc ) ) ; 0 ;\n\t\t\t\tPatternCount( fs;
+    \":\" )\t; GetAsNumber ( GetAsTime ( Substitute ( fs ; \"+\" ; \"\" ))) / 3600
+    /*ss in one hour*/ ; \n\t\t\t\tGetAsNumber ( fs * 3600 )\n\n\t\t\t\t) ;\n\n\n\t\tfromFM
+    = ValueCount( FilterValues( \"FM¶FileMaker\"; fr ) ) ; \n\t\tfromUnix = ValueCount(
+    FilterValues( \"unix\"; fr ) ) ; \n\t\tfromSQL = ValueCount( FilterValues( \"SQL\";
+    fr ) ) ; \n\t\tfromXML = ValueCount( FilterValues( \"XML\"; fr ) ) ; \n\n\t\ttoFM
+    = ValueCount( FilterValues( \"FM¶FileMaker\"; to ) ) ; \n\t\ttoUnix = ValueCount(
+    FilterValues( \"unix\"; to ) ) ; \n\t\ttoSQL = ValueCount( FilterValues( \"SQL\";
+    to ) ) ; \n\t\ttoXML = ValueCount( FilterValues( \"XML\"; to ) ) ; \n\n\t//Format
+    strings\t\n\t\tFMTSFormat = \"mm/dd/yyyy hh:nn:ss\" ;\n\t\tNIXTSFormat = 0 ; //N/A
+    Unix is a signed number value that represents dates from 1901-12-13 to 2038-1-19
+    03:14:07UTC\n\t\tSQLTSFormat = \"yyyy-mm-dd hh:nn:ss\";\n\t\tXMLTSFormat = \"yyyy-mm-ddThh:nn:ss[~offset]\"
+    ; //optionally can have an offset\n\n\t\tValid = frValid and toValid ; \n\n\t\tfromTS
+    = \n\t\t\tCase (\n\t\t\t\tfromFM ; GetAsTimestamp ( ts ) ; \n\n\t\t\t\tfromUnix
+    ; \n\t\t\t\t\tLet ([\n\t\t\t\t\t\tts = GetAsNumber ( ts ) ; \n\t\t\t\t\t\tepoch
+    = GetAsNumber ( GetAsTimestamp ( \"1/1/1970 0:00:00\" ) ) ; //Unix standard epoch
+    = 0\n\t\t\t\t\t\tsgn = Sign ( ts ) ; \n\t\t\t\t\t\tfs = sgn * GetAsNumber (fs)
+    \n\t\t\t\t\t\t] ; GetAsTimestamp ( epoch + ts + fs )) ; \n\n\t\t\t\tfromSQL ;
+    \n\t\t\t\t\tLet ([\n\t\t\t\t\t\tyyyy = Left ( ts ; 4 ) ; \n\t\t\t\t\t\tmm = Middle
+    (ts ; 6 ; 2 ) ; \n\t\t\t\t\t\tdd = Middle ( ts ; 9 ;2 ) ; \n\t\t\t\t\t\thh = Middle
+    ( ts ; 12 ; 2 );\n\t\t\t\t\t\tnn = Middle ( ts ; 15 ; 2 ) ; \n\t\t\t\t\t\tss =
+    Middle ( ts ; 18 ; 2 )\n\t\t\t\t\t\t];GetAsTimestamp (  \n\t\t\t\t\t\t\t\t(Substitute
+    ( FMTSFormat ;\n\t\t\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t\t\t[\"mm\" ;
+    mm];\n\t\t\t\t\t\t\t\t[\"dd\" ; dd];\n\t\t\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t\t\t[\"ss\";ss]\n\t\t\t\t\t\t\t\t))))
+    ; \n\n\t\t\t\tfromXML ; \n\t\t\t\t\tLet ([\n\t\t\t\t\t\tyyyy = Left ( ts ; 4 )
+    ; \n\t\t\t\t\t\tmm = Middle (ts ; 6 ; 2 ) ; \n\t\t\t\t\t\tdd = Middle ( ts ; 9
+    ;2 ) ; \n\t\t\t\t\t\thh = Middle ( ts ; 12 ; 2 );\n\t\t\t\t\t\tnn = Middle ( ts
+    ; 15 ; 2 ) ; \n\t\t\t\t\t\tss = Middle ( ts ; 18 ; 2 );\n\t\t\t\t\t\tfs1 =  GetAsTime
+    ( Right ( ts ; Length ( ts) - 19 )) \n\t\t\t\t\t\t];GetAsTimestamp (  \n\t\t\t\t\t\t\t\t(Substitute
+    ( FMTSFormat ;\n\t\t\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t\t\t[\"mm\" ;
+    mm];\n\t\t\t\t\t\t\t\t[\"dd\" ; dd];\n\t\t\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t\t\t[\"ss\";ss]\n\t\t\t\t\t\t\t\t)
+    \ ) )- fs1)\n\t\t\t\t) ; \n\t\ttoTS = Case (\n\t\t\ttoFM ; fromTS ; \n\t\t\t\n\t\t\ttoUnix
+    ; \n\t\t\t\tLet ([\n\t\t\t\t\tts = fromTS ; \n\t\t\t\t\tepoch = GetAsNumber (
+    GetAsTimestamp ( \"1/1/1970 0:00:00\" ) ) ; //Unix standard epoch = 0\n\t\t\t\t\tsgn
+    = Sign ( ts ) ; \n\t\t\t\t\tfs = sgn * GetAsNumber (fs) \n\t\t\t\t\t] ; GetAsNumber
+    (( ts - epoch + fs ))) ;\n\t\t\t\t\t\n\t\t\ttoSQL ; \n\t\t\t\tLet ([\n\t\t\t\t\tts
+    = fromTS ; \n\t\t\t\t\tyyyy = Year ( ts ) ; \n\t\t\t\t\tmm = Right ( \"00\" &
+    Month ( ts) ; 2 ) ; \n\t\t\t\t\tdd = Right ( \"00\" & Day (ts) ; 2) ; \n\t\t\t\t\thh
+    = Right ( \"00\" & ( Hour (ts) ) ; 2 );\n\t\t\t\t\tnn = Right ( \"00\" & Minute
+    (ts) ; 2 ) ; \n\t\t\t\t\tss = Right ( \"00\" & Seconds ( ts) ; 2)\n\t\t\t\t\t]
+    ;\n\n\t\t\t\t\tSubstitute ( SQLTSFormat ;\n\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t[\"mm\"
+    ; mm];\n\t\t\t\t\t\t[\"dd\" ; dd];\n\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t[\"ss\";ss]\n\t\t\t\t\t\t)\n\t\t\t\t);\n\t\t\t\n\t\t\ttoXML
+    ;  \n\t\t\t\tLet ([\n\t\t\t\t\tts = fromTS ; \n\t\t\t\t\tyyyy = Year ( ts ) ;
+    \n\t\t\t\t\tmm = Right ( \"00\" & Month (ts) ; 2 ) ; \n\t\t\t\t\tdd = Right (
+    \"00\" & Day (ts) ; 2) ; \n\t\t\t\t\thh = Right ( \"00\" & Hour (ts) ; 2 );\n\t\t\t\t\tnn
+    = Right ( \"00\" & Minute (ts) ; 2 ) ; \n\t\t\t\t\tss = Right ( \"00\" & Seconds
+    (ts) ; 2) ;\n\t\t\t\t\tsgn = Sign (fs) ; \n\t\t\t\t\tsg = If ( sgn > 1 ; \"+\"
+    ; \"-\");\n\t\t\t\t\tfs = \n\t\t\t\t\t\tLet ([\n\t\t\t\t\t\t\toh = Abs (Int (fs))
+    / 3600;\n\t\t\t\t\t\t\tohh = Right ( \"00\" & oh ; 2 ) ;\n\t\t\t\t\t\t\ton = (Abs(fs)/3600
+    - oh) * 60 ; \n\t\t\t\t\t\t\tonn = Right ( \"00\" & on ; 2 ) \n\t\t\t\t\t\t\t];
+    sg & ohh & \":\" & onn) \n\t\t\t\t\t] ;\n\n\t\t\t\t\tSubstitute ( XMLTSFormat
+    ;\n\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t[\"mm\" ; mm];\n\t\t\t\t\t\t[\"dd\"
+    ; dd];\n\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t[\"ss\";ss];\n\t\t\t\t\t\t[\"[~offset]\";
+    fs]\n\t\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t\n\t\t\t)\n\t\t\n\t\t] ;\n\n\t\ttots\n\n\t\t)\n/*
+    Notes: Rob Poelking */"
+  DisplayCalculation:
+    Chunk:
+    - |
+      //time.Convert ( TmStamp ; offset ; FromForm ; ToForm)
+    - |
+      //Author: Rob Poelking rob@ohiokajukenbo.com
+    - |
+      //Version 1.0
+    - |
+      //2010-05-21
+    - |+
+      /*
+      Allowable form keys: FM, FileMaker, Unix, SQL, XML
+      Offset entered as a signed number or time, or military time zone (valid exampls:  -5, +3:00, Z)
+      Fractional seconds are rounded
+      */
+
+    - Let
+    - "([\n\tts = TmStamp ;\n\tfs = offset ;\n\tFr = FromForm ; \n\tTo = ToForm ;
+      \n\t\n\t"
+    - "//\tValidate inputs\n"
+    - "\t\tFormList = "
+    - List
+    - " (\n\t\t\t\t\"fm\";\n\t\t\t\t\"filemaker\";\n\t\t\t\t\"unix\";\n\t\t\t\t\"sql\";\n\t\t\t\t\"xml\");\n\t\tFrValid
+      = "
+    - ValueCount
+    - ' ( '
+    - FilterValues
+    - " ( Fr ; FormList ) ) ;\n\t\tToValid = "
+    - ValueCount
+    - ' ( '
+    - FilterValues
+    - " ( To ; FormList ) ) ; \n\t\tMilTZa = \"ABCDEFGHIKLM\";\n\t\tMilTZb = \"NOPQRSTUVWXY\"
+      ;\n\t\tMilTZc = \"Z\" ; \n\t\tfs = "
+    - Case
+    - " (\n\t\t\t\t"
+    - IsEmpty
+    - " ( fs )  ; 0 ; \n\t\t\t\t"
+    - ValueCount
+    - '( '
+    - Filter
+    - ' (fs ; MilTZa ) ) ; -1 * '
+    - GetAsNumber
+    - ' ( '
+    - Position
+    - '( MilTZa; '
+    - Upper
+    - " (fs); 1; 1 )) * 3600 ;\n\t\t\t\t"
+    - ValueCount
+    - '( '
+    - Filter
+    - ' (fs ; MilTZb ) ) ; +1 * '
+    - GetAsNumber
+    - ' ( '
+    - Position
+    - '( MilTZb; '
+    - Upper
+    - " (fs); 1; 1 )) * 3600 ;\n\t\t\t\t"
+    - ValueCount
+    - '( '
+    - Filter
+    - " (fs ; MilTZc ) ) ; 0 ;\n\t\t\t\t"
+    - PatternCount
+    - "( fs; \":\" )\t; "
+    - GetAsNumber
+    - ' ( '
+    - GetAsTime
+    - ' ( '
+    - Substitute
+    - " ( fs ; \"+\" ; \"\" ))) / 3600 /*ss in one hour*/ ; \n\t\t\t\t"
+    - GetAsNumber
+    - " ( fs * 3600 )\n\n\t\t\t\t) ;\n\n\n\t\tfromFM = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"FM¶FileMaker\"; fr ) ) ; \n\t\tfromUnix = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"unix\"; fr ) ) ; \n\t\tfromSQL = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"SQL\"; fr ) ) ; \n\t\tfromXML = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"XML\"; fr ) ) ; \n\n\t\ttoFM = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"FM¶FileMaker\"; to ) ) ; \n\t\ttoUnix = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"unix\"; to ) ) ; \n\t\ttoSQL = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"SQL\"; to ) ) ; \n\t\ttoXML = "
+    - ValueCount
+    - '( '
+    - FilterValues
+    - "( \"XML\"; to ) ) ; \n\n\t"
+    - "//Format strings\t\n"
+    - "\t\tFMTSFormat = \"mm/dd/yyyy hh:nn:ss\" ;\n\t\tNIXTSFormat = 0 ; "
+    - |
+      //N/A Unix is a signed number value that represents dates from 1901-12-13 to 2038-1-19 03:14:07UTC
+    - "\t\tSQLTSFormat = \"yyyy-mm-dd hh:nn:ss\";\n\t\tXMLTSFormat = \"yyyy-mm-ddThh:nn:ss[~offset]\"
+      ; "
+    - |
+      //optionally can have an offset
+    - "\n\t\tValid = frValid "
+    - and
+    - " toValid ; \n\n\t\tfromTS = \n\t\t\t"
+    - Case
+    - " (\n\t\t\t\tfromFM ; "
+    - GetAsTimestamp
+    - " ( ts ) ; \n\n\t\t\t\tfromUnix ; \n\t\t\t\t\t"
+    - Let
+    - " ([\n\t\t\t\t\t\tts = "
+    - GetAsNumber
+    - " ( ts ) ; \n\t\t\t\t\t\tepoch = "
+    - GetAsNumber
+    - ' ( '
+    - GetAsTimestamp
+    - ' ( "1/1/1970 0:00:00" ) ) ; '
+    - |
+      //Unix standard epoch = 0
+    - "\t\t\t\t\t\tsgn = "
+    - Sign
+    - " ( ts ) ; \n\t\t\t\t\t\tfs = sgn * "
+    - GetAsNumber
+    - " (fs) \n\t\t\t\t\t\t] ; "
+    - GetAsTimestamp
+    - " ( epoch + ts + fs )) ; \n\n\t\t\t\tfromSQL ; \n\t\t\t\t\t"
+    - Let
+    - " ([\n\t\t\t\t\t\tyyyy = "
+    - Left
+    - " ( ts ; 4 ) ; \n\t\t\t\t\t\tmm = "
+    - Middle
+    - " (ts ; 6 ; 2 ) ; \n\t\t\t\t\t\tdd = "
+    - Middle
+    - " ( ts ; 9 ;2 ) ; \n\t\t\t\t\t\thh = "
+    - Middle
+    - " ( ts ; 12 ; 2 );\n\t\t\t\t\t\tnn = "
+    - Middle
+    - " ( ts ; 15 ; 2 ) ; \n\t\t\t\t\t\tss = "
+    - Middle
+    - " ( ts ; 18 ; 2 )\n\t\t\t\t\t\t];"
+    - GetAsTimestamp
+    - " (  \n\t\t\t\t\t\t\t\t("
+    - Substitute
+    - " ( FMTSFormat ;\n\t\t\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t\t\t[\"mm\"
+      ; mm];\n\t\t\t\t\t\t\t\t[\"dd\" ; dd];\n\t\t\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t\t\t[\"ss\";ss]\n\t\t\t\t\t\t\t\t))))
+      ; \n\n\t\t\t\tfromXML ; \n\t\t\t\t\t"
+    - Let
+    - " ([\n\t\t\t\t\t\tyyyy = "
+    - Left
+    - " ( ts ; 4 ) ; \n\t\t\t\t\t\tmm = "
+    - Middle
+    - " (ts ; 6 ; 2 ) ; \n\t\t\t\t\t\tdd = "
+    - Middle
+    - " ( ts ; 9 ;2 ) ; \n\t\t\t\t\t\thh = "
+    - Middle
+    - " ( ts ; 12 ; 2 );\n\t\t\t\t\t\tnn = "
+    - Middle
+    - " ( ts ; 15 ; 2 ) ; \n\t\t\t\t\t\tss = "
+    - Middle
+    - " ( ts ; 18 ; 2 );\n\t\t\t\t\t\tfs1 =  "
+    - GetAsTime
+    - ' ( '
+    - Right
+    - ' ( ts ; '
+    - Length
+    - " ( ts) - 19 )) \n\t\t\t\t\t\t];"
+    - GetAsTimestamp
+    - " (  \n\t\t\t\t\t\t\t\t("
+    - Substitute
+    - " ( FMTSFormat ;\n\t\t\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t\t\t[\"mm\"
+      ; mm];\n\t\t\t\t\t\t\t\t[\"dd\" ; dd];\n\t\t\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t\t\t[\"ss\";ss]\n\t\t\t\t\t\t\t\t)
+      \ ) )- fs1)\n\t\t\t\t) ; \n\t\ttoTS = "
+    - Case
+    - " (\n\t\t\ttoFM ; fromTS ; \n\t\t\t\n\t\t\ttoUnix ; \n\t\t\t\t"
+    - Let
+    - " ([\n\t\t\t\t\tts = fromTS ; \n\t\t\t\t\tepoch = "
+    - GetAsNumber
+    - ' ( '
+    - GetAsTimestamp
+    - ' ( "1/1/1970 0:00:00" ) ) ; '
+    - |
+      //Unix standard epoch = 0
+    - "\t\t\t\t\tsgn = "
+    - Sign
+    - " ( ts ) ; \n\t\t\t\t\tfs = sgn * "
+    - GetAsNumber
+    - " (fs) \n\t\t\t\t\t] ; "
+    - GetAsNumber
+    - " (( ts - epoch + fs ))) ;\n\t\t\t\t\t\n\t\t\ttoSQL ; \n\t\t\t\t"
+    - Let
+    - " ([\n\t\t\t\t\tts = fromTS ; \n\t\t\t\t\tyyyy = "
+    - Year
+    - " ( ts ) ; \n\t\t\t\t\tmm = "
+    - Right
+    - ' ( "00" & '
+    - Month
+    - " ( ts) ; 2 ) ; \n\t\t\t\t\tdd = "
+    - Right
+    - ' ( "00" & '
+    - Day
+    - " (ts) ; 2) ; \n\t\t\t\t\thh = "
+    - Right
+    - ' ( "00" & ( '
+    - Hour
+    - " (ts) ) ; 2 );\n\t\t\t\t\tnn = "
+    - Right
+    - ' ( "00" & '
+    - Minute
+    - " (ts) ; 2 ) ; \n\t\t\t\t\tss = "
+    - Right
+    - ' ( "00" & '
+    - Seconds
+    - " ( ts) ; 2)\n\t\t\t\t\t] ;\n\n\t\t\t\t\t"
+    - Substitute
+    - " ( SQLTSFormat ;\n\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t[\"mm\" ; mm];\n\t\t\t\t\t\t[\"dd\"
+      ; dd];\n\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t[\"ss\";ss]\n\t\t\t\t\t\t)\n\t\t\t\t);\n\t\t\t\n\t\t\ttoXML
+      ;  \n\t\t\t\t"
+    - Let
+    - " ([\n\t\t\t\t\tts = fromTS ; \n\t\t\t\t\tyyyy = "
+    - Year
+    - " ( ts ) ; \n\t\t\t\t\tmm = "
+    - Right
+    - ' ( "00" & '
+    - Month
+    - " (ts) ; 2 ) ; \n\t\t\t\t\tdd = "
+    - Right
+    - ' ( "00" & '
+    - Day
+    - " (ts) ; 2) ; \n\t\t\t\t\thh = "
+    - Right
+    - ' ( "00" & '
+    - Hour
+    - " (ts) ; 2 );\n\t\t\t\t\tnn = "
+    - Right
+    - ' ( "00" & '
+    - Minute
+    - " (ts) ; 2 ) ; \n\t\t\t\t\tss = "
+    - Right
+    - ' ( "00" & '
+    - Seconds
+    - " (ts) ; 2) ;\n\t\t\t\t\tsgn = "
+    - Sign
+    - " (fs) ; \n\t\t\t\t\tsg = "
+    - If
+    - " ( sgn > 1 ; \"+\" ; \"-\");\n\t\t\t\t\tfs = \n\t\t\t\t\t\t"
+    - Let
+    - " ([\n\t\t\t\t\t\t\toh = "
+    - Abs
+    - ' ('
+    - Int
+    - " (fs)) / 3600;\n\t\t\t\t\t\t\tohh = "
+    - Right
+    - " ( \"00\" & oh ; 2 ) ;\n\t\t\t\t\t\t\ton = ("
+    - Abs
+    - "(fs)/3600 - oh) * 60 ; \n\t\t\t\t\t\t\tonn = "
+    - Right
+    - " ( \"00\" & on ; 2 ) \n\t\t\t\t\t\t\t]; sg & ohh & \":\" & onn) \n\t\t\t\t\t]
+      ;\n\n\t\t\t\t\t"
+    - Substitute
+    - " ( XMLTSFormat ;\n\t\t\t\t\t\t[\"yyyy\" ; yyyy ];\n\t\t\t\t\t\t[\"mm\" ; mm];\n\t\t\t\t\t\t[\"dd\"
+      ; dd];\n\t\t\t\t\t\t[\"hh\";hh];\n\t\t\t\t\t\t[\"nn\";nn];\n\t\t\t\t\t\t[\"ss\";ss];\n\t\t\t\t\t\t[\"[~offset]\";
+      fs]\n\t\t\t\t\t\t)\n\t\t\t\t)\n\t\t\t\t\n\t\t\t)\n\t\t\n\t\t] ;\n\n\t\ttots\n\n\t\t)\n/*
+      Notes: Rob Poelking */"

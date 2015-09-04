@@ -1,0 +1,84 @@
+/**
+ * =====================================
+ * ErrorGetLast
+ *
+ * RETURNS:
+ *		Let format dictionary containing the value of Get ( LastError ), error
+ *		meta data, and additional environmental data.
+ *
+ * PARAMETERS: 
+ *             theErrorInfo - Optional - any information that might helpt to uniquely identify this instance of this error
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: ErrorFMP
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-09-21 by Daniel Smith
+ *			- renamed to: ErrorFmpGetLast
+ *		MODIFIED on 2013-11-21 by Jeremy Bante <http://scr.im/jbante>.
+ *			- rename to: ErrorGetLast. Use other error functions
+ *		MODIFIED on 2013-JULY-5 by Todd Geist todd@geistinteractive.com
+ *			- rename to: GetLastError
+ *		MODIFIED on 2012-NOV-22 by Daniel Smith dansmith65@gmail.com
+ *			- rename to: ErrorDataFmp
+ *		MODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com
+ *			- don't access $error variable directly
+ *		CREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com
+ *		INSPIRED by ErrorString and ErrorData by matt@filemakermagazine.com
+ *			https://github.com/filemakerstandards/fmpstandards/tree/master/Functions
+ *
+ * REFERENCES:
+ *		http://www.filemaker.com/help/html/error_codes.html
+ * =====================================
+ */
+
+ErrorFMP ( Get ( LastError ) ; theErrorInfo )
+
+---
+CustomFunction:
+  id: '21'
+  functionArity: '1'
+  visible: 'True'
+  parameters: theErrorInfo
+  name: ErrorFmpGetLast
+  Calculation: "/**\n * =====================================\n * ErrorGetLast\n *\n
+    * RETURNS:\n *\t\tLet format dictionary containing the value of Get ( LastError
+    ), error\n *\t\tmeta data, and additional environmental data.\n *\n * PARAMETERS:
+    \n *             theErrorInfo - Optional - any information that might helpt to
+    uniquely identify this instance of this error\n *\n * DEPENDENCIES:\n *\t\tCustom
+    Functions: ErrorFMP\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-09-21 by Daniel Smith\n
+    *\t\t\t- renamed to: ErrorFmpGetLast\n *\t\tMODIFIED on 2013-11-21 by Jeremy Bante
+    <http://scr.im/jbante>.\n *\t\t\t- rename to: ErrorGetLast. Use other error functions\n
+    *\t\tMODIFIED on 2013-JULY-5 by Todd Geist todd@geistinteractive.com\n *\t\t\t-
+    rename to: GetLastError\n *\t\tMODIFIED on 2012-NOV-22 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- rename to: ErrorDataFmp\n *\t\tMODIFIED on 2012-NOV-21 by Daniel Smith
+    dansmith65@gmail.com\n *\t\t\t- don't access $error variable directly\n *\t\tCREATED
+    on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n *\t\tINSPIRED by ErrorString
+    and ErrorData by matt@filemakermagazine.com\n *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+    *\n * REFERENCES:\n *\t\thttp://www.filemaker.com/help/html/error_codes.html\n
+    * =====================================\n */\n\nErrorFMP ( Get ( LastError ) ;
+    theErrorInfo )"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ErrorGetLast\n *\n * RETURNS:\n
+      *\t\tLet format dictionary containing the value of Get ( LastError ), error\n
+      *\t\tmeta data, and additional environmental data.\n *\n * PARAMETERS: \n *
+      \            theErrorInfo - Optional - any information that might helpt to uniquely
+      identify this instance of this error\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:
+      ErrorFMP\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-09-21 by Daniel Smith\n *\t\t\t-
+      renamed to: ErrorFmpGetLast\n *\t\tMODIFIED on 2013-11-21 by Jeremy Bante <http://scr.im/jbante>.\n
+      *\t\t\t- rename to: ErrorGetLast. Use other error functions\n *\t\tMODIFIED
+      on 2013-JULY-5 by Todd Geist todd@geistinteractive.com\n *\t\t\t- rename to:
+      GetLastError\n *\t\tMODIFIED on 2012-NOV-22 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- rename to: ErrorDataFmp\n *\t\tMODIFIED on 2012-NOV-21 by Daniel Smith
+      dansmith65@gmail.com\n *\t\t\t- don't access $error variable directly\n *\t\tCREATED
+      on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n *\t\tINSPIRED by ErrorString
+      and ErrorData by matt@filemakermagazine.com\n *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+      *\n * REFERENCES:\n *\t\thttp://www.filemaker.com/help/html/error_codes.html\n
+      * =====================================\n */\n\n"
+    - ErrorFMP
+    - ' ( '
+    - Get
+    - ' ( '
+    - LastError
+    - ' ) ; theErrorInfo )'

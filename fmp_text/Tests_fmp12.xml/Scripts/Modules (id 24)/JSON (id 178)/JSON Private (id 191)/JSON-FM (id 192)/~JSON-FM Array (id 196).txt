@@ -1,0 +1,495 @@
+################################################################################
+# PURPOSE:
+#    Parse an array value.
+#
+# PARAMETERS: none
+#
+# RETURNS:
+#    array
+#
+# REVISIONS:
+#    2014-MAR-30	 Daniel Smith	- update #List ( value ) function used in encode value section to version date 2014-06-062014-MAR-30	 Daniel Smith	- update #List ( value ) function used in encode value section2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $array ]
+#
+#
+If [ $$~JSON.CH = "[" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "[" ]
+Perform Script [ “~JSON-FM White” ]
+If [ $$~JSON.CH = "]" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "]" ]
+Exit Script [ Result: $array // empty array ]
+End If
+#
+Loop
+Exit Loop If [ IsEmpty ( $$~JSON.CH ) ]
+Perform Script [ “~JSON-FM Value” ]
+# encode value
+Set Variable [ $array; Value:$array// start of Let that wraps the custom function& Let (	value = Get ( ScriptResult ) ;/** * ===================================== * #List ( value ) * * RETURNS: *		Encoded value with trailing return and data type preserved. * * PARAMETERS: *		value: The value to encode. * * EXAMPLE: *		#List ( "value1" ) *		& #List ( *			#List ( "subValue" ) *			&  #List ( "subValue2" ) *		) * * DEPENDENCIES: none * * HISTORY: *		MODIFIED on 2014-06-06 by Jeremy Bante <http://scr.im/jbante> to fix an *		issue where long sequences of digits could be interpreted as timestamps. *		MODIFIED on 2014-05-26 by Jeremy Bante <http://scr.im/jbante> to detect *		type using a different method suggested by Arnold Kegebein. *		MODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to *		specially encode newline characters in values, and to update type *		detection to match the # function. *		MODIFIED on 2013-MAY-09 by Daniel Smith dansmith65@gmail.com to encode *		a value like the current version of # ( name ; value ) custom function *		CREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com * ===================================== */Let ( [	~plusOneText = GetAsText ( value + 1 ) ;	~number = GetAsNumber ( value ) ;	~value =		Case (			value = "" or value = "?" or ~number = "?" ;				Quote ( value ) ;			GetAsText ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText ;				"GetAsTimestamp ( " & Quote ( value ) & " )" ;			GetAsText ( GetAsTime ( value ) + 1 ) = ~plusOneText ;				"GetAsTime ( " & Quote ( value ) & " )" ;			GetAsText ( GetAsDate ( value ) + 1 ) = ~plusOneText ;				"GetAsDate ( " & Quote ( value ) & " )" ;			value ≠ ~number ;				Substitute ( Quote ( value ) ;					[ Char ( 10 ) ; "\" & Char ( 10 ) & \"" ] ;					[ Char ( 8232 ) ; "\" & Char ( 8232 ) & \"" ] ;					[ Char ( 8233 ) ; "\" & Char ( 8233 ) & \"" ]				) ;			/* Else */				~number		)] ;	Case (		IsValidExpression ( ~value )			/**			 * the following Evaluate statement causes the function to calculate			 *  ~30% slower, so it may be best to comment it in a production			 * environment and only use it for development/testing			 */			// and Evaluate ( ~value ) = value		;		~value & ¶ ;		//else, ~value is not a valid expression...		"/* Error "		& 1200	// Generic calculation error		& " value: "		& Quote (			Substitute (	// escape comment character sequences				value ;				[ "*/" ; "\*\/" ] ;				[ "/*" ; "\/\*" ]			)		)		& " */"		& ¶	))) // end Let that wraps the custom function ]
+Perform Script [ “~JSON-FM White” ]
+If [ $$~JSON.CH = "]" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "]" ]
+Exit Script [ Result: $array ]
+End If
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "," ]
+Perform Script [ “~JSON-FM White” ]
+End Loop
+End If
+#
+Perform Script [ “~JSON-FM Error { message }”; Parameter: "Bad array" ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '196'
+  name: ~JSON-FM Array
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Parse an array value.'
+      Text: '    Parse an array value.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    array'
+      Text: '    array'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2014-MAR-30\t Daniel Smith\n\t- update #List ( value ) function
+        used in encode value section to version date 2014-06-06\n2014-MAR-30\t Daniel
+        Smith\n\t- update #List ( value ) function used in encode value section\n2013-AUG-06\t
+        Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2014-MAR-30\t Daniel Smith\n\t- update #List ( value ) function
+        used in encode value section to version date 2014-06-06\n2014-MAR-30\t Daniel
+        Smith\n\t- update #List ( value ) function used in encode value section\n2013-AUG-06\t
+        Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $array ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $array
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "[" ]
+      Calculation: $$~JSON.CH = "["
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "["
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "[" ]'
+      Calculation: '"["'
+      DisplayCalculation:
+        Chunk: '"["'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "]" ]
+      Calculation: $$~JSON.CH = "]"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "]"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "]" ]'
+      Calculation: '"]"'
+      DisplayCalculation:
+        Chunk: '"]"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $array // empty array ]'
+      Calculation: $array // empty array
+      DisplayCalculation:
+        Chunk:
+        - '$array '
+        - // empty array
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ IsEmpty ( $$~JSON.CH ) ]
+      Calculation: IsEmpty ( $$~JSON.CH )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $$~JSON.CH )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Value” ]
+      Script:
+        id: '193'
+        name: ~JSON-FM Value
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# encode value'
+      Text: ' encode value'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $array; Value:$array\n\n// start of Let that wraps
+        the custom function\n& Let (\n\tvalue = Get ( ScriptResult ) ;\n\n/**\n *
+        =====================================\n * #List ( value )\n *\n * RETURNS:\n
+        *\t\tEncoded value with trailing return and data type preserved.\n *\n * PARAMETERS:\n
+        *\t\tvalue: The value to encode.\n *\n * EXAMPLE:\n *\t\t#List ( \"value1\"
+        )\n *\t\t& #List (\n *\t\t\t#List ( \"subValue\" )\n *\t\t\t&  #List ( \"subValue2\"
+        )\n *\t\t)\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on
+        2014-06-06 by Jeremy Bante <http://scr.im/jbante> to fix an\n *\t\tissue where
+        long sequences of digits could be interpreted as timestamps.\n *\t\tMODIFIED
+        on 2014-05-26 by Jeremy Bante <http://scr.im/jbante> to detect\n *\t\ttype
+        using a different method suggested by Arnold Kegebein.\n *\t\tMODIFIED on
+        2013-12-24 by Jeremy Bante <http://scr.im/jbante> to\n *\t\tspecially encode
+        newline characters in values, and to update type\n *\t\tdetection to match
+        the # function.\n *\t\tMODIFIED on 2013-MAY-09 by Daniel Smith dansmith65@gmail.com
+        to encode\n *\t\ta value like the current version of # ( name ; value ) custom
+        function\n *\t\tCREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n
+        * =====================================\n */\n\nLet ( [\n\t~plusOneText =
+        GetAsText ( value + 1 ) ;\n\t~number = GetAsNumber ( value ) ;\n\t~value =\n\t\tCase
+        (\n\t\t\tvalue = \"\" or value = \"?\" or ~number = \"?\" ;\n\t\t\t\tQuote
+        ( value ) ;\n\n\t\t\tGetAsText ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText
+        ;\n\t\t\t\t\"GetAsTimestamp ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\tGetAsText
+        ( GetAsTime ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime ( \" & Quote
+        ( value ) & \" )\" ;\n\n\t\t\tGetAsText ( GetAsDate ( value ) + 1 ) = ~plusOneText
+        ;\n\t\t\t\t\"GetAsDate ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\tvalue ≠
+        ~number ;\n\t\t\t\tSubstitute ( Quote ( value ) ;\n\t\t\t\t\t[ Char ( 10 )
+        ; \"\\\" & Char ( 10 ) & \\\"\" ] ;\n\t\t\t\t\t[ Char ( 8232 ) ; \"\\\" &
+        Char ( 8232 ) & \\\"\" ] ;\n\t\t\t\t\t[ Char ( 8233 ) ; \"\\\" & Char ( 8233
+        ) & \\\"\" ]\n\t\t\t\t) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t)\n] ;\n\tCase
+        (\n\t\tIsValidExpression ( ~value )\n\t\t\t/**\n\t\t\t * the following Evaluate
+        statement causes the function to calculate\n\t\t\t *  ~30% slower, so it may
+        be best to comment it in a production\n\t\t\t * environment and only use it
+        for development/testing\n\t\t\t */\n\t\t\t// and Evaluate ( ~value ) = value\n\t\t;\n\t\t~value
+        & ¶ ;\n\n\t\t//else, ~value is not a valid expression...\n\t\t\"/* Error \"\n\t\t&
+        1200\t// Generic calculation error\n\t\t& \" value: \"\n\t\t& Quote (\n\t\t\tSubstitute
+        (\t// escape comment character sequences\n\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\"
+        ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \"
+        */\"\n\t\t& ¶\n\t)\n)\n\n) // end Let that wraps the custom function ]"
+      Value:
+        Calculation: "$array\n\n// start of Let that wraps the custom function\n&
+          Let (\n\tvalue = Get ( ScriptResult ) ;\n\n/**\n * =====================================\n
+          * #List ( value )\n *\n * RETURNS:\n *\t\tEncoded value with trailing return
+          and data type preserved.\n *\n * PARAMETERS:\n *\t\tvalue: The value to
+          encode.\n *\n * EXAMPLE:\n *\t\t#List ( \"value1\" )\n *\t\t& #List (\n
+          *\t\t\t#List ( \"subValue\" )\n *\t\t\t&  #List ( \"subValue2\" )\n *\t\t)\n
+          *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-06-06
+          by Jeremy Bante <http://scr.im/jbante> to fix an\n *\t\tissue where long
+          sequences of digits could be interpreted as timestamps.\n *\t\tMODIFIED
+          on 2014-05-26 by Jeremy Bante <http://scr.im/jbante> to detect\n *\t\ttype
+          using a different method suggested by Arnold Kegebein.\n *\t\tMODIFIED on
+          2013-12-24 by Jeremy Bante <http://scr.im/jbante> to\n *\t\tspecially encode
+          newline characters in values, and to update type\n *\t\tdetection to match
+          the # function.\n *\t\tMODIFIED on 2013-MAY-09 by Daniel Smith dansmith65@gmail.com
+          to encode\n *\t\ta value like the current version of # ( name ; value )
+          custom function\n *\t\tCREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n
+          * =====================================\n */\n\nLet ( [\n\t~plusOneText
+          = GetAsText ( value + 1 ) ;\n\t~number = GetAsNumber ( value ) ;\n\t~value
+          =\n\t\tCase (\n\t\t\tvalue = \"\" or value = \"?\" or ~number = \"?\" ;\n\t\t\t\tQuote
+          ( value ) ;\n\n\t\t\tGetAsText ( GetAsTimestamp ( value ) + 1 ) = ~plusOneText
+          ;\n\t\t\t\t\"GetAsTimestamp ( \" & Quote ( value ) & \" )\" ;\n\n\t\t\tGetAsText
+          ( GetAsTime ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime ( \" &
+          Quote ( value ) & \" )\" ;\n\n\t\t\tGetAsText ( GetAsDate ( value ) + 1
+          ) = ~plusOneText ;\n\t\t\t\t\"GetAsDate ( \" & Quote ( value ) & \" )\"
+          ;\n\n\t\t\tvalue ≠ ~number ;\n\t\t\t\tSubstitute ( Quote ( value ) ;\n\t\t\t\t\t[
+          Char ( 10 ) ; \"\\\" & Char ( 10 ) & \\\"\" ] ;\n\t\t\t\t\t[ Char ( 8232
+          ) ; \"\\\" & Char ( 8232 ) & \\\"\" ] ;\n\t\t\t\t\t[ Char ( 8233 ) ; \"\\\"
+          & Char ( 8233 ) & \\\"\" ]\n\t\t\t\t) ;\n\n\t\t\t/* Else */\n\t\t\t\t~number\n\t\t)\n]
+          ;\n\tCase (\n\t\tIsValidExpression ( ~value )\n\t\t\t/**\n\t\t\t * the following
+          Evaluate statement causes the function to calculate\n\t\t\t *  ~30% slower,
+          so it may be best to comment it in a production\n\t\t\t * environment and
+          only use it for development/testing\n\t\t\t */\n\t\t\t// and Evaluate (
+          ~value ) = value\n\t\t;\n\t\t~value & ¶ ;\n\n\t\t//else, ~value is not a
+          valid expression...\n\t\t\"/* Error \"\n\t\t& 1200\t// Generic calculation
+          error\n\t\t& \" value: \"\n\t\t& Quote (\n\t\t\tSubstitute (\t// escape
+          comment character sequences\n\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\"
+          ] ;\n\t\t\t\t[ \"/*\" ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t&
+          ¶\n\t)\n)\n\n) // end Let that wraps the custom function"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            $array
+
+          - |
+            // start of Let that wraps the custom function
+          - '& '
+          - Let
+          - " (\n\tvalue = "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " ) ;\n\n/**\n * =====================================\n * #List ( value
+            )\n *\n * RETURNS:\n *\t\tEncoded value with trailing return and data
+            type preserved.\n *\n * PARAMETERS:\n *\t\tvalue: The value to encode.\n
+            *\n * EXAMPLE:\n *\t\t#List ( \"value1\" )\n *\t\t& #List (\n *\t\t\t#List
+            ( \"subValue\" )\n *\t\t\t&  #List ( \"subValue2\" )\n *\t\t)\n *\n *
+            DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-06-06 by Jeremy
+            Bante <http://scr.im/jbante> to fix an\n *\t\tissue where long sequences
+            of digits could be interpreted as timestamps.\n *\t\tMODIFIED on 2014-05-26
+            by Jeremy Bante <http://scr.im/jbante> to detect\n *\t\ttype using a different
+            method suggested by Arnold Kegebein.\n *\t\tMODIFIED on 2013-12-24 by
+            Jeremy Bante <http://scr.im/jbante> to\n *\t\tspecially encode newline
+            characters in values, and to update type\n *\t\tdetection to match the
+            # function.\n *\t\tMODIFIED on 2013-MAY-09 by Daniel Smith dansmith65@gmail.com
+            to encode\n *\t\ta value like the current version of # ( name ; value
+            ) custom function\n *\t\tCREATED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n
+            * =====================================\n */\n\n"
+          - Let
+          - " ( [\n\t~plusOneText = "
+          - GetAsText
+          - " ( value + 1 ) ;\n\t~number = "
+          - GetAsNumber
+          - " ( value ) ;\n\t~value =\n\t\t"
+          - Case
+          - " (\n\t\t\tvalue = \"\" "
+          - or
+          - ' value = "?" '
+          - or
+          - " ~number = \"?\" ;\n\t\t\t\t"
+          - Quote
+          - " ( value ) ;\n\n\t\t\t"
+          - GetAsText
+          - ' ( '
+          - GetAsTimestamp
+          - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTimestamp ( \" & "
+          - Quote
+          - " ( value ) & \" )\" ;\n\n\t\t\t"
+          - GetAsText
+          - ' ( '
+          - GetAsTime
+          - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsTime ( \" & "
+          - Quote
+          - " ( value ) & \" )\" ;\n\n\t\t\t"
+          - GetAsText
+          - ' ( '
+          - GetAsDate
+          - " ( value ) + 1 ) = ~plusOneText ;\n\t\t\t\t\"GetAsDate ( \" & "
+          - Quote
+          - " ( value ) & \" )\" ;\n\n\t\t\tvalue ≠ ~number ;\n\t\t\t\t"
+          - Substitute
+          - ' ( '
+          - Quote
+          - " ( value ) ;\n\t\t\t\t\t[ "
+          - Char
+          - " ( 10 ) ; \"\\\" & Char ( 10 ) & \\\"\" ] ;\n\t\t\t\t\t[ "
+          - Char
+          - " ( 8232 ) ; \"\\\" & Char ( 8232 ) & \\\"\" ] ;\n\t\t\t\t\t[ "
+          - Char
+          - " ( 8233 ) ; \"\\\" & Char ( 8233 ) & \\\"\" ]\n\t\t\t\t) ;\n\n\t\t\t/*
+            Else */\n\t\t\t\t~number\n\t\t)\n] ;\n\t"
+          - Case
+          - " (\n\t\t"
+          - IsValidExpression
+          - " ( ~value )\n\t\t\t/**\n\t\t\t * the following Evaluate statement causes
+            the function to calculate\n\t\t\t *  ~30% slower, so it may be best to
+            comment it in a production\n\t\t\t * environment and only use it for development/testing\n\t\t\t
+            */\n\t\t\t"
+          - |
+            // and Evaluate ( ~value ) = value
+          - "\t\t;\n\t\t~value & ¶ ;\n\n\t\t"
+          - |
+            //else, ~value is not a valid expression...
+          - "\t\t\"/* Error \"\n\t\t& 1200\t"
+          - |
+            // Generic calculation error
+          - "\t\t& \" value: \"\n\t\t& "
+          - Quote
+          - " (\n\t\t\t"
+          - Substitute
+          - " (\t"
+          - |
+            // escape comment character sequences
+          - "\t\t\t\tvalue ;\n\t\t\t\t[ \"*/\" ; \"\\*\\/\" ] ;\n\t\t\t\t[ \"/*\"
+            ; \"\\/\\*\" ]\n\t\t\t)\n\t\t)\n\t\t& \" */\"\n\t\t& ¶\n\t)\n)\n\n) "
+          - // end Let that wraps the custom function
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $array
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "]" ]
+      Calculation: $$~JSON.CH = "]"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "]"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "]" ]'
+      Calculation: '"]"'
+      DisplayCalculation:
+        Chunk: '"]"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $array ]'
+      Calculation: $array
+      DisplayCalculation:
+        Chunk: $array
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "," ]'
+      Calculation: '","'
+      DisplayCalculation:
+        Chunk: '","'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Error { message }”; Parameter: "Bad array"
+        ]'
+      Calculation: '"Bad array"'
+      DisplayCalculation:
+        Chunk: '"Bad array"'
+      Script:
+        id: '201'
+        name: ~JSON-FM Error { message }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

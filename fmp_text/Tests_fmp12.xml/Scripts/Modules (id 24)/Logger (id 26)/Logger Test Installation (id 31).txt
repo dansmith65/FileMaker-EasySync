@@ -1,0 +1,247 @@
+################################################################################
+# PURPOSE:
+#    Check to see if the module is fully installed and working.
+#
+# CONTEXT: global
+#
+# PARAMETERS: none
+#
+# RETURNS: none
+#
+# DEPENDENCIES: none
+#
+# NOTES:
+#
+# REVISIONS:
+#    2014-JAN-15	 Daniel Smith	- Created
+################################################################################
+#
+#
+Set Variable [ $logData; Value:"$logLevel = 3 ;¶"& "$fileName = " & Quote ( Get ( FileName ) ) & " ;¶"& "$accountName = " & Quote ( Get ( AccountName ) ) & " ;¶"& "$errorType = \"mFM: Logger\" ;¶"& "$errorCode = 0 ;¶"& "$errorDescription = \"no error\" ;¶"& "$errorInfo = \"testing installation of module\" ;¶"& "$scriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"& "$scriptParameter = Random ;¶" ]
+#
+#
+Set Variable [ $logLevelToWriteOffset; Value:5 ]
+Perform Script [ “Logger: Create Entry ( logData )”; Parameter: $logData ]
+#
+#
+Show Custom Dialog [ Title: "Test Finished"; Message: "Check if a log entry was written to your specified destination to confirm successful operation."; Default Button: “OK”, Commit: “Yes” ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '31'
+  name: 'Logger: Test Installation'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Check to see if the module is fully installed and working.'
+      Text: '    Check to see if the module is fully installed and working.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# CONTEXT: global'
+      Text: ' CONTEXT: global'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS: none'
+      Text: ' RETURNS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES: none'
+      Text: ' DEPENDENCIES: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2014-JAN-15\t Daniel Smith\n\t- Created"
+      Text: "    \n2014-JAN-15\t Daniel Smith\n\t- Created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $logData; Value:"$logLevel = 3 ;¶"
+        & "$fileName = " & Quote ( Get ( FileName ) ) & " ;¶"
+        & "$accountName = " & Quote ( Get ( AccountName ) ) & " ;¶"
+        & "$errorType = \"mFM: Logger\" ;¶"
+        & "$errorCode = 0 ;¶"
+        & "$errorDescription = \"no error\" ;¶"
+        & "$errorInfo = \"testing installation of module\" ;¶"
+        & "$scriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"
+        & "$scriptParameter = Random ;¶" ]
+      Value:
+        Calculation: |-
+          "$logLevel = 3 ;¶"
+          & "$fileName = " & Quote ( Get ( FileName ) ) & " ;¶"
+          & "$accountName = " & Quote ( Get ( AccountName ) ) & " ;¶"
+          & "$errorType = \"mFM: Logger\" ;¶"
+          & "$errorCode = 0 ;¶"
+          & "$errorDescription = \"no error\" ;¶"
+          & "$errorInfo = \"testing installation of module\" ;¶"
+          & "$scriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"
+          & "$scriptParameter = Random ;¶"
+        DisplayCalculation:
+          Chunk:
+          - "\"$logLevel = 3 ;¶\"\n& \"$fileName = \" & "
+          - Quote
+          - ' ( '
+          - Get
+          - ' ( '
+          - FileName
+          - " ) ) & \" ;¶\"\n& \"$accountName = \" & "
+          - Quote
+          - ' ( '
+          - Get
+          - ' ( '
+          - AccountName
+          - " ) ) & \" ;¶\"\n& \"$errorType = \\\"mFM: Logger\\\" ;¶\"\n& \"$errorCode
+            = 0 ;¶\"\n& \"$errorDescription = \\\"no error\\\" ;¶\"\n& \"$errorInfo
+            = \\\"testing installation of module\\\" ;¶\"\n& \"$scriptName = \" & "
+          - Quote
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptName
+          - |2-
+             ) ) & " ;¶"
+            & "$scriptParameter = Random ;¶"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $logData
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $logLevelToWriteOffset; Value:5 ]
+      Value:
+        Calculation: '5'
+        DisplayCalculation:
+          Chunk: '5'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $logLevelToWriteOffset
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Logger: Create Entry ( logData )”; Parameter: $logData
+        ]'
+      Calculation: $logData
+      DisplayCalculation:
+        Chunk: $logData
+      Script:
+        id: '32'
+        name: 'Logger: Create Entry ( logData )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Test Finished"; Message: "Check if a
+        log entry was written to your specified destination to confirm successful
+        operation."; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"Test Finished"'
+        DisplayCalculation:
+          Chunk: '"Test Finished"'
+      Message:
+        Calculation: '"Check if a log entry was written to your specified destination
+          to confirm successful operation."'
+        DisplayCalculation:
+          Chunk: '"Check if a log entry was written to your specified destination
+            to confirm successful operation."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

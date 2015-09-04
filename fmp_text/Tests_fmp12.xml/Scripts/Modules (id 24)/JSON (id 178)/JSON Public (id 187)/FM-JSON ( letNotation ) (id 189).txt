@@ -1,0 +1,360 @@
+################################################################################
+# PURPOSE:
+#    Parse FileMaker Let Notation encoded text into JSON.
+#
+# PARAMETERS:
+#    letNotation | text | FileMaker Let Notation encoded text
+#
+# RETURNS:
+#    JSON encoded text
+#
+# VARIABLES:
+#
+# NOTES:
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $letNotation; Value:Get ( ScriptParameter ) ]
+#
+If [  ]
+Else If [ IsEmpty ( $letNotation ) ]
+Set Variable [ $result; Value:"{}" ]
+Else If [ IsValidExpression (	"Let ( [ "	& $letNotation 	& " $! = $1 ] ; True )")andLeft (	Substitute (		$letNotation ;		[ " " ; "" ] ;		[ "¶" ; "" ]	) ;	1) = "$" ]
+Perform Script [ “~FM-JSON { object }”; Parameter: $letNotation ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+Else If [ Let ( [	~firstValue = GetValue ( $letNotation  ; 1 )] ;	IsValidExpression ( ~firstValue )	and (		(			Left ( ~firstValue ; 1 ) = "\""			and			Right ( ~firstValue ; 1 ) = "\""		)		or		LeftWords ( ~firstValue ; 1 ) = "GetAsDate"		or		LeftWords ( ~firstValue ; 1 ) = "GetAsTime"		or		LeftWords ( ~firstValue ; 1 ) = "GetAsTimeStamp"		or		~firstValue = GetAsNumber ( ~firstValue )	)) ]
+Perform Script [ “~FM-JSON ( array )”; Parameter: $letNotation ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+Else
+Perform Script [ “~FM-JSON Error { message }”; Parameter: "invalid letNotation: " & $letNotation ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+End If
+#
+#
+Exit Script [ Result: $result ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '189'
+  name: FM-JSON ( letNotation )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Parse FileMaker Let Notation encoded text into JSON.'
+      Text: '    Parse FileMaker Let Notation encoded text into JSON.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    letNotation | text | FileMaker Let Notation encoded text'
+      Text: '    letNotation | text | FileMaker Let Notation encoded text'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    JSON encoded text'
+      Text: '    JSON encoded text'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# VARIABLES:'
+      Text: ' VARIABLES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTES:'
+      Text: ' NOTES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $letNotation; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $letNotation
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [  ]
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ IsEmpty ( $letNotation ) ]
+      Calculation: IsEmpty ( $letNotation )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $letNotation )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:"{}" ]
+      Value:
+        Calculation: '"{}"'
+        DisplayCalculation:
+          Chunk: '"{}"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ IsValidExpression (\n\t\"Let ( [ \"\n\t& $letNotation \n\t&
+        \" $! = $1 ] ; True )\"\n)\nand\nLeft (\n\tSubstitute (\n\t\t$letNotation
+        ;\n\t\t[ \" \" ; \"\" ] ;\n\t\t[ \"¶\" ; \"\" ]\n\t) ;\n\t1\n) = \"$\" ]"
+      Calculation: "IsValidExpression (\n\t\"Let ( [ \"\n\t& $letNotation \n\t& \"
+        $! = $1 ] ; True )\"\n)\nand\nLeft (\n\tSubstitute (\n\t\t$letNotation ;\n\t\t[
+        \" \" ; \"\" ] ;\n\t\t[ \"¶\" ; \"\" ]\n\t) ;\n\t1\n) = \"$\""
+      DisplayCalculation:
+        Chunk:
+        - IsValidExpression
+        - " (\n\t\"Let ( [ \"\n\t& $letNotation \n\t& \" $! = $1 ] ; True )\"\n)\n"
+        - and
+        - type: NoRef
+          __content__: |2+
+
+        - Left
+        - " (\n\t"
+        - Substitute
+        - " (\n\t\t$letNotation ;\n\t\t[ \" \" ; \"\" ] ;\n\t\t[ \"¶\" ; \"\" ]\n\t)
+          ;\n\t1\n) = \"$\""
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON { object }”; Parameter: $letNotation ]'
+      Calculation: $letNotation
+      DisplayCalculation:
+        Chunk: $letNotation
+      Script:
+        id: '205'
+        name: ~FM-JSON { object }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ Let ( [\n\t~firstValue = GetValue ( $letNotation  ; 1 )\n]
+        ;\n\tIsValidExpression ( ~firstValue )\n\tand (\n\t\t(\n\t\t\tLeft ( ~firstValue
+        ; 1 ) = \"\\\"\"\n\t\t\tand\n\t\t\tRight ( ~firstValue ; 1 ) = \"\\\"\"\n\t\t)\n\t\tor\n\t\tLeftWords
+        ( ~firstValue ; 1 ) = \"GetAsDate\"\n\t\tor\n\t\tLeftWords ( ~firstValue ;
+        1 ) = \"GetAsTime\"\n\t\tor\n\t\tLeftWords ( ~firstValue ; 1 ) = \"GetAsTimeStamp\"\n\t\tor\n\t\t~firstValue
+        = GetAsNumber ( ~firstValue )\n\t)\n) ]"
+      Calculation: "Let ( [\n\t~firstValue = GetValue ( $letNotation  ; 1 )\n] ;\n\tIsValidExpression
+        ( ~firstValue )\n\tand (\n\t\t(\n\t\t\tLeft ( ~firstValue ; 1 ) = \"\\\"\"\n\t\t\tand\n\t\t\tRight
+        ( ~firstValue ; 1 ) = \"\\\"\"\n\t\t)\n\t\tor\n\t\tLeftWords ( ~firstValue
+        ; 1 ) = \"GetAsDate\"\n\t\tor\n\t\tLeftWords ( ~firstValue ; 1 ) = \"GetAsTime\"\n\t\tor\n\t\tLeftWords
+        ( ~firstValue ; 1 ) = \"GetAsTimeStamp\"\n\t\tor\n\t\t~firstValue = GetAsNumber
+        ( ~firstValue )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~firstValue = "
+        - GetValue
+        - " ( $letNotation  ; 1 )\n] ;\n\t"
+        - IsValidExpression
+        - " ( ~firstValue )\n\t"
+        - and
+        - " (\n\t\t(\n\t\t\t"
+        - Left
+        - " ( ~firstValue ; 1 ) = \"\\\"\"\n\t\t\t"
+        - and
+        - type: NoRef
+          __content__: "\n\t\t\t"
+        - Right
+        - " ( ~firstValue ; 1 ) = \"\\\"\"\n\t\t)\n\t\t"
+        - or
+        - type: NoRef
+          __content__: "\n\t\t"
+        - LeftWords
+        - " ( ~firstValue ; 1 ) = \"GetAsDate\"\n\t\t"
+        - or
+        - type: NoRef
+          __content__: "\n\t\t"
+        - LeftWords
+        - " ( ~firstValue ; 1 ) = \"GetAsTime\"\n\t\t"
+        - or
+        - type: NoRef
+          __content__: "\n\t\t"
+        - LeftWords
+        - " ( ~firstValue ; 1 ) = \"GetAsTimeStamp\"\n\t\t"
+        - or
+        - "\n\t\t~firstValue = "
+        - GetAsNumber
+        - " ( ~firstValue )\n\t)\n)"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON ( array )”; Parameter: $letNotation ]'
+      Calculation: $letNotation
+      DisplayCalculation:
+        Chunk: $letNotation
+      Script:
+        id: '206'
+        name: ~FM-JSON ( array )
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON Error { message }”; Parameter: "invalid
+        letNotation: " & $letNotation ]'
+      Calculation: '"invalid letNotation: " & $letNotation'
+      DisplayCalculation:
+        Chunk: '"invalid letNotation: " & $letNotation'
+      Script:
+        id: '208'
+        name: ~FM-JSON Error { message }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result

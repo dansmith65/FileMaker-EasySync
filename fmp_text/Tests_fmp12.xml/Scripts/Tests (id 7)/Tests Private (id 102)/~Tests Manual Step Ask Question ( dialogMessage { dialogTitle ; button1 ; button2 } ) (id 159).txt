@@ -1,0 +1,550 @@
+################################################################################
+# PURPOSE:
+#    Run a test that requires manual setup/prep/test pass verification.
+#
+# PARAMETERS:
+#    dialogMessage | required | message to show
+#    dialogTitle | optional | title to show
+#    button1 | optional | default = "Yes" | button text
+#    button2 | optional | default = "No" | button text
+#
+# RETURNS:
+#    $error | a dictionary containing error data
+#    LastMessageChoice | num | button pressed
+#
+################################################################################
+#
+#
+#
+Allow User Abort [ Off ]
+#
+#
+#
+Loop
+# single-pass loop for error trapping
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+#================================================================================
+If [ // save script parameters to local variablesnot #Assign ( Get ( ScriptParameter ) )ornot VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) ) ]
+Exit Loop If [ Let (	$error = ErrorApp ( 2 ; "" ) ;	True) ]
+End If
+Set Variable [ $parameterNames; Value:#GetNameList ( Get ( ScriptParameter ) ) ]
+If [ /* first list DOES NOT contain second value */IsEmpty ( FilterValues (	$parameterNames ;	"dialogTitle") ) ]
+Set Variable [ $dialogTitle; Value:"Manual Step" ]
+End If
+If [ /* first list DOES NOT contain second value */IsEmpty ( FilterValues (	$parameterNames ;	"button1") ) ]
+Set Variable [ $button1; Value:"Yes" ]
+End If
+If [ /* first list DOES NOT contain second value */IsEmpty ( FilterValues (	$parameterNames ;	"button2") ) ]
+Set Variable [ $button2; Value:"No" ]
+End If
+#
+#
+#
+# ask user a question
+Show Custom Dialog [ Title: $dialogTitle; Message: $dialogMessage, Default Button: $button1, Commit: “Yes”, Button 2: $button2, Commit: “No”; Button 3: “Cancel”, Commit: “No” ]
+If [ Get ( LastMessageChoice ) = 3 ]
+Halt Script
+End If
+Set Variable [ $LastMessageChoice; Value:Get ( LastMessageChoice ) ]
+#
+#
+#
+#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# end single-pass loop for error trapping
+Exit Loop If [ True ]
+End Loop
+#
+#
+#
+Exit Script [ Result: # ( "error" ; $error )& # ( "LastMessageChoice" ; $LastMessageChoice ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '159'
+  name: '~Tests: Manual Step: Ask Question ( dialogMessage { dialogTitle ; button1
+    ; button2 } )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Run a test that requires manual setup/prep/test pass verification.'
+      Text: '    Run a test that requires manual setup/prep/test pass verification.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    dialogMessage | required | message to show'
+      Text: '    dialogMessage | required | message to show'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    dialogTitle | optional | title to show'
+      Text: '    dialogTitle | optional | title to show'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    button1 | optional | default = "Yes" | button text'
+      Text: '    button1 | optional | default = "Yes" | button text'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    button2 | optional | default = "No" | button text'
+      Text: '    button2 | optional | default = "No" | button text'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    $error | a dictionary containing error data'
+      Text: '    $error | a dictionary containing error data'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    LastMessageChoice | num | button pressed'
+      Text: '    LastMessageChoice | num | button pressed'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '85'
+      name: Allow User Abort
+      StepText: Allow User Abort [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# single-pass loop for error trapping'
+      Text: ' single-pass loop for error trapping'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+      Text: \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"ASSIGN PARAMETERS" ]
+      Value:
+        Calculation: '"ASSIGN PARAMETERS"'
+        DisplayCalculation:
+          Chunk: '"ASSIGN PARAMETERS"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ // save script parameters to local variables
+        not #Assign ( Get ( ScriptParameter ) )
+        or
+        not VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) ) ]
+      Calculation: |-
+        // save script parameters to local variables
+        not #Assign ( Get ( ScriptParameter ) )
+        or
+        not VerifyVariablesNotEmpty ( ScriptRequiredParameterList ( "" ) )
+      DisplayCalculation:
+        Chunk:
+        - |
+          // save script parameters to local variables
+        - not
+        - type: NoRef
+          __content__: ' '
+        - '#Assign'
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - |2
+           ) )
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - type: NoRef
+          __content__: ' '
+        - VerifyVariablesNotEmpty
+        - ' ( '
+        - ScriptRequiredParameterList
+        - ' ( "" ) )'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let (\n\t$error = ErrorApp ( 2 ; \"\" ) ;\n\tTrue\n)
+        ]"
+      Calculation: "Let (\n\t$error = ErrorApp ( 2 ; \"\" ) ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " (\n\t$error = "
+        - ErrorApp
+        - " ( 2 ; \"\" ) ;\n\t"
+        - 'True'
+        - |2-
+
+          )
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $parameterNames; Value:#GetNameList ( Get ( ScriptParameter
+        ) ) ]
+      Value:
+        Calculation: '#GetNameList ( Get ( ScriptParameter ) )'
+        DisplayCalculation:
+          Chunk:
+          - '#GetNameList'
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $parameterNames
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* first list DOES NOT contain second value */\n\nIsEmpty (
+        FilterValues (\n\t$parameterNames ;\n\t\"dialogTitle\"\n) ) ]"
+      Calculation: "/* first list DOES NOT contain second value */\n\nIsEmpty ( FilterValues
+        (\n\t$parameterNames ;\n\t\"dialogTitle\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* first list DOES NOT contain second value */
+
+        - IsEmpty
+        - ' ( '
+        - FilterValues
+        - " (\n\t$parameterNames ;\n\t\"dialogTitle\"\n) )"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $dialogTitle; Value:"Manual Step" ]
+      Value:
+        Calculation: '"Manual Step"'
+        DisplayCalculation:
+          Chunk: '"Manual Step"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $dialogTitle
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* first list DOES NOT contain second value */\n\nIsEmpty (
+        FilterValues (\n\t$parameterNames ;\n\t\"button1\"\n) ) ]"
+      Calculation: "/* first list DOES NOT contain second value */\n\nIsEmpty ( FilterValues
+        (\n\t$parameterNames ;\n\t\"button1\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* first list DOES NOT contain second value */
+
+        - IsEmpty
+        - ' ( '
+        - FilterValues
+        - " (\n\t$parameterNames ;\n\t\"button1\"\n) )"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $button1; Value:"Yes" ]
+      Value:
+        Calculation: '"Yes"'
+        DisplayCalculation:
+          Chunk: '"Yes"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $button1
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* first list DOES NOT contain second value */\n\nIsEmpty (
+        FilterValues (\n\t$parameterNames ;\n\t\"button2\"\n) ) ]"
+      Calculation: "/* first list DOES NOT contain second value */\n\nIsEmpty ( FilterValues
+        (\n\t$parameterNames ;\n\t\"button2\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* first list DOES NOT contain second value */
+
+        - IsEmpty
+        - ' ( '
+        - FilterValues
+        - " (\n\t$parameterNames ;\n\t\"button2\"\n) )"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $button2; Value:"No" ]
+      Value:
+        Calculation: '"No"'
+        DisplayCalculation:
+          Chunk: '"No"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $button2
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# ask user a question'
+      Text: ' ask user a question'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: $dialogTitle; Message: $dialogMessage,
+        Default Button: $button1, Commit: “Yes”, Button 2: $button2, Commit: “No”;
+        Button 3: “Cancel”, Commit: “No” ]'
+      Title:
+        Calculation: $dialogTitle
+        DisplayCalculation:
+          Chunk: $dialogTitle
+      Message:
+        Calculation: $dialogMessage
+        DisplayCalculation:
+          Chunk: $dialogMessage
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: $button1
+          DisplayCalculation:
+            Chunk: $button1
+        - CommitState: 'False'
+          Calculation: $button2
+          DisplayCalculation:
+            Chunk: $button2
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastMessageChoice ) = 3 ]
+      Calculation: Get ( LastMessageChoice ) = 3
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 3'
+    - enable: 'True'
+      id: '90'
+      name: Halt Script
+      StepText: Halt Script
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $LastMessageChoice; Value:Get ( LastMessageChoice )
+        ]
+      Value:
+        Calculation: Get ( LastMessageChoice )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastMessageChoice
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $LastMessageChoice
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////'
+      Text: ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# end single-pass loop for error trapping'
+      Text: ' end single-pass loop for error trapping'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: # ( "error" ; $error )
+        & # ( "LastMessageChoice" ; $LastMessageChoice ) ]
+      Calculation: |-
+        # ( "error" ; $error )
+        & # ( "LastMessageChoice" ; $LastMessageChoice )
+      DisplayCalculation:
+        Chunk:
+        - '#'
+        - " ( \"error\" ; $error )\n& "
+        - '#'
+        - ' ( "LastMessageChoice" ; $LastMessageChoice )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

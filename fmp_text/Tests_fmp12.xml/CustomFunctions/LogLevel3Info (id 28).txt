@@ -1,0 +1,65 @@
+/**
+ * =====================================
+ * LogLevel3Info
+ *
+ * RETURNS:
+ *		(number) log level
+ *
+ * EXAMPLE:
+ *		LogData ( LogLevel3Info )
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com
+ *			- add NOTES section describing when this log level should be used
+ *		CREATED on 2014-JAN-15 Daniel Smith dansmith65@gmail.com
+ *
+ * NOTES:
+ *		Things we want to see at high volume in case we need to forensically
+ *		analyze an issue. System lifecycle events (system start, stop) go here.
+ *		 "Session" lifecycle events (login, logout, etc.) go here. Significant
+ *		boundary events should be considered as well (e.g. database calls,
+ *		remote API calls). Typical business exceptions can go here (e.g. login
+ *		failed due to bad credentials). Any other event you think you'll need
+ *		to see in production at high volume goes here.
+ *
+ * REFERENCE:
+ *		http://filemakerstandards.org/display/props/Logging
+ * =====================================
+ */
+
+ 3
+
+---
+CustomFunction:
+  id: '28'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: LogLevel3Info
+  Calculation: "/**\n * =====================================\n * LogLevel3Info\n
+    *\n * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel3Info
+    )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+    on 2014-JAN-15 Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tThings
+    we want to see at high volume in case we need to forensically\n *\t\tanalyze an
+    issue. System lifecycle events (system start, stop) go here.\n *\t\t \"Session\"
+    lifecycle events (login, logout, etc.) go here. Significant\n *\t\tboundary events
+    should be considered as well (e.g. database calls,\n *\t\tremote API calls). Typical
+    business exceptions can go here (e.g. login\n *\t\tfailed due to bad credentials).
+    Any other event you think you'll need\n *\t\tto see in production at high volume
+    goes here.\n *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n
+    * =====================================\n */\n\n 3"
+  DisplayCalculation:
+    Chunk: "/**\n * =====================================\n * LogLevel3Info\n *\n
+      * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel3Info
+      )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+      on 2014-JAN-15 Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tThings
+      we want to see at high volume in case we need to forensically\n *\t\tanalyze
+      an issue. System lifecycle events (system start, stop) go here.\n *\t\t \"Session\"
+      lifecycle events (login, logout, etc.) go here. Significant\n *\t\tboundary
+      events should be considered as well (e.g. database calls,\n *\t\tremote API
+      calls). Typical business exceptions can go here (e.g. login\n *\t\tfailed due
+      to bad credentials). Any other event you think you'll need\n *\t\tto see in
+      production at high volume goes here.\n *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n
+      * =====================================\n */\n\n 3"

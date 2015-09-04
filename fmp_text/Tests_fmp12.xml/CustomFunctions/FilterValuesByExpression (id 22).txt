@@ -1,0 +1,84 @@
+/*
+
+NAME:       FilterValuesByExpression
+PURPOSE:  Filters the values of a list based on a Filemaker expression
+NOTES:  if the expression is applied to each value in the List and if it evalutes to true then the Item is return.  Expressions can use "item" to refer to the List Item
+AUTHOR: Todd Geist, todd@geistinteractive.com
+HISTORY: 
+    Version 1.0 9/27/2013
+
+EXAMPLES:
+
+// get all values that begin with the letter a
+FilterValuesByExpression ( List("a" ; "bee"; "see" ; "apple") ; "Left(item ;1) = \"a\" " )
+//  -> a¶apple
+
+// get all values that contain "ee"
+FilterValuesByExpression ( List("a" ; "bee"; "see" ; "apple") ; " PatternCount( item ; \"ee\" )" )
+//  -> bee¶see
+
+*/
+
+
+Let(
+[
+
+left = " Let( [ item =\"";
+right = "\" ]; If( " & expression & " ; item ) );" ;
+
+let = 
+"List(¶"  & 
+left & 
+Substitute(theList & "¶" ; "¶" ; right & "¶" & left) & 
+right
+& "¶)"
+
+
+
+];
+
+Evaluate( let )
+
+)
+
+---
+CustomFunction:
+  id: '22'
+  functionArity: '2'
+  visible: 'True'
+  parameters: theList;expression
+  name: FilterValuesByExpression
+  Calculation: "/*\n\nNAME:       FilterValuesByExpression\nPURPOSE:  Filters the
+    values of a list based on a Filemaker expression\nNOTES:  if the expression is
+    applied to each value in the List and if it evalutes to true then the Item is
+    return.  Expressions can use \"item\" to refer to the List Item\nAUTHOR: Todd
+    Geist, todd@geistinteractive.com\nHISTORY: \n    Version 1.0 9/27/2013\n\nEXAMPLES:\n\n//
+    get all values that begin with the letter a\nFilterValuesByExpression ( List(\"a\"
+    ; \"bee\"; \"see\" ; \"apple\") ; \"Left(item ;1) = \\\"a\\\" \" )\n//  -> a¶apple\n\n//
+    get all values that contain \"ee\"\nFilterValuesByExpression ( List(\"a\" ; \"bee\";
+    \"see\" ; \"apple\") ; \" PatternCount( item ; \\\"ee\\\" )\" )\n//  -> bee¶see\n\n*/\n\n\nLet(\n[\n\nleft
+    = \" Let( [ item =\\\"\";\nright = \"\\\" ]; If( \" & expression & \" ; item )
+    );\" ;\n\nlet = \n\"List(¶\"  & \nleft & \nSubstitute(theList & \"¶\" ; \"¶\"
+    ; right & \"¶\" & left) & \nright\n& \"¶)\"\n\n\n\n];\n\nEvaluate( let )\n\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/*\n\nNAME:       FilterValuesByExpression\nPURPOSE:  Filters the values of
+      a list based on a Filemaker expression\nNOTES:  if the expression is applied
+      to each value in the List and if it evalutes to true then the Item is return.
+      \ Expressions can use \"item\" to refer to the List Item\nAUTHOR: Todd Geist,
+      todd@geistinteractive.com\nHISTORY: \n    Version 1.0 9/27/2013\n\nEXAMPLES:\n\n//
+      get all values that begin with the letter a\nFilterValuesByExpression ( List(\"a\"
+      ; \"bee\"; \"see\" ; \"apple\") ; \"Left(item ;1) = \\\"a\\\" \" )\n//  -> a¶apple\n\n//
+      get all values that contain \"ee\"\nFilterValuesByExpression ( List(\"a\" ;
+      \"bee\"; \"see\" ; \"apple\") ; \" PatternCount( item ; \\\"ee\\\" )\" )\n//
+      \ -> bee¶see\n\n*/\n\n\n"
+    - Let
+    - "(\n[\n\nleft = \" Let( [ item =\\\"\";\nright = \"\\\" ]; If( \" & expression
+      & \" ; item ) );\" ;\n\nlet = \n\"List(¶\"  & \nleft & \n"
+    - Substitute
+    - "(theList & \"¶\" ; \"¶\" ; right & \"¶\" & left) & \nright\n& \"¶)\"\n\n\n\n];\n\n"
+    - Evaluate
+    - |-
+      ( let )
+
+      )

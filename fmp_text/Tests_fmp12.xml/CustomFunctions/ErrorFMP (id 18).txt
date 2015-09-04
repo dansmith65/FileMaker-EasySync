@@ -1,0 +1,107 @@
+/**
+ * =====================================
+ * ErrorFMP ( theErrorCode ; theErrorInfo )
+ *
+ * RETURNS:
+ *		Let format dictionary containing theErrorCode, error meta data, and
+ *		additional environmental data.
+ *
+ * PARAMETERS:
+ *		theErrorCode = (number) code for the error
+ *		theErrorInfo = (text, optional) some text describing the particular
+ *			instance of this error.
+ *			(e.g., "create new invoice record")
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: #, Error, ErrorFMPDescription
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-09-21 by Daniel Smith
+ *			- use theErrorInfo parameter added to Error function
+ *		MODIFIED on 2013-11-21 by Jeremy Bante <http://scr.im/jbante>.
+ *			- renaming the function; delegating error codes to subfunction.
+ *		CREATED on 2013-OCT-11 Daniel Smith dansmith65@gmail.com
+ *
+ * REFERENCES:
+ *		http://www.filemaker.com/help/html/error_codes.html
+ *		http://filemakerstandards.org/x/AoA-/
+ * =====================================
+ */
+
+Error (
+	"fmp" ;
+	theErrorCode ;
+	ErrorFMPDescription ( theErrorCode ) ;
+	theErrorInfo 
+)
+
+// add additional info, for specific errors only
+& Case (
+	theErrorCode = 3 ;
+		# ( "windowMode" ; Get ( WindowMode ) ) ;
+
+	theErrorCode = 9 ;
+		# ( "accountPrivilegeSetName" ; Get ( AccountPrivilegeSetName ) )
+)
+
+---
+CustomFunction:
+  id: '18'
+  functionArity: '2'
+  visible: 'True'
+  parameters: theErrorCode;theErrorInfo
+  name: ErrorFMP
+  Calculation: "/**\n * =====================================\n * ErrorFMP ( theErrorCode
+    ; theErrorInfo )\n *\n * RETURNS:\n *\t\tLet format dictionary containing theErrorCode,
+    error meta data, and\n *\t\tadditional environmental data.\n *\n * PARAMETERS:\n
+    *\t\ttheErrorCode = (number) code for the error\n *\t\ttheErrorInfo = (text, optional)
+    some text describing the particular\n *\t\t\tinstance of this error.\n *\t\t\t(e.g.,
+    \"create new invoice record\")\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:
+    #, Error, ErrorFMPDescription\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-09-21 by
+    Daniel Smith\n *\t\t\t- use theErrorInfo parameter added to Error function\n *\t\tMODIFIED
+    on 2013-11-21 by Jeremy Bante <http://scr.im/jbante>.\n *\t\t\t- renaming the
+    function; delegating error codes to subfunction.\n *\t\tCREATED on 2013-OCT-11
+    Daniel Smith dansmith65@gmail.com\n *\n * REFERENCES:\n *\t\thttp://www.filemaker.com/help/html/error_codes.html\n
+    *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+    */\n\nError (\n\t\"fmp\" ;\n\ttheErrorCode ;\n\tErrorFMPDescription ( theErrorCode
+    ) ;\n\ttheErrorInfo \n)\n\n// add additional info, for specific errors only\n&
+    Case (\n\ttheErrorCode = 3 ;\n\t\t# ( \"windowMode\" ; Get ( WindowMode ) ) ;\n\n\ttheErrorCode
+    = 9 ;\n\t\t# ( \"accountPrivilegeSetName\" ; Get ( AccountPrivilegeSetName ) )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ErrorFMP ( theErrorCode ;
+      theErrorInfo )\n *\n * RETURNS:\n *\t\tLet format dictionary containing theErrorCode,
+      error meta data, and\n *\t\tadditional environmental data.\n *\n * PARAMETERS:\n
+      *\t\ttheErrorCode = (number) code for the error\n *\t\ttheErrorInfo = (text,
+      optional) some text describing the particular\n *\t\t\tinstance of this error.\n
+      *\t\t\t(e.g., \"create new invoice record\")\n *\n * DEPENDENCIES:\n *\t\tCustom
+      Functions: #, Error, ErrorFMPDescription\n *\n * HISTORY:\n *\t\tMODIFIED on
+      2014-09-21 by Daniel Smith\n *\t\t\t- use theErrorInfo parameter added to Error
+      function\n *\t\tMODIFIED on 2013-11-21 by Jeremy Bante <http://scr.im/jbante>.\n
+      *\t\t\t- renaming the function; delegating error codes to subfunction.\n *\t\tCREATED
+      on 2013-OCT-11 Daniel Smith dansmith65@gmail.com\n *\n * REFERENCES:\n *\t\thttp://www.filemaker.com/help/html/error_codes.html\n
+      *\t\thttp://filemakerstandards.org/x/AoA-/\n * =====================================\n
+      */\n\n"
+    - Error
+    - " (\n\t\"fmp\" ;\n\ttheErrorCode ;\n\t"
+    - ErrorFMPDescription
+    - " ( theErrorCode ) ;\n\ttheErrorInfo \n)\n\n"
+    - |
+      // add additional info, for specific errors only
+    - '& '
+    - Case
+    - " (\n\ttheErrorCode = 3 ;\n\t\t"
+    - '#'
+    - ' ( "windowMode" ; '
+    - Get
+    - ' ( '
+    - WindowMode
+    - " ) ) ;\n\n\ttheErrorCode = 9 ;\n\t\t"
+    - '#'
+    - ' ( "accountPrivilegeSetName" ; '
+    - Get
+    - ' ( '
+    - AccountPrivilegeSetName
+    - |2-
+       ) )
+      )

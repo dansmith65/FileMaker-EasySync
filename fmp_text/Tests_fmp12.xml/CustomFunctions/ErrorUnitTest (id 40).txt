@@ -1,0 +1,163 @@
+/**
+ * =====================================
+ * #AppError ( theErrorCode ; theErrorInfo )
+ *
+ * RETURNS:
+ *		Let format dictionary containing theErrorCode, error meta data, and
+ *		additional environmental data.
+ *
+ * PARAMETERS:
+ *		theErrorCode = (number) code for the error
+ *		theErrorInfo = (text, optional) some text describing the particular
+ *			instance of this error.
+ *			(e.g., "create new invoice record")
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: #, #Error
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-NOV-07 by Daniel Smith dansmith65@gmail.com
+ *			- added errorCode 18 Invalid found count
+ *		MODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com
+ *			- change from ErrorDataApp ( theErrorCode )
+ *			  to #AppError ( theErrorCode ; theErrorInfo )
+ *			- add dependency on custom function: #Error
+ *		MODIFIED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com
+ *			- add errorCode 17: ExecuteSQL error
+ *		MODIFIED on 2012-NOV-22 by Daniel Smith dansmith65@gmail.com
+ *			- rename to: ErrorDataApp
+ *		MODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com
+ *			- don't access $error variable directly
+ *		CREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com
+ *		INSPIRED by ErrorString and ErrorData by matt@filemakermagazine.com
+ *			https://github.com/filemakerstandards/fmpstandards/tree/master/Functions
+ * =====================================
+ */
+
+Let ( [
+	// Get human-readable error string associated with the error
+	// Also add additional information about the environment that is uniqe to the error code
+	errorDescription = 
+		Case (
+			theErrorCode = 0; "No error" ;
+			theErrorCode = 1; "User canceled action" ;
+			theErrorCode = 2; "Invalid Parameter" ;
+			theErrorCode = 3; "Failed Validation" ;
+			theErrorCode = 4; "No records found" ;
+			theErrorCode = 5; "No records selected" ;
+			theErrorCode = 6; "Invalid window mode" ;
+			theErrorCode = 7; "FileMaker Error" ;
+			theErrorCode = 8; "Invalid Plug-In" ;
+			theErrorCode = 9; "Subscript Error" ;
+			theErrorCode = 10; "Incompatible FileMaker version" ;
+			theErrorCode = 11; "Incompatible FileMaker application" ;
+			theErrorCode = 12; "Record is in use by another user (FileMaker error 301)" ;
+			theErrorCode = 13; "Script Error" ;
+			theErrorCode = 14; "Access error: get(RecordAccess) was 0" ;
+			theErrorCode = 15; "Access error: get(LayoutAccess) was 0" ;
+			theErrorCode = 16; "Plug-In error" ;
+			theErrorCode = 17; "ExecuteSQL error" ;
+			theErrorCode = 18; "Invalid found count" ;
+			"Unknown error code"
+		)
+] ;
+	Error ( "UnitTests" ; theErrorCode ; errorDescription ; theErrorInfo )
+	& If ( theErrorCode = 18 ; # ( "FoundCount" ; Get ( FoundCount ) ) )
+)
+
+---
+CustomFunction:
+  id: '40'
+  functionArity: '2'
+  visible: 'True'
+  parameters: theErrorCode;theErrorInfo
+  name: ErrorUnitTest
+  Calculation: "/**\n * =====================================\n * #AppError ( theErrorCode
+    ; theErrorInfo )\n *\n * RETURNS:\n *\t\tLet format dictionary containing theErrorCode,
+    error meta data, and\n *\t\tadditional environmental data.\n *\n * PARAMETERS:\n
+    *\t\ttheErrorCode = (number) code for the error\n *\t\ttheErrorInfo = (text, optional)
+    some text describing the particular\n *\t\t\tinstance of this error.\n *\t\t\t(e.g.,
+    \"create new invoice record\")\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:
+    #, #Error\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-NOV-07 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- added errorCode 18 Invalid found count\n *\t\tMODIFIED on 2013-OCT-11
+    by Daniel Smith dansmith65@gmail.com\n *\t\t\t- change from ErrorDataApp ( theErrorCode
+    )\n *\t\t\t  to #AppError ( theErrorCode ; theErrorInfo )\n *\t\t\t- add dependency
+    on custom function: #Error\n *\t\tMODIFIED on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- add errorCode 17: ExecuteSQL error\n *\t\tMODIFIED on 2012-NOV-22 by
+    Daniel Smith dansmith65@gmail.com\n *\t\t\t- rename to: ErrorDataApp\n *\t\tMODIFIED
+    on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- don't access $error
+    variable directly\n *\t\tCREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n
+    *\t\tINSPIRED by ErrorString and ErrorData by matt@filemakermagazine.com\n *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+    * =====================================\n */\n\nLet ( [\n\t// Get human-readable
+    error string associated with the error\n\t// Also add additional information about
+    the environment that is uniqe to the error code\n\terrorDescription = \n\t\tCase
+    (\n\t\t\ttheErrorCode = 0; \"No error\" ;\n\t\t\ttheErrorCode = 1; \"User canceled
+    action\" ;\n\t\t\ttheErrorCode = 2; \"Invalid Parameter\" ;\n\t\t\ttheErrorCode
+    = 3; \"Failed Validation\" ;\n\t\t\ttheErrorCode = 4; \"No records found\" ;\n\t\t\ttheErrorCode
+    = 5; \"No records selected\" ;\n\t\t\ttheErrorCode = 6; \"Invalid window mode\"
+    ;\n\t\t\ttheErrorCode = 7; \"FileMaker Error\" ;\n\t\t\ttheErrorCode = 8; \"Invalid
+    Plug-In\" ;\n\t\t\ttheErrorCode = 9; \"Subscript Error\" ;\n\t\t\ttheErrorCode
+    = 10; \"Incompatible FileMaker version\" ;\n\t\t\ttheErrorCode = 11; \"Incompatible
+    FileMaker application\" ;\n\t\t\ttheErrorCode = 12; \"Record is in use by another
+    user (FileMaker error 301)\" ;\n\t\t\ttheErrorCode = 13; \"Script Error\" ;\n\t\t\ttheErrorCode
+    = 14; \"Access error: get(RecordAccess) was 0\" ;\n\t\t\ttheErrorCode = 15; \"Access
+    error: get(LayoutAccess) was 0\" ;\n\t\t\ttheErrorCode = 16; \"Plug-In error\"
+    ;\n\t\t\ttheErrorCode = 17; \"ExecuteSQL error\" ;\n\t\t\ttheErrorCode = 18; \"Invalid
+    found count\" ;\n\t\t\t\"Unknown error code\"\n\t\t)\n] ;\n\tError ( \"UnitTests\"
+    ; theErrorCode ; errorDescription ; theErrorInfo )\n\t& If ( theErrorCode = 18
+    ; # ( \"FoundCount\" ; Get ( FoundCount ) ) )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #AppError ( theErrorCode
+      ; theErrorInfo )\n *\n * RETURNS:\n *\t\tLet format dictionary containing theErrorCode,
+      error meta data, and\n *\t\tadditional environmental data.\n *\n * PARAMETERS:\n
+      *\t\ttheErrorCode = (number) code for the error\n *\t\ttheErrorInfo = (text,
+      optional) some text describing the particular\n *\t\t\tinstance of this error.\n
+      *\t\t\t(e.g., \"create new invoice record\")\n *\n * DEPENDENCIES:\n *\t\tCustom
+      Functions: #, #Error\n *\n * HISTORY:\n *\t\tMODIFIED on 2013-NOV-07 by Daniel
+      Smith dansmith65@gmail.com\n *\t\t\t- added errorCode 18 Invalid found count\n
+      *\t\tMODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com\n *\t\t\t-
+      change from ErrorDataApp ( theErrorCode )\n *\t\t\t  to #AppError ( theErrorCode
+      ; theErrorInfo )\n *\t\t\t- add dependency on custom function: #Error\n *\t\tMODIFIED
+      on 2012-NOV-26 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- add errorCode
+      17: ExecuteSQL error\n *\t\tMODIFIED on 2012-NOV-22 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- rename to: ErrorDataApp\n *\t\tMODIFIED on 2012-NOV-21 by Daniel Smith
+      dansmith65@gmail.com\n *\t\t\t- don't access $error variable directly\n *\t\tCREATED
+      on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n *\t\tINSPIRED by ErrorString
+      and ErrorData by matt@filemakermagazine.com\n *\t\t\thttps://github.com/filemakerstandards/fmpstandards/tree/master/Functions\n
+      * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t"
+    - |
+      // Get human-readable error string associated with the error
+    - type: NoRef
+      __content__: "\t"
+    - |
+      // Also add additional information about the environment that is uniqe to the error code
+    - "\terrorDescription = \n\t\t"
+    - Case
+    - " (\n\t\t\ttheErrorCode = 0; \"No error\" ;\n\t\t\ttheErrorCode = 1; \"User
+      canceled action\" ;\n\t\t\ttheErrorCode = 2; \"Invalid Parameter\" ;\n\t\t\ttheErrorCode
+      = 3; \"Failed Validation\" ;\n\t\t\ttheErrorCode = 4; \"No records found\" ;\n\t\t\ttheErrorCode
+      = 5; \"No records selected\" ;\n\t\t\ttheErrorCode = 6; \"Invalid window mode\"
+      ;\n\t\t\ttheErrorCode = 7; \"FileMaker Error\" ;\n\t\t\ttheErrorCode = 8; \"Invalid
+      Plug-In\" ;\n\t\t\ttheErrorCode = 9; \"Subscript Error\" ;\n\t\t\ttheErrorCode
+      = 10; \"Incompatible FileMaker version\" ;\n\t\t\ttheErrorCode = 11; \"Incompatible
+      FileMaker application\" ;\n\t\t\ttheErrorCode = 12; \"Record is in use by another
+      user (FileMaker error 301)\" ;\n\t\t\ttheErrorCode = 13; \"Script Error\" ;\n\t\t\ttheErrorCode
+      = 14; \"Access error: get(RecordAccess) was 0\" ;\n\t\t\ttheErrorCode = 15;
+      \"Access error: get(LayoutAccess) was 0\" ;\n\t\t\ttheErrorCode = 16; \"Plug-In
+      error\" ;\n\t\t\ttheErrorCode = 17; \"ExecuteSQL error\" ;\n\t\t\ttheErrorCode
+      = 18; \"Invalid found count\" ;\n\t\t\t\"Unknown error code\"\n\t\t)\n] ;\n\t"
+    - Error
+    - " ( \"UnitTests\" ; theErrorCode ; errorDescription ; theErrorInfo )\n\t& "
+    - If
+    - ' ( theErrorCode = 18 ; '
+    - '#'
+    - ' ( "FoundCount" ; '
+    - Get
+    - ' ( '
+    - FoundCount
+    - |2-
+       ) ) )
+      )

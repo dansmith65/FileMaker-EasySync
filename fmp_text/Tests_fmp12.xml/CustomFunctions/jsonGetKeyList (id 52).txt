@@ -1,0 +1,68 @@
+/**
+ * =====================================
+ * jsonGetKeyList ( json )
+ *
+ *   gets the list of member properties from a JSON object.  It only goes one level deep
+ *
+ * RETURNS:
+ *		the list of property names
+ *
+ * PARAMETERS:
+ *		json  -  the valid JSON string to get the properties from
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ *		MODIFIED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com
+ *			changed name to jsonGetKeyList ( json )
+ *		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+Let ( [
+		js = "var json = " & json & " ; " & "¶¶" & "" & "¶" & "" & "¶" & "" &
+		"¶" & "var keys = Object.keys(json);" & "¶" & "keys = keys.join('\n');" &
+		"¶" & "keys" & "¶" & ""
+	] ;
+	BE_EvaluateJavaScript ( js )
+)
+
+---
+CustomFunction:
+  id: '52'
+  functionArity: '1'
+  visible: 'True'
+  parameters: json
+  name: jsonGetKeyList
+  Calculation: "/**\n * =====================================\n * jsonGetKeyList (
+    json )\n *\n *   gets the list of member properties from a JSON object.  It only
+    goes one level deep\n *\n * RETURNS:\n *\t\tthe list of property names\n *\n *
+    PARAMETERS:\n *\t\tjson  -  the valid JSON string to get the properties from\n
+    *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n *
+    HISTORY:\n *\t\tMODIFIED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+    *\t\t\tchanged name to jsonGetKeyList ( json )\n *\t\tCREATED on 2015-JAN-06 Todd
+    Geist, todd@geistinteractive.com\n *\n * =====================================\n
+    */\n\nLet ( [\n\t\tjs = \"var json = \" & json & \" ; \" & \"¶¶\" & \"\" & \"¶\"
+    & \"\" & \"¶\" & \"\" &\n\t\t\"¶\" & \"var keys = Object.keys(json);\" & \"¶\"
+    & \"keys = keys.join('\\n');\" &\n\t\t\"¶\" & \"keys\" & \"¶\" & \"\"\n\t] ;\n\tBE_EvaluateJavaScript
+    ( js )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonGetKeyList ( json )\n
+      *\n *   gets the list of member properties from a JSON object.  It only goes
+      one level deep\n *\n * RETURNS:\n *\t\tthe list of property names\n *\n * PARAMETERS:\n
+      *\t\tjson  -  the valid JSON string to get the properties from\n *\n * DEPENDENCIES:\n
+      *\t\tBaseElements Plugin version 3.0 or greater\n *\n * HISTORY:\n *\t\tMODIFIED
+      on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n *\t\t\tchanged name to
+      jsonGetKeyList ( json )\n *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+      *\n * =====================================\n */\n\n"
+    - Let
+    - " ( [\n\t\tjs = \"var json = \" & json & \" ; \" & \"¶¶\" & \"\" & \"¶\" & \"\"
+      & \"¶\" & \"\" &\n\t\t\"¶\" & \"var keys = Object.keys(json);\" & \"¶\" & \"keys
+      = keys.join('\\n');\" &\n\t\t\"¶\" & \"keys\" & \"¶\" & \"\"\n\t] ;\n\t"
+    - BE_EvaluateJavaScript
+    - |2-
+       ( js )
+      )

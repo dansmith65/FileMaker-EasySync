@@ -1,0 +1,440 @@
+################################################################################
+# PURPOSE:
+#    Convert let notation into JSON.
+#
+# PARAMETERS:
+#    object | text encoded in FileMake let notation format
+#
+# RETURNS:
+#    JSON encoded text.
+#
+# REVISIONS:
+#    2014-MAR-30	 Daniel Smith	- process object as ¶ delimited list instead of a return delimited list, which didn't work for Char(10)	- this is now the same method of processing as #Get ( parameters ; name ) function uses2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $object; Value:Get ( ScriptParameter ) ]
+Set Variable [ $length; Value:Length ( $object ) ]
+Set Variable [ $start; Value:1 ]
+#
+#
+Set Variable [ $result; Value:"{" ]
+Loop
+Exit Loop If [ $start > $length ]
+Set Variable [ $end; Value:Position ( $object ; "¶" ; $start ; 1 ) ]
+If [ $end = 0 ]
+Set Variable [ $end; Value:$length ]
+End If
+Set Variable [ $valuePosition; Value:Position ( $object ; "=" ; $start ; 1 ) + 1 ]
+Set Variable [ $name; Value:Let ( [	~name = Middle (		$object ;		$start ;		$valuePosition - $start - 1	) ;	~name = Trim ( ~name ) ;	~name = Substitute (		¶ & ~name ;		[ "¶$$" ; "" ] ;		[ "¶$" ; "" ] ;		[ "¶" ; "" ]	)] ;	~name) ]
+Set Variable [ $value; Value:Let ( [	~valueEnd = Position ( $object ; ";¶" ; $valuePosition ; 1 )] ;	Middle ( $object ; $valuePosition ; ~valueEnd - $valuePosition )) ]
+#
+Perform Script [ “~FM-JSON { string }”; Parameter: $name ]
+Set Variable [ $name; Value:Get ( ScriptResult ) ]
+Perform Script [ “~FM-JSON { value }”; Parameter: $value ]
+Set Variable [ $value; Value:Get ( ScriptResult ) ]
+#
+Set Variable [ $start; Value:$end + 1 ]
+Set Variable [ $result; Value:$result& $name & ":" & $value& If ( $start ≤ $length ;	",") ]
+End Loop
+Set Variable [ $result; Value:$result & "}" ]
+#
+#
+Exit Script [ Result: $result ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '205'
+  name: ~FM-JSON { object }
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Convert let notation into JSON.'
+      Text: '    Convert let notation into JSON.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    object | text encoded in FileMake let notation format'
+      Text: '    object | text encoded in FileMake let notation format'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    JSON encoded text.'
+      Text: '    JSON encoded text.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2014-MAR-30\t Daniel Smith\n\t- process object as ¶ delimited
+        list instead of a return delimited list, which didn't work for Char(10)\n\t-
+        this is now the same method of processing as #Get ( parameters ; name ) function
+        uses\n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2014-MAR-30\t Daniel Smith\n\t- process object as ¶ delimited list
+        instead of a return delimited list, which didn't work for Char(10)\n\t- this
+        is now the same method of processing as #Get ( parameters ; name ) function
+        uses\n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $object; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $object
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $length; Value:Length ( $object ) ]
+      Value:
+        Calculation: Length ( $object )
+        DisplayCalculation:
+          Chunk:
+          - Length
+          - ' ( $object )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $length
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start; Value:1 ]
+      Value:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:"{" ]
+      Value:
+        Calculation: '"{"'
+        DisplayCalculation:
+          Chunk: '"{"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $start > $length ]
+      Calculation: $start > $length
+      DisplayCalculation:
+        Chunk: $start > $length
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $end; Value:Position ( $object ; "¶" ; $start ; 1 )
+        ]
+      Value:
+        Calculation: Position ( $object ; "¶" ; $start ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - Position
+          - ' ( $object ; "¶" ; $start ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $end
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $end = 0 ]
+      Calculation: $end = 0
+      DisplayCalculation:
+        Chunk: $end = 0
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $end; Value:$length ]
+      Value:
+        Calculation: $length
+        DisplayCalculation:
+          Chunk: $length
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $end
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $valuePosition; Value:Position ( $object ; "=" ; $start
+        ; 1 ) + 1 ]
+      Value:
+        Calculation: Position ( $object ; "=" ; $start ; 1 ) + 1
+        DisplayCalculation:
+          Chunk:
+          - Position
+          - ' ( $object ; "=" ; $start ; 1 ) + 1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $valuePosition
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $name; Value:Let ( [\n\t~name = Middle (\n\t\t$object
+        ;\n\t\t$start ;\n\t\t$valuePosition - $start - 1\n\t) ;\n\t~name = Trim (
+        ~name ) ;\n\t~name = Substitute (\n\t\t¶ & ~name ;\n\t\t[ \"¶$$\" ; \"\" ]
+        ;\n\t\t[ \"¶$\" ; \"\" ] ;\n\t\t[ \"¶\" ; \"\" ]\n\t)\n] ;\n\t~name\n) ]"
+      Value:
+        Calculation: "Let ( [\n\t~name = Middle (\n\t\t$object ;\n\t\t$start ;\n\t\t$valuePosition
+          - $start - 1\n\t) ;\n\t~name = Trim ( ~name ) ;\n\t~name = Substitute (\n\t\t¶
+          & ~name ;\n\t\t[ \"¶$$\" ; \"\" ] ;\n\t\t[ \"¶$\" ; \"\" ] ;\n\t\t[ \"¶\"
+          ; \"\" ]\n\t)\n] ;\n\t~name\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( [\n\t~name = "
+          - Middle
+          - " (\n\t\t$object ;\n\t\t$start ;\n\t\t$valuePosition - $start - 1\n\t)
+            ;\n\t~name = "
+          - Trim
+          - " ( ~name ) ;\n\t~name = "
+          - Substitute
+          - " (\n\t\t¶ & ~name ;\n\t\t[ \"¶$$\" ; \"\" ] ;\n\t\t[ \"¶$\" ; \"\" ]
+            ;\n\t\t[ \"¶\" ; \"\" ]\n\t)\n] ;\n\t~name\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $name
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $value; Value:Let ( [\n\t~valueEnd = Position ( $object
+        ; \";¶\" ; $valuePosition ; 1 )\n] ;\n\tMiddle ( $object ; $valuePosition
+        ; ~valueEnd - $valuePosition )\n) ]"
+      Value:
+        Calculation: "Let ( [\n\t~valueEnd = Position ( $object ; \";¶\" ; $valuePosition
+          ; 1 )\n] ;\n\tMiddle ( $object ; $valuePosition ; ~valueEnd - $valuePosition
+          )\n)"
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - " ( [\n\t~valueEnd = "
+          - Position
+          - " ( $object ; \";¶\" ; $valuePosition ; 1 )\n] ;\n\t"
+          - Middle
+          - |2-
+             ( $object ; $valuePosition ; ~valueEnd - $valuePosition )
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $value
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON { string }”; Parameter: $name ]'
+      Calculation: $name
+      DisplayCalculation:
+        Chunk: $name
+      Script:
+        id: '207'
+        name: ~FM-JSON { string }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $name
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON { value }”; Parameter: $value ]'
+      Calculation: $value
+      DisplayCalculation:
+        Chunk: $value
+      Script:
+        id: '204'
+        name: ~FM-JSON { value }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $value; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $value
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $start; Value:$end + 1 ]
+      Value:
+        Calculation: $end + 1
+        DisplayCalculation:
+          Chunk: $end + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:$result\n& $name & \":\" & $value\n&
+        If ( $start ≤ $length ;\n\t\",\"\n) ]"
+      Value:
+        Calculation: "$result\n& $name & \":\" & $value\n& If ( $start ≤ $length ;\n\t\",\"\n)"
+        DisplayCalculation:
+          Chunk:
+          - "$result\n& $name & \":\" & $value\n& "
+          - If
+          - " ( $start ≤ $length ;\n\t\",\"\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:$result & "}" ]
+      Value:
+        Calculation: $result & "}"
+        DisplayCalculation:
+          Chunk: $result & "}"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result

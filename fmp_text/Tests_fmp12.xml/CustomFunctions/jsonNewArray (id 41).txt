@@ -1,0 +1,70 @@
+/**
+ * =====================================
+ * jsonNewArray ( arrayValues )
+ *
+ * RETURNS:
+ *		wraps the items in "[" and "]" removes trailing coma
+ *
+ * PARAMETERS:
+ *		arrayValues = a series of items created with the cf jsonItem
+ *
+ * DEPENDENCIES:
+ *		None
+ *
+ * HISTORY:
+ *		MODIFIED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com
+ *			changed the name to jsonNewArray ( arrayValues )
+ *		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+
+Let ( [
+		arrayValues =
+		If (
+			Right ( arrayValues ; 1 ) = "," ;
+			Left ( arrayValues ; Length ( arrayValues ) - 1 ) ;
+			arrayValues
+		)
+	] ;
+	"[ " & arrayValues & " ]"
+)
+
+---
+CustomFunction:
+  id: '41'
+  functionArity: '1'
+  visible: 'True'
+  parameters: arrayValues
+  name: jsonNewArray
+  Calculation: "/**\n * =====================================\n * jsonNewArray ( arrayValues
+    )\n *\n * RETURNS:\n *\t\twraps the items in \"[\" and \"]\" removes trailing
+    coma\n *\n * PARAMETERS:\n *\t\tarrayValues = a series of items created with the
+    cf jsonItem\n *\n * DEPENDENCIES:\n *\t\tNone\n *\n * HISTORY:\n *\t\tMODIFIED
+    on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n *\t\t\tchanged the name
+    to jsonNewArray ( arrayValues )\n *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+    *\n * =====================================\n */\n\n\nLet ( [\n\t\tarrayValues
+    =\n\t\tIf (\n\t\t\tRight ( arrayValues ; 1 ) = \",\" ;\n\t\t\tLeft ( arrayValues
+    ; Length ( arrayValues ) - 1 ) ;\n\t\t\tarrayValues\n\t\t)\n\t] ;\n\t\"[ \" &
+    arrayValues & \" ]\"\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonNewArray ( arrayValues
+      )\n *\n * RETURNS:\n *\t\twraps the items in \"[\" and \"]\" removes trailing
+      coma\n *\n * PARAMETERS:\n *\t\tarrayValues = a series of items created with
+      the cf jsonItem\n *\n * DEPENDENCIES:\n *\t\tNone\n *\n * HISTORY:\n *\t\tMODIFIED
+      on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n *\t\t\tchanged the name
+      to jsonNewArray ( arrayValues )\n *\t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+      *\n * =====================================\n */\n\n\n"
+    - Let
+    - " ( [\n\t\tarrayValues =\n\t\t"
+    - If
+    - " (\n\t\t\t"
+    - Right
+    - " ( arrayValues ; 1 ) = \",\" ;\n\t\t\t"
+    - Left
+    - ' ( arrayValues ; '
+    - Length
+    - " ( arrayValues ) - 1 ) ;\n\t\t\tarrayValues\n\t\t)\n\t] ;\n\t\"[ \" & arrayValues
+      & \" ]\"\n)"

@@ -1,0 +1,519 @@
+#    run all tests in the found set for the current tests group
+#    must be sorted by group, and the first record in the group must be selected
+#    (put the button in a sub-summary part to enforce this)
+#
+#
+# confirmation
+Show Custom Dialog [ Title: "Confirm"; Message: "Run all tests in the found set for the selected group?"; Default Button: “OK”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+If [ Get ( LastMessageChoice ) = 2	 /* Cancel */ ]
+Exit Script [  ]
+End If
+#
+#
+#
+Set Variable [ $groupId; Value:TES__Test::id_TestGroup ]
+Set Variable [ $RecordNumber; Value:Get ( RecordNumber ) ]
+Set Variable [ $runOnServer; Value:SEL__SELECTOR::runOnServerand/* hosted */not IsEmpty ( Get ( HostIPAddress ) ) ]
+#
+#
+Set Variable [ $passCount; Value:0 ]
+Set Variable [ $testCount; Value:0 ]
+Loop
+If [ $runOnServer ]
+Set Variable [ $idList_Test; Value:List ( $idList_Test ; TES__Test::id ) ]
+Else
+Perform Script [ “~Tests: Run Current” ]
+End If
+#
+If [ TES__Test::resultPass ]
+Set Variable [ $passCount; Value:$passCount + 1 ]
+End If
+Set Variable [ $testCount; Value:$testCount + 1 ]
+#
+Go to Record/Request/Page[ Next; Exit after last ]
+Exit Loop If [ TES__Test::id_TestGroup ≠ $groupId ]
+End Loop
+#
+#
+Go to Record/Request/Page [ $RecordNumber ][ No dialog ]
+#
+#
+#
+#
+If [ $runOnServer ]
+//  Perform Script [ “~Tests: Run ( idList_Test )”; Parameter: $idList_Test ]
+Commit Records/Requests[ No dialog ]
+Perform Script on Server [ “~Tests: Run ( idList_Test )”; Parameter: $idList_Test ]
+Else
+Show Custom Dialog [ Title: "Done"; Message: "passed "& $passCount& "/"& $testCount; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '164'
+  name: 'Tests: Run Found Group'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    run all tests in the found set for the current tests group'
+      Text: '    run all tests in the found set for the current tests group'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    must be sorted by group, and the first record in the group must
+        be selected'
+      Text: '    must be sorted by group, and the first record in the group must be
+        selected'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    (put the button in a sub-summary part to enforce this)'
+      Text: '    (put the button in a sub-summary part to enforce this)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# confirmation'
+      Text: ' confirmation'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Confirm"; Message: "Run all tests in
+        the found set for the selected group?"; Default Button: “OK”, Commit: “Yes”;
+        Button 2: “Cancel”, Commit: “No” ]'
+      Title:
+        Calculation: '"Confirm"'
+        DisplayCalculation:
+          Chunk: '"Confirm"'
+      Message:
+        Calculation: '"Run all tests in the found set for the selected group?"'
+        DisplayCalculation:
+          Chunk: '"Run all tests in the found set for the selected group?"'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Get ( LastMessageChoice ) = 2\t /* Cancel */ ]"
+      Calculation: "Get ( LastMessageChoice ) = 2\t /* Cancel */"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - " ) = 2\t /* Cancel */"
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $groupId; Value:TES__Test::id_TestGroup ]
+      Value:
+        Calculation: TES__Test::id_TestGroup
+        DisplayCalculation:
+          Chunk:
+            type: FieldRef
+            Field:
+              table: TES__Test
+              id: '11'
+              name: id_TestGroup
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $groupId
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $RecordNumber; Value:Get ( RecordNumber ) ]
+      Value:
+        Calculation: Get ( RecordNumber )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - RecordNumber
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $RecordNumber
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $runOnServer; Value:SEL__SELECTOR::runOnServer
+
+        and
+
+        /* hosted */
+        not IsEmpty ( Get ( HostIPAddress ) ) ]
+      Value:
+        Calculation: |-
+          SEL__SELECTOR::runOnServer
+
+          and
+
+          /* hosted */
+          not IsEmpty ( Get ( HostIPAddress ) )
+        DisplayCalculation:
+          Chunk:
+          - type: FieldRef
+            Field:
+              table: SEL__SELECTOR
+              id: '10'
+              name: runOnServer
+          - type: NoRef
+            __content__: |2+
+
+
+          - and
+          - |2
+
+
+            /* hosted */
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - ' ( '
+          - Get
+          - ' ( '
+          - HostIPAddress
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $runOnServer
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $passCount; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $passCount
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $testCount; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $testCount
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $runOnServer ]
+      Calculation: $runOnServer
+      DisplayCalculation:
+        Chunk: $runOnServer
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $idList_Test; Value:List ( $idList_Test ; TES__Test::id
+        ) ]
+      Value:
+        Calculation: List ( $idList_Test ; TES__Test::id )
+        DisplayCalculation:
+          Chunk:
+          - List
+          - ' ( $idList_Test ; '
+          - type: FieldRef
+            Field:
+              table: TES__Test
+              id: '1'
+              name: id
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $idList_Test
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Tests: Run Current” ]'
+      Script:
+        id: '105'
+        name: '~Tests: Run Current'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ TES__Test::resultPass ]
+      Calculation: TES__Test::resultPass
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: TES__Test
+            id: '9'
+            name: resultPass
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $passCount; Value:$passCount + 1 ]
+      Value:
+        Calculation: $passCount + 1
+        DisplayCalculation:
+          Chunk: $passCount + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $passCount
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $testCount; Value:$testCount + 1 ]
+      Value:
+        Calculation: $testCount + 1
+        DisplayCalculation:
+          Chunk: $testCount + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $testCount
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '16'
+      name: Go to Record/Request/Page
+      StepText: |-
+        Go to Record/Request/Page
+        [ Next; Exit after last ]
+      NoInteract:
+        state: 'False'
+      Exit:
+        state: 'True'
+      RowPageLocation:
+        value: Next
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ TES__Test::id_TestGroup ≠ $groupId ]
+      Calculation: TES__Test::id_TestGroup ≠ $groupId
+      DisplayCalculation:
+        Chunk:
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '11'
+            name: id_TestGroup
+        - ' ≠ $groupId'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '16'
+      name: Go to Record/Request/Page
+      StepText: |-
+        Go to Record/Request/Page [ $RecordNumber ]
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      RowPageLocation:
+        value: ByCalculation
+      Calculation: $RecordNumber
+      DisplayCalculation:
+        Chunk: $RecordNumber
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $runOnServer ]
+      Calculation: $runOnServer
+      DisplayCalculation:
+        Chunk: $runOnServer
+    - enable: 'False'
+      id: '1'
+      name: Perform Script
+      StepText: '//  Perform Script [ “~Tests: Run ( idList_Test )”; Parameter: $idList_Test
+        ]'
+      Calculation: $idList_Test
+      DisplayCalculation:
+        Chunk: $idList_Test
+      Script:
+        id: '214'
+        name: '~Tests: Run ( idList_Test )'
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: |-
+        Commit Records/Requests
+        [ No dialog ]
+      NoInteract:
+        state: 'True'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '164'
+      name: Perform Script on Server
+      StepText: 'Perform Script on Server [ “~Tests: Run ( idList_Test )”; Parameter:
+        $idList_Test ]'
+      WaitForCompletion:
+        state: 'False'
+      Calculation: $idList_Test
+      DisplayCalculation:
+        Chunk: $idList_Test
+      Script:
+        id: '214'
+        name: '~Tests: Run ( idList_Test )'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: |-
+        Show Custom Dialog [ Title: "Done"; Message: "passed "
+        & $passCount
+        & "/"
+        & $testCount; Default Button: “OK”, Commit: “Yes” ]
+      Title:
+        Calculation: '"Done"'
+        DisplayCalculation:
+          Chunk: '"Done"'
+      Message:
+        Calculation: |-
+          "passed "
+          & $passCount
+          & "/"
+          & $testCount
+        DisplayCalculation:
+          Chunk: |-
+            "passed "
+            & $passCount
+            & "/"
+            & $testCount
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

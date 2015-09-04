@@ -1,0 +1,655 @@
+################################################################################
+# PURPOSE:
+#    Parse a string value
+#
+# PARAMETERS: none
+#
+# RETURNS:
+#    string
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $hex ]
+Set Variable [ $string ]
+Set Variable [ $uffff ]
+#
+#
+If [ $$~JSON.CH = "\"" ]
+Loop
+Perform Script [ “~JSON-FM Next { character }” ]
+Exit Loop If [ IsEmpty ( $$~JSON.CH ) ]
+#
+If [ $$~JSON.CH = "\"" ]
+Perform Script [ “~JSON-FM Next { character }” ]
+Exit Script [ Result: $string ]
+End If
+#
+If [ $$~JSON.CH = "\\" ]
+# next character is escaped
+Perform Script [ “~JSON-FM Next { character }” ]
+If [ $$~JSON.CH = "u" ]
+Set Variable [ $uffff; Value:0 ]
+Loop
+Exit Loop If [ // For $i from 1 to 4Let ( $i = $i + 1 ; If ( $i > 4 ; Let ( $i = "" ; True ) ) ) ]
+Perform Script [ “~JSON-FM Next { character }” ]
+Set Variable [ $hex; Value:Position (	"0123456789ABCDEF" ;	$$~JSON.CH ;	1 ;	1) - 1 ]
+Exit Loop If [ // hex is invalidIsEmpty ( $hex )or $hex < 0or $hex > 15 ]
+Set Variable [ $uffff; Value:$uffff * 16 + $hex ]
+End Loop
+Set Variable [ $string; Value:$string & Char ( $uffff ) ]
+Else If [ $$~JSON.CH = "\"" ]
+Set Variable [ $string; Value:$string & "\"" ]
+Else If [ $$~JSON.CH = "\\" ]
+Set Variable [ $string; Value:$string & "\\" ]
+Else If [ $$~JSON.CH = "/" ]
+Set Variable [ $string; Value:$string & "/" ]
+Else If [ $$~JSON.CH = "b" ]
+Set Variable [ $string; Value:$string & Char ( 8 ) ]
+Else If [ $$~JSON.CH = "f" ]
+Set Variable [ $string; Value:$string & Char ( 12 ) ]
+Else If [ $$~JSON.CH = "n" ]
+Set Variable [ $string; Value:$string & Char ( 10 ) ]
+Else If [ $$~JSON.CH = "r" ]
+Set Variable [ $string; Value:$string & Char ( 13 ) ]
+Else If [ $$~JSON.CH = "t" ]
+Set Variable [ $string; Value:$string & Char ( 9 ) ]
+Else
+Exit Loop If [ True ]
+End If
+Else
+Set Variable [ $string; Value:$string & $$~JSON.CH ]
+End If
+#
+End Loop
+End If
+#
+#
+Perform Script [ “~JSON-FM Error { message }”; Parameter: "Bad string" ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '197'
+  name: ~JSON-FM String
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Parse a string value'
+      Text: '    Parse a string value'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    string'
+      Text: '    string'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $hex ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $hex
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $uffff ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $uffff
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "\"" ]
+      Calculation: $$~JSON.CH = "\""
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "\""
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Next { character }” ]
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ IsEmpty ( $$~JSON.CH ) ]
+      Calculation: IsEmpty ( $$~JSON.CH )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $$~JSON.CH )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "\"" ]
+      Calculation: $$~JSON.CH = "\""
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "\""
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Next { character }” ]
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $string ]'
+      Calculation: $string
+      DisplayCalculation:
+        Chunk: $string
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "\\" ]
+      Calculation: $$~JSON.CH = "\\"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "\\"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# next character is escaped'
+      Text: ' next character is escaped'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Next { character }” ]
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $$~JSON.CH = "u" ]
+      Calculation: $$~JSON.CH = "u"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "u"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $uffff; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $uffff
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: |-
+        Exit Loop If [ // For $i from 1 to 4
+        Let ( $i = $i + 1 ; If ( $i > 4 ; Let ( $i = "" ; True ) ) ) ]
+      Calculation: |-
+        // For $i from 1 to 4
+        Let ( $i = $i + 1 ; If ( $i > 4 ; Let ( $i = "" ; True ) ) )
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i from 1 to 4
+        - Let
+        - ' ( $i = $i + 1 ; '
+        - If
+        - ' ( $i > 4 ; '
+        - Let
+        - ' ( $i = "" ; '
+        - 'True'
+        - ' ) ) )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Next { character }” ]
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $hex; Value:Position (\n\t\"0123456789ABCDEF\" ;\n\t$$~JSON.CH
+        ;\n\t1 ;\n\t1\n) - 1 ]"
+      Value:
+        Calculation: "Position (\n\t\"0123456789ABCDEF\" ;\n\t$$~JSON.CH ;\n\t1 ;\n\t1\n)
+          - 1"
+        DisplayCalculation:
+          Chunk:
+          - Position
+          - " (\n\t\"0123456789ABCDEF\" ;\n\t$$~JSON.CH ;\n\t1 ;\n\t1\n) - 1"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $hex
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: |-
+        Exit Loop If [ // hex is invalid
+
+        IsEmpty ( $hex )
+        or $hex < 0
+        or $hex > 15 ]
+      Calculation: |-
+        // hex is invalid
+
+        IsEmpty ( $hex )
+        or $hex < 0
+        or $hex > 15
+      DisplayCalculation:
+        Chunk:
+        - |
+          // hex is invalid
+        - type: NoRef
+          __content__: |2+
+
+        - IsEmpty
+        - |2
+           ( $hex )
+        - or
+        - |2
+           $hex < 0
+        - or
+        - ' $hex > 15'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $uffff; Value:$uffff * 16 + $hex ]
+      Value:
+        Calculation: $uffff * 16 + $hex
+        DisplayCalculation:
+          Chunk: $uffff * 16 + $hex
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $uffff
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & Char ( $uffff ) ]
+      Value:
+        Calculation: $string & Char ( $uffff )
+        DisplayCalculation:
+          Chunk:
+          - '$string & '
+          - Char
+          - ' ( $uffff )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "\"" ]
+      Calculation: $$~JSON.CH = "\""
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "\""
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & "\"" ]
+      Value:
+        Calculation: $string & "\""
+        DisplayCalculation:
+          Chunk: $string & "\""
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "\\" ]
+      Calculation: $$~JSON.CH = "\\"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "\\"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & "\\" ]
+      Value:
+        Calculation: $string & "\\"
+        DisplayCalculation:
+          Chunk: $string & "\\"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "/" ]
+      Calculation: $$~JSON.CH = "/"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "/"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & "/" ]
+      Value:
+        Calculation: $string & "/"
+        DisplayCalculation:
+          Chunk: $string & "/"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "b" ]
+      Calculation: $$~JSON.CH = "b"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "b"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & Char ( 8 ) ]
+      Value:
+        Calculation: $string & Char ( 8 )
+        DisplayCalculation:
+          Chunk:
+          - '$string & '
+          - Char
+          - ' ( 8 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "f" ]
+      Calculation: $$~JSON.CH = "f"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "f"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & Char ( 12 ) ]
+      Value:
+        Calculation: $string & Char ( 12 )
+        DisplayCalculation:
+          Chunk:
+          - '$string & '
+          - Char
+          - ' ( 12 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "n" ]
+      Calculation: $$~JSON.CH = "n"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "n"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & Char ( 10 ) ]
+      Value:
+        Calculation: $string & Char ( 10 )
+        DisplayCalculation:
+          Chunk:
+          - '$string & '
+          - Char
+          - ' ( 10 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "r" ]
+      Calculation: $$~JSON.CH = "r"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "r"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & Char ( 13 ) ]
+      Value:
+        Calculation: $string & Char ( 13 )
+        DisplayCalculation:
+          Chunk:
+          - '$string & '
+          - Char
+          - ' ( 13 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "t" ]
+      Calculation: $$~JSON.CH = "t"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "t"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & Char ( 9 ) ]
+      Value:
+        Calculation: $string & Char ( 9 )
+        DisplayCalculation:
+          Chunk:
+          - '$string & '
+          - Char
+          - ' ( 9 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ True ]
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:$string & $$~JSON.CH ]
+      Value:
+        Calculation: $string & $$~JSON.CH
+        DisplayCalculation:
+          Chunk: $string & $$~JSON.CH
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Error { message }”; Parameter: "Bad string"
+        ]'
+      Calculation: '"Bad string"'
+      DisplayCalculation:
+        Chunk: '"Bad string"'
+      Script:
+        id: '201'
+        name: ~JSON-FM Error { message }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

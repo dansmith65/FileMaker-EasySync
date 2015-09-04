@@ -1,0 +1,62 @@
+/**
+ * =====================================
+ * LogLevel2Warn
+ *
+ * RETURNS:
+ *		(number) log level
+ *
+ * EXAMPLE:
+ *		LogData ( LogLevel2Warn )
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com
+ *			- add NOTES section describing when this log level should be used
+ *		CREATED on 2014-JAN-15 Daniel Smith dansmith65@gmail.com
+ *
+ * NOTES:
+ *		An unexpected technical or business event happened, customers may be
+ *		affected, but probably no immediate human intervention is required. On
+ *		call people won't be called immediately, but support personnel will
+ *		want to review these issues asap to understand what the impact is.
+ *		Basically any issue that needs to be tracked but may not require
+ *		immediate intervention.
+ *
+ * REFERENCE:
+ *		http://filemakerstandards.org/display/props/Logging
+ * =====================================
+ */
+
+ 2
+
+---
+CustomFunction:
+  id: '27'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: LogLevel2Warn
+  Calculation: "/**\n * =====================================\n * LogLevel2Warn\n
+    *\n * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel2Warn
+    )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+    on 2014-JAN-15 Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tAn unexpected
+    technical or business event happened, customers may be\n *\t\taffected, but probably
+    no immediate human intervention is required. On\n *\t\tcall people won't be called
+    immediately, but support personnel will\n *\t\twant to review these issues asap
+    to understand what the impact is.\n *\t\tBasically any issue that needs to be
+    tracked but may not require\n *\t\timmediate intervention.\n *\n * REFERENCE:\n
+    *\t\thttp://filemakerstandards.org/display/props/Logging\n * =====================================\n
+    */\n\n 2"
+  DisplayCalculation:
+    Chunk: "/**\n * =====================================\n * LogLevel2Warn\n *\n
+      * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel2Warn
+      )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+      on 2014-JAN-15 Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tAn unexpected
+      technical or business event happened, customers may be\n *\t\taffected, but
+      probably no immediate human intervention is required. On\n *\t\tcall people
+      won't be called immediately, but support personnel will\n *\t\twant to review
+      these issues asap to understand what the impact is.\n *\t\tBasically any issue
+      that needs to be tracked but may not require\n *\t\timmediate intervention.\n
+      *\n * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n
+      * =====================================\n */\n\n 2"

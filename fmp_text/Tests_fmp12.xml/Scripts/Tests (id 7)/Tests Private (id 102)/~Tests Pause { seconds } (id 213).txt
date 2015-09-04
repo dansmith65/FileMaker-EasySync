@@ -1,0 +1,56 @@
+If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+Pause/Resume Script [ Indefinitely ]
+Else
+Pause/Resume Script [ Duration (seconds): Get ( ScriptParameter ) ]
+End If
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '213'
+  name: '~Tests: Pause { seconds }'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( Get ( ScriptParameter ) ) ]
+      Calculation: IsEmpty ( Get ( ScriptParameter ) )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' ) )'
+    - enable: 'True'
+      id: '62'
+      name: Pause/Resume Script
+      StepText: Pause/Resume Script [ Indefinitely ]
+      PauseTime:
+        value: Indefinitely
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '62'
+      name: Pause/Resume Script
+      StepText: 'Pause/Resume Script [ Duration (seconds): Get ( ScriptParameter )
+        ]'
+      PauseTime:
+        value: ForDuration
+      Calculation: Get ( ScriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If

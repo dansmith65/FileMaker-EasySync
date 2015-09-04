@@ -1,0 +1,62 @@
+/*
+Get a JSON array as a FileMaker return-delimited list from a JSON object.
+
+PARAMS
+   json - string - valid json Object
+
+REQUIRES
+   BaseElements Plugin version 3.0 or higher
+
+HISTORY
+   v1 - 1/5/2015 Daniel Smith
+*/
+
+
+Let([
+
+js =
+"var json = " & Quote(json) & " ; " &"¶" & 
+
+"¶¶var obj = JSON.parse(json);¶obj.join('\n');¶"
+
+];
+BE_EvaluateJavaScript( js )
+)
+
+---
+CustomFunction:
+  id: '47'
+  functionArity: '1'
+  visible: 'True'
+  parameters: json
+  name: jsonGetArrayAsList
+  Calculation: "/*\nGet a JSON array as a FileMaker return-delimited list from a JSON
+    object.\n\nPARAMS\n   json - string - valid json Object\n\nREQUIRES\n   BaseElements
+    Plugin version 3.0 or higher\n\nHISTORY\n   v1 - 1/5/2015 Daniel Smith\n*/\n\n\nLet([\n\njs
+    =\n\"var json = \" & Quote(json) & \" ; \" &\"¶\" & \n\n\"¶¶var obj = JSON.parse(json);¶obj.join('\\n');¶\"\n\n];\nBE_EvaluateJavaScript(
+    js )\n)"
+  DisplayCalculation:
+    Chunk:
+    - |+
+      /*
+      Get a JSON array as a FileMaker return-delimited list from a JSON object.
+
+      PARAMS
+         json - string - valid json Object
+
+      REQUIRES
+         BaseElements Plugin version 3.0 or higher
+
+      HISTORY
+         v1 - 1/5/2015 Daniel Smith
+      */
+
+
+    - Let
+    - "([\n\njs =\n\"var json = \" & "
+    - Quote
+    - "(json) & \" ; \" &\"¶\" & \n\n\"¶¶var obj = JSON.parse(json);¶obj.join('\\n');¶\"\n\n];\n"
+    - BE_EvaluateJavaScript
+    - |-
+      ( js )
+      )

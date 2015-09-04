@@ -1,0 +1,144 @@
+/**
+ * =====================================
+ * Error ( theErrorType ; theErrorCode ; theErrorDescription ; theErrorInfo )
+ *
+ * RETURNS:
+ *		Let format dictionary containing error meta data, and additional
+ *		environmental data.
+ *
+ * PARAMETERS:
+ *		theErrorType = (text) namespace the error code belongs to
+ *			(e.g., "fmp", "app", "Application", "ScriptMaster Plugin", etc.)
+ *		theErrorCode = (number) code for the error
+ *		theErrorDescription = (text) description of the error
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: #, LogData
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-DEC-31 by Daniel Smith
+ *			- add "scriptStack"
+ *		MODIFIED on 2014-NOV-25 by Daniel Smith
+ *			- remove scriptName and scriptParameter
+ *			- add $~script.section
+ *		MODIFIED on 2014-09-21 by Daniel Smith
+ *			- fix bug where scriptParameter and scriptResult were encoded as a value of ScriptName
+ *			- add theErrorInfo parameter
+ *		MODIFIED on 9/1/2014 by Todd Geist
+ *		MODIFIED on 2013-12-11 by Jeremy Bante <http://scr.im/jbante>
+ *			- using the LogData function for environmental information.
+ *		MODIFIED on 2013-11-21 by Jeremy Bante <http://scr.im/jbante>.
+ *			- adding log data and removing theErrorInfo parameter
+ *		CREATED on 2013-OCT-11 Daniel Smith dansmith65@gmail.com
+ *			- based on comment by Todd Geist: http://filemakerstandards.org/pages/viewpage.action?pageId=557462&focusedCommentId=8749061#comment-8749061
+ * =====================================
+ */
+
+# ( "errorCode" ; theErrorCode )
+& If ( theErrorCode ≠ 0 ;
+	# ( "errorType" ; theErrorType )
+	& # ( "errorDescription" ; theErrorDescription )
+	& If ( not IsEmpty ( theErrorInfo ) ;
+		# ( "errorInfo" ; theErrorInfo )
+	)
+
+/* don't include script result because it may contain data that we don't want users to see
+ * instead: manually add it to $error, as needed
+	& # ( "scriptResult" ; Get (ScriptResult) )
+*/
+	& If ( not IsEmpty ( $~script.section ) ;
+		# ( "~script.section" ; $~script.section )
+	)
+	& # ( "scriptStack" ; Get ( ScriptName ) )
+)
+
+---
+CustomFunction:
+  id: '16'
+  functionArity: '4'
+  visible: 'True'
+  parameters: theErrorType;theErrorCode;theErrorDescription;theErrorInfo
+  name: Error
+  Calculation: "/**\n * =====================================\n * Error ( theErrorType
+    ; theErrorCode ; theErrorDescription ; theErrorInfo )\n *\n * RETURNS:\n *\t\tLet
+    format dictionary containing error meta data, and additional\n *\t\tenvironmental
+    data.\n *\n * PARAMETERS:\n *\t\ttheErrorType = (text) namespace the error code
+    belongs to\n *\t\t\t(e.g., \"fmp\", \"app\", \"Application\", \"ScriptMaster Plugin\",
+    etc.)\n *\t\ttheErrorCode = (number) code for the error\n *\t\ttheErrorDescription
+    = (text) description of the error\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:
+    #, LogData\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-DEC-31 by Daniel Smith\n *\t\t\t-
+    add \"scriptStack\"\n *\t\tMODIFIED on 2014-NOV-25 by Daniel Smith\n *\t\t\t-
+    remove scriptName and scriptParameter\n *\t\t\t- add $~script.section\n *\t\tMODIFIED
+    on 2014-09-21 by Daniel Smith\n *\t\t\t- fix bug where scriptParameter and scriptResult
+    were encoded as a value of ScriptName\n *\t\t\t- add theErrorInfo parameter\n
+    *\t\tMODIFIED on 9/1/2014 by Todd Geist\n *\t\tMODIFIED on 2013-12-11 by Jeremy
+    Bante <http://scr.im/jbante>\n *\t\t\t- using the LogData function for environmental
+    information.\n *\t\tMODIFIED on 2013-11-21 by Jeremy Bante <http://scr.im/jbante>.\n
+    *\t\t\t- adding log data and removing theErrorInfo parameter\n *\t\tCREATED on
+    2013-OCT-11 Daniel Smith dansmith65@gmail.com\n *\t\t\t- based on comment by Todd
+    Geist: http://filemakerstandards.org/pages/viewpage.action?pageId=557462&focusedCommentId=8749061#comment-8749061\n
+    * =====================================\n */\n\n# ( \"errorCode\" ; theErrorCode
+    )\n& If ( theErrorCode ≠ 0 ;\n\t# ( \"errorType\" ; theErrorType )\n\t& # ( \"errorDescription\"
+    ; theErrorDescription )\n\t& If ( not IsEmpty ( theErrorInfo ) ;\n\t\t# ( \"errorInfo\"
+    ; theErrorInfo )\n\t)\n\n/* don't include script result because it may contain
+    data that we don't want users to see\n * instead: manually add it to $error, as
+    needed\n\t& # ( \"scriptResult\" ; Get (ScriptResult) )\n*/\n\t& If ( not IsEmpty
+    ( $~script.section ) ;\n\t\t# ( \"~script.section\" ; $~script.section )\n\t)\n\t&
+    # ( \"scriptStack\" ; Get ( ScriptName ) )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * Error ( theErrorType ; theErrorCode
+      ; theErrorDescription ; theErrorInfo )\n *\n * RETURNS:\n *\t\tLet format dictionary
+      containing error meta data, and additional\n *\t\tenvironmental data.\n *\n
+      * PARAMETERS:\n *\t\ttheErrorType = (text) namespace the error code belongs
+      to\n *\t\t\t(e.g., \"fmp\", \"app\", \"Application\", \"ScriptMaster Plugin\",
+      etc.)\n *\t\ttheErrorCode = (number) code for the error\n *\t\ttheErrorDescription
+      = (text) description of the error\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:
+      #, LogData\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-DEC-31 by Daniel Smith\n
+      *\t\t\t- add \"scriptStack\"\n *\t\tMODIFIED on 2014-NOV-25 by Daniel Smith\n
+      *\t\t\t- remove scriptName and scriptParameter\n *\t\t\t- add $~script.section\n
+      *\t\tMODIFIED on 2014-09-21 by Daniel Smith\n *\t\t\t- fix bug where scriptParameter
+      and scriptResult were encoded as a value of ScriptName\n *\t\t\t- add theErrorInfo
+      parameter\n *\t\tMODIFIED on 9/1/2014 by Todd Geist\n *\t\tMODIFIED on 2013-12-11
+      by Jeremy Bante <http://scr.im/jbante>\n *\t\t\t- using the LogData function
+      for environmental information.\n *\t\tMODIFIED on 2013-11-21 by Jeremy Bante
+      <http://scr.im/jbante>.\n *\t\t\t- adding log data and removing theErrorInfo
+      parameter\n *\t\tCREATED on 2013-OCT-11 Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- based on comment by Todd Geist: http://filemakerstandards.org/pages/viewpage.action?pageId=557462&focusedCommentId=8749061#comment-8749061\n
+      * =====================================\n */\n\n"
+    - '#'
+    - " ( \"errorCode\" ; theErrorCode )\n& "
+    - If
+    - " ( theErrorCode ≠ 0 ;\n\t"
+    - '#'
+    - " ( \"errorType\" ; theErrorType )\n\t& "
+    - '#'
+    - " ( \"errorDescription\" ; theErrorDescription )\n\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( theErrorInfo ) ;\n\t\t"
+    - '#'
+    - " ( \"errorInfo\" ; theErrorInfo )\n\t)\n\n/* don't include script result because
+      it may contain data that we don't want users to see\n * instead: manually add
+      it to $error, as needed\n\t& # ( \"scriptResult\" ; Get (ScriptResult) )\n*/\n\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( $~script.section ) ;\n\t\t"
+    - '#'
+    - " ( \"~script.section\" ; $~script.section )\n\t)\n\t& "
+    - '#'
+    - ' ( "scriptStack" ; '
+    - Get
+    - ' ( '
+    - ScriptName
+    - |2-
+       ) )
+      )

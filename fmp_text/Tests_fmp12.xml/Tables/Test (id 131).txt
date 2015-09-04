@@ -1,0 +1,460 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+     1   id                          Text             Normal                                                              
+     5   lastRunTimestamp            TimeStamp        Normal            when this test was last run                       
+     6   name                        Text             Normal            brief description of what is being tested         
+     9   resultPass                  Number           Normal            Boolean; True = test passed                       
+    10   summaryTotalPass            Number           Summary                                                             
+    11   id_TestGroup                Text             Normal                                                              
+    12   runtime                     Number           Normal            seconds it took this test to run                  
+    14   resultFail                  Number           Calculated                                                          
+    15   resultNotRun                Number           Calculated                                                          
+    16   summaryTotalNotRun          Number           Summary                                                             
+    17   summaryTotalFail            Number           Summary                                                             
+    18   sortOrder                   Number           Normal            order the tests should be run in                  
+    19   summaryTotalRuntime         Number           Summary                                                             
+    20   z_xJoin                     Number           Normal                                                              
+    21   summaryListOfId             Text             Summary                                                             
+
+
+---
+BaseTable:
+  id: '131'
+  records: '0'
+  name: Test
+  FieldCatalog:
+    Field:
+    - id: '1'
+      dataType: Text
+      fieldType: Normal
+      name: id
+      Comment: 
+      AutoEnter:
+        allowEditing: 'False'
+        overwriteExistingValue: 'True'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( UUID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - UUID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: Always
+        NotEmpty:
+          value: 'True'
+        Unique:
+          value: 'True'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'True'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '5'
+      dataType: TimeStamp
+      fieldType: Normal
+      name: lastRunTimestamp
+      Comment: when this test was last run
+      AutoEnter:
+        allowEditing: 'False'
+        value: ConstantData
+        constant: 'True'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '6'
+      dataType: Text
+      fieldType: Normal
+      name: name
+      Comment: brief description of what is being tested
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '9'
+      dataType: Number
+      fieldType: Normal
+      name: resultPass
+      Comment: Boolean; True = test passed
+      AutoEnter:
+        allowEditing: 'True'
+        value: ConstantData
+        constant: 'True'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: Always
+        StrictDataType:
+          value: Numeric
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        Range:
+          to: '1'
+          from: '0'
+        StrictValidation:
+          value: 'True'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '10'
+      dataType: Number
+      fieldType: Summary
+      name: summaryTotalPass
+      SummaryInfo:
+        restartForEachSortedGroup: 'False'
+        summarizeRepetition: Together
+        operation: Total
+        SummaryField:
+          Field:
+            id: '9'
+            name: resultPass
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+    - id: '11'
+      dataType: Text
+      fieldType: Normal
+      name: id_TestGroup
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '12'
+      dataType: Number
+      fieldType: Normal
+      name: runtime
+      Comment: seconds it took this test to run
+      AutoEnter:
+        allowEditing: 'True'
+        value: ConstantData
+        constant: 'True'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '14'
+      dataType: Number
+      fieldType: Calculated
+      name: resultFail
+      Calculation: resultPass = 0
+      DisplayCalculation:
+        Chunk:
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '9'
+            name: resultPass
+        - ' = 0'
+      Comment: 
+      AutoEnter:
+        alwaysEvaluate: 'False'
+      Storage:
+        storeCalculationResults: 'True'
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '15'
+      dataType: Number
+      fieldType: Calculated
+      name: resultNotRun
+      Calculation: IsEmpty ( resultPass )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: TES__Test
+            id: '9'
+            name: resultPass
+        - ' )'
+      Comment: 
+      AutoEnter:
+        alwaysEvaluate: 'False'
+      Storage:
+        storeCalculationResults: 'True'
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '16'
+      dataType: Number
+      fieldType: Summary
+      name: summaryTotalNotRun
+      SummaryInfo:
+        restartForEachSortedGroup: 'False'
+        summarizeRepetition: Together
+        operation: Total
+        SummaryField:
+          Field:
+            id: '15'
+            name: resultNotRun
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+    - id: '17'
+      dataType: Number
+      fieldType: Summary
+      name: summaryTotalFail
+      SummaryInfo:
+        restartForEachSortedGroup: 'False'
+        summarizeRepetition: Together
+        operation: Total
+        SummaryField:
+          Field:
+            id: '14'
+            name: resultFail
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+    - id: '18'
+      dataType: Number
+      fieldType: Normal
+      name: sortOrder
+      Comment: order the tests should be run in
+      AutoEnter:
+        allowEditing: 'True'
+        overwriteExistingValue: 'False'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: Get ( RecordID )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - RecordID
+          - ' )'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        index: All
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '19'
+      dataType: Number
+      fieldType: Summary
+      name: summaryTotalRuntime
+      SummaryInfo:
+        restartForEachSortedGroup: 'False'
+        summarizeRepetition: Together
+        operation: Total
+        SummaryField:
+          Field:
+            id: '12'
+            name: runtime
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+    - id: '20'
+      dataType: Number
+      fieldType: Normal
+      name: z_xJoin
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: OnlyDuringDataEntry
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        StrictValidation:
+          value: 'False'
+      Storage:
+        indexLanguage: English
+        global: 'True'
+        maxRepetition: '1'
+    - id: '21'
+      dataType: Text
+      fieldType: Summary
+      name: summaryListOfId
+      SummaryInfo:
+        restartForEachSortedGroup: 'False'
+        summarizeRepetition: Together
+        operation: List
+        SummaryField:
+          Field:
+            id: '1'
+            name: id
+      Comment: 
+      AutoEnter:
+        allowEditing: 'True'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'False'
+        ConstantData: 

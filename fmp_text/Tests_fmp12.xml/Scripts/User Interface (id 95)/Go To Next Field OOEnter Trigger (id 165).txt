@@ -1,0 +1,15 @@
+Go to Next Field
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '165'
+  name: Go To Next Field OOEnter Trigger
+  StepList:
+    Step:
+      enable: 'True'
+      id: '4'
+      name: Go to Next Field
+      StepText: Go to Next Field

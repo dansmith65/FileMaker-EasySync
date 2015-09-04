@@ -1,0 +1,63 @@
+#
+Set Field [ TES__Test::id_TestGroup; TGR__TestGroup::id ]
+Close Popover
+Commit Records/Requests
+#
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '161'
+  name: Select Group
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ TES__Test::id_TestGroup; TGR__TestGroup::id ]
+      Calculation: TGR__TestGroup::id
+      DisplayCalculation:
+        Chunk:
+          type: FieldRef
+          Field:
+            table: TGR__TestGroup
+            id: '3'
+            name: id
+      Field:
+        table: TES__Test
+        id: '11'
+        name: id_TestGroup
+    - enable: 'True'
+      id: '169'
+      name: Close Popover
+      StepText: Close Popover
+    - enable: 'True'
+      id: '75'
+      name: Commit Records/Requests
+      StepText: Commit Records/Requests
+      NoInteract:
+        state: 'False'
+      Option:
+        state: 'False'
+      ESSForceCommit:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

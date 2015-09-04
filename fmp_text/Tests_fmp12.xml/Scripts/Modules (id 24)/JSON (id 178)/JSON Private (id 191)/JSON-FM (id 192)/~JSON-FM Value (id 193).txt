@@ -1,0 +1,227 @@
+################################################################################
+# PURPOSE:
+#    Parse a JSON value. It could be an object, an array, a string, a number, or a word.
+#
+# PARAMETERS: none
+#
+# RETURNS:
+#    A parsed value.
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Perform Script [ “~JSON-FM White” ]
+If [  ]
+Else If [ $$~JSON.CH = "{" ]
+Perform Script [ “~JSON-FM Object” ]
+Else If [ $$~JSON.CH = "[" ]
+Perform Script [ “~JSON-FM Array” ]
+Else If [ $$~JSON.CH = "\"" ]
+Perform Script [ “~JSON-FM String” ]
+Else If [ $$~JSON.CH = "-" ]
+Perform Script [ “~JSON-FM Number” ]
+Else If [ $$~JSON.CH >= "0"and $$~JSON.CH <= "9" ]
+Perform Script [ “~JSON-FM Number” ]
+Else
+Perform Script [ “~JSON-FM Word” ]
+End If
+#
+Exit Script [ Result: Get ( ScriptResult ) ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '193'
+  name: ~JSON-FM Value
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Parse a JSON value. It could be an object, an array, a string,
+        a number, or a word.'
+      Text: '    Parse a JSON value. It could be an object, an array, a string, a
+        number, or a word.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    A parsed value.'
+      Text: '    A parsed value.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM White” ]
+      Script:
+        id: '194'
+        name: ~JSON-FM White
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [  ]
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "{" ]
+      Calculation: $$~JSON.CH = "{"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "{"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Object” ]
+      Script:
+        id: '195'
+        name: ~JSON-FM Object
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "[" ]
+      Calculation: $$~JSON.CH = "["
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "["
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Array” ]
+      Script:
+        id: '196'
+        name: ~JSON-FM Array
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "\"" ]
+      Calculation: $$~JSON.CH = "\""
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "\""
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM String” ]
+      Script:
+        id: '197'
+        name: ~JSON-FM String
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "-" ]
+      Calculation: $$~JSON.CH = "-"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "-"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Number” ]
+      Script:
+        id: '198'
+        name: ~JSON-FM Number
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: |-
+        Else If [ $$~JSON.CH >= "0"
+        and $$~JSON.CH <= "9" ]
+      Calculation: |-
+        $$~JSON.CH >= "0"
+        and $$~JSON.CH <= "9"
+      DisplayCalculation:
+        Chunk:
+        - |
+          $$~JSON.CH >= "0"
+        - and
+        - ' $$~JSON.CH <= "9"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Number” ]
+      Script:
+        id: '198'
+        name: ~JSON-FM Number
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “~JSON-FM Word” ]
+      Script:
+        id: '199'
+        name: ~JSON-FM Word
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'

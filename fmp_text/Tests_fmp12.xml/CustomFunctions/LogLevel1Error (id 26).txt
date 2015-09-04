@@ -1,0 +1,59 @@
+/**
+ * =====================================
+ * LogLevel1Error
+ *
+ * RETURNS:
+ *		(number) log level
+ *
+ * EXAMPLE:
+ *		LogData ( LogLevel1Error )
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com
+ *			- add NOTES section describing when this log level should be used
+ *		CREATED on 2014-JAN-15 by Daniel Smith dansmith65@gmail.com
+ *
+ * NOTES:
+ *		The system is in distress, customers are probably being affected
+ *		(or will soon be) and the fix probably requires human intervention.
+ *		The "2AM rule" applies here- if you're on call, do you want to be
+ *		woken up at 2AM if this condition happens? If yes, then log it as
+ *		"error".
+ *
+ * REFERENCE:
+ *		http://filemakerstandards.org/display/props/Logging
+ * =====================================
+ */
+
+ 1
+
+---
+CustomFunction:
+  id: '26'
+  functionArity: '0'
+  visible: 'True'
+  parameters: ''
+  name: LogLevel1Error
+  Calculation: "/**\n * =====================================\n * LogLevel1Error\n
+    *\n * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel1Error
+    )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+    on 2014-JAN-15 by Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tThe
+    system is in distress, customers are probably being affected\n *\t\t(or will soon
+    be) and the fix probably requires human intervention.\n *\t\tThe \"2AM rule\"
+    applies here- if you're on call, do you want to be\n *\t\twoken up at 2AM if this
+    condition happens? If yes, then log it as\n *\t\t\"error\".\n *\n * REFERENCE:\n
+    *\t\thttp://filemakerstandards.org/display/props/Logging\n * =====================================\n
+    */\n\n 1"
+  DisplayCalculation:
+    Chunk: "/**\n * =====================================\n * LogLevel1Error\n *\n
+      * RETURNS:\n *\t\t(number) log level\n *\n * EXAMPLE:\n *\t\tLogData ( LogLevel1Error
+      )\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-JAN-27 by Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- add NOTES section describing when this log level should be used\n *\t\tCREATED
+      on 2014-JAN-15 by Daniel Smith dansmith65@gmail.com\n *\n * NOTES:\n *\t\tThe
+      system is in distress, customers are probably being affected\n *\t\t(or will
+      soon be) and the fix probably requires human intervention.\n *\t\tThe \"2AM
+      rule\" applies here- if you're on call, do you want to be\n *\t\twoken up at
+      2AM if this condition happens? If yes, then log it as\n *\t\t\"error\".\n *\n
+      * REFERENCE:\n *\t\thttp://filemakerstandards.org/display/props/Logging\n *
+      =====================================\n */\n\n 1"

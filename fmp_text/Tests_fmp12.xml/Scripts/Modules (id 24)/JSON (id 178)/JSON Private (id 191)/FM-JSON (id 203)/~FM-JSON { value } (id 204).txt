@@ -1,0 +1,902 @@
+################################################################################
+# PURPOSE:
+#    Convert a value into JSON. The value can be let notation, array, or a single value ( text, date, time, timestamp).
+#
+# PARAMETERS:
+#    value | object, array, or single value
+#
+# RETURNS:
+#    JSON encoded text.
+#
+# REVISIONS:
+#    2015-FEB-27	 Daniel Smith	- update time/timestamp conversion to accommodate milliseconds2014-JUL-29	 Daniel Smith	- update test that differentiates an array from a string		- previously, a quoted number was interpreted as an array2014-MAR-30	 Daniel Smith	- fix handling of LF and CRLF returns/line endings2014-FEB-20	 Daniel Smith dansmith65@gmail.com	- accommodate numbers encoded with GetAsNumber	- return an error if an unknown GetAs... function is detected	- prepend decimals with a 0, as required by JSON standard2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $value; Value:Trim ( Get ( ScriptParameter ) ) ]
+Set Variable [ $firstChar; Value:Left ( $value ; 1 ) ]
+Set Variable [ $valueEvaluated; Value:Evaluate ( $value ) ]
+#
+#
+If [  ]
+Else If [ IsEmpty ( $value ) ]
+Set Variable [ $result; Value:"null" ]
+Else If [ $firstChar = "\"" ]
+# is string, object, or array
+If [  ]
+Else If [ IsEmpty ( $valueEvaluated ) ]
+Set Variable [ $result; Value:"null" ]
+Else If [ IsValidExpression (	"Let ( [ "	& $valueEvaluated 	& " $! = $1 ] ; True )")andLeft (	Substitute (		$valueEvaluated ;		[ " " ; "" ] ;		[ "¶" ; "" ]	) ;	1) = "$" ]
+Perform Script [ “~FM-JSON { object }”; Parameter: $valueEvaluated ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+Else If [ Exact ( $valueEvaluated ; Char ( 13 ) )orExact ( $valueEvaluated ; Char ( 10 ) )orExact ( $valueEvaluated ; Char ( 13 ) & Char ( 10 ) ) ]
+# return character(s) are mistaken for an array, so I added an exception specifically for them
+Perform Script [ “~FM-JSON { string }”; Parameter: $valueEvaluated ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+Else If [ /* differentiate a string from an array */Let ( [	~expression = 		Substitute (			$valueEvaluated & Char ( 3 ) /* unicode "end of text" character */ ;			[ ¶ & Char ( 3 ) ; "" ] ;	 // remove trailing return			[ Char ( 3 ) ; "" ] ;		 // remove "end of text" character			[ ¶ ; " & " ]		)			] ;	/* an array is a return delimited list of valid expressions */	IsValidExpression ( ~expression )		/* if an array only contains a single value, it must end with a return to be parsed as an array */	and (		ValueCount ( $valueEvaluated ) > 1		or		Right ( $valueEvaluated ; 1 ) = ¶	)) ]
+Perform Script [ “~FM-JSON ( array )”; Parameter: $valueEvaluated ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+Else
+Perform Script [ “~FM-JSON { string }”; Parameter: $valueEvaluated ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+End If
+#
+#
+Else If [ $firstChar = "G" ]
+# is a date, time, or timestamp
+Set Variable [ $firstWord; Value:LeftWords ( $value ; 1 ) ]
+# format as ISO8601
+If [  ]
+Else If [ $firstWord = "GetAsDate" ]
+Set Variable [ $result; Value:"\""& Year ( $valueEvaluated )& "-"& Right ( "00" & Month ( $valueEvaluated ) ; 2 )& "-"& Right ( "00" & Day ( $valueEvaluated ) ; 2 )& "\"" ]
+Else If [ $firstWord = "GetAsTime" ]
+Set Variable [ $result; Value:"\""& Hour ( $valueEvaluated )& ":"& Right ( "00" & Minute ( $valueEvaluated ) ; 2 )& ":"& Let ( [	~seconds = Seconds ( $valueEvaluated ) ;	~milliseconds = Mod ( ~seconds ; 1 )] ;	Right ( "00" & Int ( ~seconds ) ; 2 )	& If ( ~milliseconds > 0 ;		~milliseconds	))& "\"" ]
+Else If [ $firstWord = "GetAsTimeStamp" ]
+Set Variable [ $result; Value:"\""& Year ( $valueEvaluated )& "-"& Right ( "00" & Month ( $valueEvaluated ) ; 2 )& "-"& Right ( "00" & Day ( $valueEvaluated ) ; 2 )& "T"& Hour ( $valueEvaluated )& ":"& Right ( "00" & Minute ( $valueEvaluated ) ; 2 )& ":"& Let ( [	~seconds = Seconds ( $valueEvaluated ) ;	~milliseconds = Mod ( ~seconds ; 1 )] ;	Right ( "00" & Int ( ~seconds ) ; 2 )	& If ( ~milliseconds > 0 ;		~milliseconds	))& "\"" ]
+Else If [ $firstWord = "GetAsNumber" ]
+Set Variable [ $result; Value:Case (	Left ( $valueEvaluated ; 2 ) = "-." ;	Substitute ( $valueEvaluated ; "-." ; "-0." ) ;	Left ( $valueEvaluated ; 1 ) = "." ;	"0" & $valueEvaluated ;	$valueEvaluated) ]
+Else
+Perform Script [ “~FM-JSON Error { message }”; Parameter: "the type of value could not be determined for: " & $valueEvaluated ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+End If
+#
+Else If [ $valueEvaluated = GetAsNumber ( $valueEvaluated ) ]
+Set Variable [ $result; Value:Case (	Left ( $valueEvaluated ; 2 ) = "-." ;	Substitute ( $valueEvaluated ; "-." ; "-0." ) ;	Left ( $valueEvaluated ; 1 ) = "." ;	"0" & $valueEvaluated ;	$valueEvaluated) ]
+#
+Else
+Perform Script [ “~FM-JSON Error { message }”; Parameter: "the type of value could not be determined for: " & $valueEvaluated ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+#
+End If
+#
+#
+Exit Script [ Result: $result ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '204'
+  name: ~FM-JSON { value }
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Convert a value into JSON. The value can be let notation, array,
+        or a single value ( text, date, time, timestamp).'
+      Text: '    Convert a value into JSON. The value can be let notation, array,
+        or a single value ( text, date, time, timestamp).'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    value | object, array, or single value'
+      Text: '    value | object, array, or single value'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    JSON encoded text.'
+      Text: '    JSON encoded text.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2015-FEB-27\t Daniel Smith\n\t- update time/timestamp conversion
+        to accommodate milliseconds\n2014-JUL-29\t Daniel Smith\n\t- update test that
+        differentiates an array from a string\n\t\t- previously, a quoted number was
+        interpreted as an array\n2014-MAR-30\t Daniel Smith\n\t- fix handling of LF
+        and CRLF returns/line endings\n2014-FEB-20\t Daniel Smith dansmith65@gmail.com\n\t-
+        accommodate numbers encoded with GetAsNumber\n\t- return an error if an unknown
+        GetAs... function is detected\n\t- prepend decimals with a 0, as required
+        by JSON standard\n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2015-FEB-27\t Daniel Smith\n\t- update time/timestamp conversion
+        to accommodate milliseconds\n2014-JUL-29\t Daniel Smith\n\t- update test that
+        differentiates an array from a string\n\t\t- previously, a quoted number was
+        interpreted as an array\n2014-MAR-30\t Daniel Smith\n\t- fix handling of LF
+        and CRLF returns/line endings\n2014-FEB-20\t Daniel Smith dansmith65@gmail.com\n\t-
+        accommodate numbers encoded with GetAsNumber\n\t- return an error if an unknown
+        GetAs... function is detected\n\t- prepend decimals with a 0, as required
+        by JSON standard\n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $value; Value:Trim ( Get ( ScriptParameter ) ) ]
+      Value:
+        Calculation: Trim ( Get ( ScriptParameter ) )
+        DisplayCalculation:
+          Chunk:
+          - Trim
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $value
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $firstChar; Value:Left ( $value ; 1 ) ]
+      Value:
+        Calculation: Left ( $value ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - Left
+          - ' ( $value ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $firstChar
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $valueEvaluated; Value:Evaluate ( $value ) ]
+      Value:
+        Calculation: Evaluate ( $value )
+        DisplayCalculation:
+          Chunk:
+          - Evaluate
+          - ' ( $value )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $valueEvaluated
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [  ]
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ IsEmpty ( $value ) ]
+      Calculation: IsEmpty ( $value )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $value )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:"null" ]
+      Value:
+        Calculation: '"null"'
+        DisplayCalculation:
+          Chunk: '"null"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $firstChar = "\"" ]
+      Calculation: $firstChar = "\""
+      DisplayCalculation:
+        Chunk: $firstChar = "\""
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# is string, object, or array'
+      Text: ' is string, object, or array'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [  ]
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ IsEmpty ( $valueEvaluated ) ]
+      Calculation: IsEmpty ( $valueEvaluated )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $valueEvaluated )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:"null" ]
+      Value:
+        Calculation: '"null"'
+        DisplayCalculation:
+          Chunk: '"null"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ IsValidExpression (\n\t\"Let ( [ \"\n\t& $valueEvaluated
+        \n\t& \" $! = $1 ] ; True )\"\n)\nand\nLeft (\n\tSubstitute (\n\t\t$valueEvaluated
+        ;\n\t\t[ \" \" ; \"\" ] ;\n\t\t[ \"¶\" ; \"\" ]\n\t) ;\n\t1\n) = \"$\" ]"
+      Calculation: "IsValidExpression (\n\t\"Let ( [ \"\n\t& $valueEvaluated \n\t&
+        \" $! = $1 ] ; True )\"\n)\nand\nLeft (\n\tSubstitute (\n\t\t$valueEvaluated
+        ;\n\t\t[ \" \" ; \"\" ] ;\n\t\t[ \"¶\" ; \"\" ]\n\t) ;\n\t1\n) = \"$\""
+      DisplayCalculation:
+        Chunk:
+        - IsValidExpression
+        - " (\n\t\"Let ( [ \"\n\t& $valueEvaluated \n\t& \" $! = $1 ] ; True )\"\n)\n"
+        - and
+        - type: NoRef
+          __content__: |2+
+
+        - Left
+        - " (\n\t"
+        - Substitute
+        - " (\n\t\t$valueEvaluated ;\n\t\t[ \" \" ; \"\" ] ;\n\t\t[ \"¶\" ; \"\" ]\n\t)
+          ;\n\t1\n) = \"$\""
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON { object }”; Parameter: $valueEvaluated
+        ]'
+      Calculation: $valueEvaluated
+      DisplayCalculation:
+        Chunk: $valueEvaluated
+      Script:
+        id: '205'
+        name: ~FM-JSON { object }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: |-
+        Else If [ Exact ( $valueEvaluated ; Char ( 13 ) )
+        or
+        Exact ( $valueEvaluated ; Char ( 10 ) )
+        or
+        Exact ( $valueEvaluated ; Char ( 13 ) & Char ( 10 ) ) ]
+      Calculation: |-
+        Exact ( $valueEvaluated ; Char ( 13 ) )
+        or
+        Exact ( $valueEvaluated ; Char ( 10 ) )
+        or
+        Exact ( $valueEvaluated ; Char ( 13 ) & Char ( 10 ) )
+      DisplayCalculation:
+        Chunk:
+        - Exact
+        - ' ( $valueEvaluated ; '
+        - Char
+        - |2
+           ( 13 ) )
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - Exact
+        - ' ( $valueEvaluated ; '
+        - Char
+        - |2
+           ( 10 ) )
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - Exact
+        - ' ( $valueEvaluated ; '
+        - Char
+        - ' ( 13 ) & '
+        - Char
+        - ' ( 10 ) )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# return character(s) are mistaken for an array, so I added an exception
+        specifically for them'
+      Text: ' return character(s) are mistaken for an array, so I added an exception
+        specifically for them'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON { string }”; Parameter: $valueEvaluated
+        ]'
+      Calculation: $valueEvaluated
+      DisplayCalculation:
+        Chunk: $valueEvaluated
+      Script:
+        id: '207'
+        name: ~FM-JSON { string }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ /* differentiate a string from an array */\n\nLet ( [\n\t~expression
+        = \n\t\tSubstitute (\n\t\t\t$valueEvaluated & Char ( 3 ) /* unicode \"end
+        of text\" character */ ;\n\t\t\t[ ¶ & Char ( 3 ) ; \"\" ] ;\t // remove trailing
+        return\n\t\t\t[ Char ( 3 ) ; \"\" ] ;\t\t // remove \"end of text\" character\n\t\t\t[
+        ¶ ; \" & \" ]\n\t\t)\n\t\t\t\n] ;\n\t/* an array is a return delimited list
+        of valid expressions */\n\tIsValidExpression ( ~expression )\n\t\n\t/* if
+        an array only contains a single value, it must end with a return to be parsed
+        as an array */\n\tand (\n\t\tValueCount ( $valueEvaluated ) > 1\n\t\tor\n\t\tRight
+        ( $valueEvaluated ; 1 ) = ¶\n\t)\n) ]"
+      Calculation: "/* differentiate a string from an array */\n\nLet ( [\n\t~expression
+        = \n\t\tSubstitute (\n\t\t\t$valueEvaluated & Char ( 3 ) /* unicode \"end
+        of text\" character */ ;\n\t\t\t[ ¶ & Char ( 3 ) ; \"\" ] ;\t // remove trailing
+        return\n\t\t\t[ Char ( 3 ) ; \"\" ] ;\t\t // remove \"end of text\" character\n\t\t\t[
+        ¶ ; \" & \" ]\n\t\t)\n\t\t\t\n] ;\n\t/* an array is a return delimited list
+        of valid expressions */\n\tIsValidExpression ( ~expression )\n\t\n\t/* if
+        an array only contains a single value, it must end with a return to be parsed
+        as an array */\n\tand (\n\t\tValueCount ( $valueEvaluated ) > 1\n\t\tor\n\t\tRight
+        ( $valueEvaluated ; 1 ) = ¶\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* differentiate a string from an array */
+
+        - Let
+        - " ( [\n\t~expression = \n\t\t"
+        - Substitute
+        - " (\n\t\t\t$valueEvaluated & "
+        - Char
+        - " ( 3 ) /* unicode \"end of text\" character */ ;\n\t\t\t[ ¶ & "
+        - Char
+        - " ( 3 ) ; \"\" ] ;\t "
+        - |
+          // remove trailing return
+        - "\t\t\t[ "
+        - Char
+        - " ( 3 ) ; \"\" ] ;\t\t "
+        - |
+          // remove "end of text" character
+        - "\t\t\t[ ¶ ; \" & \" ]\n\t\t)\n\t\t\t\n] ;\n\t/* an array is a return delimited
+          list of valid expressions */\n\t"
+        - IsValidExpression
+        - " ( ~expression )\n\t\n\t/* if an array only contains a single value, it
+          must end with a return to be parsed as an array */\n\t"
+        - and
+        - " (\n\t\t"
+        - ValueCount
+        - " ( $valueEvaluated ) > 1\n\t\t"
+        - or
+        - type: NoRef
+          __content__: "\n\t\t"
+        - Right
+        - " ( $valueEvaluated ; 1 ) = ¶\n\t)\n)"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON ( array )”; Parameter: $valueEvaluated
+        ]'
+      Calculation: $valueEvaluated
+      DisplayCalculation:
+        Chunk: $valueEvaluated
+      Script:
+        id: '206'
+        name: ~FM-JSON ( array )
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON { string }”; Parameter: $valueEvaluated
+        ]'
+      Calculation: $valueEvaluated
+      DisplayCalculation:
+        Chunk: $valueEvaluated
+      Script:
+        id: '207'
+        name: ~FM-JSON { string }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $firstChar = "G" ]
+      Calculation: $firstChar = "G"
+      DisplayCalculation:
+        Chunk: $firstChar = "G"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# is a date, time, or timestamp'
+      Text: ' is a date, time, or timestamp'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $firstWord; Value:LeftWords ( $value ; 1 ) ]
+      Value:
+        Calculation: LeftWords ( $value ; 1 )
+        DisplayCalculation:
+          Chunk:
+          - LeftWords
+          - ' ( $value ; 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $firstWord
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# format as ISO8601'
+      Text: ' format as ISO8601'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [  ]
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $firstWord = "GetAsDate" ]
+      Calculation: $firstWord = "GetAsDate"
+      DisplayCalculation:
+        Chunk: $firstWord = "GetAsDate"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $result; Value:"\""
+        & Year ( $valueEvaluated )
+        & "-"
+        & Right ( "00" & Month ( $valueEvaluated ) ; 2 )
+        & "-"
+        & Right ( "00" & Day ( $valueEvaluated ) ; 2 )
+        & "\"" ]
+      Value:
+        Calculation: |-
+          "\""
+          & Year ( $valueEvaluated )
+          & "-"
+          & Right ( "00" & Month ( $valueEvaluated ) ; 2 )
+          & "-"
+          & Right ( "00" & Day ( $valueEvaluated ) ; 2 )
+          & "\""
+        DisplayCalculation:
+          Chunk:
+          - "\"\\\"\"\n& "
+          - Year
+          - " ( $valueEvaluated )\n& \"-\"\n& "
+          - Right
+          - ' ( "00" & '
+          - Month
+          - " ( $valueEvaluated ) ; 2 )\n& \"-\"\n& "
+          - Right
+          - ' ( "00" & '
+          - Day
+          - |2-
+             ( $valueEvaluated ) ; 2 )
+            & "\""
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $firstWord = "GetAsTime" ]
+      Calculation: $firstWord = "GetAsTime"
+      DisplayCalculation:
+        Chunk: $firstWord = "GetAsTime"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:\"\\\"\"\n& Hour ( $valueEvaluated
+        )\n& \":\"\n& Right ( \"00\" & Minute ( $valueEvaluated ) ; 2 )\n& \":\"\n&
+        Let ( [\n\t~seconds = Seconds ( $valueEvaluated ) ;\n\t~milliseconds = Mod
+        ( ~seconds ; 1 )\n] ;\n\tRight ( \"00\" & Int ( ~seconds ) ; 2 )\n\t& If (
+        ~milliseconds > 0 ;\n\t\t~milliseconds\n\t)\n)\n& \"\\\"\" ]"
+      Value:
+        Calculation: "\"\\\"\"\n& Hour ( $valueEvaluated )\n& \":\"\n& Right ( \"00\"
+          & Minute ( $valueEvaluated ) ; 2 )\n& \":\"\n& Let ( [\n\t~seconds = Seconds
+          ( $valueEvaluated ) ;\n\t~milliseconds = Mod ( ~seconds ; 1 )\n] ;\n\tRight
+          ( \"00\" & Int ( ~seconds ) ; 2 )\n\t& If ( ~milliseconds > 0 ;\n\t\t~milliseconds\n\t)\n)\n&
+          \"\\\"\""
+        DisplayCalculation:
+          Chunk:
+          - "\"\\\"\"\n& "
+          - Hour
+          - " ( $valueEvaluated )\n& \":\"\n& "
+          - Right
+          - ' ( "00" & '
+          - Minute
+          - " ( $valueEvaluated ) ; 2 )\n& \":\"\n& "
+          - Let
+          - " ( [\n\t~seconds = "
+          - Seconds
+          - " ( $valueEvaluated ) ;\n\t~milliseconds = "
+          - Mod
+          - " ( ~seconds ; 1 )\n] ;\n\t"
+          - Right
+          - ' ( "00" & '
+          - Int
+          - " ( ~seconds ) ; 2 )\n\t& "
+          - If
+          - " ( ~milliseconds > 0 ;\n\t\t~milliseconds\n\t)\n)\n& \"\\\"\""
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $firstWord = "GetAsTimeStamp" ]
+      Calculation: $firstWord = "GetAsTimeStamp"
+      DisplayCalculation:
+        Chunk: $firstWord = "GetAsTimeStamp"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:\"\\\"\"\n& Year ( $valueEvaluated
+        )\n& \"-\"\n& Right ( \"00\" & Month ( $valueEvaluated ) ; 2 )\n& \"-\"\n&
+        Right ( \"00\" & Day ( $valueEvaluated ) ; 2 )\n& \"T\"\n& Hour ( $valueEvaluated
+        )\n& \":\"\n& Right ( \"00\" & Minute ( $valueEvaluated ) ; 2 )\n& \":\"\n&
+        Let ( [\n\t~seconds = Seconds ( $valueEvaluated ) ;\n\t~milliseconds = Mod
+        ( ~seconds ; 1 )\n] ;\n\tRight ( \"00\" & Int ( ~seconds ) ; 2 )\n\t& If (
+        ~milliseconds > 0 ;\n\t\t~milliseconds\n\t)\n)\n& \"\\\"\" ]"
+      Value:
+        Calculation: "\"\\\"\"\n& Year ( $valueEvaluated )\n& \"-\"\n& Right ( \"00\"
+          & Month ( $valueEvaluated ) ; 2 )\n& \"-\"\n& Right ( \"00\" & Day ( $valueEvaluated
+          ) ; 2 )\n& \"T\"\n& Hour ( $valueEvaluated )\n& \":\"\n& Right ( \"00\"
+          & Minute ( $valueEvaluated ) ; 2 )\n& \":\"\n& Let ( [\n\t~seconds = Seconds
+          ( $valueEvaluated ) ;\n\t~milliseconds = Mod ( ~seconds ; 1 )\n] ;\n\tRight
+          ( \"00\" & Int ( ~seconds ) ; 2 )\n\t& If ( ~milliseconds > 0 ;\n\t\t~milliseconds\n\t)\n)\n&
+          \"\\\"\""
+        DisplayCalculation:
+          Chunk:
+          - "\"\\\"\"\n& "
+          - Year
+          - " ( $valueEvaluated )\n& \"-\"\n& "
+          - Right
+          - ' ( "00" & '
+          - Month
+          - " ( $valueEvaluated ) ; 2 )\n& \"-\"\n& "
+          - Right
+          - ' ( "00" & '
+          - Day
+          - " ( $valueEvaluated ) ; 2 )\n& \"T\"\n& "
+          - Hour
+          - " ( $valueEvaluated )\n& \":\"\n& "
+          - Right
+          - ' ( "00" & '
+          - Minute
+          - " ( $valueEvaluated ) ; 2 )\n& \":\"\n& "
+          - Let
+          - " ( [\n\t~seconds = "
+          - Seconds
+          - " ( $valueEvaluated ) ;\n\t~milliseconds = "
+          - Mod
+          - " ( ~seconds ; 1 )\n] ;\n\t"
+          - Right
+          - ' ( "00" & '
+          - Int
+          - " ( ~seconds ) ; 2 )\n\t& "
+          - If
+          - " ( ~milliseconds > 0 ;\n\t\t~milliseconds\n\t)\n)\n& \"\\\"\""
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $firstWord = "GetAsNumber" ]
+      Calculation: $firstWord = "GetAsNumber"
+      DisplayCalculation:
+        Chunk: $firstWord = "GetAsNumber"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:Case (\n\tLeft ( $valueEvaluated ;
+        2 ) = \"-.\" ;\n\tSubstitute ( $valueEvaluated ; \"-.\" ; \"-0.\" ) ;\n\n\tLeft
+        ( $valueEvaluated ; 1 ) = \".\" ;\n\t\"0\" & $valueEvaluated ;\n\n\t$valueEvaluated\n)
+        ]"
+      Value:
+        Calculation: "Case (\n\tLeft ( $valueEvaluated ; 2 ) = \"-.\" ;\n\tSubstitute
+          ( $valueEvaluated ; \"-.\" ; \"-0.\" ) ;\n\n\tLeft ( $valueEvaluated ; 1
+          ) = \".\" ;\n\t\"0\" & $valueEvaluated ;\n\n\t$valueEvaluated\n)"
+        DisplayCalculation:
+          Chunk:
+          - Case
+          - " (\n\t"
+          - Left
+          - " ( $valueEvaluated ; 2 ) = \"-.\" ;\n\t"
+          - Substitute
+          - " ( $valueEvaluated ; \"-.\" ; \"-0.\" ) ;\n\n\t"
+          - Left
+          - " ( $valueEvaluated ; 1 ) = \".\" ;\n\t\"0\" & $valueEvaluated ;\n\n\t$valueEvaluated\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON Error { message }”; Parameter: "the type
+        of value could not be determined for: " & $valueEvaluated ]'
+      Calculation: '"the type of value could not be determined for: " & $valueEvaluated'
+      DisplayCalculation:
+        Chunk: '"the type of value could not be determined for: " & $valueEvaluated'
+      Script:
+        id: '208'
+        name: ~FM-JSON Error { message }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $valueEvaluated = GetAsNumber ( $valueEvaluated ) ]
+      Calculation: $valueEvaluated = GetAsNumber ( $valueEvaluated )
+      DisplayCalculation:
+        Chunk:
+        - '$valueEvaluated = '
+        - GetAsNumber
+        - ' ( $valueEvaluated )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:Case (\n\tLeft ( $valueEvaluated ;
+        2 ) = \"-.\" ;\n\tSubstitute ( $valueEvaluated ; \"-.\" ; \"-0.\" ) ;\n\n\tLeft
+        ( $valueEvaluated ; 1 ) = \".\" ;\n\t\"0\" & $valueEvaluated ;\n\n\t$valueEvaluated\n)
+        ]"
+      Value:
+        Calculation: "Case (\n\tLeft ( $valueEvaluated ; 2 ) = \"-.\" ;\n\tSubstitute
+          ( $valueEvaluated ; \"-.\" ; \"-0.\" ) ;\n\n\tLeft ( $valueEvaluated ; 1
+          ) = \".\" ;\n\t\"0\" & $valueEvaluated ;\n\n\t$valueEvaluated\n)"
+        DisplayCalculation:
+          Chunk:
+          - Case
+          - " (\n\t"
+          - Left
+          - " ( $valueEvaluated ; 2 ) = \"-.\" ;\n\t"
+          - Substitute
+          - " ( $valueEvaluated ; \"-.\" ; \"-0.\" ) ;\n\n\t"
+          - Left
+          - " ( $valueEvaluated ; 1 ) = \".\" ;\n\t\"0\" & $valueEvaluated ;\n\n\t$valueEvaluated\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~FM-JSON Error { message }”; Parameter: "the type
+        of value could not be determined for: " & $valueEvaluated ]'
+      Calculation: '"the type of value could not be determined for: " & $valueEvaluated'
+      DisplayCalculation:
+        Chunk: '"the type of value could not be determined for: " & $valueEvaluated'
+      Script:
+        id: '208'
+        name: ~FM-JSON Error { message }
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result

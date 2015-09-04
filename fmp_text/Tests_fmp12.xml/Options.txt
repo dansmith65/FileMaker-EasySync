@@ -1,0 +1,33 @@
+File Options
+------------
+
+    Encryption:                  0 (no encryption)             
+
+    Minimum Allowed Version:     12.0                          
+    Account:                     Admin                         
+    Layout:                                                    
+
+    Default Custom Menu Set:     [Standard FileMaker Menus]    
+
+    Triggers
+        OnFirstWindowOpen        Startup OnFirstWindowOpen     
+
+
+---
+Options:
+  Encryption: 
+  OnOpen:
+    MinimumAllowedVersion:
+      name: '12.0'
+      id: '1208'
+    Account:
+      name: Admin
+  WindowTriggers:
+    OnFirstWindowOpen:
+      Script:
+        id: '232'
+        name: Startup OnFirstWindowOpen
+  DefaultCustomMenuSet:
+    CustomMenuSet:
+      id: '1'
+      name: '[Standard FileMaker Menus]'

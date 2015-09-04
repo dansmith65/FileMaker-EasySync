@@ -1,0 +1,80 @@
+/**
+ * =====================================
+ * jsonGetValueList ( json )
+ *
+ *   gets the Values of an object or array one level deep
+ *
+ * RETURNS:
+ *		a list of values. JSON Objects and Arrays are returned as JSON
+ *
+ * PARAMETERS:
+ *		json  -  the valid JSON string to get the properties from
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ *		CREATED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+
+Let ( [
+		js = 
+		"var json = " & json & " ; " & "¶¶" & 
+		"" & "¶" &
+		"var keys = Object.keys(json);" & "¶" & 
+		"var outArray = [];" & "¶" &
+		"keys.forEach(function (key) {" & "¶" & 
+		"    var value = json[key];" & "¶" & 
+		"    if( Array.isArray(value) || typeof value === 'object') {" & "¶" & 
+		"        value = JSON.stringify(value)" & "¶" & "    }" & "¶" &
+		"    outArray.push(value);" & "¶" & "});" & "¶" &
+		"outArray = outArray.join('\n');" & "¶" & ""
+	] ;
+	BE_EvaluateJavaScript ( js )
+)
+
+---
+CustomFunction:
+  id: '53'
+  functionArity: '1'
+  visible: 'True'
+  parameters: json
+  name: jsonGetValueList
+  Calculation: "/**\n * =====================================\n * jsonGetValueList
+    ( json )\n *\n *   gets the Values of an object or array one level deep\n *\n
+    * RETURNS:\n *\t\ta list of values. JSON Objects and Arrays are returned as JSON\n
+    *\n * PARAMETERS:\n *\t\tjson  -  the valid JSON string to get the properties
+    from\n *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n
+    *\n * HISTORY:\n *\t\tCREATED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+    *\n * =====================================\n */\n\n\nLet ( [\n\t\tjs = \n\t\t\"var
+    json = \" & json & \" ; \" & \"¶¶\" & \n\t\t\"\" & \"¶\" &\n\t\t\"var keys = Object.keys(json);\"
+    & \"¶\" & \n\t\t\"var outArray = [];\" & \"¶\" &\n\t\t\"keys.forEach(function
+    (key) {\" & \"¶\" & \n\t\t\"    var value = json[key];\" & \"¶\" & \n\t\t\"    if(
+    Array.isArray(value) || typeof value === 'object') {\" & \"¶\" & \n\t\t\"        value
+    = JSON.stringify(value)\" & \"¶\" & \"    }\" & \"¶\" &\n\t\t\"    outArray.push(value);\"
+    & \"¶\" & \"});\" & \"¶\" &\n\t\t\"outArray = outArray.join('\\n');\" & \"¶\"
+    & \"\"\n\t] ;\n\tBE_EvaluateJavaScript ( js )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonGetValueList ( json )\n
+      *\n *   gets the Values of an object or array one level deep\n *\n * RETURNS:\n
+      *\t\ta list of values. JSON Objects and Arrays are returned as JSON\n *\n *
+      PARAMETERS:\n *\t\tjson  -  the valid JSON string to get the properties from\n
+      *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n
+      * HISTORY:\n *\t\tCREATED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+      *\n * =====================================\n */\n\n\n"
+    - Let
+    - " ( [\n\t\tjs = \n\t\t\"var json = \" & json & \" ; \" & \"¶¶\" & \n\t\t\"\"
+      & \"¶\" &\n\t\t\"var keys = Object.keys(json);\" & \"¶\" & \n\t\t\"var outArray
+      = [];\" & \"¶\" &\n\t\t\"keys.forEach(function (key) {\" & \"¶\" & \n\t\t\"
+      \   var value = json[key];\" & \"¶\" & \n\t\t\"    if( Array.isArray(value)
+      || typeof value === 'object') {\" & \"¶\" & \n\t\t\"        value = JSON.stringify(value)\"
+      & \"¶\" & \"    }\" & \"¶\" &\n\t\t\"    outArray.push(value);\" & \"¶\" & \"});\"
+      & \"¶\" &\n\t\t\"outArray = outArray.join('\\n');\" & \"¶\" & \"\"\n\t] ;\n\t"
+    - BE_EvaluateJavaScript
+    - |2-
+       ( js )
+      )

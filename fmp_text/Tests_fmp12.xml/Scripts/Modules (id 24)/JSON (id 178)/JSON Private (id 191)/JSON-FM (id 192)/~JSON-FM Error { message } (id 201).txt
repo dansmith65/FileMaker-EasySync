@@ -1,0 +1,241 @@
+################################################################################
+# PURPOSE:
+#    Handle any error that occurs when parsing a JSON string.
+#
+# PARAMETERS:
+#    message | description of the error
+#
+# RETURNS:
+#    message formatted as an error
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $$~JSON.CH; Value:"" ]
+Set Variable [ $$~JSON.AT; Value:-1 ]
+#
+#
+Perform Script [ “~JSON-FM Custom Error { message }”; Parameter: Get ( ScriptParameter ) ]
+If [ not IsEmpty ( Get ( ScriptResult ) ) ]
+Set Variable [ $result; Value:Get ( ScriptResult ) ]
+Else
+Set Variable [ $result; Value:// transform/format the error message as needed before returning it"// ERROR: "& Get ( ScriptParameter ) ]
+End If
+#
+#
+Exit Script [ Result: $result ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '201'
+  name: ~JSON-FM Error { message }
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Handle any error that occurs when parsing a JSON string.'
+      Text: '    Handle any error that occurs when parsing a JSON string.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    message | description of the error'
+      Text: '    message | description of the error'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    message formatted as an error'
+      Text: '    message formatted as an error'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.CH; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.CH
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $$~JSON.AT; Value:-1 ]
+      Value:
+        Calculation: '-1'
+        DisplayCalculation:
+          Chunk: '-1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $$~JSON.AT
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Custom Error { message }”; Parameter:
+        Get ( ScriptParameter ) ]'
+      Calculation: Get ( ScriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' )'
+      Script:
+        id: '184'
+        name: ~JSON-FM Custom Error { message }
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( Get ( ScriptResult ) ) ]
+      Calculation: not IsEmpty ( Get ( ScriptResult ) )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $result; Value:// transform/format the error message as needed before returning it
+
+        "// ERROR: "
+        & Get ( ScriptParameter ) ]
+      Value:
+        Calculation: |-
+          // transform/format the error message as needed before returning it
+
+          "// ERROR: "
+          & Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - |
+            // transform/format the error message as needed before returning it
+          - "\n\"// ERROR: \"\n& "
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result

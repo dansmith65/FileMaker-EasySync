@@ -1,0 +1,23 @@
+
+---
+ValueList:
+  id: '3'
+  name: TestGroup Id and Name
+  Source:
+    value: Field
+  PrimaryField:
+    show: 'False'
+    sort: 'False'
+    Field:
+      table: TGR__TestGroup
+      id: '3'
+      name: id
+  SecondaryField:
+    show: 'True'
+    sort: 'True'
+    Field:
+      table: TGR__TestGroup
+      id: '6'
+      name: name
+  ShowRelated:
+    value: 'False'

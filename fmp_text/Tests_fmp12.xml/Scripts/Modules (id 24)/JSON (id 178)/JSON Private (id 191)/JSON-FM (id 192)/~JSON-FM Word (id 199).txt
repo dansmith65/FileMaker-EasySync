@@ -1,0 +1,327 @@
+################################################################################
+# PURPOSE:
+#    true, false, or null
+#
+# PARAMETERS: none
+#
+# RETURNS:
+#    true (1), false (0), or null ("")
+#
+# REVISIONS:
+#    2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+If [  ]
+Else If [ $$~JSON.CH = "t" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "t" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "r" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "u" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "e" ]
+Exit Script [ Result: True ]
+Else If [ $$~JSON.CH = "f" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "f" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "a" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "l" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "s" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "e" ]
+Exit Script [ Result: False ]
+Else If [ $$~JSON.CH = "n" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "n" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "u" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "l" ]
+Perform Script [ “~JSON-FM Next { character }”; Parameter: "l" ]
+Exit Script [ Result: "" ]
+Else
+Perform Script [ “~JSON-FM Error { message }”; Parameter: "Unexpected " & Quote ( $$~JSON.CH ) ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+End If
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '199'
+  name: ~JSON-FM Word
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    true, false, or null'
+      Text: '    true, false, or null'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    true (1), false (0), or null ("")'
+      Text: '    true (1), false (0), or null ("")'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2013-AUG-06\t Daniel Smith dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [  ]
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "t" ]
+      Calculation: $$~JSON.CH = "t"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "t"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "t" ]'
+      Calculation: '"t"'
+      DisplayCalculation:
+        Chunk: '"t"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "r" ]'
+      Calculation: '"r"'
+      DisplayCalculation:
+        Chunk: '"r"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "u" ]'
+      Calculation: '"u"'
+      DisplayCalculation:
+        Chunk: '"u"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "e" ]'
+      Calculation: '"e"'
+      DisplayCalculation:
+        Chunk: '"e"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: True ]'
+      Calculation: 'True'
+      DisplayCalculation:
+        Chunk: 'True'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "f" ]
+      Calculation: $$~JSON.CH = "f"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "f"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "f" ]'
+      Calculation: '"f"'
+      DisplayCalculation:
+        Chunk: '"f"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "a" ]'
+      Calculation: '"a"'
+      DisplayCalculation:
+        Chunk: '"a"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "l" ]'
+      Calculation: '"l"'
+      DisplayCalculation:
+        Chunk: '"l"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "s" ]'
+      Calculation: '"s"'
+      DisplayCalculation:
+        Chunk: '"s"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "e" ]'
+      Calculation: '"e"'
+      DisplayCalculation:
+        Chunk: '"e"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: False ]'
+      Calculation: 'False'
+      DisplayCalculation:
+        Chunk: 'False'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $$~JSON.CH = "n" ]
+      Calculation: $$~JSON.CH = "n"
+      DisplayCalculation:
+        Chunk: $$~JSON.CH = "n"
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "n" ]'
+      Calculation: '"n"'
+      DisplayCalculation:
+        Chunk: '"n"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "u" ]'
+      Calculation: '"u"'
+      DisplayCalculation:
+        Chunk: '"u"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "l" ]'
+      Calculation: '"l"'
+      DisplayCalculation:
+        Chunk: '"l"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Next { character }”; Parameter: "l" ]'
+      Calculation: '"l"'
+      DisplayCalculation:
+        Chunk: '"l"'
+      Script:
+        id: '200'
+        name: ~JSON-FM Next { character }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "" ]'
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~JSON-FM Error { message }”; Parameter: "Unexpected
+        " & Quote ( $$~JSON.CH ) ]'
+      Calculation: '"Unexpected " & Quote ( $$~JSON.CH )'
+      DisplayCalculation:
+        Chunk:
+        - '"Unexpected " & '
+        - Quote
+        - ' ( $$~JSON.CH )'
+      Script:
+        id: '201'
+        name: ~JSON-FM Error { message }
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

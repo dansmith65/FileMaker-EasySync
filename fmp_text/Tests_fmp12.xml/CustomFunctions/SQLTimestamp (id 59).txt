@@ -1,0 +1,89 @@
+/**
+ * ============================================================================
+ * SQLTimestamp ( theTimestamp )
+ *
+ * PURPOSE:
+ *		Convert a timestamp for use in an SQL Query.
+ *
+ * RETURNS:
+ *		(text) timestamp as text
+ *
+ * PARAMETERS:
+ *		theTimestamp (timestamp)
+ *
+ * EXAMPLE:
+ *		SQLTimestamp ( Timestamp ( Date ( 1 ; 22 ; 2013 ) ; Time ( 18 ; 23 ; 05 ) ) ) = "TIMESTAMP '2013-01-22 18:23:05'"
+ *
+ * HISTORY:
+ *		2013-JAN-11 - Created by Daniel Smith dansmith65@gmail.com
+ * ============================================================================
+ */
+
+"TIMESTAMP "
+& "'"
+& Year ( theTimestamp )
+& "-"
+& Right ( 0 & Month ( theTimestamp ) ; 2 )
+& "-"
+& Right ( 0 & Day ( theTimestamp ) ; 2 )
+& " "
+& Right ( 0 & Hour ( theTimestamp ) ; 2 )
+& ":"
+& Right ( 0 & Minute ( theTimestamp ) ; 2 )
+& ":"
+& Right ( 0 & Seconds ( theTimestamp ) ; 2 )
+& "'"
+
+---
+CustomFunction:
+  id: '59'
+  functionArity: '1'
+  visible: 'True'
+  parameters: theTimestamp
+  name: SQLTimestamp
+  Calculation: "/**\n * ============================================================================\n
+    * SQLTimestamp ( theTimestamp )\n *\n * PURPOSE:\n *\t\tConvert a timestamp for
+    use in an SQL Query.\n *\n * RETURNS:\n *\t\t(text) timestamp as text\n *\n *
+    PARAMETERS:\n *\t\ttheTimestamp (timestamp)\n *\n * EXAMPLE:\n *\t\tSQLTimestamp
+    ( Timestamp ( Date ( 1 ; 22 ; 2013 ) ; Time ( 18 ; 23 ; 05 ) ) ) = \"TIMESTAMP
+    '2013-01-22 18:23:05'\"\n *\n * HISTORY:\n *\t\t2013-JAN-11 - Created by Daniel
+    Smith dansmith65@gmail.com\n * ============================================================================\n
+    */\n\n\"TIMESTAMP \"\n& \"'\"\n& Year ( theTimestamp )\n& \"-\"\n& Right ( 0 &
+    Month ( theTimestamp ) ; 2 )\n& \"-\"\n& Right ( 0 & Day ( theTimestamp ) ; 2
+    )\n& \" \"\n& Right ( 0 & Hour ( theTimestamp ) ; 2 )\n& \":\"\n& Right ( 0 &
+    Minute ( theTimestamp ) ; 2 )\n& \":\"\n& Right ( 0 & Seconds ( theTimestamp )
+    ; 2 )\n& \"'\""
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * ============================================================================\n
+      * SQLTimestamp ( theTimestamp )\n *\n * PURPOSE:\n *\t\tConvert a timestamp
+      for use in an SQL Query.\n *\n * RETURNS:\n *\t\t(text) timestamp as text\n
+      *\n * PARAMETERS:\n *\t\ttheTimestamp (timestamp)\n *\n * EXAMPLE:\n *\t\tSQLTimestamp
+      ( Timestamp ( Date ( 1 ; 22 ; 2013 ) ; Time ( 18 ; 23 ; 05 ) ) ) = \"TIMESTAMP
+      '2013-01-22 18:23:05'\"\n *\n * HISTORY:\n *\t\t2013-JAN-11 - Created by Daniel
+      Smith dansmith65@gmail.com\n * ============================================================================\n
+      */\n\n\"TIMESTAMP \"\n& \"'\"\n& "
+    - Year
+    - " ( theTimestamp )\n& \"-\"\n& "
+    - Right
+    - ' ( 0 & '
+    - Month
+    - " ( theTimestamp ) ; 2 )\n& \"-\"\n& "
+    - Right
+    - ' ( 0 & '
+    - Day
+    - " ( theTimestamp ) ; 2 )\n& \" \"\n& "
+    - Right
+    - ' ( 0 & '
+    - Hour
+    - " ( theTimestamp ) ; 2 )\n& \":\"\n& "
+    - Right
+    - ' ( 0 & '
+    - Minute
+    - " ( theTimestamp ) ; 2 )\n& \":\"\n& "
+    - Right
+    - ' ( 0 & '
+    - Seconds
+    - |2-
+       ( theTimestamp ) ; 2 )
+      & "'"

@@ -1,0 +1,84 @@
+/**
+ * =====================================
+ * jsonNewObjectProperty ( key ; value )
+ *
+ *   Formats a key value pair as an JSON object property
+ *
+ * RETURNS:
+ *		the key value pair
+ *
+ * PARAMETERS:
+ *		key  -  the name of the property
+ *		value = string - the value of the Array element
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ *		CREATED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com
+ * 			changed name to jsonNewObjectProperty ( key ; value )
+ * 		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+If (
+	Left ( value ; 1 ) = "[" and Right ( value ; 1 ) = "]" or Left ( value ; 1 ) = "{" and Right ( value ; 1 ) = "}" ;
+	        Quote ( key ) & ":" & value ;
+	BE_JSON_Encode ( key ; value )
+) & ","
+
+---
+CustomFunction:
+  id: '45'
+  functionArity: '2'
+  visible: 'True'
+  parameters: key;value
+  name: jsonNewObjectProperty
+  Calculation: "/**\n * =====================================\n * jsonNewObjectProperty
+    ( key ; value )\n *\n *   Formats a key value pair as an JSON object property\n
+    *\n * RETURNS:\n *\t\tthe key value pair\n *\n * PARAMETERS:\n *\t\tkey  -  the
+    name of the property\n *\t\tvalue = string - the value of the Array element\n
+    *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n *
+    HISTORY:\n *\t\tCREATED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+    * \t\t\tchanged name to jsonNewObjectProperty ( key ; value )\n * \t\tCREATED
+    on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+    */\n\nIf (\n\tLeft ( value ; 1 ) = \"[\" and Right ( value ; 1 ) = \"]\" or Left
+    ( value ; 1 ) = \"{\" and Right ( value ; 1 ) = \"}\" ;\n\t        Quote ( key
+    ) & \":\" & value ;\n\tBE_JSON_Encode ( key ; value )\n) & \",\""
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonNewObjectProperty ( key
+      ; value )\n *\n *   Formats a key value pair as an JSON object property\n *\n
+      * RETURNS:\n *\t\tthe key value pair\n *\n * PARAMETERS:\n *\t\tkey  -  the
+      name of the property\n *\t\tvalue = string - the value of the Array element\n
+      *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n
+      * HISTORY:\n *\t\tCREATED on 2015-JAN-07 Todd Geist, todd@geistinteractive.com\n
+      * \t\t\tchanged name to jsonNewObjectProperty ( key ; value )\n * \t\tCREATED
+      on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+      */\n\n"
+    - If
+    - " (\n\t"
+    - Left
+    - ' ( value ; 1 ) = "[" '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Right
+    - ' ( value ; 1 ) = "]" '
+    - or
+    - type: NoRef
+      __content__: ' '
+    - Left
+    - ' ( value ; 1 ) = "{" '
+    - and
+    - type: NoRef
+      __content__: ' '
+    - Right
+    - " ( value ; 1 ) = \"}\" ;\n\t        "
+    - Quote
+    - " ( key ) & \":\" & value ;\n\t"
+    - BE_JSON_Encode
+    - |2-
+       ( key ; value )
+      ) & ","

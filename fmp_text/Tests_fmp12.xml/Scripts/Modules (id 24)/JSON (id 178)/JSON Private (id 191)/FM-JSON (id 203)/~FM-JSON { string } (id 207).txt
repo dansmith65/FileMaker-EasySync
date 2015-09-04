@@ -1,0 +1,474 @@
+################################################################################
+# PURPOSE:
+#    Convert a string into JSON.
+#
+# PARAMETERS:
+#    string | text
+#
+# RETURNS:
+#    JSON encoded text.
+#
+# REVISIONS:
+#    2014-OCT-29	 Daniel Smith	- add section: convert control characters to hexadecimal unicode	- don't set $result until the end of the script: use $string in backslash escape section instead2013-AUG-06	 Daniel Smith dansmith65@gmail.com	- created
+################################################################################
+#
+#
+Set Variable [ $string; Value:Get ( ScriptParameter ) ]
+#
+#
+# backslash escape
+Set Variable [ $string; Value:Substitute (	$string ;	[ "\\" ; "\\\\" ] ;	// reverse solidus	[ "\"" ; "\\\"" ] ;	// quotation mark//	[ "/" ; "\/" ] ;	// solidus - it does not HAVE to be escaped, but it can be if you choose to - I chose not to.	[ Char ( 8 ) ; "\b" ] ;		// backspace	[ Char ( 12 ) ; "\f" ] ;	// formfeed	[ Char ( 10 ) ; "\n" ] ;	// newline	[ Char ( 13 ) ; "\r" ] ;	// carriage return	[ Char ( 9 ) ; "\t" ]		// horizontal tab) ]
+#
+#
+# convert control characters to hexadecimal unicode
+# NOTE: it's more efficient to check if any control characters exist via the Filter function than it is to perform a substitute, when control characters don't existSee "App - JSON" > "Speed Tests" > "Speed Test: Substitute vs Filter" script in JSON module file for proof.
+Set Variable [ $controlCharacters; Value:Filter (	$string ;	Char ( 1 ) & Char ( 2 ) & Char ( 3 ) & Char ( 4 ) & Char ( 5 ) & Char ( 6 ) & Char ( 7 ) & Char ( 11 ) & Char ( 14 ) & Char ( 15 ) & Char ( 16 ) & Char ( 17 ) & Char ( 18 ) & Char ( 19 ) & Char ( 20 ) & Char ( 21 ) & Char ( 22 ) & Char ( 23 ) & Char ( 24 ) & Char ( 25 ) & Char ( 26 ) & Char ( 27 ) & Char ( 28 ) & Char ( 29 ) & Char ( 30 ) & Char ( 31 ))/** * NOTE: it would be more efficient to store these characters as a string, but since they are control characters, * they are likely to cause unexpected effects when copying/pasting them as text. *  * For example: when copying this script step in Windows, it cannot be pasted when the control characters are stored as text*/ ]
+If [ not IsEmpty ( $controlCharacters ) ]
+# NOTE: it may be faster to only substitute the found control characters, but I chose not to optimize this scenario since it would take more work, make the code harder to understand/maintain and I expect it to occur very rarely
+Set Variable [ $string; Value:Substitute (	$string ;	[ Char ( 1 ) ; "\u0001" ] ;	[ Char ( 2 ) ; "\u0002" ] ;	[ Char ( 3 ) ; "\u0003" ] ;	[ Char ( 4 ) ; "\u0004" ] ;	[ Char ( 5 ) ; "\u0005" ] ;	[ Char ( 6 ) ; "\u0006" ] ;	[ Char ( 7 ) ; "\u0007" ] ;	[ Char ( 11 ) ; "\u000B" ] ;	[ Char ( 14 ) ; "\u000E" ] ;	[ Char ( 15 ) ; "\u000F" ] ;	[ Char ( 16 ) ; "\u0010" ] ;	[ Char ( 17 ) ; "\u0011" ] ;	[ Char ( 18 ) ; "\u0012" ] ;	[ Char ( 19 ) ; "\u0013" ] ;	[ Char ( 20 ) ; "\u0014" ] ;	[ Char ( 21 ) ; "\u0015" ] ;	[ Char ( 22 ) ; "\u0016" ] ;	[ Char ( 23 ) ; "\u0017" ] ;	[ Char ( 24 ) ; "\u0018" ] ;	[ Char ( 25 ) ; "\u0019" ] ;	[ Char ( 26 ) ; "\u001A" ] ;	[ Char ( 27 ) ; "\u001B" ] ;	[ Char ( 28 ) ; "\u001C" ] ;	[ Char ( 29 ) ; "\u001D" ] ;	[ Char ( 30 ) ; "\u001E" ] ;	[ Char ( 31 ) ; "\u001F" ]) ]
+End If
+#
+#
+#
+Set Variable [ $result; Value:"\"" & $string & "\"" ]
+Exit Script [ Result: $result ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '207'
+  name: ~FM-JSON { string }
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Convert a string into JSON.'
+      Text: '    Convert a string into JSON.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    string | text'
+      Text: '    string | text'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    JSON encoded text.'
+      Text: '    JSON encoded text.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# REVISIONS:'
+      Text: ' REVISIONS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "#    \n2014-OCT-29\t Daniel Smith\n\t- add section: convert control
+        characters to hexadecimal unicode\n\t- don't set $result until the end of
+        the script: use $string in backslash escape section instead\n2013-AUG-06\t
+        Daniel Smith dansmith65@gmail.com\n\t- created"
+      Text: "    \n2014-OCT-29\t Daniel Smith\n\t- add section: convert control characters
+        to hexadecimal unicode\n\t- don't set $result until the end of the script:
+        use $string in backslash escape section instead\n2013-AUG-06\t Daniel Smith
+        dansmith65@gmail.com\n\t- created"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $string; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backslash escape'
+      Text: ' backslash escape'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $string; Value:Substitute (\n\t$string ;\n\t[ \"\\\\\"
+        ; \"\\\\\\\\\" ] ;\t// reverse solidus\n\t[ \"\\\"\" ; \"\\\\\\\"\" ] ;\t//
+        quotation mark\n//\t[ \"/\" ; \"\\/\" ] ;\t// solidus - it does not HAVE to
+        be escaped, but it can be if you choose to - I chose not to.\n\n\t[ Char (
+        8 ) ; \"\\b\" ] ;\t\t// backspace\n\t[ Char ( 12 ) ; \"\\f\" ] ;\t// formfeed\n\t[
+        Char ( 10 ) ; \"\\n\" ] ;\t// newline\n\t[ Char ( 13 ) ; \"\\r\" ] ;\t// carriage
+        return\n\t[ Char ( 9 ) ; \"\\t\" ]\t\t// horizontal tab\n) ]"
+      Value:
+        Calculation: "Substitute (\n\t$string ;\n\t[ \"\\\\\" ; \"\\\\\\\\\" ] ;\t//
+          reverse solidus\n\t[ \"\\\"\" ; \"\\\\\\\"\" ] ;\t// quotation mark\n//\t[
+          \"/\" ; \"\\/\" ] ;\t// solidus - it does not HAVE to be escaped, but it
+          can be if you choose to - I chose not to.\n\n\t[ Char ( 8 ) ; \"\\b\" ]
+          ;\t\t// backspace\n\t[ Char ( 12 ) ; \"\\f\" ] ;\t// formfeed\n\t[ Char
+          ( 10 ) ; \"\\n\" ] ;\t// newline\n\t[ Char ( 13 ) ; \"\\r\" ] ;\t// carriage
+          return\n\t[ Char ( 9 ) ; \"\\t\" ]\t\t// horizontal tab\n)"
+        DisplayCalculation:
+          Chunk:
+          - Substitute
+          - " (\n\t$string ;\n\t[ \"\\\\\" ; \"\\\\\\\\\" ] ;\t"
+          - |
+            // reverse solidus
+          - "\t[ \"\\\"\" ; \"\\\\\\\"\" ] ;\t"
+          - |
+            // quotation mark
+          - "//\t[ \"/\" ; \"\\/\" ] ;\t// solidus - it does not HAVE to be escaped,
+            but it can be if you choose to - I chose not to.\n"
+          - "\n\t[ "
+          - Char
+          - " ( 8 ) ; \"\\b\" ] ;\t\t"
+          - |
+            // backspace
+          - "\t[ "
+          - Char
+          - " ( 12 ) ; \"\\f\" ] ;\t"
+          - |
+            // formfeed
+          - "\t[ "
+          - Char
+          - " ( 10 ) ; \"\\n\" ] ;\t"
+          - |
+            // newline
+          - "\t[ "
+          - Char
+          - " ( 13 ) ; \"\\r\" ] ;\t"
+          - |
+            // carriage return
+          - "\t[ "
+          - Char
+          - " ( 9 ) ; \"\\t\" ]\t\t"
+          - |
+            // horizontal tab
+          - )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# convert control characters to hexadecimal unicode'
+      Text: ' convert control characters to hexadecimal unicode'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        # NOTE: it's more efficient to check if any control characters exist via the Filter function than it is to perform a substitute, when control characters don't exist
+
+        See "App - JSON" > "Speed Tests" > "Speed Test: Substitute vs Filter" script in JSON module file for proof.
+      Text: |2-
+         NOTE: it's more efficient to check if any control characters exist via the Filter function than it is to perform a substitute, when control characters don't exist
+
+        See "App - JSON" > "Speed Tests" > "Speed Test: Substitute vs Filter" script in JSON module file for proof.
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $controlCharacters; Value:Filter (\n\t$string ;\n\tChar
+        ( 1 ) & Char ( 2 ) & Char ( 3 ) & Char ( 4 ) & Char ( 5 ) & Char ( 6 ) & Char
+        ( 7 ) & Char ( 11 ) & Char ( 14 ) & Char ( 15 ) & Char ( 16 ) & Char ( 17
+        ) & Char ( 18 ) & Char ( 19 ) & Char ( 20 ) & Char ( 21 ) & Char ( 22 ) &
+        Char ( 23 ) & Char ( 24 ) & Char ( 25 ) & Char ( 26 ) & Char ( 27 ) & Char
+        ( 28 ) & Char ( 29 ) & Char ( 30 ) & Char ( 31 )\n)\n\n\n/**\n * NOTE: it
+        would be more efficient to store these characters as a string, but since they
+        are control characters,\n * they are likely to cause unexpected effects when
+        copying/pasting them as text.\n * \n * For example: when copying this script
+        step in Windows, it cannot be pasted when the control characters are stored
+        as text\n*/ ]"
+      Value:
+        Calculation: "Filter (\n\t$string ;\n\tChar ( 1 ) & Char ( 2 ) & Char ( 3
+          ) & Char ( 4 ) & Char ( 5 ) & Char ( 6 ) & Char ( 7 ) & Char ( 11 ) & Char
+          ( 14 ) & Char ( 15 ) & Char ( 16 ) & Char ( 17 ) & Char ( 18 ) & Char (
+          19 ) & Char ( 20 ) & Char ( 21 ) & Char ( 22 ) & Char ( 23 ) & Char ( 24
+          ) & Char ( 25 ) & Char ( 26 ) & Char ( 27 ) & Char ( 28 ) & Char ( 29 )
+          & Char ( 30 ) & Char ( 31 )\n)\n\n\n/**\n * NOTE: it would be more efficient
+          to store these characters as a string, but since they are control characters,\n
+          * they are likely to cause unexpected effects when copying/pasting them
+          as text.\n * \n * For example: when copying this script step in Windows,
+          it cannot be pasted when the control characters are stored as text\n*/"
+        DisplayCalculation:
+          Chunk:
+          - Filter
+          - " (\n\t$string ;\n\t"
+          - Char
+          - ' ( 1 ) & '
+          - Char
+          - ' ( 2 ) & '
+          - Char
+          - ' ( 3 ) & '
+          - Char
+          - ' ( 4 ) & '
+          - Char
+          - ' ( 5 ) & '
+          - Char
+          - ' ( 6 ) & '
+          - Char
+          - ' ( 7 ) & '
+          - Char
+          - ' ( 11 ) & '
+          - Char
+          - ' ( 14 ) & '
+          - Char
+          - ' ( 15 ) & '
+          - Char
+          - ' ( 16 ) & '
+          - Char
+          - ' ( 17 ) & '
+          - Char
+          - ' ( 18 ) & '
+          - Char
+          - ' ( 19 ) & '
+          - Char
+          - ' ( 20 ) & '
+          - Char
+          - ' ( 21 ) & '
+          - Char
+          - ' ( 22 ) & '
+          - Char
+          - ' ( 23 ) & '
+          - Char
+          - ' ( 24 ) & '
+          - Char
+          - ' ( 25 ) & '
+          - Char
+          - ' ( 26 ) & '
+          - Char
+          - ' ( 27 ) & '
+          - Char
+          - ' ( 28 ) & '
+          - Char
+          - ' ( 29 ) & '
+          - Char
+          - ' ( 30 ) & '
+          - Char
+          - " ( 31 )\n)\n\n\n/**\n * NOTE: it would be more efficient to store these
+            characters as a string, but since they are control characters,\n * they
+            are likely to cause unexpected effects when copying/pasting them as text.\n
+            * \n * For example: when copying this script step in Windows, it cannot
+            be pasted when the control characters are stored as text\n*/"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $controlCharacters
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( $controlCharacters ) ]
+      Calculation: not IsEmpty ( $controlCharacters )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $controlCharacters )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTE: it may be faster to only substitute the found control characters,
+        but I chose not to optimize this scenario since it would take more work, make
+        the code harder to understand/maintain and I expect it to occur very rarely'
+      Text: ' NOTE: it may be faster to only substitute the found control characters,
+        but I chose not to optimize this scenario since it would take more work, make
+        the code harder to understand/maintain and I expect it to occur very rarely'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $string; Value:Substitute (\n\t$string ;\n\t[ Char
+        ( 1 ) ; \"\\u0001\" ] ;\n\t[ Char ( 2 ) ; \"\\u0002\" ] ;\n\t[ Char ( 3 )
+        ; \"\\u0003\" ] ;\n\t[ Char ( 4 ) ; \"\\u0004\" ] ;\n\t[ Char ( 5 ) ; \"\\u0005\"
+        ] ;\n\t[ Char ( 6 ) ; \"\\u0006\" ] ;\n\t[ Char ( 7 ) ; \"\\u0007\" ] ;\n\t[
+        Char ( 11 ) ; \"\\u000B\" ] ;\n\t[ Char ( 14 ) ; \"\\u000E\" ] ;\n\t[ Char
+        ( 15 ) ; \"\\u000F\" ] ;\n\t[ Char ( 16 ) ; \"\\u0010\" ] ;\n\t[ Char ( 17
+        ) ; \"\\u0011\" ] ;\n\t[ Char ( 18 ) ; \"\\u0012\" ] ;\n\t[ Char ( 19 ) ;
+        \"\\u0013\" ] ;\n\t[ Char ( 20 ) ; \"\\u0014\" ] ;\n\t[ Char ( 21 ) ; \"\\u0015\"
+        ] ;\n\t[ Char ( 22 ) ; \"\\u0016\" ] ;\n\t[ Char ( 23 ) ; \"\\u0017\" ] ;\n\t[
+        Char ( 24 ) ; \"\\u0018\" ] ;\n\t[ Char ( 25 ) ; \"\\u0019\" ] ;\n\t[ Char
+        ( 26 ) ; \"\\u001A\" ] ;\n\t[ Char ( 27 ) ; \"\\u001B\" ] ;\n\t[ Char ( 28
+        ) ; \"\\u001C\" ] ;\n\t[ Char ( 29 ) ; \"\\u001D\" ] ;\n\t[ Char ( 30 ) ;
+        \"\\u001E\" ] ;\n\t[ Char ( 31 ) ; \"\\u001F\" ]\n) ]"
+      Value:
+        Calculation: "Substitute (\n\t$string ;\n\t[ Char ( 1 ) ; \"\\u0001\" ] ;\n\t[
+          Char ( 2 ) ; \"\\u0002\" ] ;\n\t[ Char ( 3 ) ; \"\\u0003\" ] ;\n\t[ Char
+          ( 4 ) ; \"\\u0004\" ] ;\n\t[ Char ( 5 ) ; \"\\u0005\" ] ;\n\t[ Char ( 6
+          ) ; \"\\u0006\" ] ;\n\t[ Char ( 7 ) ; \"\\u0007\" ] ;\n\t[ Char ( 11 ) ;
+          \"\\u000B\" ] ;\n\t[ Char ( 14 ) ; \"\\u000E\" ] ;\n\t[ Char ( 15 ) ; \"\\u000F\"
+          ] ;\n\t[ Char ( 16 ) ; \"\\u0010\" ] ;\n\t[ Char ( 17 ) ; \"\\u0011\" ]
+          ;\n\t[ Char ( 18 ) ; \"\\u0012\" ] ;\n\t[ Char ( 19 ) ; \"\\u0013\" ] ;\n\t[
+          Char ( 20 ) ; \"\\u0014\" ] ;\n\t[ Char ( 21 ) ; \"\\u0015\" ] ;\n\t[ Char
+          ( 22 ) ; \"\\u0016\" ] ;\n\t[ Char ( 23 ) ; \"\\u0017\" ] ;\n\t[ Char (
+          24 ) ; \"\\u0018\" ] ;\n\t[ Char ( 25 ) ; \"\\u0019\" ] ;\n\t[ Char ( 26
+          ) ; \"\\u001A\" ] ;\n\t[ Char ( 27 ) ; \"\\u001B\" ] ;\n\t[ Char ( 28 )
+          ; \"\\u001C\" ] ;\n\t[ Char ( 29 ) ; \"\\u001D\" ] ;\n\t[ Char ( 30 ) ;
+          \"\\u001E\" ] ;\n\t[ Char ( 31 ) ; \"\\u001F\" ]\n)"
+        DisplayCalculation:
+          Chunk:
+          - Substitute
+          - " (\n\t$string ;\n\t[ "
+          - Char
+          - " ( 1 ) ; \"\\u0001\" ] ;\n\t[ "
+          - Char
+          - " ( 2 ) ; \"\\u0002\" ] ;\n\t[ "
+          - Char
+          - " ( 3 ) ; \"\\u0003\" ] ;\n\t[ "
+          - Char
+          - " ( 4 ) ; \"\\u0004\" ] ;\n\t[ "
+          - Char
+          - " ( 5 ) ; \"\\u0005\" ] ;\n\t[ "
+          - Char
+          - " ( 6 ) ; \"\\u0006\" ] ;\n\t[ "
+          - Char
+          - " ( 7 ) ; \"\\u0007\" ] ;\n\t[ "
+          - Char
+          - " ( 11 ) ; \"\\u000B\" ] ;\n\t[ "
+          - Char
+          - " ( 14 ) ; \"\\u000E\" ] ;\n\t[ "
+          - Char
+          - " ( 15 ) ; \"\\u000F\" ] ;\n\t[ "
+          - Char
+          - " ( 16 ) ; \"\\u0010\" ] ;\n\t[ "
+          - Char
+          - " ( 17 ) ; \"\\u0011\" ] ;\n\t[ "
+          - Char
+          - " ( 18 ) ; \"\\u0012\" ] ;\n\t[ "
+          - Char
+          - " ( 19 ) ; \"\\u0013\" ] ;\n\t[ "
+          - Char
+          - " ( 20 ) ; \"\\u0014\" ] ;\n\t[ "
+          - Char
+          - " ( 21 ) ; \"\\u0015\" ] ;\n\t[ "
+          - Char
+          - " ( 22 ) ; \"\\u0016\" ] ;\n\t[ "
+          - Char
+          - " ( 23 ) ; \"\\u0017\" ] ;\n\t[ "
+          - Char
+          - " ( 24 ) ; \"\\u0018\" ] ;\n\t[ "
+          - Char
+          - " ( 25 ) ; \"\\u0019\" ] ;\n\t[ "
+          - Char
+          - " ( 26 ) ; \"\\u001A\" ] ;\n\t[ "
+          - Char
+          - " ( 27 ) ; \"\\u001B\" ] ;\n\t[ "
+          - Char
+          - " ( 28 ) ; \"\\u001C\" ] ;\n\t[ "
+          - Char
+          - " ( 29 ) ; \"\\u001D\" ] ;\n\t[ "
+          - Char
+          - " ( 30 ) ; \"\\u001E\" ] ;\n\t[ "
+          - Char
+          - |2-
+             ( 31 ) ; "\u001F" ]
+            )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $string
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:"\"" & $string & "\"" ]
+      Value:
+        Calculation: '"\"" & $string & "\""'
+        DisplayCalculation:
+          Chunk: '"\"" & $string & "\""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result

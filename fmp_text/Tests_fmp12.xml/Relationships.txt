@@ -1,0 +1,412 @@
+Tables
+
+    Base Table (id)            Table occurrence (id)    
+    ---------------            ---------------------    
+
+    SELECTOR (133)             SEL__SELECTOR (1065093)  
+    TestParameter (134)        sel_TPA__TestParameter (1065099)
+    TestGroup (132)            sel_TGR__TestGroup (1065094)
+    Test (131)                 sel_TES__Test (1065096)  
+    CONNECTOR (136)            CONNECTOR (1065103)      
+    TestParameter (134)        TES_TPR__TestParameter (1065098)
+    TestGroup (132)            tes_TGR__TestGroup (1065095)
+    Test (131)                 tpa_TES__Test (1065101)  
+    Test (131)                 TES__Test (1065091)      
+    TestGroup (132)            TGR__TestGroup (1065092) 
+    TestParameter (134)        TPA__TestParameter (1065097)
+
+Relationships
+
+    Relationship: 4   
+        SEL__SELECTOR::idList_TestGroup      Equal            sel_TGR__TestGroup::id             
+
+    Relationship: 5   
+        tes_TGR__TestGroup::id               Equal            TES__Test::id_TestGroup            
+
+    Relationship: 6   
+        sel_TES__Test::id                    Equal            SEL__SELECTOR::idList_Test         
+
+    Relationship: 8   
+        TES_TPR__TestParameter::id_Test      Equal            TES__Test::id                      
+
+    Relationship: 9   
+        sel_TPA__TestParameter::id           Equal            SEL__SELECTOR::idList_TestParameter
+
+    Relationship: 11  
+        TPA__TestParameter::id_Test          Equal            tpa_TES__Test::id                  
+
+    Relationship: 14  
+        CONNECTOR::z_xJoin                   CartesianProduct  TPA__TestParameter::z_xJoin        
+
+    Relationship: 15  
+        CONNECTOR::z_xJoin                   CartesianProduct  TGR__TestGroup::z_xJoin            
+
+    Relationship: 16  
+        CONNECTOR::z_xJoin                   CartesianProduct  TES__Test::z_xJoin                 
+
+    Relationship: 17  
+        SEL__SELECTOR::z_xJoin               CartesianProduct  CONNECTOR::z_xJoin                 
+
+
+---
+RelationshipGraph:
+  TableList:
+    Table:
+    - id: '1065093'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: SELECTOR
+      name: SEL__SELECTOR
+    - id: '1065099'
+      color: '#777777'
+      baseTableId: '134'
+      baseTable: TestParameter
+      name: sel_TPA__TestParameter
+    - id: '1065094'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: TestGroup
+      name: sel_TGR__TestGroup
+    - id: '1065096'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Test
+      name: sel_TES__Test
+    - id: '1065103'
+      color: '#787878'
+      baseTableId: '136'
+      baseTable: CONNECTOR
+      name: CONNECTOR
+    - id: '1065098'
+      color: '#777777'
+      baseTableId: '134'
+      baseTable: TestParameter
+      name: TES_TPR__TestParameter
+    - id: '1065095'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: TestGroup
+      name: tes_TGR__TestGroup
+    - id: '1065101'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Test
+      name: tpa_TES__Test
+    - id: '1065091'
+      color: '#787878'
+      baseTableId: '131'
+      baseTable: Test
+      name: TES__Test
+    - id: '1065092'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: TestGroup
+      name: TGR__TestGroup
+    - id: '1065097'
+      color: '#787878'
+      baseTableId: '134'
+      baseTable: TestParameter
+      name: TPA__TestParameter
+  RelationshipList:
+    Relationship:
+    - id: '4'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SEL__SELECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: sel_TGR__TestGroup
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: SEL__SELECTOR
+              id: '3'
+              name: idList_TestGroup
+          RightField:
+            Field:
+              table: sel_TGR__TestGroup
+              id: '3'
+              name: id
+    - id: '5'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: tes_TGR__TestGroup
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: TES__Test
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+          Sort:
+            type: Ascending
+            PrimaryField:
+              Field:
+                table: TES__Test
+                id: '18'
+                name: sortOrder
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: tes_TGR__TestGroup
+              id: '3'
+              name: id
+          RightField:
+            Field:
+              table: TES__Test
+              id: '11'
+              name: id_TestGroup
+    - id: '6'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: sel_TES__Test
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SEL__SELECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_TES__Test
+              id: '1'
+              name: id
+          RightField:
+            Field:
+              table: SEL__SELECTOR
+              id: '5'
+              name: idList_Test
+    - id: '8'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'True'
+        name: TES_TPR__TestParameter
+        SortList:
+          Maintain: 'True'
+          value: 'True'
+          Sort:
+            type: Ascending
+            PrimaryField:
+              Field:
+                table: TES_TPR__TestParameter
+                id: '7'
+                name: sortOrder
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: TES__Test
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+          Sort:
+            type: Ascending
+            PrimaryField:
+              Field:
+                table: TES__Test
+                id: '18'
+                name: sortOrder
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: TES_TPR__TestParameter
+              id: '2'
+              name: id_Test
+          RightField:
+            Field:
+              table: TES__Test
+              id: '1'
+              name: id
+    - id: '9'
+      LeftTable:
+        cascadeCreate: 'True'
+        cascadeDelete: 'False'
+        name: sel_TPA__TestParameter
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SEL__SELECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: sel_TPA__TestParameter
+              id: '1'
+              name: id
+          RightField:
+            Field:
+              table: SEL__SELECTOR
+              id: '6'
+              name: idList_TestParameter
+    - id: '11'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: TPA__TestParameter
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: tpa_TES__Test
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: Equal
+          LeftField:
+            Field:
+              table: TPA__TestParameter
+              id: '2'
+              name: id_Test
+          RightField:
+            Field:
+              table: tpa_TES__Test
+              id: '1'
+              name: id
+    - id: '14'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: TPA__TestParameter
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: z_xJoin
+          RightField:
+            Field:
+              table: TPA__TestParameter
+              id: '12'
+              name: z_xJoin
+    - id: '15'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: TGR__TestGroup
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: z_xJoin
+          RightField:
+            Field:
+              table: TGR__TestGroup
+              id: '8'
+              name: z_xJoin
+    - id: '16'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: TES__Test
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: z_xJoin
+          RightField:
+            Field:
+              table: TES__Test
+              id: '20'
+              name: z_xJoin
+    - id: '17'
+      LeftTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: SEL__SELECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      RightTable:
+        cascadeCreate: 'False'
+        cascadeDelete: 'False'
+        name: CONNECTOR
+        SortList:
+          Maintain: 'True'
+          value: 'False'
+      JoinPredicateList:
+        JoinPredicate:
+          type: CartesianProduct
+          LeftField:
+            Field:
+              table: SEL__SELECTOR
+              id: '2'
+              name: z_xJoin
+          RightField:
+            Field:
+              table: CONNECTOR
+              id: '1'
+              name: z_xJoin

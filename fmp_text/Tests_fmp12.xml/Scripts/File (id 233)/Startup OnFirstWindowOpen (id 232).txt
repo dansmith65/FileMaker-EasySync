@@ -1,0 +1,144 @@
+#
+#
+#
+Go to Layout [ “SEL__SELECTOR” (SEL__SELECTOR) ]
+Show All Records
+If [ Get ( FoundCount ) = 0 ]
+New Record/Request
+End If
+#
+#
+#
+Go to Layout [ “CONNECTOR” (CONNECTOR) ]
+Show All Records
+If [ Get ( FoundCount ) = 0 ]
+New Record/Request
+End If
+#
+#
+#
+Go to Layout [ “Test: List” (TES__Test) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '232'
+  name: Startup OnFirstWindowOpen
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “SEL__SELECTOR” (SEL__SELECTOR) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '7'
+        name: SEL__SELECTOR
+    - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) = 0 ]
+      Calculation: Get ( FoundCount ) = 0
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' ) = 0'
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ “CONNECTOR” (CONNECTOR) ]
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '10'
+        name: CONNECTOR
+    - enable: 'True'
+      id: '23'
+      name: Show All Records
+      StepText: Show All Records
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( FoundCount ) = 0 ]
+      Calculation: Get ( FoundCount ) = 0
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FoundCount
+        - ' ) = 0'
+    - enable: 'True'
+      id: '7'
+      name: New Record/Request
+      StepText: New Record/Request
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: 'Go to Layout [ “Test: List” (TES__Test) ]'
+      LayoutDestination:
+        value: SelectedLayout
+      Layout:
+        id: '6'
+        name: 'Test: List'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

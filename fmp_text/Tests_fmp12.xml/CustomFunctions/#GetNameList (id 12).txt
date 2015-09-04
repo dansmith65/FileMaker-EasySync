@@ -1,0 +1,218 @@
+/**
+ * =====================================
+ * #GetNameList ( parameters )
+ *
+ * RETURNS:
+ *		A return-delimited list of names from the name-value pairs in parameters.
+ *
+ * PARAMETERS:
+ *		parameters: A string of serialized name-value pair data in Let notation.
+ *
+ * EXAMPLE:
+ *		#GetNameList (
+ *			# ( "name" ; "value" )
+ *			& # ( "foo" ; "bar" );
+ *		) = List ( "name" ; "foo" )
+ *
+ * DEPENDENCIES: none
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to improve
+ *		efficiency.
+ *		MODIFIED on 2013-12-23 by John Jones john.christopher@alumni.virginia.edu
+ *		to use Position/Middle.
+ *		CREATED on 2013-01-24 by Daniel Smith dansmith65@gmail.com
+ * =====================================
+ */
+
+Case (
+	/* Step 0, set-up */
+	not $#GetNameList.step ;
+		Let ( [
+			~empty = IsEmpty ( Trim ( parameters ) ) ;
+			parameters =
+				Substitute (
+					¶ & parameters ;
+					[ "¶$" ; ¶ ] ;		// remove "$" prefix
+					[ "¶$" ; ¶ ] ;		// remove "$$" prefix
+					[ "¶¶" ; ¶ ]		// remove empty values
+				) ;
+			$#GetNameList.length = Length ( parameters ) ;
+			$#GetNameList.step = If ( ~empty ; 2 ; /* Else */ 1 )
+		] ;
+			#GetNameList ( parameters )
+		) ;
+
+	/* Step 1, check each parameter */
+	$#GetNameList.step = 1 ;
+		Let ( [
+			~start = $#GetNameList.end + 1 ;
+			$#GetNameList.end = Position ( parameters ; ¶ ; ~start ; 1 ) ;
+			~endOfList = $#GetNameList.end = 0 ;
+			~length =
+				If ( ~endOfList ;
+					$#GetNameList.length + 1 ;
+					/* Else */ $#GetNameList.end
+				)
+				- ~start ;
+			~pair = Middle ( parameters ; ~start ; ~length ) ;
+			~name = Left ( ~pair ; Position ( ~pair ; " = " ; 1 ; 1 ) - 1 ) ;
+			~include =	// only include ~name if it isn't already in the result
+				Position (
+					¶ & $#GetNameList.result & ¶ ;
+					¶ & ~name & ¶ ;
+					1 ;
+					1
+				) = 0 ;
+			$#GetNameList.result =
+				List (
+					$#GetNameList.result ;
+					If ( ~include ; ~name )
+				) ;
+
+			~endOfList =
+				~endOfList
+				or $#GetNameList.end ≥ $#GetNameList.length ;
+			$#GetNameList.step =
+				If ( ~endOfList ;
+					$#GetNameList.step + 1 ;
+					/* Else */ $#GetNameList.step
+				)
+		] ;
+			#GetNameList ( parameters )
+		) ;
+
+	/* Step 2, clean-up and return result */
+	$#GetNameList.step = 2 ;
+		Let ( [
+			~result = $#GetNameList.result ;
+
+			// purge variables
+			$#GetNameList.end = "" ;
+			$#GetNameList.length = "" ;
+			$#GetNameList.result = "" ;
+			$#GetNameList.step = ""
+		] ;
+			~result
+		)
+)
+
+---
+CustomFunction:
+  id: '12'
+  functionArity: '1'
+  visible: 'True'
+  parameters: parameters
+  name: '#GetNameList'
+  Calculation: "/**\n * =====================================\n * #GetNameList ( parameters
+    )\n *\n * RETURNS:\n *\t\tA return-delimited list of names from the name-value
+    pairs in parameters.\n *\n * PARAMETERS:\n *\t\tparameters: A string of serialized
+    name-value pair data in Let notation.\n *\n * EXAMPLE:\n *\t\t#GetNameList (\n
+    *\t\t\t# ( \"name\" ; \"value\" )\n *\t\t\t& # ( \"foo\" ; \"bar\" );\n *\t\t)
+    = List ( \"name\" ; \"foo\" )\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n *\t\tMODIFIED
+    on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to improve\n *\t\tefficiency.\n
+    *\t\tMODIFIED on 2013-12-23 by John Jones john.christopher@alumni.virginia.edu\n
+    *\t\tto use Position/Middle.\n *\t\tCREATED on 2013-01-24 by Daniel Smith dansmith65@gmail.com\n
+    * =====================================\n */\n\nCase (\n\t/* Step 0, set-up */\n\tnot
+    $#GetNameList.step ;\n\t\tLet ( [\n\t\t\t~empty = IsEmpty ( Trim ( parameters
+    ) ) ;\n\t\t\tparameters =\n\t\t\t\tSubstitute (\n\t\t\t\t\t¶ & parameters ;\n\t\t\t\t\t[
+    \"¶$\" ; ¶ ] ;\t\t// remove \"$\" prefix\n\t\t\t\t\t[ \"¶$\" ; ¶ ] ;\t\t// remove
+    \"$$\" prefix\n\t\t\t\t\t[ \"¶¶\" ; ¶ ]\t\t// remove empty values\n\t\t\t\t) ;\n\t\t\t$#GetNameList.length
+    = Length ( parameters ) ;\n\t\t\t$#GetNameList.step = If ( ~empty ; 2 ; /* Else
+    */ 1 )\n\t\t] ;\n\t\t\t#GetNameList ( parameters )\n\t\t) ;\n\n\t/* Step 1, check
+    each parameter */\n\t$#GetNameList.step = 1 ;\n\t\tLet ( [\n\t\t\t~start = $#GetNameList.end
+    + 1 ;\n\t\t\t$#GetNameList.end = Position ( parameters ; ¶ ; ~start ; 1 ) ;\n\t\t\t~endOfList
+    = $#GetNameList.end = 0 ;\n\t\t\t~length =\n\t\t\t\tIf ( ~endOfList ;\n\t\t\t\t\t$#GetNameList.length
+    + 1 ;\n\t\t\t\t\t/* Else */ $#GetNameList.end\n\t\t\t\t)\n\t\t\t\t- ~start ;\n\t\t\t~pair
+    = Middle ( parameters ; ~start ; ~length ) ;\n\t\t\t~name = Left ( ~pair ; Position
+    ( ~pair ; \" = \" ; 1 ; 1 ) - 1 ) ;\n\t\t\t~include =\t// only include ~name if
+    it isn't already in the result\n\t\t\t\tPosition (\n\t\t\t\t\t¶ & $#GetNameList.result
+    & ¶ ;\n\t\t\t\t\t¶ & ~name & ¶ ;\n\t\t\t\t\t1 ;\n\t\t\t\t\t1\n\t\t\t\t) = 0 ;\n\t\t\t$#GetNameList.result
+    =\n\t\t\t\tList (\n\t\t\t\t\t$#GetNameList.result ;\n\t\t\t\t\tIf ( ~include ;
+    ~name )\n\t\t\t\t) ;\n\n\t\t\t~endOfList =\n\t\t\t\t~endOfList\n\t\t\t\tor $#GetNameList.end
+    ≥ $#GetNameList.length ;\n\t\t\t$#GetNameList.step =\n\t\t\t\tIf ( ~endOfList
+    ;\n\t\t\t\t\t$#GetNameList.step + 1 ;\n\t\t\t\t\t/* Else */ $#GetNameList.step\n\t\t\t\t)\n\t\t]
+    ;\n\t\t\t#GetNameList ( parameters )\n\t\t) ;\n\n\t/* Step 2, clean-up and return
+    result */\n\t$#GetNameList.step = 2 ;\n\t\tLet ( [\n\t\t\t~result = $#GetNameList.result
+    ;\n\n\t\t\t// purge variables\n\t\t\t$#GetNameList.end = \"\" ;\n\t\t\t$#GetNameList.length
+    = \"\" ;\n\t\t\t$#GetNameList.result = \"\" ;\n\t\t\t$#GetNameList.step = \"\"\n\t\t]
+    ;\n\t\t\t~result\n\t\t)\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #GetNameList ( parameters
+      )\n *\n * RETURNS:\n *\t\tA return-delimited list of names from the name-value
+      pairs in parameters.\n *\n * PARAMETERS:\n *\t\tparameters: A string of serialized
+      name-value pair data in Let notation.\n *\n * EXAMPLE:\n *\t\t#GetNameList (\n
+      *\t\t\t# ( \"name\" ; \"value\" )\n *\t\t\t& # ( \"foo\" ; \"bar\" );\n *\t\t)
+      = List ( \"name\" ; \"foo\" )\n *\n * DEPENDENCIES: none\n *\n * HISTORY:\n
+      *\t\tMODIFIED on 2013-12-24 by Jeremy Bante <http://scr.im/jbante> to improve\n
+      *\t\tefficiency.\n *\t\tMODIFIED on 2013-12-23 by John Jones john.christopher@alumni.virginia.edu\n
+      *\t\tto use Position/Middle.\n *\t\tCREATED on 2013-01-24 by Daniel Smith dansmith65@gmail.com\n
+      * =====================================\n */\n\n"
+    - Case
+    - " (\n\t/* Step 0, set-up */\n\t"
+    - not
+    - " $#GetNameList.step ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~empty = "
+    - IsEmpty
+    - ' ( '
+    - Trim
+    - " ( parameters ) ) ;\n\t\t\tparameters =\n\t\t\t\t"
+    - Substitute
+    - " (\n\t\t\t\t\t¶ & parameters ;\n\t\t\t\t\t[ \"¶$\" ; ¶ ] ;\t\t"
+    - |
+      // remove "$" prefix
+    - "\t\t\t\t\t[ \"¶$\" ; ¶ ] ;\t\t"
+    - |
+      // remove "$$" prefix
+    - "\t\t\t\t\t[ \"¶¶\" ; ¶ ]\t\t"
+    - |
+      // remove empty values
+    - "\t\t\t\t) ;\n\t\t\t$#GetNameList.length = "
+    - Length
+    - " ( parameters ) ;\n\t\t\t$#GetNameList.step = "
+    - If
+    - " ( ~empty ; 2 ; /* Else */ 1 )\n\t\t] ;\n\t\t\t"
+    - '#GetNameList'
+    - " ( parameters )\n\t\t) ;\n\n\t/* Step 1, check each parameter */\n\t$#GetNameList.step
+      = 1 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~start = $#GetNameList.end + 1 ;\n\t\t\t$#GetNameList.end = "
+    - Position
+    - " ( parameters ; ¶ ; ~start ; 1 ) ;\n\t\t\t~endOfList = $#GetNameList.end =
+      0 ;\n\t\t\t~length =\n\t\t\t\t"
+    - If
+    - " ( ~endOfList ;\n\t\t\t\t\t$#GetNameList.length + 1 ;\n\t\t\t\t\t/* Else */
+      $#GetNameList.end\n\t\t\t\t)\n\t\t\t\t- ~start ;\n\t\t\t~pair = "
+    - Middle
+    - " ( parameters ; ~start ; ~length ) ;\n\t\t\t~name = "
+    - Left
+    - ' ( ~pair ; '
+    - Position
+    - " ( ~pair ; \" = \" ; 1 ; 1 ) - 1 ) ;\n\t\t\t~include =\t"
+    - |
+      // only include ~name if it isn't already in the result
+    - type: NoRef
+      __content__: "\t\t\t\t"
+    - Position
+    - " (\n\t\t\t\t\t¶ & $#GetNameList.result & ¶ ;\n\t\t\t\t\t¶ & ~name & ¶ ;\n\t\t\t\t\t1
+      ;\n\t\t\t\t\t1\n\t\t\t\t) = 0 ;\n\t\t\t$#GetNameList.result =\n\t\t\t\t"
+    - List
+    - " (\n\t\t\t\t\t$#GetNameList.result ;\n\t\t\t\t\t"
+    - If
+    - " ( ~include ; ~name )\n\t\t\t\t) ;\n\n\t\t\t~endOfList =\n\t\t\t\t~endOfList\n\t\t\t\t"
+    - or
+    - " $#GetNameList.end ≥ $#GetNameList.length ;\n\t\t\t$#GetNameList.step =\n\t\t\t\t"
+    - If
+    - " ( ~endOfList ;\n\t\t\t\t\t$#GetNameList.step + 1 ;\n\t\t\t\t\t/* Else */ $#GetNameList.step\n\t\t\t\t)\n\t\t]
+      ;\n\t\t\t"
+    - '#GetNameList'
+    - " ( parameters )\n\t\t) ;\n\n\t/* Step 2, clean-up and return result */\n\t$#GetNameList.step
+      = 2 ;\n\t\t"
+    - Let
+    - " ( [\n\t\t\t~result = $#GetNameList.result ;\n\n\t\t\t"
+    - |
+      // purge variables
+    - "\t\t\t$#GetNameList.end = \"\" ;\n\t\t\t$#GetNameList.length = \"\" ;\n\t\t\t$#GetNameList.result
+      = \"\" ;\n\t\t\t$#GetNameList.step = \"\"\n\t\t] ;\n\t\t\t~result\n\t\t)\n)"

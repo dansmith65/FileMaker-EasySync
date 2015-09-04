@@ -1,0 +1,61 @@
+/**
+ * =====================================
+ * #IsError ( theErrorData )
+ *
+ * RETURNS:
+ *		(bool) True if theErrorData contains an error of any type
+ *
+ * PARAMETERS:
+ *		theErrorData = (let notation) output of #Error custom function
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: #Get
+ *
+ * HISTORY:
+ *		MODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com
+ *			- renamed from IsError to #IsError
+ *			- update documentation in script header
+ *		MODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com
+ *			- don't access $error variable directly
+ *		CREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com
+ * =====================================
+ */
+
+GetAsBoolean (
+	#Get ( theErrorData ; "errorCode" )
+)
+
+---
+CustomFunction:
+  id: '20'
+  functionArity: '1'
+  visible: 'True'
+  parameters: theErrorData
+  name: ErrorFound
+  Calculation: "/**\n * =====================================\n * #IsError ( theErrorData
+    )\n *\n * RETURNS:\n *\t\t(bool) True if theErrorData contains an error of any
+    type\n *\n * PARAMETERS:\n *\t\ttheErrorData = (let notation) output of #Error
+    custom function\n *\n * DEPENDENCIES:\n *\t\tCustom Functions: #Get\n *\n * HISTORY:\n
+    *\t\tMODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- renamed
+    from IsError to #IsError\n *\t\t\t- update documentation in script header\n *\t\tMODIFIED
+    on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com\n *\t\t\t- don't access $error
+    variable directly\n *\t\tCREATED on 2012-NOV-20 Daniel Smith dansmith65@gmail.com\n
+    * =====================================\n */\n\nGetAsBoolean (\n\t#Get ( theErrorData
+    ; \"errorCode\" )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * #IsError ( theErrorData )\n
+      *\n * RETURNS:\n *\t\t(bool) True if theErrorData contains an error of any type\n
+      *\n * PARAMETERS:\n *\t\ttheErrorData = (let notation) output of #Error custom
+      function\n *\n * DEPENDENCIES:\n *\t\tCustom Functions: #Get\n *\n * HISTORY:\n
+      *\t\tMODIFIED on 2013-OCT-11 by Daniel Smith dansmith65@gmail.com\n *\t\t\t-
+      renamed from IsError to #IsError\n *\t\t\t- update documentation in script header\n
+      *\t\tMODIFIED on 2012-NOV-21 by Daniel Smith dansmith65@gmail.com\n *\t\t\t-
+      don't access $error variable directly\n *\t\tCREATED on 2012-NOV-20 Daniel Smith
+      dansmith65@gmail.com\n * =====================================\n */\n\n"
+    - GetAsBoolean
+    - " (\n\t"
+    - '#Get'
+    - |2-
+       ( theErrorData ; "errorCode" )
+      )

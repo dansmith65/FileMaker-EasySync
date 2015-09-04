@@ -1,0 +1,147 @@
+/**
+ * =====================================
+ * ErrorAddScriptStack ( errorData ; additionalData )
+ *
+ * RETURNS:
+ *		(string) Let format dictionary containing the errorData from the
+ *			parameter, with a modified scriptStack entry
+ *
+ * PARAMETERS:
+ *		errorData = (string) Let format dictionary
+ *
+ * EXAMPLE:
+ *		ScriptStack ( $error )
+ *
+ * DEPENDENCIES:
+ *		Custom Functions: #, #Get, #Remove
+ *
+ * NOTES:
+ *
+ * HISTORY:
+ *		MODIFIED on 2014-AUG-29 Daniel Smith dansmith65@gmail.com
+ *			- start stack with the script that generated the error
+ *		MODIFIED on 2014-JAN-30 Daniel Smith dansmith65@gmail.com
+ *			- add additionalData parameter
+ *		CREATED on 2014-JAN-29 Daniel Smith dansmith65@gmail.com
+ * =====================================
+ */
+
+#Remove ( errorData ; "scriptStack" )
+& # ( "scriptStack" ;
+	List (
+		Get ( ScriptName )
+			& If ( not IsEmpty ( additionalData ) ;
+				" " & Quote ( additionalData )
+			)
+		;
+		Let (
+			~scriptStack = #Get ( errorData ; "scriptStack" ) ;
+			If ( IsEmpty ( ~scriptStack ) ;
+				/* start the stack with the script that generated the error */
+				#Get ( errorData ; "ScriptName" ) ;
+				/* else: append to previous stack */
+				~scriptStack
+			)
+		)
+	)
+/*
+ * If more data than just the ScriptName is needed, the following code can be used.
+ * The output of this will be difficult to read and can almost double in size
+ * for every script added to the stack.
+ * Replace the above List () with the code below.
+ *
+	#List (
+		// TODO: add/remove environmental data here, as necessary
+		# ( "ScriptName" ; Get ( ScriptName ) )
+		& # ( "ScriptParameter" ; Get ( ScriptParameter ) )
+		& # ( "ScriptResult" ; Get ( ScriptResult ) )
+		& If ( not IsEmpty ( additionalData ) ;
+			additionalData
+		)
+	)
+	& #Get ( errorData ; "scriptStack" )
+*/
+)
+
+---
+CustomFunction:
+  id: '36'
+  functionArity: '2'
+  visible: 'True'
+  parameters: errorData;additionalData
+  name: ErrorAddScriptStack
+  Calculation: "/**\n * =====================================\n * ErrorAddScriptStack
+    ( errorData ; additionalData )\n *\n * RETURNS:\n *\t\t(string) Let format dictionary
+    containing the errorData from the\n *\t\t\tparameter, with a modified scriptStack
+    entry\n *\n * PARAMETERS:\n *\t\terrorData = (string) Let format dictionary\n
+    *\n * EXAMPLE:\n *\t\tScriptStack ( $error )\n *\n * DEPENDENCIES:\n *\t\tCustom
+    Functions: #, #Get, #Remove\n *\n * NOTES:\n *\n * HISTORY:\n *\t\tMODIFIED on
+    2014-AUG-29 Daniel Smith dansmith65@gmail.com\n *\t\t\t- start stack with the
+    script that generated the error\n *\t\tMODIFIED on 2014-JAN-30 Daniel Smith dansmith65@gmail.com\n
+    *\t\t\t- add additionalData parameter\n *\t\tCREATED on 2014-JAN-29 Daniel Smith
+    dansmith65@gmail.com\n * =====================================\n */\n\n#Remove
+    ( errorData ; \"scriptStack\" )\n& # ( \"scriptStack\" ;\n\tList (\n\t\tGet (
+    ScriptName )\n\t\t\t& If ( not IsEmpty ( additionalData ) ;\n\t\t\t\t\" \" & Quote
+    ( additionalData )\n\t\t\t)\n\t\t;\n\t\tLet (\n\t\t\t~scriptStack = #Get ( errorData
+    ; \"scriptStack\" ) ;\n\t\t\tIf ( IsEmpty ( ~scriptStack ) ;\n\t\t\t\t/* start
+    the stack with the script that generated the error */\n\t\t\t\t#Get ( errorData
+    ; \"ScriptName\" ) ;\n\t\t\t\t/* else: append to previous stack */\n\t\t\t\t~scriptStack\n\t\t\t)\n\t\t)\n\t)\n/*\n
+    * If more data than just the ScriptName is needed, the following code can be used.\n
+    * The output of this will be difficult to read and can almost double in size\n
+    * for every script added to the stack.\n * Replace the above List () with the
+    code below.\n *\n\t#List (\n\t\t// TODO: add/remove environmental data here, as
+    necessary\n\t\t# ( \"ScriptName\" ; Get ( ScriptName ) )\n\t\t& # ( \"ScriptParameter\"
+    ; Get ( ScriptParameter ) )\n\t\t& # ( \"ScriptResult\" ; Get ( ScriptResult )
+    )\n\t\t& If ( not IsEmpty ( additionalData ) ;\n\t\t\tadditionalData\n\t\t)\n\t)\n\t&
+    #Get ( errorData ; \"scriptStack\" )\n*/\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * ErrorAddScriptStack ( errorData
+      ; additionalData )\n *\n * RETURNS:\n *\t\t(string) Let format dictionary containing
+      the errorData from the\n *\t\t\tparameter, with a modified scriptStack entry\n
+      *\n * PARAMETERS:\n *\t\terrorData = (string) Let format dictionary\n *\n *
+      EXAMPLE:\n *\t\tScriptStack ( $error )\n *\n * DEPENDENCIES:\n *\t\tCustom Functions:
+      #, #Get, #Remove\n *\n * NOTES:\n *\n * HISTORY:\n *\t\tMODIFIED on 2014-AUG-29
+      Daniel Smith dansmith65@gmail.com\n *\t\t\t- start stack with the script that
+      generated the error\n *\t\tMODIFIED on 2014-JAN-30 Daniel Smith dansmith65@gmail.com\n
+      *\t\t\t- add additionalData parameter\n *\t\tCREATED on 2014-JAN-29 Daniel Smith
+      dansmith65@gmail.com\n * =====================================\n */\n\n"
+    - '#Remove'
+    - " ( errorData ; \"scriptStack\" )\n& "
+    - '#'
+    - " ( \"scriptStack\" ;\n\t"
+    - List
+    - " (\n\t\t"
+    - Get
+    - ' ( '
+    - ScriptName
+    - " )\n\t\t\t& "
+    - If
+    - ' ( '
+    - not
+    - type: NoRef
+      __content__: ' '
+    - IsEmpty
+    - " ( additionalData ) ;\n\t\t\t\t\" \" & "
+    - Quote
+    - " ( additionalData )\n\t\t\t)\n\t\t;\n\t\t"
+    - Let
+    - " (\n\t\t\t~scriptStack = "
+    - '#Get'
+    - " ( errorData ; \"scriptStack\" ) ;\n\t\t\t"
+    - If
+    - ' ( '
+    - IsEmpty
+    - " ( ~scriptStack ) ;\n\t\t\t\t/* start the stack with the script that generated
+      the error */\n\t\t\t\t"
+    - '#Get'
+    - " ( errorData ; \"ScriptName\" ) ;\n\t\t\t\t/* else: append to previous stack
+      */\n\t\t\t\t~scriptStack\n\t\t\t)\n\t\t)\n\t)\n/*\n * If more data than just
+      the ScriptName is needed, the following code can be used.\n * The output of
+      this will be difficult to read and can almost double in size\n * for every script
+      added to the stack.\n * Replace the above List () with the code below.\n *\n\t#List
+      (\n\t\t// TODO: add/remove environmental data here, as necessary\n\t\t# ( \"ScriptName\"
+      ; Get ( ScriptName ) )\n\t\t& # ( \"ScriptParameter\" ; Get ( ScriptParameter
+      ) )\n\t\t& # ( \"ScriptResult\" ; Get ( ScriptResult ) )\n\t\t& If ( not IsEmpty
+      ( additionalData ) ;\n\t\t\tadditionalData\n\t\t)\n\t)\n\t& #Get ( errorData
+      ; \"scriptStack\" )\n*/\n)"

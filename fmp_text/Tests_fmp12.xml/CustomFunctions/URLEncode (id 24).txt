@@ -1,0 +1,48 @@
+/*
+the built in filemaker function GetASUrlEncoded() is missing some characters
+*/
+
+Let(
+[
+
+string = GetAsURLEncoded (string)
+
+];
+Substitute (
+     string; 
+    ["*" ; "%2A"];
+    [":" ; "%3A"] ;
+    ["'" ; "%27"]
+)
+
+
+)
+
+---
+CustomFunction:
+  id: '24'
+  functionArity: '1'
+  visible: 'True'
+  parameters: string
+  name: URLEncode
+  Calculation: "/*\nthe built in filemaker function GetASUrlEncoded() is missing some
+    characters\n*/\n\nLet(\n[\n\nstring = GetAsURLEncoded (string)\n\n];\nSubstitute
+    (\n     string; \n    [\"*\" ; \"%2A\"];\n    [\":\" ; \"%3A\"] ;\n    [\"'\"
+    ; \"%27\"]\n)\n\n\n)"
+  DisplayCalculation:
+    Chunk:
+    - |+
+      /*
+      the built in filemaker function GetASUrlEncoded() is missing some characters
+      */
+
+    - Let
+    - "(\n[\n\nstring = "
+    - GetAsURLEncoded
+    - |2
+       (string)
+
+      ];
+    - Substitute
+    - " (\n     string; \n    [\"*\" ; \"%2A\"];\n    [\":\" ; \"%3A\"] ;\n    [\"'\"
+      ; \"%27\"]\n)\n\n\n)"

@@ -1,0 +1,89 @@
+################################################################################
+# PURPOSE:
+#    Perform user-defined steps when an error occurs and allow user to override the default error format.
+#
+# PARAMETERS:
+#    message | description of the error. This parameter is not encoded, so use Get ( ScriptParameter ) to access this value.
+#
+# RETURNS:
+#    If any value is returned by this script, it is used instead of the default error message.
+################################################################################
+#
+#
+Exit Script [  ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '185'
+  name: ~FM-JSON Custom Error { message }
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    Perform user-defined steps when an error occurs and allow user
+        to override the default error format.'
+      Text: '    Perform user-defined steps when an error occurs and allow user to
+        override the default error format.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    message | description of the error. This parameter is not encoded,
+        so use Get ( ScriptParameter ) to access this value.'
+      Text: '    message | description of the error. This parameter is not encoded,
+        so use Get ( ScriptParameter ) to access this value.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#    If any value is returned by this script, it is used instead
+        of the default error message.'
+      Text: '    If any value is returned by this script, it is used instead of the
+        default error message.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]

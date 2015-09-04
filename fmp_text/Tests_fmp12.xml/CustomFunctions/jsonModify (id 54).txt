@@ -1,0 +1,83 @@
+/**
+ * =====================================
+ * jsonModify ( json ; keyOrIndex ; newValue )
+ *
+ *   adds or modifies a property on a JSON Object
+ *
+ * RETURNS:
+ *		the modifed JSON Object
+ *
+ * PARAMETERS:
+ *		json -  the valid JSON string modify
+ *		keyOrIndex -  the name of the object property, or array index to add or modify
+ *		newValue -  the value of the property
+ *
+ * DEPENDENCIES:
+ *		BaseElements Plugin version 3.0 or greater
+ *
+ * HISTORY:
+ * 		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ * 		 	changed name to jsonModify ( json ; property ; value )
+ *		CREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com
+ *
+ * =====================================
+ */
+
+Let ( [
+		js =
+		List (
+			"var json = " & json & " ; " ;
+			"var property = " & Quote ( keyOrIndex ) & " ; " ;
+			"var value = " & Quote( newValue ) & " ; " ;
+		) & "¶¶" & "" & "¶" & "json[property]= value;" & "¶" &
+		"JSON.stringify(json)" & "¶" & ""
+	] ;
+	BE_EvaluateJavaScript ( js )
+)
+
+---
+CustomFunction:
+  id: '54'
+  functionArity: '3'
+  visible: 'True'
+  parameters: json;keyOrIndex;newValue
+  name: jsonModify
+  Calculation: "/**\n * =====================================\n * jsonModify ( json
+    ; keyOrIndex ; newValue )\n *\n *   adds or modifies a property on a JSON Object\n
+    *\n * RETURNS:\n *\t\tthe modifed JSON Object\n *\n * PARAMETERS:\n *\t\tjson
+    -  the valid JSON string modify\n *\t\tkeyOrIndex -  the name of the object property,
+    or array index to add or modify\n *\t\tnewValue -  the value of the property\n
+    *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n *
+    HISTORY:\n * \t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+    * \t\t \tchanged name to jsonModify ( json ; property ; value )\n *\t\tCREATED
+    on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+    */\n\nLet ( [\n\t\tjs =\n\t\tList (\n\t\t\t\"var json = \" & json & \" ; \" ;\n\t\t\t\"var
+    property = \" & Quote ( keyOrIndex ) & \" ; \" ;\n\t\t\t\"var value = \" & Quote(
+    newValue ) & \" ; \" ;\n\t\t) & \"¶¶\" & \"\" & \"¶\" & \"json[property]= value;\"
+    & \"¶\" &\n\t\t\"JSON.stringify(json)\" & \"¶\" & \"\"\n\t] ;\n\tBE_EvaluateJavaScript
+    ( js )\n)"
+  DisplayCalculation:
+    Chunk:
+    - "/**\n * =====================================\n * jsonModify ( json ; keyOrIndex
+      ; newValue )\n *\n *   adds or modifies a property on a JSON Object\n *\n *
+      RETURNS:\n *\t\tthe modifed JSON Object\n *\n * PARAMETERS:\n *\t\tjson -  the
+      valid JSON string modify\n *\t\tkeyOrIndex -  the name of the object property,
+      or array index to add or modify\n *\t\tnewValue -  the value of the property\n
+      *\n * DEPENDENCIES:\n *\t\tBaseElements Plugin version 3.0 or greater\n *\n
+      * HISTORY:\n * \t\tCREATED on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n
+      * \t\t \tchanged name to jsonModify ( json ; property ; value )\n *\t\tCREATED
+      on 2015-JAN-06 Todd Geist, todd@geistinteractive.com\n *\n * =====================================\n
+      */\n\n"
+    - Let
+    - " ( [\n\t\tjs =\n\t\t"
+    - List
+    - " (\n\t\t\t\"var json = \" & json & \" ; \" ;\n\t\t\t\"var property = \" & "
+    - Quote
+    - " ( keyOrIndex ) & \" ; \" ;\n\t\t\t\"var value = \" & "
+    - Quote
+    - "( newValue ) & \" ; \" ;\n\t\t) & \"¶¶\" & \"\" & \"¶\" & \"json[property]=
+      value;\" & \"¶\" &\n\t\t\"JSON.stringify(json)\" & \"¶\" & \"\"\n\t] ;\n\t"
+    - BE_EvaluateJavaScript
+    - |2-
+       ( js )
+      )
