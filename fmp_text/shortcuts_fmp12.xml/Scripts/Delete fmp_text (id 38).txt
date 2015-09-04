@@ -1,0 +1,314 @@
+#
+Set Variable [ $debug; Value:False ]
+#
+#
+Perform Script [ “Path: FM: Parent ( fullPath )”; Parameter: Get ( FilePath ) ]
+Set Variable [ $thisDirFM; Value:Get ( ScriptResult ) ]
+#
+Perform Script [ “Path: OS ( fullPath )”; Parameter: $thisDirFM ]
+Set Variable [ $thisDirOS; Value:Get ( ScriptResult ) ]
+#
+Perform Script [ “Path: OS: Combine ( listOfPathSegments )”; Parameter: List ( $thisDirOS ; "fmp_text" ) ]
+Set Variable [ $ddrDirOS; Value:Get ( ScriptResult ) ]
+#
+Set Variable [ $ddrDirOSFiles; Value:BE_ListFilesInFolder ( $ddrDirOS ; BE_FileType_All ; False ; True )/* list files and folders, exclude subdirectories, return full path */ ]
+If [ $ddrDirOSFiles = "?" ]
+Show Custom Dialog [ Title: "ERROR"; Message: "Could not list files in folder: " & $ddrDirOS; Default Button: “Cancel”, Commit: “Yes” ]
+Exit Script [  ]
+End If
+#
+#
+If [ $debug ]
+Show Custom Dialog [ Title: "$ddrDirOS"; Message: List (	"$thisDirFM: " & $thisDirFM ;	"$thisDirOS: " & $thisDirOS ;	"$ddrDirOS: " & $ddrDirOS ;	"$ddrDirOSFiles:¶" & $ddrDirOSFiles); Default Button: “OK”, Commit: “No” ]
+End If
+#
+#
+Perform Script [ “Delete ( pathList )”; Parameter: $ddrDirOSFiles ]
+#
+#
+Exit Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '38'
+  name: Delete fmp_text
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $debug; Value:False ]
+      Value:
+        Calculation: 'False'
+        DisplayCalculation:
+          Chunk: 'False'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $debug
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM: Parent ( fullPath )”; Parameter: Get
+        ( FilePath ) ]'
+      Calculation: Get ( FilePath )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - FilePath
+        - ' )'
+      Script:
+        id: '30'
+        name: 'Path: FM: Parent ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $thisDirFM; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $thisDirFM
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS ( fullPath )”; Parameter: $thisDirFM ]'
+      Calculation: $thisDirFM
+      DisplayCalculation:
+        Chunk: $thisDirFM
+      Script:
+        id: '13'
+        name: 'Path: OS ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $thisDirOS; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $thisDirOS
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS: Combine ( listOfPathSegments )”; Parameter:
+        List ( $thisDirOS ; "fmp_text" ) ]'
+      Calculation: List ( $thisDirOS ; "fmp_text" )
+      DisplayCalculation:
+        Chunk:
+        - List
+        - ' ( $thisDirOS ; "fmp_text" )'
+      Script:
+        id: '36'
+        name: 'Path: OS: Combine ( listOfPathSegments )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $ddrDirOS; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ddrDirOS
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $ddrDirOSFiles; Value:BE_ListFilesInFolder ( $ddrDirOS ; BE_FileType_All ; False ; True )
+
+        /* list files and folders, exclude subdirectories, return full path */ ]
+      Value:
+        Calculation: |-
+          BE_ListFilesInFolder ( $ddrDirOS ; BE_FileType_All ; False ; True )
+
+          /* list files and folders, exclude subdirectories, return full path */
+        DisplayCalculation:
+          Chunk:
+          - BE_ListFilesInFolder
+          - ' ( $ddrDirOS ; '
+          - BE_FileType_All
+          - ' ; '
+          - 'False'
+          - ' ; '
+          - 'True'
+          - |2-
+             )
+
+            /* list files and folders, exclude subdirectories, return full path */
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $ddrDirOSFiles
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $ddrDirOSFiles = "?" ]
+      Calculation: $ddrDirOSFiles = "?"
+      DisplayCalculation:
+        Chunk: $ddrDirOSFiles = "?"
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "ERROR"; Message: "Could not list files
+        in folder: " & $ddrDirOS; Default Button: “Cancel”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"ERROR"'
+        DisplayCalculation:
+          Chunk: '"ERROR"'
+      Message:
+        Calculation: '"Could not list files in folder: " & $ddrDirOS'
+        DisplayCalculation:
+          Chunk: '"Could not list files in folder: " & $ddrDirOS'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $debug ]
+      Calculation: $debug
+      DisplayCalculation:
+        Chunk: $debug
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: "Show Custom Dialog [ Title: \"$ddrDirOS\"; Message: List (\n\t\"$thisDirFM:
+        \" & $thisDirFM ;\n\t\"$thisDirOS: \" & $thisDirOS ;\n\t\"$ddrDirOS: \" &
+        $ddrDirOS ;\n\t\"$ddrDirOSFiles:¶\" & $ddrDirOSFiles\n); Default Button: “OK”,
+        Commit: “No” ]"
+      Title:
+        Calculation: '"$ddrDirOS"'
+        DisplayCalculation:
+          Chunk: '"$ddrDirOS"'
+      Message:
+        Calculation: "List (\n\t\"$thisDirFM: \" & $thisDirFM ;\n\t\"$thisDirOS: \"
+          & $thisDirOS ;\n\t\"$ddrDirOS: \" & $ddrDirOS ;\n\t\"$ddrDirOSFiles:¶\"
+          & $ddrDirOSFiles\n)"
+        DisplayCalculation:
+          Chunk:
+          - List
+          - " (\n\t\"$thisDirFM: \" & $thisDirFM ;\n\t\"$thisDirOS: \" & $thisDirOS
+            ;\n\t\"$ddrDirOS: \" & $ddrDirOS ;\n\t\"$ddrDirOSFiles:¶\" & $ddrDirOSFiles\n)"
+      Buttons:
+        Button:
+        - CommitState: 'False'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Delete ( pathList )”; Parameter: $ddrDirOSFiles
+        ]'
+      Calculation: $ddrDirOSFiles
+      DisplayCalculation:
+        Chunk: $ddrDirOSFiles
+      Script:
+        id: '37'
+        name: Delete ( pathList )
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,348 @@
+#
+Set Variable [ $debug; Value:False ]
+Set Variable [ $pathList; Value:Get ( ScriptParameter ) ]
+#
+#
+#
+#
+Set Variable [ $count; Value:ValueCount ( $pathList ) ]
+Loop
+Exit Loop If [ // For $i from 1 to $countLet (	$i = $i + 1 ;	If ( $i > $count ;		Let ( $i = "" ; True )	)) ]
+Set Variable [ $path; Value:GetValue ( $pathList ; $i ) ]
+#
+If [ $debug ]
+Show Custom Dialog [ Title: "Delete?"; Message: $path; Default Button: “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No”; Button 3: “Stop Asking”, Commit: “No” ]
+If [ Get ( LastMessageChoice ) = 3 /* stop asking */ ]
+Set Variable [ $debug; Value:False ]
+End If
+End If
+If [ ( $debug and Get ( LastMessageChoice ) = 1 )ornot $debug ]
+Set Variable [ $result; Value:BE_DeleteFile( $path ) ]
+If [ $result ≠ 0 ]
+Show Custom Dialog [ Title: "ERROR"; Message: "Could not delete path: " & $path; Default Button: “Keep Going”, Commit: “Yes”; Button 2: “Cancel”, Commit: “No” ]
+If [ Get ( LastMessageChoice ) = 2 /* Cancel */ ]
+Exit Script [  ]
+End If
+End If
+End If
+#
+End Loop
+#
+#
+#
+Exit Script [  ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '37'
+  name: Delete ( pathList )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $debug; Value:False ]
+      Value:
+        Calculation: 'False'
+        DisplayCalculation:
+          Chunk: 'False'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $debug
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $pathList; Value:Get ( ScriptParameter ) ]
+      Value:
+        Calculation: Get ( ScriptParameter )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $pathList
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $count; Value:ValueCount ( $pathList ) ]
+      Value:
+        Calculation: ValueCount ( $pathList )
+        DisplayCalculation:
+          Chunk:
+          - ValueCount
+          - ' ( $pathList )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $count
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ // For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf
+        ( $i > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n) ]"
+      Calculation: "// For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf ( $i
+        > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i from 1 to $count
+        - Let
+        - " (\n\t$i = $i + 1 ;\n\t"
+        - If
+        - " ( $i > $count ;\n\t\t"
+        - Let
+        - ' ( $i = "" ; '
+        - 'True'
+        - " )\n\t)\n)"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:GetValue ( $pathList ; $i ) ]
+      Value:
+        Calculation: GetValue ( $pathList ; $i )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $pathList ; $i )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $debug ]
+      Calculation: $debug
+      DisplayCalculation:
+        Chunk: $debug
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "Delete?"; Message: $path; Default Button:
+        “Yes”, Commit: “Yes”; Button 2: “No”, Commit: “No”; Button 3: “Stop Asking”,
+        Commit: “No” ]'
+      Title:
+        Calculation: '"Delete?"'
+        DisplayCalculation:
+          Chunk: '"Delete?"'
+      Message:
+        Calculation: $path
+        DisplayCalculation:
+          Chunk: $path
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Yes"'
+          DisplayCalculation:
+            Chunk: '"Yes"'
+        - CommitState: 'False'
+          Calculation: '"No"'
+          DisplayCalculation:
+            Chunk: '"No"'
+        - CommitState: 'False'
+          Calculation: '"Stop Asking"'
+          DisplayCalculation:
+            Chunk: '"Stop Asking"'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastMessageChoice ) = 3 /* stop asking */ ]
+      Calculation: Get ( LastMessageChoice ) = 3 /* stop asking */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 3 /* stop asking */'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $debug; Value:False ]
+      Value:
+        Calculation: 'False'
+        DisplayCalculation:
+          Chunk: 'False'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $debug
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ ( $debug and Get ( LastMessageChoice ) = 1 )
+        or
+        not $debug ]
+      Calculation: |-
+        ( $debug and Get ( LastMessageChoice ) = 1 )
+        or
+        not $debug
+      DisplayCalculation:
+        Chunk:
+        - '( $debug '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - |2
+           ) = 1 )
+        - or
+        - type: NoRef
+          __content__: |2+
+
+        - not
+        - ' $debug'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:BE_DeleteFile( $path ) ]
+      Value:
+        Calculation: BE_DeleteFile( $path )
+        DisplayCalculation:
+          Chunk:
+          - BE_DeleteFile
+          - ( $path )
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $result ≠ 0 ]
+      Calculation: $result ≠ 0
+      DisplayCalculation:
+        Chunk: $result ≠ 0
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "ERROR"; Message: "Could not delete path:
+        " & $path; Default Button: “Keep Going”, Commit: “Yes”; Button 2: “Cancel”,
+        Commit: “No” ]'
+      Title:
+        Calculation: '"ERROR"'
+        DisplayCalculation:
+          Chunk: '"ERROR"'
+      Message:
+        Calculation: '"Could not delete path: " & $path'
+        DisplayCalculation:
+          Chunk: '"Could not delete path: " & $path'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"Keep Going"'
+          DisplayCalculation:
+            Chunk: '"Keep Going"'
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( LastMessageChoice ) = 2 /* Cancel */ ]
+      Calculation: Get ( LastMessageChoice ) = 2 /* Cancel */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 2 /* Cancel */'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: Exit Script [  ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

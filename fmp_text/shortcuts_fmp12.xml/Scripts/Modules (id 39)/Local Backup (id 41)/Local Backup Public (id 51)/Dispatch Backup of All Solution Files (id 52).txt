@@ -1,0 +1,711 @@
+#########################################
+# PURPOSE:
+# Makes a compacted copy of all the files associates with the FileMaker solution to serve as a backup.
+# File files are stored in a timestamped sub-folder of the same folder as the current file.
+#
+# PARAMETERS:
+# autoBackup: (optional, boolean) Set to True (1) to start an auto-backup OnTimer trigger. Defaults to False (0).
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+# backupFolderPath: The path to the folder (directory) where the compacted copies of the solution files are stored.
+#
+# DEPENDENCIES:
+# Create Local Backup of Solution File ( fileNumber ; backupFolderPath )
+# Get Local Backup Settings
+#
+# HISTORY: (open comment to view full history)
+# Modified on 2013-05-02 by Jeremy Bante <http://scr.im/jbante> to remove custom function dependencies.Created on 2012-09-17 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+If [ /* File is hosted */Get ( ConnectionState ) ≠ 0 ]
+Show Custom Dialog [ Message: "Hosted files cannot be backed-up locally."; Default Button: “OK”, Commit: “No” ]
+Exit Script [ Result: "$error = 13 ;¶"	// File or object is in use ]
+End If
+#
+Set Variable [ $parameterError; Value:EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptParameter )	& "! = \"\" ] ; \"\" )") ) ]
+#
+Perform Script [ “Get Local Backup Settings” ]
+Set Variable [ $resultError; Value:/* script result contains $backupFolderPath */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
+If [ $resultError ]
+Exit Script [ Result: "$error = " & $resultError & " ;¶" ]
+End If
+#
+#
+Perform Script [ “Create Folder ( folderPath )”; Parameter: "$folderPath = " & Quote ( $backupFolderPath ) & " ;¶" ]
+Set Variable [ $resultError; Value:EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
+If [ $resultError ]
+Exit Script [ Result: "$error = " & $resultError & " ;¶" ]
+Else If [ $error ]
+Show Custom Dialog [ Message: "There was an error creating the backup folder.¶Error: "& $error; Default Button: “OK”, Commit: “No” ]
+Exit Script [ Result: "$error = " & $error & " ;¶" ]
+End If
+#
+#
+# Back up each solution file
+Loop
+Set Variable [ $i; Value:$i + 1 ]
+Perform Script [ “Create Local Backup of Solution File ( fileNumber ; backupFolderPath )”; Parameter: "$fileNumber = " & $i & " ;¶"& "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶" ]
+#
+# Prompt user with any errors
+Set Variable [ $resultError; Value:EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
+Set Variable [ $errorMax; Value:Max ( $error ; $errorMax ) ]
+#
+If [ $error ]
+Show Custom Dialog [ Title: Get ( ScriptName ) & ": Error"; Message: "There was an error backing up the file "& Quote ( $fileName )& ".¶¶Error: "& $error& "¶¶Click \"Cancel\" to stop backing up files. Any files already backed-up will not be deleted."; Default Button: “OK”, Commit: “No”; Button 2: “Cancel”, Commit: “No” ]
+Exit Loop If [ /* User chose to cancel */Get ( LastMessageChoice ) = 2 ]
+End If
+#
+Exit Loop If [ $done ]
+End Loop
+#
+#
+If [ $autoBackup ]
+Perform Script [ “Install Auto Backup in Dedicated Window” ]
+Set Variable [ $resultError; Value:EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
+Set Variable [ $errorMax; Value:Max ( $resultError ; $errorMax ) ]
+End If
+#
+#
+Exit Script [ Result: "$error = " & Max ( $errorMax ; 0 ) & " ;¶"& "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶" ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '52'
+  name: Dispatch Backup of All Solution Files
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Makes a compacted copy of all the files associates with the FileMaker
+        solution to serve as a backup.'
+      Text: ' Makes a compacted copy of all the files associates with the FileMaker
+        solution to serve as a backup.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# File files are stored in a timestamped sub-folder of the same folder
+        as the current file.'
+      Text: ' File files are stored in a timestamped sub-folder of the same folder
+        as the current file.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# autoBackup: (optional, boolean) Set to True (1) to start an auto-backup
+        OnTimer trigger. Defaults to False (0).'
+      Text: ' autoBackup: (optional, boolean) Set to True (1) to start an auto-backup
+        OnTimer trigger. Defaults to False (0).'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupFolderPath: The path to the folder (directory) where the
+        compacted copies of the solution files are stored.'
+      Text: ' backupFolderPath: The path to the folder (directory) where the compacted
+        copies of the solution files are stored.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Create Local Backup of Solution File ( fileNumber ; backupFolderPath
+        )'
+      Text: ' Create Local Backup of Solution File ( fileNumber ; backupFolderPath
+        )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Get Local Backup Settings'
+      Text: ' Get Local Backup Settings'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        # Modified on 2013-05-02 by Jeremy Bante <http://scr.im/jbante> to remove custom function dependencies.
+
+        Created on 2012-09-17 by Jeremy Bante <http://scr.im/jbante>.
+      Text: |2-
+         Modified on 2013-05-02 by Jeremy Bante <http://scr.im/jbante> to remove custom function dependencies.
+
+        Created on 2012-09-17 by Jeremy Bante <http://scr.im/jbante>.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ /* File is hosted */
+
+        Get ( ConnectionState ) ≠ 0 ]
+      Calculation: |-
+        /* File is hosted */
+
+        Get ( ConnectionState ) ≠ 0
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* File is hosted */
+
+        - Get
+        - ' ( '
+        - ConnectionState
+        - ' ) ≠ 0'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Message: "Hosted files cannot be backed-up locally.";
+        Default Button: “OK”, Commit: “No” ]'
+      Message:
+        Calculation: '"Hosted files cannot be backed-up locally."'
+        DisplayCalculation:
+          Chunk: '"Hosted files cannot be backed-up locally."'
+      Buttons:
+        Button:
+        - CommitState: 'False'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: \"$error = 13 ;¶\"\t// File or object is in
+        use ]"
+      Calculation: "\"$error = 13 ;¶\"\t// File or object is in use"
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = 13 ;¶\"\t"
+        - // File or object is in use
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $parameterError; Value:EvaluationError ( Evaluate
+        (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\" ] ; \\\"\\\"
+        )\"\n) ) ]"
+      Value:
+        Calculation: "EvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter
+          )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $parameterError
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Get Local Backup Settings” ]
+      Script:
+        id: '48'
+        name: Get Local Backup Settings
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $resultError; Value:/* script result contains $backupFolderPath
+        */\n\nEvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult
+        )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) ) ]"
+      Value:
+        Calculation: "/* script result contains $backupFolderPath */\n\nEvaluationError
+          ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\"
+          ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            /* script result contains $backupFolderPath */
+
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $resultError
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $resultError ]
+      Calculation: $resultError
+      DisplayCalculation:
+        Chunk: $resultError
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $resultError & " ;¶" ]'
+      Calculation: '"$error = " & $resultError & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $resultError & " ;¶"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Create Folder ( folderPath )”; Parameter: "$folderPath
+        = " & Quote ( $backupFolderPath ) & " ;¶" ]'
+      Calculation: '"$folderPath = " & Quote ( $backupFolderPath ) & " ;¶"'
+      DisplayCalculation:
+        Chunk:
+        - '"$folderPath = " & '
+        - Quote
+        - ' ( $backupFolderPath ) & " ;¶"'
+      Script:
+        id: '57'
+        name: Create Folder ( folderPath )
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $resultError; Value:EvaluationError ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )
+        ]"
+      Value:
+        Calculation: "EvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult
+          )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $resultError
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $resultError ]
+      Calculation: $resultError
+      DisplayCalculation:
+        Chunk: $resultError
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $resultError & " ;¶" ]'
+      Calculation: '"$error = " & $resultError & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $resultError & " ;¶"'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $error ]
+      Calculation: $error
+      DisplayCalculation:
+        Chunk: $error
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: |-
+        Show Custom Dialog [ Message: "There was an error creating the backup folder.¶Error: "
+        & $error; Default Button: “OK”, Commit: “No” ]
+      Message:
+        Calculation: |-
+          "There was an error creating the backup folder.¶Error: "
+          & $error
+        DisplayCalculation:
+          Chunk: |-
+            "There was an error creating the backup folder.¶Error: "
+            & $error
+      Buttons:
+        Button:
+        - CommitState: 'False'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $error & " ;¶" ]'
+      Calculation: '"$error = " & $error & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $error & " ;¶"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Back up each solution file'
+      Text: ' Back up each solution file'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:$i + 1 ]
+      Value:
+        Calculation: $i + 1
+        DisplayCalculation:
+          Chunk: $i + 1
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Create Local Backup of Solution File ( fileNumber ; backupFolderPath )”; Parameter: "$fileNumber = " & $i & " ;¶"
+        & "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶" ]
+      Calculation: |-
+        "$fileNumber = " & $i & " ;¶"
+        & "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - "\"$fileNumber = \" & $i & \" ;¶\"\n& \"$backupFolderPath = \" & "
+        - Quote
+        - ' ( $backupFolderPath ) & " ;¶"'
+      Script:
+        id: '47'
+        name: Create Local Backup of Solution File ( fileNumber ; backupFolderPath
+          )
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Prompt user with any errors'
+      Text: ' Prompt user with any errors'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $resultError; Value:EvaluationError ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )
+        ]"
+      Value:
+        Calculation: "EvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult
+          )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $resultError
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $errorMax; Value:Max ( $error ; $errorMax ) ]
+      Value:
+        Calculation: Max ( $error ; $errorMax )
+        DisplayCalculation:
+          Chunk:
+          - Max
+          - ' ( $error ; $errorMax )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $errorMax
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $error ]
+      Calculation: $error
+      DisplayCalculation:
+        Chunk: $error
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: |-
+        Show Custom Dialog [ Title: Get ( ScriptName ) & ": Error"; Message: "There was an error backing up the file "
+        & Quote ( $fileName )
+        & ".¶¶Error: "
+        & $error
+        & "¶¶Click \"Cancel\" to stop backing up files. Any files already backed-up will not be deleted."; Default Button: “OK”, Commit: “No”; Button 2: “Cancel”, Commit: “No” ]
+      Title:
+        Calculation: 'Get ( ScriptName ) & ": Error"'
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptName
+          - ' ) & ": Error"'
+      Message:
+        Calculation: |-
+          "There was an error backing up the file "
+          & Quote ( $fileName )
+          & ".¶¶Error: "
+          & $error
+          & "¶¶Click \"Cancel\" to stop backing up files. Any files already backed-up will not be deleted."
+        DisplayCalculation:
+          Chunk:
+          - "\"There was an error backing up the file \"\n& "
+          - Quote
+          - |2-
+             ( $fileName )
+            & ".¶¶Error: "
+            & $error
+            & "¶¶Click \"Cancel\" to stop backing up files. Any files already backed-up will not be deleted."
+      Buttons:
+        Button:
+        - CommitState: 'False'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+          Calculation: '"Cancel"'
+          DisplayCalculation:
+            Chunk: '"Cancel"'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: |-
+        Exit Loop If [ /* User chose to cancel */
+
+        Get ( LastMessageChoice ) = 2 ]
+      Calculation: |-
+        /* User chose to cancel */
+
+        Get ( LastMessageChoice ) = 2
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* User chose to cancel */
+
+        - Get
+        - ' ( '
+        - LastMessageChoice
+        - ' ) = 2'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: Exit Loop If [ $done ]
+      Calculation: $done
+      DisplayCalculation:
+        Chunk: $done
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $autoBackup ]
+      Calculation: $autoBackup
+      DisplayCalculation:
+        Chunk: $autoBackup
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Install Auto Backup in Dedicated Window” ]
+      Script:
+        id: '58'
+        name: Install Auto Backup in Dedicated Window
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $resultError; Value:EvaluationError ( Evaluate (\n\t\"Let
+        ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )
+        ]"
+      Value:
+        Calculation: "EvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult
+          )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $resultError
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $errorMax; Value:Max ( $resultError ; $errorMax ) ]
+      Value:
+        Calculation: Max ( $resultError ; $errorMax )
+        DisplayCalculation:
+          Chunk:
+          - Max
+          - ' ( $resultError ; $errorMax )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $errorMax
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: "$error = " & Max ( $errorMax ; 0 ) & " ;¶"
+        & "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶" ]
+      Calculation: |-
+        "$error = " & Max ( $errorMax ; 0 ) & " ;¶"
+        & "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - '"$error = " & '
+        - Max
+        - " ( $errorMax ; 0 ) & \" ;¶\"\n& \"$backupFolderPath = \" & "
+        - Quote
+        - ' ( $backupFolderPath ) & " ;¶"'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

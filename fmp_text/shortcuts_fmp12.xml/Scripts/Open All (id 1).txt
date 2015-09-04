@@ -1,0 +1,107 @@
+#
+#
+Open File [ “EasySync_Client” ]
+Open File [ “EasySync_Server” ]
+Open File [ “EasyDeploy” ]
+Open File [ “TestDataSets” ]
+Open File [ “Tests” ]
+#
+#
+//  Install OnTimer Script [ “Close Window”; Interval: 1 ]
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'True'
+  runFullAccess: 'False'
+  id: '1'
+  name: Open All
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '33'
+      name: Open File
+      StepText: Open File [ “EasySync_Client” ]
+      Option:
+        state: 'False'
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+        UniversalPathList: file:EasySync_Client
+    - enable: 'True'
+      id: '33'
+      name: Open File
+      StepText: Open File [ “EasySync_Server” ]
+      Option:
+        state: 'False'
+      FileReference:
+        id: '2'
+        name: EasySync_Server
+        UniversalPathList: file:EasySync_Server
+    - enable: 'True'
+      id: '33'
+      name: Open File
+      StepText: Open File [ “EasyDeploy” ]
+      Option:
+        state: 'False'
+      FileReference:
+        id: '3'
+        name: EasyDeploy
+        UniversalPathList: file:EasyDeploy
+    - enable: 'True'
+      id: '33'
+      name: Open File
+      StepText: Open File [ “TestDataSets” ]
+      Option:
+        state: 'False'
+      FileReference:
+        id: '5'
+        name: TestDataSets
+        UniversalPathList: file:TestDataSets
+    - enable: 'True'
+      id: '33'
+      name: Open File
+      StepText: Open File [ “Tests” ]
+      Option:
+        state: 'False'
+      FileReference:
+        id: '6'
+        name: Tests
+        UniversalPathList: file:Tests
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'False'
+      id: '148'
+      name: Install OnTimer Script
+      StepText: '//  Install OnTimer Script [ “Close Window”; Interval: 1 ]'
+      Interval:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Script:
+        id: '7'
+        name: Close Window
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

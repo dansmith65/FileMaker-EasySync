@@ -1,0 +1,19 @@
+Close Window [ Current Window ]
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '7'
+  name: Close Window
+  StepList:
+    Step:
+      enable: 'True'
+      id: '121'
+      name: Close Window
+      StepText: Close Window [ Current Window ]
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current

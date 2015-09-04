@@ -1,0 +1,39 @@
+       id  File Reference             Path List                
+       --  --------------             ---------                
+        1  EasySync_Client            file:EasySync_Client     
+        2  EasySync_Server            file:EasySync_Server     
+        3  EasyDeploy                 file:EasyDeploy          
+        4  Log                        file:Log                 
+        5  TestDataSets               file:TestDataSets        
+        6  Tests                      file:Tests               
+
+       id  ODBC Source                DSN                        Link                     
+       --  -----------                ---                        ----                     
+
+
+---
+ExternalDataSourcesCatalog:
+  FileReference:
+  - link: EasySync_Client_fmp12.xml
+    id: '1'
+    pathList: file:EasySync_Client
+    name: EasySync_Client
+  - link: EasySync_Server_fmp12.xml
+    id: '2'
+    pathList: file:EasySync_Server
+    name: EasySync_Server
+  - link: EasyDeploy_fmp12.xml
+    id: '3'
+    pathList: file:EasyDeploy
+    name: EasyDeploy
+  - id: '4'
+    pathList: file:Log
+    name: Log
+  - link: TestDataSets_fmp12.xml
+    id: '5'
+    pathList: file:TestDataSets
+    name: TestDataSets
+  - link: Tests_fmp12.xml
+    id: '6'
+    pathList: file:Tests
+    name: Tests

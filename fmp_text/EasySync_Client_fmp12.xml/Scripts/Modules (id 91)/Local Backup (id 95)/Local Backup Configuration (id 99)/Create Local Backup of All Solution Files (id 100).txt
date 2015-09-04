@@ -1,0 +1,226 @@
+#########################################
+# PURPOSE:
+# Makes a compacted copy of all the files associates with the FileMaker solution to serve as a backup.
+# File files are stored in a timestamped sub-folder of the same folder as the current file.
+#
+# PARAMETERS:
+# autoBackup: (optional, boolean) Set to True (1) to start an auto-backup OnTimer trigger. Defaults to False (0).
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+# backupFolderPath: The path to the folder (directory) where the compacted copies of the solution files are stored.
+#
+# DEPENDENCIES:
+# Dispatch Backup of All Solution Files
+#
+# HISTORY: (open comment to view full history)
+# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+#
+#
+#########################################
+# In your "dispatch" file, the central hub that controls backups of other files, leave this alone.
+# In your other solution files, modify this Perform Script step to call the same script in your "dispatch" file.
+# This way, you only have to do the other configuration scripts in the dispatch file.
+#
+Perform Script [ “Dispatch Backup of All Solution Files”; Parameter: Get ( ScriptParameter ) ]
+#########################################
+#
+#
+#
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '100'
+  name: Create Local Backup of All Solution Files
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Makes a compacted copy of all the files associates with the FileMaker
+        solution to serve as a backup.'
+      Text: ' Makes a compacted copy of all the files associates with the FileMaker
+        solution to serve as a backup.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# File files are stored in a timestamped sub-folder of the same folder
+        as the current file.'
+      Text: ' File files are stored in a timestamped sub-folder of the same folder
+        as the current file.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# autoBackup: (optional, boolean) Set to True (1) to start an auto-backup
+        OnTimer trigger. Defaults to False (0).'
+      Text: ' autoBackup: (optional, boolean) Set to True (1) to start an auto-backup
+        OnTimer trigger. Defaults to False (0).'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupFolderPath: The path to the folder (directory) where the
+        compacted copies of the solution files are stored.'
+      Text: ' backupFolderPath: The path to the folder (directory) where the compacted
+        copies of the solution files are stored.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Dispatch Backup of All Solution Files'
+      Text: ' Dispatch Backup of All Solution Files'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+      Text: ' Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# In your "dispatch" file, the central hub that controls backups
+        of other files, leave this alone.'
+      Text: ' In your "dispatch" file, the central hub that controls backups of other
+        files, leave this alone.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# In your other solution files, modify this Perform Script step to
+        call the same script in your "dispatch" file.'
+      Text: ' In your other solution files, modify this Perform Script step to call
+        the same script in your "dispatch" file.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# This way, you only have to do the other configuration scripts in
+        the dispatch file.'
+      Text: ' This way, you only have to do the other configuration scripts in the
+        dispatch file.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Dispatch Backup of All Solution Files”; Parameter:
+        Get ( ScriptParameter ) ]'
+      Calculation: Get ( ScriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' )'
+      Script:
+        id: '106'
+        name: Dispatch Backup of All Solution Files
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

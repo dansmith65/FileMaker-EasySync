@@ -1,0 +1,10 @@
+    id   Field Name                  Data Type        Field Type        Comment                                           
+    --   ----------                  ---------        ----------        -------                                           
+
+
+---
+BaseTable:
+  id: '129'
+  records: '0'
+  name: opener
+  FieldCatalog: 

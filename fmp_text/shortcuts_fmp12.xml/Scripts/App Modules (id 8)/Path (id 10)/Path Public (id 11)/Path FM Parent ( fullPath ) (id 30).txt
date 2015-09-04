@@ -1,0 +1,71 @@
+#
+# Convert to a full path for use in a FileMaker import/export script, then only return the parent.
+#
+#
+Perform Script [ “~Path: FM: Parent ( fullPath )”; Parameter: Get ( ScriptParameter ) ]
+#
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '30'
+  name: 'Path: FM: Parent ( fullPath )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Convert to a full path for use in a FileMaker import/export script,
+        then only return the parent.'
+      Text: ' Convert to a full path for use in a FileMaker import/export script,
+        then only return the parent.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Path: FM: Parent ( fullPath )”; Parameter: Get
+        ( ScriptParameter ) ]'
+      Calculation: Get ( ScriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' )'
+      Script:
+        id: '28'
+        name: '~Path: FM: Parent ( fullPath )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

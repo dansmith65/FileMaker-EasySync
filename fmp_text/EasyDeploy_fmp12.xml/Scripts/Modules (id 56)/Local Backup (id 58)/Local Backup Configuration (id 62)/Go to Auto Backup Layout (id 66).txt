@@ -1,0 +1,148 @@
+#########################################
+# PURPOSE:
+# Go to the layout used by the solution as the Auto-Backup splashscreen.
+#
+# PARAMETERS: none
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+#
+# HISTORY: (open comment to view full history)
+# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+#
+#
+#########################################
+# Set this step to use your solution's auto-backup splashscreen layout
+Go to Layout [ original layout ]
+#########################################
+#
+#
+Exit Script [ Result: "$error = " & Get ( LastError ) & " ;¶" ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '66'
+  name: Go to Auto Backup Layout
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Go to the layout used by the solution as the Auto-Backup splashscreen.'
+      Text: ' Go to the layout used by the solution as the Auto-Backup splashscreen.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+      Text: ' Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Set this step to use your solution''s auto-backup splashscreen
+        layout'
+      Text: ' Set this step to use your solution''s auto-backup splashscreen layout'
+    - enable: 'True'
+      id: '6'
+      name: Go to Layout
+      StepText: Go to Layout [ original layout ]
+      LayoutDestination:
+        value: OriginalLayout
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & Get ( LastError ) & " ;¶" ]'
+      Calculation: '"$error = " & Get ( LastError ) & " ;¶"'
+      DisplayCalculation:
+        Chunk:
+        - '"$error = " & '
+        - Get
+        - ' ( '
+        - LastError
+        - ' ) & " ;¶"'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

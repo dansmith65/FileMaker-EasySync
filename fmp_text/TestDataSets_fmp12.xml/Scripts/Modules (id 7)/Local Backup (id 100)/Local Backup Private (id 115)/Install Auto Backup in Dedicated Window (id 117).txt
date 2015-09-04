@@ -1,0 +1,508 @@
+#########################################
+# PURPOSE:
+# Installs an OnTimer trigger in a dedicated window to run local backups at regular intervals.
+#
+# PARAMETERS: none
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+#
+# DEPENDENCIES:
+# Get Local Backup Settings
+#
+# HISTORY: (open comment to view full history)
+# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+Perform Script [ “Get Local Backup Settings” ]
+Set Variable [ $resultError; Value:/* script result contains $backupFolderPath */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
+If [ $resultError ]
+Exit Script [ Result: "$error = " & $resultError & " ;¶" ]
+End If
+#
+Set Variable [ $currentWindow; Value:Get ( WindowName ) ]
+#
+#
+# Check for existing window, or create it if necessary
+Set Error Capture [ On ]
+Select Window [ Name: $autoBackupWindowName; Current file ]
+Set Variable [ $error; Value:Get ( LastError ) ]
+Set Error Capture [ Off ]
+#
+If [ /* auto-backup window does not already exist */$error ]
+New Window [ Name: $autoBackupWindowName; Style: Document; Close: “Yes”; Minimize: “Yes”; Maximize: “Yes”; Zoom Control Area: “Yes”; Resize: “Yes” ]
+Show/Hide Toolbars[ Hide ]
+#
+Perform Script [ “Go to Auto Backup Layout” ]
+Set Variable [ $resultError; Value:/* script result contains $backupFolderPath */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptResult )	& "! = \"\" ] ; \"\" )") ) ]
+If [ $resultError ]
+Exit Script [ Result: "$error = " & $resultError & " ;¶" ]
+Else If [ $error ]
+Close Window [ Name: $autoBackupWindowName; Current file ]
+Exit Script [ Result: "$error = " & $error & " ;¶" ]
+End If
+#
+Adjust Window[ Resize to Fit ]
+Move/Resize Window [ Current Window; Top: $autoBackupTop; Left: $autoBackupLeft ]
+End If
+#
+#
+Install OnTimer Script [ “Dispatch Backup of All Solution Files”; Parameter: "$autoBackup = True ;¶"; Interval: $backupIntervalSeconds ]
+# OnTimer interval may change if "Get Local Backup Settings" script is modified, but not if "autoBackup" parameter is not set.
+Set Variable [ $error; Value:Get ( LastError ) ]
+#
+#
+Select Window [ Name: $currentWindow; Current file ]
+Exit Script [ Result: "$error = " & $error & " ;¶" ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '117'
+  name: Install Auto Backup in Dedicated Window
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Installs an OnTimer trigger in a dedicated window to run local
+        backups at regular intervals.'
+      Text: ' Installs an OnTimer trigger in a dedicated window to run local backups
+        at regular intervals.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Get Local Backup Settings'
+      Text: ' Get Local Backup Settings'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+      Text: ' Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Get Local Backup Settings” ]
+      Script:
+        id: '107'
+        name: Get Local Backup Settings
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $resultError; Value:/* script result contains $backupFolderPath
+        */\n\nEvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult
+        )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) ) ]"
+      Value:
+        Calculation: "/* script result contains $backupFolderPath */\n\nEvaluationError
+          ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\"
+          ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            /* script result contains $backupFolderPath */
+
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $resultError
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $resultError ]
+      Calculation: $resultError
+      DisplayCalculation:
+        Chunk: $resultError
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $resultError & " ;¶" ]'
+      Calculation: '"$error = " & $resultError & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $resultError & " ;¶"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $currentWindow; Value:Get ( WindowName ) ]
+      Value:
+        Calculation: Get ( WindowName )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - WindowName
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $currentWindow
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Check for existing window, or create it if necessary'
+      Text: ' Check for existing window, or create it if necessary'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '123'
+      name: Select Window
+      StepText: 'Select Window [ Name: $autoBackupWindowName; Current file ]'
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: ByName
+      Name:
+        Calculation: $autoBackupWindowName
+        DisplayCalculation:
+          Chunk: $autoBackupWindowName
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $error; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $error
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ /* auto-backup window does not already exist */
+
+        $error ]
+      Calculation: |-
+        /* auto-backup window does not already exist */
+
+        $error
+      DisplayCalculation:
+        Chunk: |-
+          /* auto-backup window does not already exist */
+
+          $error
+    - enable: 'True'
+      id: '122'
+      name: New Window
+      StepText: 'New Window [ Name: $autoBackupWindowName; Style: Document; Close:
+        “Yes”; Minimize: “Yes”; Maximize: “Yes”; Zoom Control Area: “Yes”; Resize:
+        “Yes” ]'
+      Name:
+        Calculation: $autoBackupWindowName
+        DisplayCalculation:
+          Chunk: $autoBackupWindowName
+      NewWndStyles:
+        Styles: '983554'
+    - enable: 'True'
+      id: '29'
+      name: Show/Hide Toolbars
+      StepText: |-
+        Show/Hide Toolbars
+        [ Hide ]
+      Lock:
+        state: 'False'
+      ShowHide:
+        value: Hide
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Go to Auto Backup Layout” ]
+      Script:
+        id: '108'
+        name: Go to Auto Backup Layout
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $resultError; Value:/* script result contains $backupFolderPath
+        */\n\nEvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult
+        )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) ) ]"
+      Value:
+        Calculation: "/* script result contains $backupFolderPath */\n\nEvaluationError
+          ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptResult )\n\t& \"! = \\\"\\\"
+          ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            /* script result contains $backupFolderPath */
+
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptResult
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $resultError
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $resultError ]
+      Calculation: $resultError
+      DisplayCalculation:
+        Chunk: $resultError
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $resultError & " ;¶" ]'
+      Calculation: '"$error = " & $resultError & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $resultError & " ;¶"'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ $error ]
+      Calculation: $error
+      DisplayCalculation:
+        Chunk: $error
+    - enable: 'True'
+      id: '121'
+      name: Close Window
+      StepText: 'Close Window [ Name: $autoBackupWindowName; Current file ]'
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: ByName
+      Name:
+        Calculation: $autoBackupWindowName
+        DisplayCalculation:
+          Chunk: $autoBackupWindowName
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $error & " ;¶" ]'
+      Calculation: '"$error = " & $error & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $error & " ;¶"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '31'
+      name: Adjust Window
+      StepText: |-
+        Adjust Window
+        [ Resize to Fit ]
+      WindowState:
+        value: ResizeToFit
+    - enable: 'True'
+      id: '119'
+      name: Move/Resize Window
+      StepText: 'Move/Resize Window [ Current Window; Top: $autoBackupTop; Left: $autoBackupLeft
+        ]'
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current
+      DistanceFromTop:
+        Calculation: $autoBackupTop
+        DisplayCalculation:
+          Chunk: $autoBackupTop
+      DistanceFromLeft:
+        Calculation: $autoBackupLeft
+        DisplayCalculation:
+          Chunk: $autoBackupLeft
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '148'
+      name: Install OnTimer Script
+      StepText: 'Install OnTimer Script [ “Dispatch Backup of All Solution Files”;
+        Parameter: "$autoBackup = True ;¶"; Interval: $backupIntervalSeconds ]'
+      Interval:
+        Calculation: $backupIntervalSeconds
+        DisplayCalculation:
+          Chunk: $backupIntervalSeconds
+      Calculation: '"$autoBackup = True ;¶"'
+      DisplayCalculation:
+        Chunk: '"$autoBackup = True ;¶"'
+      Script:
+        id: '111'
+        name: Dispatch Backup of All Solution Files
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# OnTimer interval may change if "Get Local Backup Settings" script
+        is modified, but not if "autoBackup" parameter is not set.'
+      Text: ' OnTimer interval may change if "Get Local Backup Settings" script is
+        modified, but not if "autoBackup" parameter is not set.'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $error; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $error
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '123'
+      name: Select Window
+      StepText: 'Select Window [ Name: $currentWindow; Current file ]'
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: ByName
+      Name:
+        Calculation: $currentWindow
+        DisplayCalculation:
+          Chunk: $currentWindow
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $error & " ;¶" ]'
+      Calculation: '"$error = " & $error & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $error & " ;¶"'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

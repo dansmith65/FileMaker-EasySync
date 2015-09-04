@@ -1,0 +1,43 @@
+#
+#
+# 2015-SEP-04 Daniel Smith dansmith65@gmail.comscripts	added		~Path: FM: Parent ( fullPath )		Path: FM: Parent ( fullPath )		~Path: Combine ( sep ; segments )		Path: FM: Combine ( listOfPathSegments )		Path: OS: Combine ( listOfPathSegments )	modified		Path: Format for FM ( fullPath )			- renamed to: Path: FM ( fullPath )		Path: Format for OS ( fullPath )			- renamed to: Path: OS ( fullPath )			- renamed to: 			- renamed to: 
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '29'
+  name: Path Version
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "# 2015-SEP-04 Daniel Smith dansmith65@gmail.com\n\nscripts\n\tadded\n\t\t~Path:
+        FM: Parent ( fullPath )\n\t\tPath: FM: Parent ( fullPath )\n\t\t~Path: Combine
+        ( sep ; segments )\n\t\tPath: FM: Combine ( listOfPathSegments )\n\t\tPath:
+        OS: Combine ( listOfPathSegments )\n\tmodified\n\t\tPath: Format for FM (
+        fullPath )\n\t\t\t- renamed to: Path: FM ( fullPath )\n\t\tPath: Format for
+        OS ( fullPath )\n\t\t\t- renamed to: Path: OS ( fullPath )\n\n\t\t\t- renamed
+        to: \n\n\t\t\t- renamed to: "
+      Text: " 2015-SEP-04 Daniel Smith dansmith65@gmail.com\n\nscripts\n\tadded\n\t\t~Path:
+        FM: Parent ( fullPath )\n\t\tPath: FM: Parent ( fullPath )\n\t\t~Path: Combine
+        ( sep ; segments )\n\t\tPath: FM: Combine ( listOfPathSegments )\n\t\tPath:
+        OS: Combine ( listOfPathSegments )\n\tmodified\n\t\tPath: Format for FM (
+        fullPath )\n\t\t\t- renamed to: Path: FM ( fullPath )\n\t\tPath: Format for
+        OS ( fullPath )\n\t\t\t- renamed to: Path: OS ( fullPath )\n\n\t\t\t- renamed
+        to: \n\n\t\t\t- renamed to: "
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

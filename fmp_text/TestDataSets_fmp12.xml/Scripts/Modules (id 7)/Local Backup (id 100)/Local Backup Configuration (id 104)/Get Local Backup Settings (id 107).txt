@@ -1,0 +1,679 @@
+#########################################
+# PURPOSE:
+# Returns the backup folder path and auto back OnTimer interval for Local Backups.
+#
+# PARAMETERS: none
+#
+# RETURNS:
+# backupFolderPath: The path to the folder (directory) in which to store compacted copies of solution files.
+# backupIntervalSeconds: The number of seconds between automated OnTimer backups
+# autoBackupWindowName: The window name to use for the dedicated window used for the auto-backup OnTimer trigger
+# autoBackupTop: The "top" coordinate to use for the window dedicated to auto-backups
+# autoBackupLeft: The "left" coordinate to use for the window dedicated to auto-backups
+#
+# HISTORY: (open comment to view full history)
+# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+#
+#
+#########################################
+# To use a different path for the backup folder, modify this Set Variable step
+# Be sure the path will be unique for each backup, or you risk overwriting previous backups.
+Set Variable [ $backupFolderPath; Value:/* File Folder/Backup/<ISO 8601 timestamp>/ */Let ( [	~filePath =	// convert slash- to return-delimited		Substitute (			Get ( FilePath );			[ "file:" ; "" ];			[ "/" ; ¶ ]		);	~filePath =	// strip file name from the path		LeftValues ( ~filePath ; ValueCount ( ~filePath ) - 1 );	~filePath =	// convert back to slash-delimited		Substitute ( ~filePath ; ¶ ; "/" );	~now = Get ( CurrentTimeStamp ) ;	~now =	// filename-friendly timestamp		Year ( ~now )		& "-"		& Right ( "00" & Month ( ~now ) ; 2 )		& "-"		& Right ( "00" & Day ( ~now ) ; 2 )		& "_"		& Right ( "00" & Hour ( ~now ) ; 2 )//		& "-"		& Right ( "00" & Minute ( ~now ) ; 2 )//		& "-"		& Right ( "00" & Seconds ( ~now ) ; 2 )];	~filePath	& "Archive/"	& ~now	& "/") ]
+#########################################
+#
+#########################################
+# To use a different auto-backup interval, modify this Set Variable step
+Set Variable [ $backupIntervalSeconds ]
+#########################################
+#
+#########################################
+# To use a different auto-backup window name, modify this Set Variable step
+Set Variable [ $autoBackupWindowName ]
+#########################################
+#
+#########################################
+# To use a different auto-backup window position, modify these Set Variable steps
+Set Variable [ $autoBackupTop ]
+Set Variable [ $autoBackupLeft ]
+#########################################
+#
+#
+#
+# Use default values when script is not configured otherwise
+If [ IsEmpty ( $backupFolderPath ) ]
+Set Variable [ $backupFolderPath; Value:/* File Folder/Backup/<ISO 8601 timestamp>/ */Let ( [	~filePath =	// convert slash- to return-delimited		Substitute (			Get ( FilePath );			[ "file:" ; "" ];			[ "/" ; ¶ ]		);	~filePath =	// strip file name from the path		LeftValues ( ~filePath ; ValueCount ( ~filePath ) - 1 );	~filePath =	// convert back to slash-delimited		Substitute ( ~filePath ; ¶ ; "/" );	~now = Get ( CurrentTimeStamp ) ;	~now =	// filename-friendly timestamp		Year ( ~now )		& "-"		& Right ( "00" & Month ( ~now ) ; 2 )		& "-"		& Right ( "00" & Day ( ~now ) ; 2 )		& "_"		& Right ( "00" & Hour ( ~now ) ; 2 )		& "-"		& Right ( "00" & Minute ( ~now ) ; 2 )		& "-"		& Right ( "00" & Seconds ( ~now ) ; 2 )];	~filePath	& "Backup/"	& ~now	& "/") ]
+End If
+If [ IsEmpty ( $backupIntervalSeconds ) ]
+Set Variable [ $backupIntervalSeconds; Value:600	// 10 minutes ]
+End If
+If [ IsEmpty ( $autoBackupWindowName ) ]
+Set Variable [ $autoBackupWindowName; Value:"Local Auto-Backup" ]
+End If
+If [ IsEmpty ( $autoBackupTop ) ]
+Set Variable [ $autoBackupTop; Value:Get ( WindowTop ) ]
+End If
+If [ IsEmpty ( $autoBackupLeft ) ]
+Set Variable [ $autoBackupLeft; Value:Get ( WindowLeft )+ Get ( WindowWidth ) ]
+End If
+#
+Exit Script [ Result: "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶"& "$backupIntervalSeconds = " & GetAsNumber ( $backupIntervalSeconds ) & " ;¶"& "$autoBackupWindowName = " & Quote ( $autoBackupWindowName ) & " ;¶"& "$autoBackupTop = " & GetAsNumber ( $autoBackupTop ) & " ;¶"& "$autoBackupLeft = " & GetAsNumber ( $autoBackupLeft ) & " ;¶" ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '107'
+  name: Get Local Backup Settings
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Returns the backup folder path and auto back OnTimer interval for
+        Local Backups.'
+      Text: ' Returns the backup folder path and auto back OnTimer interval for Local
+        Backups.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupFolderPath: The path to the folder (directory) in which to
+        store compacted copies of solution files.'
+      Text: ' backupFolderPath: The path to the folder (directory) in which to store
+        compacted copies of solution files.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupIntervalSeconds: The number of seconds between automated
+        OnTimer backups'
+      Text: ' backupIntervalSeconds: The number of seconds between automated OnTimer
+        backups'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# autoBackupWindowName: The window name to use for the dedicated
+        window used for the auto-backup OnTimer trigger'
+      Text: ' autoBackupWindowName: The window name to use for the dedicated window
+        used for the auto-backup OnTimer trigger'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# autoBackupTop: The "top" coordinate to use for the window dedicated
+        to auto-backups'
+      Text: ' autoBackupTop: The "top" coordinate to use for the window dedicated
+        to auto-backups'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# autoBackupLeft: The "left" coordinate to use for the window dedicated
+        to auto-backups'
+      Text: ' autoBackupLeft: The "left" coordinate to use for the window dedicated
+        to auto-backups'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+      Text: ' Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# To use a different path for the backup folder, modify this Set
+        Variable step'
+      Text: ' To use a different path for the backup folder, modify this Set Variable
+        step'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Be sure the path will be unique for each backup, or you risk overwriting
+        previous backups.'
+      Text: ' Be sure the path will be unique for each backup, or you risk overwriting
+        previous backups.'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $backupFolderPath; Value:/* File Folder/Backup/<ISO
+        8601 timestamp>/ */\n\nLet ( [\n\t~filePath =\t// convert slash- to return-delimited\n\t\tSubstitute
+        (\n\t\t\tGet ( FilePath );\n\t\t\t[ \"file:\" ; \"\" ];\n\t\t\t[ \"/\" ; ¶
+        ]\n\t\t);\n\t~filePath =\t// strip file name from the path\n\t\tLeftValues
+        ( ~filePath ; ValueCount ( ~filePath ) - 1 );\n\t~filePath =\t// convert back
+        to slash-delimited\n\t\tSubstitute ( ~filePath ; ¶ ; \"/\" );\n\n\t~now =
+        Get ( CurrentTimeStamp ) ;\n\t~now =\t// filename-friendly timestamp\n\t\tYear
+        ( ~now )\n\t\t& \"-\"\n\t\t& Right ( \"00\" & Month ( ~now ) ; 2 )\n\t\t&
+        \"-\"\n\t\t& Right ( \"00\" & Day ( ~now ) ; 2 )\n\t\t& \"_\"\n\t\t& Right
+        ( \"00\" & Hour ( ~now ) ; 2 )\n//\t\t& \"-\"\n\t\t& Right ( \"00\" & Minute
+        ( ~now ) ; 2 )\n//\t\t& \"-\"\n\t\t& Right ( \"00\" & Seconds ( ~now ) ; 2
+        )\n];\n\t~filePath\n\t& \"Archive/\"\n\t& ~now\n\t& \"/\"\n) ]"
+      Value:
+        Calculation: "/* File Folder/Backup/<ISO 8601 timestamp>/ */\n\nLet ( [\n\t~filePath
+          =\t// convert slash- to return-delimited\n\t\tSubstitute (\n\t\t\tGet (
+          FilePath );\n\t\t\t[ \"file:\" ; \"\" ];\n\t\t\t[ \"/\" ; ¶ ]\n\t\t);\n\t~filePath
+          =\t// strip file name from the path\n\t\tLeftValues ( ~filePath ; ValueCount
+          ( ~filePath ) - 1 );\n\t~filePath =\t// convert back to slash-delimited\n\t\tSubstitute
+          ( ~filePath ; ¶ ; \"/\" );\n\n\t~now = Get ( CurrentTimeStamp ) ;\n\t~now
+          =\t// filename-friendly timestamp\n\t\tYear ( ~now )\n\t\t& \"-\"\n\t\t&
+          Right ( \"00\" & Month ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& Right ( \"00\"
+          & Day ( ~now ) ; 2 )\n\t\t& \"_\"\n\t\t& Right ( \"00\" & Hour ( ~now )
+          ; 2 )\n//\t\t& \"-\"\n\t\t& Right ( \"00\" & Minute ( ~now ) ; 2 )\n//\t\t&
+          \"-\"\n\t\t& Right ( \"00\" & Seconds ( ~now ) ; 2 )\n];\n\t~filePath\n\t&
+          \"Archive/\"\n\t& ~now\n\t& \"/\"\n)"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            /* File Folder/Backup/<ISO 8601 timestamp>/ */
+
+          - Let
+          - " ( [\n\t~filePath =\t"
+          - |
+            // convert slash- to return-delimited
+          - type: NoRef
+            __content__: "\t\t"
+          - Substitute
+          - " (\n\t\t\t"
+          - Get
+          - ' ( '
+          - FilePath
+          - " );\n\t\t\t[ \"file:\" ; \"\" ];\n\t\t\t[ \"/\" ; ¶ ]\n\t\t);\n\t~filePath
+            =\t"
+          - |
+            // strip file name from the path
+          - type: NoRef
+            __content__: "\t\t"
+          - LeftValues
+          - ' ( ~filePath ; '
+          - ValueCount
+          - " ( ~filePath ) - 1 );\n\t~filePath =\t"
+          - |
+            // convert back to slash-delimited
+          - type: NoRef
+            __content__: "\t\t"
+          - Substitute
+          - " ( ~filePath ; ¶ ; \"/\" );\n\n\t~now = "
+          - Get
+          - ' ( '
+          - CurrentTimeStamp
+          - " ) ;\n\t~now =\t"
+          - |
+            // filename-friendly timestamp
+          - type: NoRef
+            __content__: "\t\t"
+          - Year
+          - " ( ~now )\n\t\t& \"-\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Month
+          - " ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Day
+          - " ( ~now ) ; 2 )\n\t\t& \"_\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Hour
+          - |2
+             ( ~now ) ; 2 )
+          - "//\t\t& \"-\"\n"
+          - "\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Minute
+          - |2
+             ( ~now ) ; 2 )
+          - "//\t\t& \"-\"\n"
+          - "\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Seconds
+          - " ( ~now ) ; 2 )\n];\n\t~filePath\n\t& \"Archive/\"\n\t& ~now\n\t& \"/\"\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $backupFolderPath
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# To use a different auto-backup interval, modify this Set Variable
+        step'
+      Text: ' To use a different auto-backup interval, modify this Set Variable step'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $backupIntervalSeconds ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $backupIntervalSeconds
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# To use a different auto-backup window name, modify this Set Variable
+        step'
+      Text: ' To use a different auto-backup window name, modify this Set Variable
+        step'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $autoBackupWindowName ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $autoBackupWindowName
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# To use a different auto-backup window position, modify these Set
+        Variable steps'
+      Text: ' To use a different auto-backup window position, modify these Set Variable
+        steps'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $autoBackupTop ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $autoBackupTop
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $autoBackupLeft ]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $autoBackupLeft
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Use default values when script is not configured otherwise'
+      Text: ' Use default values when script is not configured otherwise'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $backupFolderPath ) ]
+      Calculation: IsEmpty ( $backupFolderPath )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $backupFolderPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $backupFolderPath; Value:/* File Folder/Backup/<ISO
+        8601 timestamp>/ */\n\nLet ( [\n\t~filePath =\t// convert slash- to return-delimited\n\t\tSubstitute
+        (\n\t\t\tGet ( FilePath );\n\t\t\t[ \"file:\" ; \"\" ];\n\t\t\t[ \"/\" ; ¶
+        ]\n\t\t);\n\t~filePath =\t// strip file name from the path\n\t\tLeftValues
+        ( ~filePath ; ValueCount ( ~filePath ) - 1 );\n\t~filePath =\t// convert back
+        to slash-delimited\n\t\tSubstitute ( ~filePath ; ¶ ; \"/\" );\n\n\t~now =
+        Get ( CurrentTimeStamp ) ;\n\t~now =\t// filename-friendly timestamp\n\t\tYear
+        ( ~now )\n\t\t& \"-\"\n\t\t& Right ( \"00\" & Month ( ~now ) ; 2 )\n\t\t&
+        \"-\"\n\t\t& Right ( \"00\" & Day ( ~now ) ; 2 )\n\t\t& \"_\"\n\t\t& Right
+        ( \"00\" & Hour ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& Right ( \"00\" & Minute
+        ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& Right ( \"00\" & Seconds ( ~now ) ; 2 )\n];\n\t~filePath\n\t&
+        \"Backup/\"\n\t& ~now\n\t& \"/\"\n) ]"
+      Value:
+        Calculation: "/* File Folder/Backup/<ISO 8601 timestamp>/ */\n\nLet ( [\n\t~filePath
+          =\t// convert slash- to return-delimited\n\t\tSubstitute (\n\t\t\tGet (
+          FilePath );\n\t\t\t[ \"file:\" ; \"\" ];\n\t\t\t[ \"/\" ; ¶ ]\n\t\t);\n\t~filePath
+          =\t// strip file name from the path\n\t\tLeftValues ( ~filePath ; ValueCount
+          ( ~filePath ) - 1 );\n\t~filePath =\t// convert back to slash-delimited\n\t\tSubstitute
+          ( ~filePath ; ¶ ; \"/\" );\n\n\t~now = Get ( CurrentTimeStamp ) ;\n\t~now
+          =\t// filename-friendly timestamp\n\t\tYear ( ~now )\n\t\t& \"-\"\n\t\t&
+          Right ( \"00\" & Month ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& Right ( \"00\"
+          & Day ( ~now ) ; 2 )\n\t\t& \"_\"\n\t\t& Right ( \"00\" & Hour ( ~now )
+          ; 2 )\n\t\t& \"-\"\n\t\t& Right ( \"00\" & Minute ( ~now ) ; 2 )\n\t\t&
+          \"-\"\n\t\t& Right ( \"00\" & Seconds ( ~now ) ; 2 )\n];\n\t~filePath\n\t&
+          \"Backup/\"\n\t& ~now\n\t& \"/\"\n)"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            /* File Folder/Backup/<ISO 8601 timestamp>/ */
+
+          - Let
+          - " ( [\n\t~filePath =\t"
+          - |
+            // convert slash- to return-delimited
+          - type: NoRef
+            __content__: "\t\t"
+          - Substitute
+          - " (\n\t\t\t"
+          - Get
+          - ' ( '
+          - FilePath
+          - " );\n\t\t\t[ \"file:\" ; \"\" ];\n\t\t\t[ \"/\" ; ¶ ]\n\t\t);\n\t~filePath
+            =\t"
+          - |
+            // strip file name from the path
+          - type: NoRef
+            __content__: "\t\t"
+          - LeftValues
+          - ' ( ~filePath ; '
+          - ValueCount
+          - " ( ~filePath ) - 1 );\n\t~filePath =\t"
+          - |
+            // convert back to slash-delimited
+          - type: NoRef
+            __content__: "\t\t"
+          - Substitute
+          - " ( ~filePath ; ¶ ; \"/\" );\n\n\t~now = "
+          - Get
+          - ' ( '
+          - CurrentTimeStamp
+          - " ) ;\n\t~now =\t"
+          - |
+            // filename-friendly timestamp
+          - type: NoRef
+            __content__: "\t\t"
+          - Year
+          - " ( ~now )\n\t\t& \"-\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Month
+          - " ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Day
+          - " ( ~now ) ; 2 )\n\t\t& \"_\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Hour
+          - " ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Minute
+          - " ( ~now ) ; 2 )\n\t\t& \"-\"\n\t\t& "
+          - Right
+          - ' ( "00" & '
+          - Seconds
+          - " ( ~now ) ; 2 )\n];\n\t~filePath\n\t& \"Backup/\"\n\t& ~now\n\t& \"/\"\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $backupFolderPath
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $backupIntervalSeconds ) ]
+      Calculation: IsEmpty ( $backupIntervalSeconds )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $backupIntervalSeconds )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $backupIntervalSeconds; Value:600\t// 10 minutes ]"
+      Value:
+        Calculation: "600\t// 10 minutes"
+        DisplayCalculation:
+          Chunk:
+          - "600\t"
+          - // 10 minutes
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $backupIntervalSeconds
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $autoBackupWindowName ) ]
+      Calculation: IsEmpty ( $autoBackupWindowName )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $autoBackupWindowName )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $autoBackupWindowName; Value:"Local Auto-Backup" ]
+      Value:
+        Calculation: '"Local Auto-Backup"'
+        DisplayCalculation:
+          Chunk: '"Local Auto-Backup"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $autoBackupWindowName
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $autoBackupTop ) ]
+      Calculation: IsEmpty ( $autoBackupTop )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $autoBackupTop )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $autoBackupTop; Value:Get ( WindowTop ) ]
+      Value:
+        Calculation: Get ( WindowTop )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - WindowTop
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $autoBackupTop
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $autoBackupLeft ) ]
+      Calculation: IsEmpty ( $autoBackupLeft )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $autoBackupLeft )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $autoBackupLeft; Value:Get ( WindowLeft )
+        + Get ( WindowWidth ) ]
+      Value:
+        Calculation: |-
+          Get ( WindowLeft )
+          + Get ( WindowWidth )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - WindowLeft
+          - " )\n+ "
+          - Get
+          - ' ( '
+          - WindowWidth
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $autoBackupLeft
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶"
+        & "$backupIntervalSeconds = " & GetAsNumber ( $backupIntervalSeconds ) & " ;¶"
+        & "$autoBackupWindowName = " & Quote ( $autoBackupWindowName ) & " ;¶"
+        & "$autoBackupTop = " & GetAsNumber ( $autoBackupTop ) & " ;¶"
+        & "$autoBackupLeft = " & GetAsNumber ( $autoBackupLeft ) & " ;¶" ]
+      Calculation: |-
+        "$backupFolderPath = " & Quote ( $backupFolderPath ) & " ;¶"
+        & "$backupIntervalSeconds = " & GetAsNumber ( $backupIntervalSeconds ) & " ;¶"
+        & "$autoBackupWindowName = " & Quote ( $autoBackupWindowName ) & " ;¶"
+        & "$autoBackupTop = " & GetAsNumber ( $autoBackupTop ) & " ;¶"
+        & "$autoBackupLeft = " & GetAsNumber ( $autoBackupLeft ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - '"$backupFolderPath = " & '
+        - Quote
+        - " ( $backupFolderPath ) & \" ;¶\"\n& \"$backupIntervalSeconds = \" & "
+        - GetAsNumber
+        - " ( $backupIntervalSeconds ) & \" ;¶\"\n& \"$autoBackupWindowName = \" & "
+        - Quote
+        - " ( $autoBackupWindowName ) & \" ;¶\"\n& \"$autoBackupTop = \" & "
+        - GetAsNumber
+        - " ( $autoBackupTop ) & \" ;¶\"\n& \"$autoBackupLeft = \" & "
+        - GetAsNumber
+        - ' ( $autoBackupLeft ) & " ;¶"'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

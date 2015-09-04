@@ -1,0 +1,159 @@
+#
+#
+Perform Script [ “Open All” ]
+#
+#
+Perform Script [ “EasySync Client: API: Reset” from file: “EasySync_Client” ]
+Perform Script [ “EasySync Client: API: Wipe” from file: “EasySync_Client” ]
+#
+#
+Perform Script [ “Push to EasySync ( id_DataSet )” from file: “TestDataSets”; Parameter: /* Default */"$id_DataSet = " & Quote ( "DFB462F2-14D6-364A-B9E3-C7B5FD51C1B0" ) & " ;¶" ]
+#
+#
+Perform Script [ “Delete fmp_ddr” ]
+Perform Script [ “Delete fmp_text” ]
+#
+#
+# close Log file because I use this script to prep for a DDR and I don't want that file in the DDR
+Close File [ “Log” ]
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'True'
+  runFullAccess: 'False'
+  id: '2'
+  name: DDR Prep
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Open All” ]
+      Script:
+        id: '1'
+        name: Open All
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: API: Reset” from file: “EasySync_Client”
+        ]'
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+        UniversalPathList: file:EasySync_Client
+      Script:
+        id: '73'
+        name: 'EasySync Client: API: Reset'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: API: Wipe” from file: “EasySync_Client”
+        ]'
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+        UniversalPathList: file:EasySync_Client
+      Script:
+        id: '80'
+        name: 'EasySync Client: API: Wipe'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: |-
+        Perform Script [ “Push to EasySync ( id_DataSet )” from file: “TestDataSets”; Parameter: /* Default */
+        "$id_DataSet = " & Quote ( "DFB462F2-14D6-364A-B9E3-C7B5FD51C1B0" ) & " ;¶" ]
+      FileReference:
+        id: '5'
+        name: TestDataSets
+        UniversalPathList: file:TestDataSets
+      Calculation: |-
+        /* Default */
+        "$id_DataSet = " & Quote ( "DFB462F2-14D6-364A-B9E3-C7B5FD51C1B0" ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - "/* Default */\n\"$id_DataSet = \" & "
+        - Quote
+        - ' ( "DFB462F2-14D6-364A-B9E3-C7B5FD51C1B0" ) & " ;¶"'
+      Script:
+        id: '91'
+        name: Push to EasySync ( id_DataSet )
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Delete fmp_ddr” ]
+      Script:
+        id: '26'
+        name: Delete fmp_ddr
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: Perform Script [ “Delete fmp_text” ]
+      Script:
+        id: '38'
+        name: Delete fmp_text
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# close Log file because I use this script to prep for a DDR and
+        I don''t want that file in the DDR'
+      Text: ' close Log file because I use this script to prep for a DDR and I don''t
+        want that file in the DDR'
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “Log” ]
+      FileReference:
+        id: '4'
+        name: Log
+        UniversalPathList: file:Log
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

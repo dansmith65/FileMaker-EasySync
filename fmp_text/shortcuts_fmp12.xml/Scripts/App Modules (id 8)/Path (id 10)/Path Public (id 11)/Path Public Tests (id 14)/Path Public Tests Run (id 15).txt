@@ -1,0 +1,2057 @@
+#
+# NOTE: Mac tests will fail on Windows and vice versa
+#
+Set Variable [ $showDetail; Value:True ]
+Set Variable [ $showPass; Value:True ]
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"FileMaker Network to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"fmnet:/127.0.0.1/fileName" ]
+Set Variable [ $expected[$i]; Value:"fmnet:/127.0.0.1/fileName" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"FileMaker Network to OS" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"fmnet:/127.0.0.1/fileName" ]
+Set Variable [ $expected[$i]; Value:"?" ]
+Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+If [ Get ( SystemPlatform ) = -2 /* Windows */ ]
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"C:\Users\Name\Desktop" ]
+Set Variable [ $expected[$i]; Value:"file:/C:/Users/Name/Desktop" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS to OS" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"C:\Users\Name\Desktop" ]
+Set Variable [ $expected[$i]; Value:"C:\Users\Name\Desktop" ]
+Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS Network to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"\\\Computer\Path" ]
+Set Variable [ $expected[$i]; Value:"file://Computer/Path" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS Network to OS" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"\\\Computer\Path" ]
+Set Variable [ $expected[$i]; Value:"\\\Computer\Path" ]
+Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS to OS (with trailing separator)" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"C:\Users\Name\Desktop\\" ]
+Set Variable [ $expected[$i]; Value:"C:\Users\Name\Desktop" ]
+Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"/E:/Users/Name/Desktop/" ]
+Set Variable [ $expected[$i]; Value:"file:/E:/Users/Name/Desktop" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM2 to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"file:/E:/Users/Name/Desktop/" ]
+Set Variable [ $expected[$i]; Value:"file:/E:/Users/Name/Desktop" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM3 to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"filewin:/E:/Users/Name/Desktop/" ]
+Set Variable [ $expected[$i]; Value:"file:/E:/Users/Name/Desktop" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM Network to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"filewin://Computer/Path" ]
+Set Variable [ $expected[$i]; Value:"file://Computer/Path" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+Else If [ Get ( SystemPlatform ) = 1 /* Mac */ ]
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac OS to FM" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"/Volumes/HD/Users/Name/Desktop/" ]
+Set Variable [ $expected[$i]; Value:"file:/HD/Users/Name/Desktop" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac OS to OS" ]
+#================================================================================
+Set Variable [ $input[$i]; Value:"/Volumes/HD/Users/Name/Desktop/" ]
+Set Variable [ $expected[$i]; Value:"/Volumes/HD/Users/Name/Desktop" ]
+Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac BE to FM" ]
+# BE = BaseElements plugin
+#================================================================================
+Set Variable [ $input[$i]; Value:"/Users/Name/Desktop/" ]
+Set Variable [ $expected[$i]; Value:"file:" & Get ( SystemDrive ) & "Users/Name/Desktop" ]
+Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+#================================================================================
+Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac BE to OS" ]
+# BE = BaseElements plugin
+#================================================================================
+Set Variable [ $input[$i]; Value:"/Users/Name/Desktop/" ]
+Set Variable [ $expected[$i]; Value:"/Volumes" & Get ( SystemDrive ) & "Users/Name/Desktop" ]
+Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]
+Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+#================================================================================
+#
+#
+#
+End If
+#
+#
+#
+################################################################################
+# EVALUATE RESULTS
+################################################################################
+Set Variable [ $result; Value:"" ]
+Set Variable [ $passCount; Value:0 ]
+Set Variable [ $count; Value:$i ]
+Set Variable [ $i; Value:0 ]
+Loop
+Exit Loop If [ // For $i from 1 to $countLet (	$i = $i + 1 ;	If ( $i > $count ;		Let ( $i = "" ; True )	)) ]
+Set Variable [ $pass; Value:$output[$i] = $expected[$i] ]
+Set Variable [ $passCount; Value:$passCount + $pass ]
+#
+If [ $pass ]
+If [ $showPass ]
+Set Variable [ $result; Value:List (	$result ;	"pass	" & $name[$i] ;) ]
+If [ $showDetail ]
+Set Variable [ $result; Value:List (	$result ;	"		input:		" & $input[$i] ;	"		output:		" & $output[$i]) ]
+End If
+End If
+Else
+Set Variable [ $result; Value:List (	$result ;	"FAIL 	" & $name[$i] ;	"		input:		" & $input[$i] ;	"		expected:	" & $expected[$i] ;	"		output:		" & $output[$i]) ]
+End If
+End Loop
+#
+Show Custom Dialog [ Title: $passCount & "/" & $count & " passed"; Message: $result; Default Button: “OK”, Commit: “Yes” ]
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '15'
+  name: 'Path: Public: Tests: Run'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# NOTE: Mac tests will fail on Windows and vice versa'
+      Text: ' NOTE: Mac tests will fail on Windows and vice versa'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $showDetail; Value:True ]
+      Value:
+        Calculation: 'True'
+        DisplayCalculation:
+          Chunk: 'True'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $showDetail
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $showPass; Value:True ]
+      Value:
+        Calculation: 'True'
+        DisplayCalculation:
+          Chunk: 'True'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $showPass
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"FileMaker Network
+        to FM" ]
+      Value:
+        Calculation: '"FileMaker Network to FM"'
+        DisplayCalculation:
+          Chunk: '"FileMaker Network to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"fmnet:/127.0.0.1/fileName" ]
+      Value:
+        Calculation: '"fmnet:/127.0.0.1/fileName"'
+        DisplayCalculation:
+          Chunk: '"fmnet:/127.0.0.1/fileName"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"fmnet:/127.0.0.1/fileName" ]
+      Value:
+        Calculation: '"fmnet:/127.0.0.1/fileName"'
+        DisplayCalculation:
+          Chunk: '"fmnet:/127.0.0.1/fileName"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"FileMaker Network
+        to OS" ]
+      Value:
+        Calculation: '"FileMaker Network to OS"'
+        DisplayCalculation:
+          Chunk: '"FileMaker Network to OS"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"fmnet:/127.0.0.1/fileName" ]
+      Value:
+        Calculation: '"fmnet:/127.0.0.1/fileName"'
+        DisplayCalculation:
+          Chunk: '"fmnet:/127.0.0.1/fileName"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"?" ]
+      Value:
+        Calculation: '"?"'
+        DisplayCalculation:
+          Chunk: '"?"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '13'
+        name: 'Path: OS ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( SystemPlatform ) = -2 /* Windows */ ]
+      Calculation: Get ( SystemPlatform ) = -2 /* Windows */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - ' ) = -2 /* Windows */'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS
+        to FM" ]
+      Value:
+        Calculation: '"Windows OS to FM"'
+        DisplayCalculation:
+          Chunk: '"Windows OS to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"C:\Users\Name\Desktop" ]
+      Value:
+        Calculation: '"C:\Users\Name\Desktop"'
+        DisplayCalculation:
+          Chunk: '"C:\Users\Name\Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file:/C:/Users/Name/Desktop"
+        ]
+      Value:
+        Calculation: '"file:/C:/Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk: '"file:/C:/Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS
+        to OS" ]
+      Value:
+        Calculation: '"Windows OS to OS"'
+        DisplayCalculation:
+          Chunk: '"Windows OS to OS"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"C:\Users\Name\Desktop" ]
+      Value:
+        Calculation: '"C:\Users\Name\Desktop"'
+        DisplayCalculation:
+          Chunk: '"C:\Users\Name\Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"C:\Users\Name\Desktop" ]
+      Value:
+        Calculation: '"C:\Users\Name\Desktop"'
+        DisplayCalculation:
+          Chunk: '"C:\Users\Name\Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '13'
+        name: 'Path: OS ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS
+        Network to FM" ]
+      Value:
+        Calculation: '"Windows OS Network to FM"'
+        DisplayCalculation:
+          Chunk: '"Windows OS Network to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"\\\Computer\Path" ]
+      Value:
+        Calculation: '"\\\Computer\Path"'
+        DisplayCalculation:
+          Chunk: '"\\\Computer\Path"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file://Computer/Path" ]
+      Value:
+        Calculation: '"file://Computer/Path"'
+        DisplayCalculation:
+          Chunk: '"file://Computer/Path"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS
+        Network to OS" ]
+      Value:
+        Calculation: '"Windows OS Network to OS"'
+        DisplayCalculation:
+          Chunk: '"Windows OS Network to OS"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"\\\Computer\Path" ]
+      Value:
+        Calculation: '"\\\Computer\Path"'
+        DisplayCalculation:
+          Chunk: '"\\\Computer\Path"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"\\\Computer\Path" ]
+      Value:
+        Calculation: '"\\\Computer\Path"'
+        DisplayCalculation:
+          Chunk: '"\\\Computer\Path"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '13'
+        name: 'Path: OS ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows OS
+        to OS (with trailing separator)" ]
+      Value:
+        Calculation: '"Windows OS to OS (with trailing separator)"'
+        DisplayCalculation:
+          Chunk: '"Windows OS to OS (with trailing separator)"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"C:\Users\Name\Desktop\\" ]
+      Value:
+        Calculation: '"C:\Users\Name\Desktop\\"'
+        DisplayCalculation:
+          Chunk: '"C:\Users\Name\Desktop\\"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"C:\Users\Name\Desktop" ]
+      Value:
+        Calculation: '"C:\Users\Name\Desktop"'
+        DisplayCalculation:
+          Chunk: '"C:\Users\Name\Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '13'
+        name: 'Path: OS ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM
+        to FM" ]
+      Value:
+        Calculation: '"Windows FM to FM"'
+        DisplayCalculation:
+          Chunk: '"Windows FM to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"/E:/Users/Name/Desktop/" ]
+      Value:
+        Calculation: '"/E:/Users/Name/Desktop/"'
+        DisplayCalculation:
+          Chunk: '"/E:/Users/Name/Desktop/"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file:/E:/Users/Name/Desktop"
+        ]
+      Value:
+        Calculation: '"file:/E:/Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk: '"file:/E:/Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM2
+        to FM" ]
+      Value:
+        Calculation: '"Windows FM2 to FM"'
+        DisplayCalculation:
+          Chunk: '"Windows FM2 to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"file:/E:/Users/Name/Desktop/" ]
+      Value:
+        Calculation: '"file:/E:/Users/Name/Desktop/"'
+        DisplayCalculation:
+          Chunk: '"file:/E:/Users/Name/Desktop/"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file:/E:/Users/Name/Desktop"
+        ]
+      Value:
+        Calculation: '"file:/E:/Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk: '"file:/E:/Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM3
+        to FM" ]
+      Value:
+        Calculation: '"Windows FM3 to FM"'
+        DisplayCalculation:
+          Chunk: '"Windows FM3 to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"filewin:/E:/Users/Name/Desktop/"
+        ]
+      Value:
+        Calculation: '"filewin:/E:/Users/Name/Desktop/"'
+        DisplayCalculation:
+          Chunk: '"filewin:/E:/Users/Name/Desktop/"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file:/E:/Users/Name/Desktop"
+        ]
+      Value:
+        Calculation: '"file:/E:/Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk: '"file:/E:/Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Windows FM
+        Network to FM" ]
+      Value:
+        Calculation: '"Windows FM Network to FM"'
+        DisplayCalculation:
+          Chunk: '"Windows FM Network to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"filewin://Computer/Path" ]
+      Value:
+        Calculation: '"filewin://Computer/Path"'
+        DisplayCalculation:
+          Chunk: '"filewin://Computer/Path"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file://Computer/Path" ]
+      Value:
+        Calculation: '"file://Computer/Path"'
+        DisplayCalculation:
+          Chunk: '"file://Computer/Path"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ Get ( SystemPlatform ) = 1 /* Mac */ ]
+      Calculation: Get ( SystemPlatform ) = 1 /* Mac */
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - ' ) = 1 /* Mac */'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac OS to FM"
+        ]
+      Value:
+        Calculation: '"Mac OS to FM"'
+        DisplayCalculation:
+          Chunk: '"Mac OS to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"/Volumes/HD/Users/Name/Desktop/"
+        ]
+      Value:
+        Calculation: '"/Volumes/HD/Users/Name/Desktop/"'
+        DisplayCalculation:
+          Chunk: '"/Volumes/HD/Users/Name/Desktop/"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file:/HD/Users/Name/Desktop"
+        ]
+      Value:
+        Calculation: '"file:/HD/Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk: '"file:/HD/Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac OS to OS"
+        ]
+      Value:
+        Calculation: '"Mac OS to OS"'
+        DisplayCalculation:
+          Chunk: '"Mac OS to OS"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"/Volumes/HD/Users/Name/Desktop/"
+        ]
+      Value:
+        Calculation: '"/Volumes/HD/Users/Name/Desktop/"'
+        DisplayCalculation:
+          Chunk: '"/Volumes/HD/Users/Name/Desktop/"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"/Volumes/HD/Users/Name/Desktop"
+        ]
+      Value:
+        Calculation: '"/Volumes/HD/Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk: '"/Volumes/HD/Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '13'
+        name: 'Path: OS ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac BE to FM"
+        ]
+      Value:
+        Calculation: '"Mac BE to FM"'
+        DisplayCalculation:
+          Chunk: '"Mac BE to FM"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# BE = BaseElements plugin'
+      Text: ' BE = BaseElements plugin'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"/Users/Name/Desktop/" ]
+      Value:
+        Calculation: '"/Users/Name/Desktop/"'
+        DisplayCalculation:
+          Chunk: '"/Users/Name/Desktop/"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"file:" & Get ( SystemDrive )
+        & "Users/Name/Desktop" ]
+      Value:
+        Calculation: '"file:" & Get ( SystemDrive ) & "Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk:
+          - '"file:" & '
+          - Get
+          - ' ( '
+          - SystemDrive
+          - ' ) & "Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: FM ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '12'
+        name: 'Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $name[Let ( $i = $i + 1 ; $i )]; Value:"Mac BE to OS"
+        ]
+      Value:
+        Calculation: '"Mac BE to OS"'
+        DisplayCalculation:
+          Chunk: '"Mac BE to OS"'
+      Repetition:
+        Calculation: Let ( $i = $i + 1 ; $i )
+        DisplayCalculation:
+          Chunk:
+          - Let
+          - ' ( $i = $i + 1 ; $i )'
+      Name: $name
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# BE = BaseElements plugin'
+      Text: ' BE = BaseElements plugin'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $input[$i]; Value:"/Users/Name/Desktop/" ]
+      Value:
+        Calculation: '"/Users/Name/Desktop/"'
+        DisplayCalculation:
+          Chunk: '"/Users/Name/Desktop/"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $input
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $expected[$i]; Value:"/Volumes" & Get ( SystemDrive
+        ) & "Users/Name/Desktop" ]
+      Value:
+        Calculation: '"/Volumes" & Get ( SystemDrive ) & "Users/Name/Desktop"'
+        DisplayCalculation:
+          Chunk:
+          - '"/Volumes" & '
+          - Get
+          - ' ( '
+          - SystemDrive
+          - ' ) & "Users/Name/Desktop"'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $expected
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Path: OS ( fullPath )”; Parameter: $input[$i] ]'
+      Calculation: $input[$i]
+      DisplayCalculation:
+        Chunk: $input[$i]
+      Script:
+        id: '13'
+        name: 'Path: OS ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $output[$i]; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Name: $output
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# EVALUATE RESULTS'
+      Text: ' EVALUATE RESULTS'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '################################################################################'
+      Text: '###############################################################################'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $result; Value:"" ]
+      Value:
+        Calculation: '""'
+        DisplayCalculation:
+          Chunk: '""'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $passCount; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $passCount
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $count; Value:$i ]
+      Value:
+        Calculation: $i
+        DisplayCalculation:
+          Chunk: $i
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $count
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $i; Value:0 ]
+      Value:
+        Calculation: '0'
+        DisplayCalculation:
+          Chunk: '0'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $i
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ // For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf
+        ( $i > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n) ]"
+      Calculation: "// For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf ( $i
+        > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i from 1 to $count
+        - Let
+        - " (\n\t$i = $i + 1 ;\n\t"
+        - If
+        - " ( $i > $count ;\n\t\t"
+        - Let
+        - ' ( $i = "" ; '
+        - 'True'
+        - " )\n\t)\n)"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $pass; Value:$output[$i] = $expected[$i] ]
+      Value:
+        Calculation: $output[$i] = $expected[$i]
+        DisplayCalculation:
+          Chunk: $output[$i] = $expected[$i]
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $pass
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $passCount; Value:$passCount + $pass ]
+      Value:
+        Calculation: $passCount + $pass
+        DisplayCalculation:
+          Chunk: $passCount + $pass
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $passCount
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $pass ]
+      Calculation: $pass
+      DisplayCalculation:
+        Chunk: $pass
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $showPass ]
+      Calculation: $showPass
+      DisplayCalculation:
+        Chunk: $showPass
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:List (\n\t$result ;\n\t\"pass\t\" &
+        $name[$i] ;\n) ]"
+      Value:
+        Calculation: "List (\n\t$result ;\n\t\"pass\t\" & $name[$i] ;\n)"
+        DisplayCalculation:
+          Chunk:
+          - List
+          - " (\n\t$result ;\n\t\"pass\t\" & $name[$i] ;\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $showDetail ]
+      Calculation: $showDetail
+      DisplayCalculation:
+        Chunk: $showDetail
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:List (\n\t$result ;\n\t\"\t\tinput:\t\t\"
+        & $input[$i] ;\n\t\"\t\toutput:\t\t\" & $output[$i]\n) ]"
+      Value:
+        Calculation: "List (\n\t$result ;\n\t\"\t\tinput:\t\t\" & $input[$i] ;\n\t\"\t\toutput:\t\t\"
+          & $output[$i]\n)"
+        DisplayCalculation:
+          Chunk:
+          - List
+          - " (\n\t$result ;\n\t\"\t\tinput:\t\t\" & $input[$i] ;\n\t\"\t\toutput:\t\t\"
+            & $output[$i]\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $result; Value:List (\n\t$result ;\n\t\"FAIL \t\"
+        & $name[$i] ;\n\t\"\t\tinput:\t\t\" & $input[$i] ;\n\t\"\t\texpected:\t\"
+        & $expected[$i] ;\n\t\"\t\toutput:\t\t\" & $output[$i]\n) ]"
+      Value:
+        Calculation: "List (\n\t$result ;\n\t\"FAIL \t\" & $name[$i] ;\n\t\"\t\tinput:\t\t\"
+          & $input[$i] ;\n\t\"\t\texpected:\t\" & $expected[$i] ;\n\t\"\t\toutput:\t\t\"
+          & $output[$i]\n)"
+        DisplayCalculation:
+          Chunk:
+          - List
+          - " (\n\t$result ;\n\t\"FAIL \t\" & $name[$i] ;\n\t\"\t\tinput:\t\t\" &
+            $input[$i] ;\n\t\"\t\texpected:\t\" & $expected[$i] ;\n\t\"\t\toutput:\t\t\"
+            & $output[$i]\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: $passCount & "/" & $count & " passed";
+        Message: $result; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: $passCount & "/" & $count & " passed"
+        DisplayCalculation:
+          Chunk: $passCount & "/" & $count & " passed"
+      Message:
+        Calculation: $result
+        DisplayCalculation:
+          Chunk: $result
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

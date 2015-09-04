@@ -1,0 +1,489 @@
+#
+# Convert to a full path with forward slashes, leading forard slash, without trailing forward slash
+#
+#
+Set Variable [ $path; Value:Trim ( Get ( ScriptParameter ) ) ]
+#
+#
+# return FileMaker Network path as-is
+If [ Left ( $path ; 7 ) = "fmnet:/" ]
+Exit Script [ Result: $path ]
+End If
+#
+#
+# path separator
+Set Variable [ $path; Value:Substitute ( $path ; "\\" ; "/" ) ]
+#
+#
+# remove file* prefix, if any
+If [ Left ( $path ; 5 ) = "file:" ]
+Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 5 ) ]
+Else If [ Let ( [	prefix = Left ( $path ; 8 )] ;	prefix = "filewin:"	or prefix = "filemac:") ]
+Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 8 ) ]
+End If
+#
+#
+# on Mac, add "/Volumes/" and system drive, if they doesn't exist
+If [ Get ( SystemPlatform ) = 1 /* Mac */andLeft ( $path ; 9 ) ≠ "/Volumes/" ]
+If [ /* path starts with the system drive */Position (	$path ;	Get ( SystemDrive ) ;	1 ; 	/* start */	1 	/* occurrence */) = 1 ]
+Set Variable [ $path; Value:"/Volumes" & $path ]
+Else
+If [ Left ( $path ; 1 ) = "/" ]
+Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 1 ) ]
+End If
+Set Variable [ $path; Value:"/Volumes" & Get ( SystemDrive ) & $path ]
+End If
+End If
+#
+#
+# on Windows, prepend with forward slash, if it doesn't exist
+If [ Get ( SystemPlatform ) = -2 /* Windows */andLeft ( $path ; 1 ) ≠ "/" ]
+Set Variable [ $path; Value:"/" & $path ]
+End If
+#
+#
+# never end with a path separator
+If [ Right ( $path ; 1 ) = "/" ]
+Set Variable [ $path; Value:Left ( $path ; Length ( $path ) - 1 ) ]
+End If
+#
+#
+Exit Script [ Result: $path ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '19'
+  name: '~Path: Normalize ( fullPath )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Convert to a full path with forward slashes, leading forard slash,
+        without trailing forward slash'
+      Text: ' Convert to a full path with forward slashes, leading forard slash, without
+        trailing forward slash'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Trim ( Get ( ScriptParameter ) ) ]
+      Value:
+        Calculation: Trim ( Get ( ScriptParameter ) )
+        DisplayCalculation:
+          Chunk:
+          - Trim
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# return FileMaker Network path as-is'
+      Text: ' return FileMaker Network path as-is'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Left ( $path ; 7 ) = "fmnet:/" ]
+      Calculation: Left ( $path ; 7 ) = "fmnet:/"
+      DisplayCalculation:
+        Chunk:
+        - Left
+        - ' ( $path ; 7 ) = "fmnet:/"'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $path ]'
+      Calculation: $path
+      DisplayCalculation:
+        Chunk: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# path separator'
+      Text: ' path separator'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Substitute ( $path ; "\\" ; "/" ) ]
+      Value:
+        Calculation: Substitute ( $path ; "\\" ; "/" )
+        DisplayCalculation:
+          Chunk:
+          - Substitute
+          - ' ( $path ; "\\" ; "/" )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# remove file* prefix, if any'
+      Text: ' remove file* prefix, if any'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Left ( $path ; 5 ) = "file:" ]
+      Calculation: Left ( $path ; 5 ) = "file:"
+      DisplayCalculation:
+        Chunk:
+        - Left
+        - ' ( $path ; 5 ) = "file:"'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 5 )
+        ]
+      Value:
+        Calculation: Right ( $path ; Length ( $path ) - 5 )
+        DisplayCalculation:
+          Chunk:
+          - Right
+          - ' ( $path ; '
+          - Length
+          - ' ( $path ) - 5 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: "Else If [ Let ( [\n\tprefix = Left ( $path ; 8 )\n] ;\n\tprefix =
+        \"filewin:\"\n\tor prefix = \"filemac:\"\n) ]"
+      Calculation: "Let ( [\n\tprefix = Left ( $path ; 8 )\n] ;\n\tprefix = \"filewin:\"\n\tor
+        prefix = \"filemac:\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\tprefix = "
+        - Left
+        - " ( $path ; 8 )\n] ;\n\tprefix = \"filewin:\"\n\t"
+        - or
+        - |2-
+           prefix = "filemac:"
+          )
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 8 )
+        ]
+      Value:
+        Calculation: Right ( $path ; Length ( $path ) - 8 )
+        DisplayCalculation:
+          Chunk:
+          - Right
+          - ' ( $path ; '
+          - Length
+          - ' ( $path ) - 8 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# on Mac, add "/Volumes/" and system drive, if they doesn''t exist'
+      Text: ' on Mac, add "/Volumes/" and system drive, if they doesn''t exist'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( SystemPlatform ) = 1 /* Mac */
+        and
+        Left ( $path ; 9 ) ≠ "/Volumes/" ]
+      Calculation: |-
+        Get ( SystemPlatform ) = 1 /* Mac */
+        and
+        Left ( $path ; 9 ) ≠ "/Volumes/"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - |2
+           ) = 1 /* Mac */
+        - and
+        - type: NoRef
+          __content__: |2+
+
+        - Left
+        - ' ( $path ; 9 ) ≠ "/Volumes/"'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* path starts with the system drive */\n\nPosition (\n\t$path
+        ;\n\tGet ( SystemDrive ) ;\n\t1 ; \t/* start */\n\t1 \t/* occurrence */\n)
+        = 1 ]"
+      Calculation: "/* path starts with the system drive */\n\nPosition (\n\t$path
+        ;\n\tGet ( SystemDrive ) ;\n\t1 ; \t/* start */\n\t1 \t/* occurrence */\n)
+        = 1"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* path starts with the system drive */
+
+        - Position
+        - " (\n\t$path ;\n\t"
+        - Get
+        - ' ( '
+        - SystemDrive
+        - " ) ;\n\t1 ; \t/* start */\n\t1 \t/* occurrence */\n) = 1"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:"/Volumes" & $path ]
+      Value:
+        Calculation: '"/Volumes" & $path'
+        DisplayCalculation:
+          Chunk: '"/Volumes" & $path'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Left ( $path ; 1 ) = "/" ]
+      Calculation: Left ( $path ; 1 ) = "/"
+      DisplayCalculation:
+        Chunk:
+        - Left
+        - ' ( $path ; 1 ) = "/"'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 1 )
+        ]
+      Value:
+        Calculation: Right ( $path ; Length ( $path ) - 1 )
+        DisplayCalculation:
+          Chunk:
+          - Right
+          - ' ( $path ; '
+          - Length
+          - ' ( $path ) - 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:"/Volumes" & Get ( SystemDrive ) & $path
+        ]
+      Value:
+        Calculation: '"/Volumes" & Get ( SystemDrive ) & $path'
+        DisplayCalculation:
+          Chunk:
+          - '"/Volumes" & '
+          - Get
+          - ' ( '
+          - SystemDrive
+          - ' ) & $path'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# on Windows, prepend with forward slash, if it doesn''t exist'
+      Text: ' on Windows, prepend with forward slash, if it doesn''t exist'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( SystemPlatform ) = -2 /* Windows */
+        and
+        Left ( $path ; 1 ) ≠ "/" ]
+      Calculation: |-
+        Get ( SystemPlatform ) = -2 /* Windows */
+        and
+        Left ( $path ; 1 ) ≠ "/"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - |2
+           ) = -2 /* Windows */
+        - and
+        - type: NoRef
+          __content__: |2+
+
+        - Left
+        - ' ( $path ; 1 ) ≠ "/"'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:"/" & $path ]
+      Value:
+        Calculation: '"/" & $path'
+        DisplayCalculation:
+          Chunk: '"/" & $path'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# never end with a path separator'
+      Text: ' never end with a path separator'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Right ( $path ; 1 ) = "/" ]
+      Calculation: Right ( $path ; 1 ) = "/"
+      DisplayCalculation:
+        Chunk:
+        - Right
+        - ' ( $path ; 1 ) = "/"'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Left ( $path ; Length ( $path ) - 1 )
+        ]
+      Value:
+        Calculation: Left ( $path ; Length ( $path ) - 1 )
+        DisplayCalculation:
+          Chunk:
+          - Left
+          - ' ( $path ; '
+          - Length
+          - ' ( $path ) - 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $path ]'
+      Calculation: $path
+      DisplayCalculation:
+        Chunk: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

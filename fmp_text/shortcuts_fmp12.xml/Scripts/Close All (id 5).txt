@@ -1,0 +1,99 @@
+#
+#
+Close File [ “EasySync_Client” ]
+Close File [ “EasySync_Server” ]
+Close File [ “EasyDeploy” ]
+Close File [ “Log” ]
+Close File [ “TestDataSets” ]
+Close File [ “Tests” ]
+#
+#
+Close File [ Current File ]
+#
+#
+
+
+---
+Script:
+  includeInMenu: 'True'
+  runFullAccess: 'False'
+  id: '5'
+  name: Close All
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “EasySync_Client” ]
+      FileReference:
+        id: '1'
+        name: EasySync_Client
+        UniversalPathList: file:EasySync_Client
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “EasySync_Server” ]
+      FileReference:
+        id: '2'
+        name: EasySync_Server
+        UniversalPathList: file:EasySync_Server
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “EasyDeploy” ]
+      FileReference:
+        id: '3'
+        name: EasyDeploy
+        UniversalPathList: file:EasyDeploy
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “Log” ]
+      FileReference:
+        id: '4'
+        name: Log
+        UniversalPathList: file:Log
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “TestDataSets” ]
+      FileReference:
+        id: '5'
+        name: TestDataSets
+        UniversalPathList: file:TestDataSets
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ “Tests” ]
+      FileReference:
+        id: '6'
+        name: Tests
+        UniversalPathList: file:Tests
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '34'
+      name: Close File
+      StepText: Close File [ Current File ]
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

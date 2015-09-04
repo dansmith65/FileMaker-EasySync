@@ -1,0 +1,140 @@
+#########################################
+# PURPOSE:
+# Serves as a wrapper for the "Create Local Backup of All Solution Files ..." script so auto backups can be started without a script parameter.
+#
+# PARAMETERS: none
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+# backupFolderPath: The path to the folder (directory) where the compacted copies of the solution files are stored.
+#
+# DEPENDENCIES:
+# Create Local Backup of All Solution Files { autoBackup }
+#
+# HISTORY: (open comment to view full history)
+# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+Perform Script [ “Create Local Backup of All Solution Files”; Parameter: "$autoBackup = True ;¶" ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '108'
+  name: Start Auto Backup
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Serves as a wrapper for the "Create Local Backup of All Solution
+        Files ..." script so auto backups can be started without a script parameter.'
+      Text: ' Serves as a wrapper for the "Create Local Backup of All Solution Files
+        ..." script so auto backups can be started without a script parameter.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupFolderPath: The path to the folder (directory) where the
+        compacted copies of the solution files are stored.'
+      Text: ' backupFolderPath: The path to the folder (directory) where the compacted
+        copies of the solution files are stored.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Create Local Backup of All Solution Files { autoBackup }'
+      Text: ' Create Local Backup of All Solution Files { autoBackup }'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+      Text: ' Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Create Local Backup of All Solution Files”; Parameter:
+        "$autoBackup = True ;¶" ]'
+      Calculation: '"$autoBackup = True ;¶"'
+      DisplayCalculation:
+        Chunk: '"$autoBackup = True ;¶"'
+      Script:
+        id: '100'
+        name: Create Local Backup of All Solution Files
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

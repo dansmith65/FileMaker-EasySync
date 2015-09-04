@@ -1,0 +1,137 @@
+#
+Show/Hide Toolbars[ Hide ]
+Set Zoom Level [ 100%; Camera: Back; Resolution: Full ]
+Adjust Window[ Resize to Fit ]
+Move/Resize Window [ Current Window; Top: Get ( WindowDesktopHeight ) - Get ( WindowHeight ) - 25; Left: Get ( WindowDesktopWidth ) - Get ( WindowWidth ) - 25 ]
+#
+#
+If [ Int ( GetAsNumber ( Get ( ApplicationVersion ) ) ) ≠ 13 ]
+Show Custom Dialog [ Title: "ABORTED"; Message: "Should open these files in FM13 only."; Default Button: “OK”, Commit: “Yes” ]
+End If
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '3'
+  name: Startup
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '29'
+      name: Show/Hide Toolbars
+      StepText: |-
+        Show/Hide Toolbars
+        [ Hide ]
+      Lock:
+        state: 'False'
+      ShowHide:
+        value: Hide
+    - enable: 'True'
+      id: '97'
+      name: Set Zoom Level
+      StepText: 'Set Zoom Level [ 100%; Camera: Back; Resolution: Full ]'
+      Lock:
+        state: 'False'
+      Zoom:
+        value: '100'
+    - enable: 'True'
+      id: '31'
+      name: Adjust Window
+      StepText: |-
+        Adjust Window
+        [ Resize to Fit ]
+      WindowState:
+        value: ResizeToFit
+    - enable: 'True'
+      id: '119'
+      name: Move/Resize Window
+      StepText: 'Move/Resize Window [ Current Window; Top: Get ( WindowDesktopHeight
+        ) - Get ( WindowHeight ) - 25; Left: Get ( WindowDesktopWidth ) - Get ( WindowWidth
+        ) - 25 ]'
+      LimitToWindowsOfCurrentFile:
+        state: 'True'
+      Window:
+        value: Current
+      DistanceFromTop:
+        Calculation: Get ( WindowDesktopHeight ) - Get ( WindowHeight ) - 25
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - WindowDesktopHeight
+          - ' ) - '
+          - Get
+          - ' ( '
+          - WindowHeight
+          - ' ) - 25'
+      DistanceFromLeft:
+        Calculation: Get ( WindowDesktopWidth ) - Get ( WindowWidth ) - 25
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - WindowDesktopWidth
+          - ' ) - '
+          - Get
+          - ' ( '
+          - WindowWidth
+          - ' ) - 25'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Int ( GetAsNumber ( Get ( ApplicationVersion ) ) ) ≠ 13 ]
+      Calculation: Int ( GetAsNumber ( Get ( ApplicationVersion ) ) ) ≠ 13
+      DisplayCalculation:
+        Chunk:
+        - Int
+        - ' ( '
+        - GetAsNumber
+        - ' ( '
+        - Get
+        - ' ( '
+        - ApplicationVersion
+        - ' ) ) ) ≠ 13'
+    - enable: 'True'
+      id: '87'
+      name: Show Custom Dialog
+      StepText: 'Show Custom Dialog [ Title: "ABORTED"; Message: "Should open these
+        files in FM13 only."; Default Button: “OK”, Commit: “Yes” ]'
+      Title:
+        Calculation: '"ABORTED"'
+        DisplayCalculation:
+          Chunk: '"ABORTED"'
+      Message:
+        Calculation: '"Should open these files in FM13 only."'
+        DisplayCalculation:
+          Chunk: '"Should open these files in FM13 only."'
+      Buttons:
+        Button:
+        - CommitState: 'True'
+          Calculation: '"OK"'
+          DisplayCalculation:
+            Chunk: '"OK"'
+        - CommitState: 'False'
+        - CommitState: 'False'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,398 @@
+#########################################
+# PURPOSE:
+# Makes a compacted copy of all the files associated with the FileMaker solution to serve as a backup. This script is designed to run as a sub-script of the "Create Local Backup of All Solution Files", which will loop over all available files.
+#
+# PARAMETERS: none
+# fileNumber: A serial number indicating which of the available solution files to back-up
+# backupFolderPath: The path to the folder (directory) in which to store the compacted copy of the file.
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+# fileName: The name of the current file. This is useful for error reporting purposes when backing-up a multi-file solution.
+# filePath: The path to the created copy of the current file
+# done: (boolean) A flag indicating that the fileNumber parameter is greater than the number of files available to back-up. This typically happens after the "Create Local Backup of All Solution Files" script has looped over all available files.
+#
+# DEPENDENCIES:
+# Create Local Backup of Current File ( backupFolderPath )
+#
+# HISTORY: (open comment to view full history)
+# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+# Assign parameters to local variables and check result
+Set Variable [ $parameterError; Value:EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptParameter )	& "! = \"\" ] ; \"\" )") ) ]
+If [ $parameterError ]
+Exit Script [ Result: "$error = " & $parameterError & " ;¶" ]
+Else If [ IsEmpty ( $fileNumber )or IsEmpty ( $backupFolderPath ) ]
+Exit Script [ Result: "$error = 10 ;¶"	// Requested data is missing ]
+End If
+#
+#
+# Backup the file specified by $fileNumber
+If [ False ]
+#
+#
+#########################################
+# This is the backup of the current file
+Else If [ Let ( $file.i = $file.i + 1 ; $file.i = $fileNumber ) ]
+Perform Script [ “Create Local Backup of Current File ( backupFolderPath )”; Parameter: Get ( ScriptParameter ) ]
+# Duplicate this Else If...Perform Script pattern for each file in your solution
+# Re-direct each Perform Script step to the same script in a different file in your solution
+#########################################
+#
+#
+#
+Else
+# Specified $fileNumber is greater than the number of available files
+Exit Script [ Result: "$error = 0 ;¶"& "$done = True ;¶" ]
+End If
+#
+#
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '101'
+  name: Create Local Backup of Solution File ( fileNumber ; backupFolderPath )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Makes a compacted copy of all the files associated with the FileMaker
+        solution to serve as a backup. This script is designed to run as a sub-script
+        of the "Create Local Backup of All Solution Files", which will loop over all
+        available files.'
+      Text: ' Makes a compacted copy of all the files associated with the FileMaker
+        solution to serve as a backup. This script is designed to run as a sub-script
+        of the "Create Local Backup of All Solution Files", which will loop over all
+        available files.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS: none'
+      Text: ' PARAMETERS: none'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# fileNumber: A serial number indicating which of the available solution
+        files to back-up'
+      Text: ' fileNumber: A serial number indicating which of the available solution
+        files to back-up'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupFolderPath: The path to the folder (directory) in which to
+        store the compacted copy of the file.'
+      Text: ' backupFolderPath: The path to the folder (directory) in which to store
+        the compacted copy of the file.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# fileName: The name of the current file. This is useful for error
+        reporting purposes when backing-up a multi-file solution.'
+      Text: ' fileName: The name of the current file. This is useful for error reporting
+        purposes when backing-up a multi-file solution.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# filePath: The path to the created copy of the current file'
+      Text: ' filePath: The path to the created copy of the current file'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# done: (boolean) A flag indicating that the fileNumber parameter
+        is greater than the number of files available to back-up. This typically happens
+        after the "Create Local Backup of All Solution Files" script has looped over
+        all available files.'
+      Text: ' done: (boolean) A flag indicating that the fileNumber parameter is greater
+        than the number of files available to back-up. This typically happens after
+        the "Create Local Backup of All Solution Files" script has looped over all
+        available files.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# DEPENDENCIES:'
+      Text: ' DEPENDENCIES:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Create Local Backup of Current File ( backupFolderPath )'
+      Text: ' Create Local Backup of Current File ( backupFolderPath )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+      Text: ' Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Assign parameters to local variables and check result'
+      Text: ' Assign parameters to local variables and check result'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $parameterError; Value:EvaluationError ( Evaluate
+        (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\" ] ; \\\"\\\"
+        )\"\n) ) ]"
+      Value:
+        Calculation: "EvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter
+          )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $parameterError
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $parameterError ]
+      Calculation: $parameterError
+      DisplayCalculation:
+        Chunk: $parameterError
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $parameterError & " ;¶" ]'
+      Calculation: '"$error = " & $parameterError & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $parameterError & " ;¶"'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: |-
+        Else If [ IsEmpty ( $fileNumber )
+        or IsEmpty ( $backupFolderPath ) ]
+      Calculation: |-
+        IsEmpty ( $fileNumber )
+        or IsEmpty ( $backupFolderPath )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - |2
+           ( $fileNumber )
+        - or
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( $backupFolderPath )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: \"$error = 10 ;¶\"\t// Requested data is missing
+        ]"
+      Calculation: "\"$error = 10 ;¶\"\t// Requested data is missing"
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = 10 ;¶\"\t"
+        - // Requested data is missing
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Backup the file specified by $fileNumber'
+      Text: ' Backup the file specified by $fileNumber'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ False ]
+      Calculation: 'False'
+      DisplayCalculation:
+        Chunk: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# This is the backup of the current file'
+      Text: ' This is the backup of the current file'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ Let ( $file.i = $file.i + 1 ; $file.i = $fileNumber ) ]
+      Calculation: Let ( $file.i = $file.i + 1 ; $file.i = $fileNumber )
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - ' ( $file.i = $file.i + 1 ; $file.i = $fileNumber )'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Create Local Backup of Current File ( backupFolderPath
+        )”; Parameter: Get ( ScriptParameter ) ]'
+      Calculation: Get ( ScriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' )'
+      Script:
+        id: '107'
+        name: Create Local Backup of Current File ( backupFolderPath )
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Duplicate this Else If...Perform Script pattern for each file in
+        your solution'
+      Text: ' Duplicate this Else If...Perform Script pattern for each file in your
+        solution'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Re-direct each Perform Script step to the same script in a different
+        file in your solution'
+      Text: ' Re-direct each Perform Script step to the same script in a different
+        file in your solution'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Specified $fileNumber is greater than the number of available files'
+      Text: ' Specified $fileNumber is greater than the number of available files'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: "$error = 0 ;¶"
+        & "$done = True ;¶" ]
+      Calculation: |-
+        "$error = 0 ;¶"
+        & "$done = True ;¶"
+      DisplayCalculation:
+        Chunk: |-
+          "$error = 0 ;¶"
+          & "$done = True ;¶"
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

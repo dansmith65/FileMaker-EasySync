@@ -208,6 +208,127 @@ PrivilegesCatalog:
           name: '-'
           Access:
             value: NoAccess
+        - runFullAccess: 'False'
+          id: '42'
+          name: '-'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '44'
+          name: Modules
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '45'
+          name: Modules README
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '46'
+          name: Local Backup
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '47'
+          name: '-'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '48'
+          name: 'Local Backup: README'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '49'
+          name: '-'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '50'
+          name: 'Local Backup: Configuration'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '51'
+          name: Create Local Backup of All Solution Files
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '52'
+          name: Create Local Backup of Solution File ( fileNumber ; backupFolderPath
+            )
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '53'
+          name: Get Local Backup Settings
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '54'
+          name: Go to Auto Backup Layout
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '55'
+          name: --
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '56'
+          name: 'Local Backup: Public'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '57'
+          name: Dispatch Backup of All Solution Files
+          Access:
+            value: NoAccess
+        - runFullAccess: 'True'
+          id: '58'
+          name: Create Local Backup of Current File ( backupFolderPath )
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '59'
+          name: Start Auto Backup
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '60'
+          name: --
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '61'
+          name: 'Local Backup: Private'
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '62'
+          name: Create Folder ( folderPath )
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '63'
+          name: Install Auto Backup in Dedicated Window
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '64'
+          name: --
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '65'
+          name: --
+          Access:
+            value: NoAccess
+        - runFullAccess: 'False'
+          id: '66'
+          name: --
+          Access:
+            value: NoAccess
         - name: '[Any New Script]'
           Access:
             value: NoAccess

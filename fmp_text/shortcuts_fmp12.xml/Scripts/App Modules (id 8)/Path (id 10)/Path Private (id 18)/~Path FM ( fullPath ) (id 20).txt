@@ -1,0 +1,256 @@
+#
+# Convert to a full path for use by FileMaker Import/Export
+#
+#
+Set Variable [ $path; Value:Trim ( Get ( ScriptParameter ) ) ]
+#
+#
+# return FileMaker Network path as-is
+If [ Left ( $path ; 7 ) = "fmnet:/" ]
+Exit Script [ Result: $path ]
+End If
+#
+#
+# normalize path
+Perform Script [ “~Path: Normalize ( fullPath )”; Parameter: $path ]
+Set Variable [ $path; Value:Get ( ScriptResult ) ]
+#
+#
+# on Mac, remove "/Volumes/"
+If [ Get ( SystemPlatform ) = 1 /* Mac */andLeft ( $path ; 9 ) = "/Volumes/" ]
+Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 8 ) ]
+End If
+#
+#
+# prepend with "file:", which works the same as filewin: or filemac: (in my testing, at least)
+Set Variable [ $path; Value:"file:" & $path ]
+#
+#
+Exit Script [ Result: $path ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '20'
+  name: '~Path: FM ( fullPath )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Convert to a full path for use by FileMaker Import/Export'
+      Text: ' Convert to a full path for use by FileMaker Import/Export'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Trim ( Get ( ScriptParameter ) ) ]
+      Value:
+        Calculation: Trim ( Get ( ScriptParameter ) )
+        DisplayCalculation:
+          Chunk:
+          - Trim
+          - ' ( '
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# return FileMaker Network path as-is'
+      Text: ' return FileMaker Network path as-is'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Left ( $path ; 7 ) = "fmnet:/" ]
+      Calculation: Left ( $path ; 7 ) = "fmnet:/"
+      DisplayCalculation:
+        Chunk:
+        - Left
+        - ' ( $path ; 7 ) = "fmnet:/"'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $path ]'
+      Calculation: $path
+      DisplayCalculation:
+        Chunk: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# normalize path'
+      Text: ' normalize path'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Path: Normalize ( fullPath )”; Parameter: $path
+        ]'
+      Calculation: $path
+      DisplayCalculation:
+        Chunk: $path
+      Script:
+        id: '19'
+        name: '~Path: Normalize ( fullPath )'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# on Mac, remove "/Volumes/"'
+      Text: ' on Mac, remove "/Volumes/"'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ Get ( SystemPlatform ) = 1 /* Mac */
+        and
+        Left ( $path ; 9 ) = "/Volumes/" ]
+      Calculation: |-
+        Get ( SystemPlatform ) = 1 /* Mac */
+        and
+        Left ( $path ; 9 ) = "/Volumes/"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - SystemPlatform
+        - |2
+           ) = 1 /* Mac */
+        - and
+        - type: NoRef
+          __content__: |2+
+
+        - Left
+        - ' ( $path ; 9 ) = "/Volumes/"'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:Right ( $path ; Length ( $path ) - 8 )
+        ]
+      Value:
+        Calculation: Right ( $path ; Length ( $path ) - 8 )
+        DisplayCalculation:
+          Chunk:
+          - Right
+          - ' ( $path ; '
+          - Length
+          - ' ( $path ) - 8 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# prepend with "file:", which works the same as filewin: or filemac:
+        (in my testing, at least)'
+      Text: ' prepend with "file:", which works the same as filewin: or filemac: (in
+        my testing, at least)'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $path; Value:"file:" & $path ]
+      Value:
+        Calculation: '"file:" & $path'
+        DisplayCalculation:
+          Chunk: '"file:" & $path'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $path ]'
+      Calculation: $path
+      DisplayCalculation:
+        Chunk: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

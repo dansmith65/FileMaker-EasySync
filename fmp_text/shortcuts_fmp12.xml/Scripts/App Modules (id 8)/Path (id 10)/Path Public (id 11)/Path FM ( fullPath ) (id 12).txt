@@ -1,0 +1,69 @@
+#
+# Convert to a full path for use in a FileMaker import/export script.
+#
+#
+Perform Script [ “~Path: FM ( fullPath )”; Parameter: Get ( ScriptParameter ) ]
+#
+Exit Script [ Result: Get ( ScriptResult ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '12'
+  name: 'Path: FM ( fullPath )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Convert to a full path for use in a FileMaker import/export script.'
+      Text: ' Convert to a full path for use in a FileMaker import/export script.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “~Path: FM ( fullPath )”; Parameter: Get ( ScriptParameter
+        ) ]'
+      Calculation: Get ( ScriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' )'
+      Script:
+        id: '20'
+        name: '~Path: FM ( fullPath )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

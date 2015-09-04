@@ -1,0 +1,359 @@
+#
+# Combine multiple segments into a single path.
+# First segment must already be in the correct format.
+# Trailing separators are option
+#
+# PARAMETERS ARE IN LET NOTATION!
+#
+#
+#
+# assign parameters to local variables
+If [ /* assign script parameter to local variables */EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptParameter )	& "! = \"\" ] ; \"\" )") ) ]
+Exit Script [ Result: "" ]
+Else If [ IsEmpty ( $sep ) ]
+Exit Script [ Result: "" ]
+Else If [ IsEmpty ( $segments ) ]
+Exit Script [ Result: "" ]
+Else If [ $sep ≠ "/"and $sep ≠ "\\" ]
+Exit Script [ Result: "" ]
+End If
+#
+#
+#
+Set Variable [ $count; Value:ValueCount ( $segments ) ]
+Loop
+Exit Loop If [ // For $i from 1 to $countLet (	$i = $i + 1 ;	If ( $i > $count ;		Let ( $i = "" ; True )	)) ]
+Set Variable [ $segment; Value:GetValue ( $segments ; $i ) ]
+#
+# remove trailing separator
+If [ Let ( [	~lastCh = Right ( $segment ; 1 )] ;	~lastCh = "/"	or ~lastCh = "\\") ]
+Set Variable [ $segment; Value:Left ( $segment ; Length ( $segment ) - 1 ) ]
+End If
+#
+Set Variable [ $path; Value:$path& If ( not IsEmpty ( $path ) ; $sep )& $segment ]
+#
+End Loop
+#
+#
+#
+Exit Script [ Result: $path ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '33'
+  name: '~Path: Combine ( sep ; segments )'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Combine multiple segments into a single path.'
+      Text: ' Combine multiple segments into a single path.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# First segment must already be in the correct format.'
+      Text: ' First segment must already be in the correct format.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Trailing separators are option'
+      Text: ' Trailing separators are option'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS ARE IN LET NOTATION!'
+      Text: ' PARAMETERS ARE IN LET NOTATION!'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# assign parameters to local variables'
+      Text: ' assign parameters to local variables'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ /* assign script parameter to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) ) ]"
+      Calculation: "/* assign script parameter to local variables */\n\nEvaluationError
+        ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\"
+        ] ; \\\"\\\" )\"\n) )"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* assign script parameter to local variables */
+
+        - EvaluationError
+        - ' ( '
+        - Evaluate
+        - " (\n\t\"Let ( [¶\"\n\t& "
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "" ]'
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ IsEmpty ( $sep ) ]
+      Calculation: IsEmpty ( $sep )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $sep )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "" ]'
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ IsEmpty ( $segments ) ]
+      Calculation: IsEmpty ( $segments )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $segments )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "" ]'
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: |-
+        Else If [ $sep ≠ "/"
+        and $sep ≠ "\\" ]
+      Calculation: |-
+        $sep ≠ "/"
+        and $sep ≠ "\\"
+      DisplayCalculation:
+        Chunk:
+        - |
+          $sep ≠ "/"
+        - and
+        - ' $sep ≠ "\\"'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "" ]'
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $count; Value:ValueCount ( $segments ) ]
+      Value:
+        Calculation: ValueCount ( $segments )
+        DisplayCalculation:
+          Chunk:
+          - ValueCount
+          - ' ( $segments )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $count
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ // For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf
+        ( $i > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n) ]"
+      Calculation: "// For $i from 1 to $count\nLet (\n\t$i = $i + 1 ;\n\tIf ( $i
+        > $count ;\n\t\tLet ( $i = \"\" ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i from 1 to $count
+        - Let
+        - " (\n\t$i = $i + 1 ;\n\t"
+        - If
+        - " ( $i > $count ;\n\t\t"
+        - Let
+        - ' ( $i = "" ; '
+        - 'True'
+        - " )\n\t)\n)"
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment; Value:GetValue ( $segments ; $i ) ]
+      Value:
+        Calculation: GetValue ( $segments ; $i )
+        DisplayCalculation:
+          Chunk:
+          - GetValue
+          - ' ( $segments ; $i )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# remove trailing separator'
+      Text: ' remove trailing separator'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: "If [ Let ( [\n\t~lastCh = Right ( $segment ; 1 )\n] ;\n\t~lastCh
+        = \"/\"\n\tor ~lastCh = \"\\\\\"\n) ]"
+      Calculation: "Let ( [\n\t~lastCh = Right ( $segment ; 1 )\n] ;\n\t~lastCh =
+        \"/\"\n\tor ~lastCh = \"\\\\\"\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~lastCh = "
+        - Right
+        - " ( $segment ; 1 )\n] ;\n\t~lastCh = \"/\"\n\t"
+        - or
+        - |2-
+           ~lastCh = "\\"
+          )
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $segment; Value:Left ( $segment ; Length ( $segment
+        ) - 1 ) ]
+      Value:
+        Calculation: Left ( $segment ; Length ( $segment ) - 1 )
+        DisplayCalculation:
+          Chunk:
+          - Left
+          - ' ( $segment ; '
+          - Length
+          - ' ( $segment ) - 1 )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $segment
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $path; Value:$path
+        & If ( not IsEmpty ( $path ) ; $sep )
+        & $segment ]
+      Value:
+        Calculation: |-
+          $path
+          & If ( not IsEmpty ( $path ) ; $sep )
+          & $segment
+        DisplayCalculation:
+          Chunk:
+          - "$path\n& "
+          - If
+          - ' ( '
+          - not
+          - type: NoRef
+            __content__: ' '
+          - IsEmpty
+          - |2-
+             ( $path ) ; $sep )
+            & $segment
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $path ]'
+      Calculation: $path
+      DisplayCalculation:
+        Chunk: $path
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

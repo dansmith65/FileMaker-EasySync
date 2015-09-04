@@ -1,0 +1,574 @@
+#########################################
+# PURPOSE:
+# Creates any folders necessary for folderPath to be a valid destination for backup files
+#
+# PARAMETERS:
+# backupFolderPath: The path to the folder (directory) in which to store a compacted copy of the current file.
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+#
+# HISTORY: (open comment to view full history)
+# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+# Assign parameters to local variables and check result
+Set Variable [ $parameterError; Value:EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptParameter )	& "! = \"\" ] ; \"\" )") ) ]
+#
+If [ $parameterError ]
+Exit Script [ Result: "$error = " & $parameterError & " ;¶" ]
+Else If [ IsEmpty ( $folderPath ) ]
+Exit Script [ Result: "$error = 10 ;¶"	// Requested data is missing& "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+End If
+#
+#
+# Guarantee that destination folder exists — there is no harm in "creating" a folder that already exists
+Set Variable [ $systemPlatform; Value:Abs ( Get ( SystemPlatform ) ) ]
+If [ /* Platform is Macintosh */$systemPlatform = 1 ]
+Perform AppleScript [ Calculated AppleScript: Let ( [	~shellScript =		"mkdir -p 'volumes/"		& $folderPath		& "'";	~appleScript =		"do shell script "		& Quote ( ~shellScript )];	~appleScript) ]
+#
+Else If [ /* Platform is Windows */$systemPlatform = 2 ]
+Set Variable [ $folderList; Value:/* Return-delimited list of folders in folderPath */Let ( [	~start = Get ( UUID )] ;	Substitute (		~start & $folderPath;		[ ~start & "/" ; "" ];		[ ~start ; "" ];		[ "file:/" ; "" ];		[ "/" ; ¶ ]	)) ]
+Set Variable [ $folderCount; Value:ValueCount ( $folderList ) ]
+#
+Loop
+Exit Loop If [ /* For $i from 1 to $folderCount */Let ( [ $i = $i + 1 ] ; 	$i > $folderCount	and Let ( $i = "" ; True )	// reset $i at end) ]
+Set Variable [ $folder; Value:$folder& If ( $i > 1 ; "\\" )& GetValue ( $folderList ; $i ) ]
+Set Variable [ $newFolderList; Value:List (	$newFolderList;	$folder) ]
+End Loop
+Send Event [ open document/application; "cmd /c md \""& Substitute ( $newFolderList ; ¶ ; "\" \"" )& "\""// cmd /c md "FILEDIRECTORY\Backup" "FILEDIRECTORY\Backup\20120916_120554"; Application Name: “<unknown>” ]
+#
+Else If [ /* Platform is not supported */True ]
+Exit Script [ Result: "$error = 3 ;¶"	// Command is unavailable (for example, wrong operating system, wrong mode, etc.)& "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+End If
+#
+Set Variable [ $error; Value:Get ( LastError ) ]
+#
+#
+# Pause for a moment to allow OS to create folders; timing may need to be adjusted
+//  Pause/Resume Script [ Duration (seconds): 2 ]
+# 2014-SEP-21 Daniel Smith dansmith65@gmail.com	- Windows has never needed 2 seconds to create the folder
+Pause/Resume Script [ Duration (seconds): 1 ]
+#
+Exit Script [ Result: "$error = " & $error & " ;¶" ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '74'
+  name: Create Folder ( folderPath )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Creates any folders necessary for folderPath to be a valid destination
+        for backup files'
+      Text: ' Creates any folders necessary for folderPath to be a valid destination
+        for backup files'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupFolderPath: The path to the folder (directory) in which to
+        store a compacted copy of the current file.'
+      Text: ' backupFolderPath: The path to the folder (directory) in which to store
+        a compacted copy of the current file.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+      Text: ' Created on 2013-05-02 by Jeremy Bante <http://scr.im/jbante>.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Assign parameters to local variables and check result'
+      Text: ' Assign parameters to local variables and check result'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $parameterError; Value:EvaluationError ( Evaluate
+        (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\" ] ; \\\"\\\"
+        )\"\n) ) ]"
+      Value:
+        Calculation: "EvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter
+          )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $parameterError
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $parameterError ]
+      Calculation: $parameterError
+      DisplayCalculation:
+        Chunk: $parameterError
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $parameterError & " ;¶" ]'
+      Calculation: '"$error = " & $parameterError & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $parameterError & " ;¶"'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ IsEmpty ( $folderPath ) ]
+      Calculation: IsEmpty ( $folderPath )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $folderPath )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: \"$error = 10 ;¶\"\t// Requested data is missing\n&
+        \"$fileName = \" & Quote ( $fileName ) & \" ;¶\" ]"
+      Calculation: "\"$error = 10 ;¶\"\t// Requested data is missing\n& \"$fileName
+        = \" & Quote ( $fileName ) & \" ;¶\""
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = 10 ;¶\"\t"
+        - |
+          // Requested data is missing
+        - '& "$fileName = " & '
+        - Quote
+        - ' ( $fileName ) & " ;¶"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Guarantee that destination folder exists — there is no harm in
+        "creating" a folder that already exists'
+      Text: ' Guarantee that destination folder exists — there is no harm in "creating"
+        a folder that already exists'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $systemPlatform; Value:Abs ( Get ( SystemPlatform )
+        ) ]
+      Value:
+        Calculation: Abs ( Get ( SystemPlatform ) )
+        DisplayCalculation:
+          Chunk:
+          - Abs
+          - ' ( '
+          - Get
+          - ' ( '
+          - SystemPlatform
+          - ' ) )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $systemPlatform
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: |-
+        If [ /* Platform is Macintosh */
+
+        $systemPlatform = 1 ]
+      Calculation: |-
+        /* Platform is Macintosh */
+
+        $systemPlatform = 1
+      DisplayCalculation:
+        Chunk: |-
+          /* Platform is Macintosh */
+
+          $systemPlatform = 1
+    - enable: 'True'
+      id: '67'
+      name: Perform AppleScript
+      StepText: "Perform AppleScript [ Calculated AppleScript: Let ( [\n\t~shellScript
+        =\n\t\t\"mkdir -p 'volumes/\"\n\t\t& $folderPath\n\t\t& \"'\";\n\t~appleScript
+        =\n\t\t\"do shell script \"\n\t\t& Quote ( ~shellScript )\n];\n\t~appleScript\n)
+        ]"
+      ContentType:
+        value: Calculation
+      Calculation: "Let ( [\n\t~shellScript =\n\t\t\"mkdir -p 'volumes/\"\n\t\t& $folderPath\n\t\t&
+        \"'\";\n\t~appleScript =\n\t\t\"do shell script \"\n\t\t& Quote ( ~shellScript
+        )\n];\n\t~appleScript\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\t~shellScript =\n\t\t\"mkdir -p 'volumes/\"\n\t\t& $folderPath\n\t\t&
+          \"'\";\n\t~appleScript =\n\t\t\"do shell script \"\n\t\t& "
+        - Quote
+        - " ( ~shellScript )\n];\n\t~appleScript\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: |-
+        Else If [ /* Platform is Windows */
+
+        $systemPlatform = 2 ]
+      Calculation: |-
+        /* Platform is Windows */
+
+        $systemPlatform = 2
+      DisplayCalculation:
+        Chunk: |-
+          /* Platform is Windows */
+
+          $systemPlatform = 2
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $folderList; Value:/* Return-delimited list of folders
+        in folderPath */\n\nLet ( [\n\t~start = Get ( UUID )\n] ;\n\tSubstitute (\n\t\t~start
+        & $folderPath;\n\t\t[ ~start & \"/\" ; \"\" ];\n\t\t[ ~start ; \"\" ];\n\t\t[
+        \"file:/\" ; \"\" ];\n\t\t[ \"/\" ; ¶ ]\n\t)\n) ]"
+      Value:
+        Calculation: "/* Return-delimited list of folders in folderPath */\n\nLet
+          ( [\n\t~start = Get ( UUID )\n] ;\n\tSubstitute (\n\t\t~start & $folderPath;\n\t\t[
+          ~start & \"/\" ; \"\" ];\n\t\t[ ~start ; \"\" ];\n\t\t[ \"file:/\" ; \"\"
+          ];\n\t\t[ \"/\" ; ¶ ]\n\t)\n)"
+        DisplayCalculation:
+          Chunk:
+          - |+
+            /* Return-delimited list of folders in folderPath */
+
+          - Let
+          - " ( [\n\t~start = "
+          - Get
+          - ' ( '
+          - UUID
+          - " )\n] ;\n\t"
+          - Substitute
+          - " (\n\t\t~start & $folderPath;\n\t\t[ ~start & \"/\" ; \"\" ];\n\t\t[
+            ~start ; \"\" ];\n\t\t[ \"file:/\" ; \"\" ];\n\t\t[ \"/\" ; ¶ ]\n\t)\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $folderList
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $folderCount; Value:ValueCount ( $folderList ) ]
+      Value:
+        Calculation: ValueCount ( $folderList )
+        DisplayCalculation:
+          Chunk:
+          - ValueCount
+          - ' ( $folderList )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $folderCount
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '71'
+      name: Loop
+      StepText: Loop
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ /* For $i from 1 to $folderCount */\n\nLet ( [ $i
+        = $i + 1 ] ; \n\t$i > $folderCount\n\tand Let ( $i = \"\" ; True )\t// reset
+        $i at end\n) ]"
+      Calculation: "/* For $i from 1 to $folderCount */\n\nLet ( [ $i = $i + 1 ] ;
+        \n\t$i > $folderCount\n\tand Let ( $i = \"\" ; True )\t// reset $i at end\n)"
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* For $i from 1 to $folderCount */
+
+        - Let
+        - " ( [ $i = $i + 1 ] ; \n\t$i > $folderCount\n\t"
+        - and
+        - type: NoRef
+          __content__: ' '
+        - Let
+        - ' ( $i = "" ; '
+        - 'True'
+        - " )\t"
+        - |
+          // reset $i at end
+        - )
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $folder; Value:$folder
+        & If ( $i > 1 ; "\\" )
+        & GetValue ( $folderList ; $i ) ]
+      Value:
+        Calculation: |-
+          $folder
+          & If ( $i > 1 ; "\\" )
+          & GetValue ( $folderList ; $i )
+        DisplayCalculation:
+          Chunk:
+          - "$folder\n& "
+          - If
+          - " ( $i > 1 ; \"\\\\\" )\n& "
+          - GetValue
+          - ' ( $folderList ; $i )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $folder
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $newFolderList; Value:List (\n\t$newFolderList;\n\t$folder\n)
+        ]"
+      Value:
+        Calculation: "List (\n\t$newFolderList;\n\t$folder\n)"
+        DisplayCalculation:
+          Chunk:
+          - List
+          - " (\n\t$newFolderList;\n\t$folder\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $newFolderList
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '57'
+      name: Send Event
+      StepText: |-
+        Send Event [ open document/application; "cmd /c md \""
+        & Substitute ( $newFolderList ; ¶ ; "\" \"" )
+        & "\""
+
+        // cmd /c md "FILEDIRECTORY\Backup" "FILEDIRECTORY\Backup\20120916_120554"; Application Name: “<unknown>” ]
+      ContentType:
+        value: Calculation
+      Calculation: |-
+        "cmd /c md \""
+        & Substitute ( $newFolderList ; ¶ ; "\" \"" )
+        & "\""
+
+        // cmd /c md "FILEDIRECTORY\Backup" "FILEDIRECTORY\Backup\20120916_120554"
+      DisplayCalculation:
+        Chunk:
+        - "\"cmd /c md \\\"\"\n& "
+        - Substitute
+        - |2+
+           ( $newFolderList ; ¶ ; "\" \"" )
+          & "\""
+
+        - // cmd /c md "FILEDIRECTORY\Backup" "FILEDIRECTORY\Backup\20120916_120554"
+      Text: 
+      Event:
+        CopyResultToClipboard: 'False'
+        WaitForCompletion: 'False'
+        BringTargetToForeground: 'False'
+        TargetName: <unknown>
+        id: odoc
+        class: aevt
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: |-
+        Else If [ /* Platform is not supported */
+
+        True ]
+      Calculation: |-
+        /* Platform is not supported */
+
+        True
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* Platform is not supported */
+
+        - 'True'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: \"$error = 3 ;¶\"\t// Command is unavailable
+        (for example, wrong operating system, wrong mode, etc.)\n& \"$fileName = \"
+        & Quote ( $fileName ) & \" ;¶\" ]"
+      Calculation: "\"$error = 3 ;¶\"\t// Command is unavailable (for example, wrong
+        operating system, wrong mode, etc.)\n& \"$fileName = \" & Quote ( $fileName
+        ) & \" ;¶\""
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = 3 ;¶\"\t"
+        - |
+          // Command is unavailable (for example, wrong operating system, wrong mode, etc.)
+        - '& "$fileName = " & '
+        - Quote
+        - ' ( $fileName ) & " ;¶"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $error; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $error
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Pause for a moment to allow OS to create folders; timing may need
+        to be adjusted'
+      Text: ' Pause for a moment to allow OS to create folders; timing may need to
+        be adjusted'
+    - enable: 'False'
+      id: '62'
+      name: Pause/Resume Script
+      StepText: '//  Pause/Resume Script [ Duration (seconds): 2 ]'
+      PauseTime:
+        value: ForDuration
+      Calculation: '2'
+      DisplayCalculation:
+        Chunk: '2'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: "# 2014-SEP-21 Daniel Smith dansmith65@gmail.com\n\t- Windows has
+        never needed 2 seconds to create the folder"
+      Text: " 2014-SEP-21 Daniel Smith dansmith65@gmail.com\n\t- Windows has never
+        needed 2 seconds to create the folder"
+    - enable: 'True'
+      id: '62'
+      name: Pause/Resume Script
+      StepText: 'Pause/Resume Script [ Duration (seconds): 1 ]'
+      PauseTime:
+        value: ForDuration
+      Calculation: '1'
+      DisplayCalculation:
+        Chunk: '1'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: "$error = " & $error & " ;¶" ]'
+      Calculation: '"$error = " & $error & " ;¶"'
+      DisplayCalculation:
+        Chunk: '"$error = " & $error & " ;¶"'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

@@ -1,0 +1,385 @@
+#########################################
+# PURPOSE:
+# Makes a compacted copy of the current file to the specified folder to serve as a backup.
+#
+# PARAMETERS:
+# backupFolderPath: The path to the folder (directory) in which to store a compacted copy of the current file.
+#
+# RETURNS:
+# error: The codes of any errors encountered during operation
+# fileName: The name of the current file. This is useful for error reporting purposes when backing-up a multi-file solution.
+# filePath: The path to the created copy of the current file
+#
+# HISTORY: (open comment to view full history)
+# Modified on 2013-05-02 by Jeremy Bante <http://scr.im/jbante> to remove custom function dependencies, and to remove responsibility for folder creation.Modified on 2012-09-17 by Jeremy Bante <http://scr.im/jbante> to return fileName.Created on 2012-09-15 by Jeremy Bante <http://scr.im/jbante>.
+#########################################
+#
+# Assign parameters to local variables and check result
+Set Variable [ $parameterError; Value:EvaluationError ( Evaluate (	"Let ( [¶"	& Get ( ScriptParameter )	& "! = \"\" ] ; \"\" )") ) ]
+Set Variable [ $fileName; Value:Get ( FileName )& ".fmp12" ]
+#
+If [ $parameterError ]
+Exit Script [ Result: "$error = " & $parameterError & " ;¶"& "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+Else If [ IsEmpty ( $backupFolderPath ) ]
+Exit Script [ Result: "$error = 10 ;¶"	// Requested data is missing& "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+Else If [ /* File is hosted */Get ( ConnectionState ) ≠ 0 ]
+Exit Script [ Result: "$error = 13 ;¶"	// File or object is in use& "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+End If
+#
+Set Variable [ $filePath; Value:$backupFolderPath& $fileName ]
+#
+#
+# Save a copy of the current file to the specified folder
+Set Error Capture [ On ]
+Save a Copy as [ “$filePath” ][ compacted copy (smaller) ]
+Set Variable [ $error; Value:Get ( LastError ) ]
+Set Error Capture [ Off ]
+#
+Exit Script [ Result: "$error = " & $error & " ;¶"& "$filePath = " & Quote ( $filePath ) & " ;¶"& "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'True'
+  id: '58'
+  name: Create Local Backup of Current File ( backupFolderPath )
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PURPOSE:'
+      Text: ' PURPOSE:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Makes a compacted copy of the current file to the specified folder
+        to serve as a backup.'
+      Text: ' Makes a compacted copy of the current file to the specified folder to
+        serve as a backup.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# PARAMETERS:'
+      Text: ' PARAMETERS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# backupFolderPath: The path to the folder (directory) in which to
+        store a compacted copy of the current file.'
+      Text: ' backupFolderPath: The path to the folder (directory) in which to store
+        a compacted copy of the current file.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# RETURNS:'
+      Text: ' RETURNS:'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# error: The codes of any errors encountered during operation'
+      Text: ' error: The codes of any errors encountered during operation'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# fileName: The name of the current file. This is useful for error
+        reporting purposes when backing-up a multi-file solution.'
+      Text: ' fileName: The name of the current file. This is useful for error reporting
+        purposes when backing-up a multi-file solution.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# filePath: The path to the created copy of the current file'
+      Text: ' filePath: The path to the created copy of the current file'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# HISTORY: (open comment to view full history)'
+      Text: ' HISTORY: (open comment to view full history)'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: |-
+        # Modified on 2013-05-02 by Jeremy Bante <http://scr.im/jbante> to remove custom function dependencies, and to remove responsibility for folder creation.
+
+        Modified on 2012-09-17 by Jeremy Bante <http://scr.im/jbante> to return fileName.
+
+        Created on 2012-09-15 by Jeremy Bante <http://scr.im/jbante>.
+      Text: |2-
+         Modified on 2013-05-02 by Jeremy Bante <http://scr.im/jbante> to remove custom function dependencies, and to remove responsibility for folder creation.
+
+        Modified on 2012-09-17 by Jeremy Bante <http://scr.im/jbante> to return fileName.
+
+        Created on 2012-09-15 by Jeremy Bante <http://scr.im/jbante>.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#########################################'
+      Text: '########################################'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Assign parameters to local variables and check result'
+      Text: ' Assign parameters to local variables and check result'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $parameterError; Value:EvaluationError ( Evaluate
+        (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter )\n\t& \"! = \\\"\\\" ] ; \\\"\\\"
+        )\"\n) ) ]"
+      Value:
+        Calculation: "EvaluationError ( Evaluate (\n\t\"Let ( [¶\"\n\t& Get ( ScriptParameter
+          )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+        DisplayCalculation:
+          Chunk:
+          - EvaluationError
+          - ' ( '
+          - Evaluate
+          - " (\n\t\"Let ( [¶\"\n\t& "
+          - Get
+          - ' ( '
+          - ScriptParameter
+          - " )\n\t& \"! = \\\"\\\" ] ; \\\"\\\" )\"\n) )"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $parameterError
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $fileName; Value:Get ( FileName )
+        & ".fmp12" ]
+      Value:
+        Calculation: |-
+          Get ( FileName )
+          & ".fmp12"
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - FileName
+          - |2-
+             )
+            & ".fmp12"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $fileName
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $parameterError ]
+      Calculation: $parameterError
+      DisplayCalculation:
+        Chunk: $parameterError
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: "$error = " & $parameterError & " ;¶"
+        & "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+      Calculation: |-
+        "$error = " & $parameterError & " ;¶"
+        & "$fileName = " & Quote ( $fileName ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = \" & $parameterError & \" ;¶\"\n& \"$fileName = \" & "
+        - Quote
+        - ' ( $fileName ) & " ;¶"'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: Else If [ IsEmpty ( $backupFolderPath ) ]
+      Calculation: IsEmpty ( $backupFolderPath )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $backupFolderPath )'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: \"$error = 10 ;¶\"\t// Requested data is missing\n&
+        \"$fileName = \" & Quote ( $fileName ) & \" ;¶\" ]"
+      Calculation: "\"$error = 10 ;¶\"\t// Requested data is missing\n& \"$fileName
+        = \" & Quote ( $fileName ) & \" ;¶\""
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = 10 ;¶\"\t"
+        - |
+          // Requested data is missing
+        - '& "$fileName = " & '
+        - Quote
+        - ' ( $fileName ) & " ;¶"'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: |-
+        Else If [ /* File is hosted */
+
+        Get ( ConnectionState ) ≠ 0 ]
+      Calculation: |-
+        /* File is hosted */
+
+        Get ( ConnectionState ) ≠ 0
+      DisplayCalculation:
+        Chunk:
+        - |+
+          /* File is hosted */
+
+        - Get
+        - ' ( '
+        - ConnectionState
+        - ' ) ≠ 0'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: "Exit Script [ Result: \"$error = 13 ;¶\"\t// File or object is in
+        use\n& \"$fileName = \" & Quote ( $fileName ) & \" ;¶\" ]"
+      Calculation: "\"$error = 13 ;¶\"\t// File or object is in use\n& \"$fileName
+        = \" & Quote ( $fileName ) & \" ;¶\""
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = 13 ;¶\"\t"
+        - |
+          // File or object is in use
+        - '& "$fileName = " & '
+        - Quote
+        - ' ( $fileName ) & " ;¶"'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $filePath; Value:$backupFolderPath
+        & $fileName ]
+      Value:
+        Calculation: |-
+          $backupFolderPath
+          & $fileName
+        DisplayCalculation:
+          Chunk: |-
+            $backupFolderPath
+            & $fileName
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $filePath
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Save a copy of the current file to the specified folder'
+      Text: ' Save a copy of the current file to the specified folder'
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ On ]
+      Set:
+        state: 'True'
+    - enable: 'True'
+      id: '37'
+      name: Save a Copy as
+      StepText: |-
+        Save a Copy as [ “$filePath” ]
+        [ compacted copy (smaller) ]
+      AutoOpen:
+        state: 'False'
+      CreateEmail:
+        state: 'False'
+      SaveAsType:
+        value: CompactedCopy
+      UniversalPathList: $filePath
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $error; Value:Get ( LastError ) ]
+      Value:
+        Calculation: Get ( LastError )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - LastError
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $error
+    - enable: 'True'
+      id: '86'
+      name: Set Error Capture
+      StepText: Set Error Capture [ Off ]
+      Set:
+        state: 'False'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: |-
+        Exit Script [ Result: "$error = " & $error & " ;¶"
+        & "$filePath = " & Quote ( $filePath ) & " ;¶"
+        & "$fileName = " & Quote ( $fileName ) & " ;¶" ]
+      Calculation: |-
+        "$error = " & $error & " ;¶"
+        & "$filePath = " & Quote ( $filePath ) & " ;¶"
+        & "$fileName = " & Quote ( $fileName ) & " ;¶"
+      DisplayCalculation:
+        Chunk:
+        - "\"$error = \" & $error & \" ;¶\"\n& \"$filePath = \" & "
+        - Quote
+        - " ( $filePath ) & \" ;¶\"\n& \"$fileName = \" & "
+        - Quote
+        - ' ( $fileName ) & " ;¶"'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
