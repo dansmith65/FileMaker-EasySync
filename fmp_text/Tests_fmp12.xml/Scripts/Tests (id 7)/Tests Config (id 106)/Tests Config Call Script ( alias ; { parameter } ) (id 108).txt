@@ -32,8 +32,8 @@ If [  ]
 #
 # file: local
 #================================================================================
-Else If [ $alias = "Tests: Evaluate" ]
-Perform Script [ “~Tests: Evaluate”; Parameter: $parameter ]
+Else If [ $alias = "Tests: Return Parameter" ]
+Perform Script [ “~Tests: Return Parameter”; Parameter: $parameter ]
 #
 Else If [ $alias = "Tests: Manual Step: Ask Question" ]
 Perform Script [ “~Tests: Manual Step: Ask Question ( dialogMessage { dialogTitle ; button1 ; button2 } )”; Parameter: $parameter ]
@@ -43,6 +43,13 @@ Perform Script [ “~Tests: Open URL [ url ]”; Parameter: $parameter ]
 #
 Else If [ $alias = "Tests: Pause" ]
 Perform Script [ “~Tests: Pause { seconds }”; Parameter: $parameter ]
+#
+# Custom:
+Else If [ $alias = "Tests: Custom: Select all Client_Serveys" ]
+Perform Script [ “Tests: Custom: Select all Client_Serveys”; Parameter: $parameter ]
+#
+Else If [ $alias = "Tests: Custom: Select all Server_Serveys" ]
+Perform Script [ “Tests: Custom: Select all Server_Serveys ”; Parameter: $parameter ]
 #
 #================================================================================
 #
@@ -59,6 +66,9 @@ Perform Script [ “Push to EasySync ( id_DataSet )” from file: “TestDataSet
 #
 # file: EasySync_Client
 #================================================================================
+Else If [ $alias = "EasySync Client: Sync" ]
+Perform Script [ “EasySync Client: API: Sync” from file: “EasySync_Client”; Parameter: $parameter ]
+#
 Else If [ $alias = "EasySync Client: Pull" ]
 Perform Script [ “EasySync Client: API: Pull” from file: “EasySync_Client”; Parameter: $parameter ]
 #
@@ -346,20 +356,21 @@ Script:
     - enable: 'True'
       id: '125'
       name: Else If
-      StepText: 'Else If [ $alias = "Tests: Evaluate" ]'
-      Calculation: '$alias = "Tests: Evaluate"'
+      StepText: 'Else If [ $alias = "Tests: Return Parameter" ]'
+      Calculation: '$alias = "Tests: Return Parameter"'
       DisplayCalculation:
-        Chunk: '$alias = "Tests: Evaluate"'
+        Chunk: '$alias = "Tests: Return Parameter"'
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “~Tests: Evaluate”; Parameter: $parameter ]'
+      StepText: 'Perform Script [ “~Tests: Return Parameter”; Parameter: $parameter
+        ]'
       Calculation: $parameter
       DisplayCalculation:
         Chunk: $parameter
       Script:
         id: '155'
-        name: '~Tests: Evaluate'
+        name: '~Tests: Return Parameter'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -427,6 +438,55 @@ Script:
       Script:
         id: '213'
         name: '~Tests: Pause { seconds }'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Custom:'
+      Text: ' Custom:'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "Tests: Custom: Select all Client_Serveys" ]'
+      Calculation: '$alias = "Tests: Custom: Select all Client_Serveys"'
+      DisplayCalculation:
+        Chunk: '$alias = "Tests: Custom: Select all Client_Serveys"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Tests: Custom: Select all Client_Serveys”; Parameter:
+        $parameter ]'
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '236'
+        name: 'Tests: Custom: Select all Client_Serveys'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "Tests: Custom: Select all Server_Serveys" ]'
+      Calculation: '$alias = "Tests: Custom: Select all Server_Serveys"'
+      DisplayCalculation:
+        Chunk: '$alias = "Tests: Custom: Select all Server_Serveys"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Tests: Custom: Select all Server_Serveys ”; Parameter:
+        $parameter ]'
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '239'
+        name: 'Tests: Custom: Select all Server_Serveys '
     - enable: 'True'
       id: '89'
       name: Comment
@@ -511,6 +571,32 @@ Script:
       name: Comment
       StepText: '#================================================================================'
       Text: ================================================================================
+    - enable: 'True'
+      id: '125'
+      name: Else If
+      StepText: 'Else If [ $alias = "EasySync Client: Sync" ]'
+      Calculation: '$alias = "EasySync Client: Sync"'
+      DisplayCalculation:
+        Chunk: '$alias = "EasySync Client: Sync"'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “EasySync Client: API: Sync” from file: “EasySync_Client”;
+        Parameter: $parameter ]'
+      FileReference:
+        id: '5'
+        name: EasySync_Client
+        UniversalPathList: file:EasySync_Client.fmp12
+      Calculation: $parameter
+      DisplayCalculation:
+        Chunk: $parameter
+      Script:
+        id: '87'
+        name: 'EasySync Client: API: Sync'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '125'
       name: Else If

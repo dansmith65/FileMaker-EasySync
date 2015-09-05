@@ -8,12 +8,13 @@
                     ----              ------                             
                     Field             TPA__TestParameter::id             
                     Field             TPA__TestParameter::id_Test        
-                    Field             TPA__TestParameter::parameterExpression
+                    Field             TPA__TestParameter::parameter      
                     Field             TPA__TestParameter::result         
                     Field             TPA__TestParameter::resultTestExpression
                     Field             TPA__TestParameter::scriptAlias    
                     Field             TPA__TestParameter::sortOrder      
                     Field             tpa_TES__Test::name                
+                    Field             TPA__TestParameter::evaluate       
 
 
 ---
@@ -343,7 +344,7 @@ Layout:
     rotation: '0'
     Bounds:
       top: '113.0000000'
-      left: '3.0000000'
+      left: '67.0000000'
       bottom: '131.0000000'
       right: '127.0000000'
     TextObj:
@@ -392,7 +393,7 @@ Layout:
         LocalCSS: "\nself\n{\n\ttext-align: right;\n\t-fm-text-vertical-align: center;\n}\n"
       CharacterStyleVector:
         Style:
-          Data: parameterExpression
+          Data: parameter
           CharacterStyle:
             mask: '32695'
             Font_family: arial,sans-serif
@@ -401,7 +402,7 @@ Layout:
             Color: '#707070'
       ParagraphStyleVector:
         Style:
-          Data: parameterExpression
+          Data: parameter
           ParagraphStyle:
             mask: '0'
             __content__: |2+
@@ -425,7 +426,7 @@ Layout:
       tableViewVisibility: '0'
       quickFind: '1'
       pictFormat: '5'
-      Name: TPA__TestParameter::parameterExpression
+      Name: TPA__TestParameter::parameter
       ExtendedAttributes:
         fontHeight: '15'
         graphicFormat: '5'
@@ -471,7 +472,7 @@ Layout:
 
       DDRInfo:
         Field:
-          name: parameterExpression
+          name: parameter
           id: '4'
           repetition: '1'
           maxRepetition: '1'
@@ -1185,3 +1186,143 @@ Layout:
         ValueList:
           name: Script Alias
           id: '4'
+  - type: Field
+    key: '17'
+    LabelKey: '18'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '42.0000000'
+      left: '521.0000000'
+      bottom: '64.0000000'
+      right: '600.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '0'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: TPA__TestParameter::evaluate
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles: |2+
+
+      DDRInfo:
+        Field:
+          name: evaluate
+          id: '14'
+          repetition: '1'
+          maxRepetition: '1'
+          table: TPA__TestParameter
+  - type: Text
+    key: '18'
+    LabelKey: '0'
+    flags: '0'
+    rotation: '0'
+    Bounds:
+      top: '45.0000000'
+      left: '455.0000000'
+      bottom: '63.0000000'
+      right: '510.0000000'
+    TextObj:
+      flags: '0'
+      ExtendedAttributes:
+        fontHeight: '15'
+        graphicFormat: '0'
+        NumFormat:
+          flags: '0'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: ''
+          thousandsSep: '0'
+          decimalPoint: '0'
+          negativeColor: '#0'
+          decimalDigits: '0'
+          trueString: ''
+          falseString: ''
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '0'
+          DateElement:
+          - '0'
+          - '0'
+          - '0'
+          - '0'
+          DateElementSep:
+          - index: '0'
+          - index: '1'
+          - index: '2'
+          - index: '3'
+          - index: '4'
+        TimeFormat:
+          flags: '0'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '0'
+          separator: '0'
+          amString: ''
+          pmString: ''
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\ttext-align: right;\n}\n"
+      CharacterStyleVector:
+        Style:
+          Data: evaluate
+          CharacterStyle:
+            mask: '32695'
+            Font_family: arial,sans-serif
+            Font_size: '12'
+            Face: '0'
+            Color: '#707070'
+      ParagraphStyleVector:
+        Style:
+          Data: evaluate
+          ParagraphStyle:
+            mask: '0'
+            __content__: |2+
+

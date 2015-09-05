@@ -24,7 +24,7 @@ End If
 Set Variable [ $~script.section; Value:"start with a failed test and mark as true if it passes" ]
 #================================================================================
 # clear all results for all scripts (so it's easy to see which scripts ran, and which didn't, if an error occurs)
-Set Field [ SEL__SELECTOR::idList_TestParameter; List ( TES_TPR__TestParameter::id ) ]
+Set Field [ SEL__SELECTOR::idList_TestParameter; List ( tes_TPR__TestParameter::id ) ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
 Replace Field Contents [ sel_TPA__TestParameter::result; Replace with calculation: "" ][ No dialog ]
 Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;		True	)) ]
@@ -43,7 +43,7 @@ Exit Loop If [ If (	Get ( LastError ) ;	Let (		$error = ErrorFmpGetLast ( "" ) ;
 #================================================================================
 Set Variable [ $~script.section; Value:"SET VARIABLES" ]
 #================================================================================
-Set Variable [ $idList_TestParameter; Value:List ( TES_TPR__TestParameter::id )/* this relationship must be sorted so these id's are retrieved in order */ ]
+Set Variable [ $idList_TestParameter; Value:List ( tes_TPR__TestParameter::id )/* this relationship must be sorted so these id's are retrieved in order */ ]
 #
 #
 #
@@ -61,13 +61,15 @@ Set Field [ SEL__SELECTOR::idList_TestParameter; GetValue ( $idList_TestParamete
 # save script to variable
 Set Variable [ $scriptAlias; Value:sel_TPA__TestParameter::scriptAlias ]
 # save parameter to variable
-//  If [ not IsValidExpression ( sel_TPA__TestParameter::parameterExpression ) ]
-//  Exit Loop If [ Let (	$error = ErrorUnitTest ( 2 ; "parameterExpression is not valid" )		& # ( "EvaluationError" ; EvaluationError ( Evaluate ( sel_TPA__TestParameter::parameterExpression ) ) )	;	True) ]
-//  Else If [ Let ( [	$EvaluationErrorCode = EvaluationError ( Evaluate ( sel_TPA__TestParameter::parameterExpression ) )] ;	$EvaluationErrorCode) ]
-//  Exit Loop If [ Let (	$error = ErrorUnitTest ( 2 ; "parameterExpression is not valid" )		& # ( "EvaluationErrorCode" ; $EvaluationErrorCode )	;	True) ]
-//  End If
-Set Variable [ $scriptParameter; Value:Evaluate ( sel_TPA__TestParameter::parameterExpression ) ]
+If [ sel_TPA__TestParameter::evaluate ]
+Set Variable [ $scriptParameter; Value:Evaluate ( sel_TPA__TestParameter::parameter ) ]
 Set Field [ sel_TPA__TestParameter::parameterEvaluated; $scriptParameter ]
+Else
+Set Variable [ $scriptParameter; Value:sel_TPA__TestParameter::parameter ]
+If [ not IsEmpty ( sel_TPA__TestParameter::parameterEvaluated ) ]
+Set Field [ sel_TPA__TestParameter::parameterEvaluated; "" ]
+End If
+End If
 #
 # call script
 If [ LogWriteEnabled ( LogLevel4Debug ) ]
@@ -99,7 +101,7 @@ Set Variable [ $~script.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~
 #================================================================================
 Set Variable [ $~script.section; Value:"SAVE METADATA" ]
 #================================================================================
-Set Field [ TES__Test::resultPass; /* if all TestParameter's passed, mark the test as passed */Sum ( TES_TPR__TestParameter::resultPass ) = Count ( TES_TPR__TestParameter::id ) ]
+Set Field [ TES__Test::resultPass; /* if all TestParameter's passed, mark the test as passed */Sum ( tes_TPR__TestParameter::resultPass ) = Count ( tes_TPR__TestParameter::id ) ]
 Set Field [ TES__Test::runtime; $~script.runtime ]
 Set Field [ TES__Test::lastRunTimestamp; Get ( CurrentTimeStamp ) ]
 Commit Records/Requests[ Skip data entry validation; No dialog ]
@@ -333,16 +335,16 @@ Script:
     - enable: 'True'
       id: '76'
       name: Set Field
-      StepText: Set Field [ SEL__SELECTOR::idList_TestParameter; List ( TES_TPR__TestParameter::id
+      StepText: Set Field [ SEL__SELECTOR::idList_TestParameter; List ( tes_TPR__TestParameter::id
         ) ]
-      Calculation: List ( TES_TPR__TestParameter::id )
+      Calculation: List ( tes_TPR__TestParameter::id )
       DisplayCalculation:
         Chunk:
         - List
         - ' ( '
         - type: FieldRef
           Field:
-            table: TES_TPR__TestParameter
+            table: tes_TPR__TestParameter
             id: '1'
             name: id
         - ' )'
@@ -593,12 +595,12 @@ Script:
       id: '141'
       name: Set Variable
       StepText: |-
-        Set Variable [ $idList_TestParameter; Value:List ( TES_TPR__TestParameter::id )
+        Set Variable [ $idList_TestParameter; Value:List ( tes_TPR__TestParameter::id )
 
         /* this relationship must be sorted so these id's are retrieved in order */ ]
       Value:
         Calculation: |-
-          List ( TES_TPR__TestParameter::id )
+          List ( tes_TPR__TestParameter::id )
 
           /* this relationship must be sorted so these id's are retrieved in order */
         DisplayCalculation:
@@ -607,7 +609,7 @@ Script:
           - ' ( '
           - type: FieldRef
             Field:
-              table: TES_TPR__TestParameter
+              table: tes_TPR__TestParameter
               id: '1'
               name: id
           - |2-
@@ -775,110 +777,25 @@ Script:
       name: Comment
       StepText: '# save parameter to variable'
       Text: ' save parameter to variable'
-    - enable: 'False'
+    - enable: 'True'
       id: '68'
       name: If
-      StepText: //  If [ not IsValidExpression ( sel_TPA__TestParameter::parameterExpression
-        ) ]
-      Calculation: not IsValidExpression ( sel_TPA__TestParameter::parameterExpression
-        )
+      StepText: If [ sel_TPA__TestParameter::evaluate ]
+      Calculation: sel_TPA__TestParameter::evaluate
       DisplayCalculation:
         Chunk:
-        - not
-        - type: NoRef
-          __content__: ' '
-        - IsValidExpression
-        - ' ( '
-        - type: FieldRef
+          type: FieldRef
           Field:
             table: sel_TPA__TestParameter
-            id: '4'
-            name: parameterExpression
-        - ' )'
-    - enable: 'False'
-      id: '72'
-      name: Exit Loop If
-      StepText: "//  Exit Loop If [ Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression
-        is not valid\" )\n\t\t& # ( \"EvaluationError\" ; EvaluationError ( Evaluate
-        ( sel_TPA__TestParameter::parameterExpression ) ) )\n\t;\n\tTrue\n) ]"
-      Calculation: "Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression is
-        not valid\" )\n\t\t& # ( \"EvaluationError\" ; EvaluationError ( Evaluate
-        ( sel_TPA__TestParameter::parameterExpression ) ) )\n\t;\n\tTrue\n)"
-      DisplayCalculation:
-        Chunk:
-        - Let
-        - " (\n\t$error = "
-        - ErrorUnitTest
-        - " ( 2 ; \"parameterExpression is not valid\" )\n\t\t& "
-        - '#'
-        - ' ( "EvaluationError" ; '
-        - EvaluationError
-        - ' ( '
-        - Evaluate
-        - ' ( '
-        - type: FieldRef
-          Field:
-            table: sel_TPA__TestParameter
-            id: '4'
-            name: parameterExpression
-        - " ) ) )\n\t;\n\t"
-        - 'True'
-        - |2-
-
-          )
-    - enable: 'False'
-      id: '125'
-      name: Else If
-      StepText: "//  Else If [ Let ( [\n\t$EvaluationErrorCode = EvaluationError (
-        Evaluate ( sel_TPA__TestParameter::parameterExpression ) )\n] ;\n\t$EvaluationErrorCode\n)
-        ]"
-      Calculation: "Let ( [\n\t$EvaluationErrorCode = EvaluationError ( Evaluate (
-        sel_TPA__TestParameter::parameterExpression ) )\n] ;\n\t$EvaluationErrorCode\n)"
-      DisplayCalculation:
-        Chunk:
-        - Let
-        - " ( [\n\t$EvaluationErrorCode = "
-        - EvaluationError
-        - ' ( '
-        - Evaluate
-        - ' ( '
-        - type: FieldRef
-          Field:
-            table: sel_TPA__TestParameter
-            id: '4'
-            name: parameterExpression
-        - " ) )\n] ;\n\t$EvaluationErrorCode\n)"
-    - enable: 'False'
-      id: '72'
-      name: Exit Loop If
-      StepText: "//  Exit Loop If [ Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression
-        is not valid\" )\n\t\t& # ( \"EvaluationErrorCode\" ; $EvaluationErrorCode
-        )\n\t;\n\tTrue\n) ]"
-      Calculation: "Let (\n\t$error = ErrorUnitTest ( 2 ; \"parameterExpression is
-        not valid\" )\n\t\t& # ( \"EvaluationErrorCode\" ; $EvaluationErrorCode )\n\t;\n\tTrue\n)"
-      DisplayCalculation:
-        Chunk:
-        - Let
-        - " (\n\t$error = "
-        - ErrorUnitTest
-        - " ( 2 ; \"parameterExpression is not valid\" )\n\t\t& "
-        - '#'
-        - " ( \"EvaluationErrorCode\" ; $EvaluationErrorCode )\n\t;\n\t"
-        - 'True'
-        - |2-
-
-          )
-    - enable: 'False'
-      id: '70'
-      name: End If
-      StepText: //  End If
+            id: '14'
+            name: evaluate
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $scriptParameter; Value:Evaluate ( sel_TPA__TestParameter::parameterExpression
+      StepText: Set Variable [ $scriptParameter; Value:Evaluate ( sel_TPA__TestParameter::parameter
         ) ]
       Value:
-        Calculation: Evaluate ( sel_TPA__TestParameter::parameterExpression )
+        Calculation: Evaluate ( sel_TPA__TestParameter::parameter )
         DisplayCalculation:
           Chunk:
           - Evaluate
@@ -887,7 +804,7 @@ Script:
             Field:
               table: sel_TPA__TestParameter
               id: '4'
-              name: parameterExpression
+              name: parameter
           - ' )'
       Repetition:
         Calculation: '1'
@@ -906,6 +823,66 @@ Script:
         table: sel_TPA__TestParameter
         id: '11'
         name: parameterEvaluated
+    - enable: 'True'
+      id: '69'
+      name: Else
+      StepText: Else
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $scriptParameter; Value:sel_TPA__TestParameter::parameter
+        ]
+      Value:
+        Calculation: sel_TPA__TestParameter::parameter
+        DisplayCalculation:
+          Chunk:
+            type: FieldRef
+            Field:
+              table: sel_TPA__TestParameter
+              id: '4'
+              name: parameter
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $scriptParameter
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ not IsEmpty ( sel_TPA__TestParameter::parameterEvaluated ) ]
+      Calculation: not IsEmpty ( sel_TPA__TestParameter::parameterEvaluated )
+      DisplayCalculation:
+        Chunk:
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( '
+        - type: FieldRef
+          Field:
+            table: sel_TPA__TestParameter
+            id: '11'
+            name: parameterEvaluated
+        - ' )'
+    - enable: 'True'
+      id: '76'
+      name: Set Field
+      StepText: Set Field [ sel_TPA__TestParameter::parameterEvaluated; "" ]
+      Calculation: '""'
+      DisplayCalculation:
+        Chunk: '""'
+      Field:
+        table: sel_TPA__TestParameter
+        id: '11'
+        name: parameterEvaluated
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1251,11 +1228,11 @@ Script:
       StepText: |-
         Set Field [ TES__Test::resultPass; /* if all TestParameter's passed, mark the test as passed */
 
-        Sum ( TES_TPR__TestParameter::resultPass ) = Count ( TES_TPR__TestParameter::id ) ]
+        Sum ( tes_TPR__TestParameter::resultPass ) = Count ( tes_TPR__TestParameter::id ) ]
       Calculation: |-
         /* if all TestParameter's passed, mark the test as passed */
 
-        Sum ( TES_TPR__TestParameter::resultPass ) = Count ( TES_TPR__TestParameter::id )
+        Sum ( tes_TPR__TestParameter::resultPass ) = Count ( tes_TPR__TestParameter::id )
       DisplayCalculation:
         Chunk:
         - |+
@@ -1265,7 +1242,7 @@ Script:
         - ' ( '
         - type: FieldRef
           Field:
-            table: TES_TPR__TestParameter
+            table: tes_TPR__TestParameter
             id: '8'
             name: resultPass
         - ' ) = '
@@ -1273,7 +1250,7 @@ Script:
         - ' ( '
         - type: FieldRef
           Field:
-            table: TES_TPR__TestParameter
+            table: tes_TPR__TestParameter
             id: '1'
             name: id
         - ' )'

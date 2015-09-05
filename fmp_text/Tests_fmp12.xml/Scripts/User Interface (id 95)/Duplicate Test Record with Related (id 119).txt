@@ -6,13 +6,13 @@
 #
 #
 Freeze Window
-Set Variable [ $relatedRecordsExist; Value:Count ( TES_TPR__TestParameter::id ) ]
+Set Variable [ $relatedRecordsExist; Value:Count ( tes_TPR__TestParameter::id ) ]
 #
 #
 #
 # isolate related records on related tables layout
 If [ $relatedRecordsExist ]
-Go to Related Record [ From table: “TES_TPR__TestParameter”; Using layout: “TPA__TestParameter” (TPA__TestParameter) ][ Show only related records ]
+Go to Related Record [ From table: “tes_TPR__TestParameter”; Using layout: “TPA__TestParameter” (TPA__TestParameter) ][ Show only related records ]
 End If
 #
 #
@@ -96,17 +96,17 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $relatedRecordsExist; Value:Count ( TES_TPR__TestParameter::id
+      StepText: Set Variable [ $relatedRecordsExist; Value:Count ( tes_TPR__TestParameter::id
         ) ]
       Value:
-        Calculation: Count ( TES_TPR__TestParameter::id )
+        Calculation: Count ( tes_TPR__TestParameter::id )
         DisplayCalculation:
           Chunk:
           - Count
           - ' ( '
           - type: FieldRef
             Field:
-              table: TES_TPR__TestParameter
+              table: tes_TPR__TestParameter
               id: '1'
               name: id
           - ' )'
@@ -143,7 +143,7 @@ Script:
       id: '74'
       name: Go to Related Record
       StepText: |-
-        Go to Related Record [ From table: “TES_TPR__TestParameter”; Using layout: “TPA__TestParameter” (TPA__TestParameter) ]
+        Go to Related Record [ From table: “tes_TPR__TestParameter”; Using layout: “TPA__TestParameter” (TPA__TestParameter) ]
         [ Show only related records ]
       Option:
         state: 'False'
@@ -159,7 +159,7 @@ Script:
         Styles: '983554'
       Table:
         id: '1065098'
-        name: TES_TPR__TestParameter
+        name: tes_TPR__TestParameter
       Layout:
         id: '8'
         name: TPA__TestParameter

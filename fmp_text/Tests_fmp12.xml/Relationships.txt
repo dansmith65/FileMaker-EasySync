@@ -3,12 +3,20 @@ Tables
     Base Table (id)            Table occurrence (id)    
     ---------------            ---------------------    
 
+    EasySync (130)             Server_EasySync (1065112)
+    Survey_Hobbies (132)       Server_Survey_Hobbies (1065111)
+    Survey_Documents (133)     Server_Survey_Documents (1065110)
+    Surveys (129)              Server_Surveys (1065109) 
+    EasySync (132)             Client_EasySync (1065108)
+    Surveys (129)              Client_Surveys (1065105) 
+    Survey_Hobbies (131)       Client_Survey_Hobbies (1065107)
+    Survey_Documents (133)     Client_Survey_Documents (1065106)
+    TestParameter (134)        tes_TPR__TestParameter (1065098)
     SELECTOR (133)             SEL__SELECTOR (1065093)  
     TestParameter (134)        sel_TPA__TestParameter (1065099)
     TestGroup (132)            sel_TGR__TestGroup (1065094)
     Test (131)                 sel_TES__Test (1065096)  
     CONNECTOR (136)            CONNECTOR (1065103)      
-    TestParameter (134)        TES_TPR__TestParameter (1065098)
     TestGroup (132)            tes_TGR__TestGroup (1065095)
     Test (131)                 tpa_TES__Test (1065101)  
     Test (131)                 TES__Test (1065091)      
@@ -27,7 +35,7 @@ Relationships
         sel_TES__Test::id                    Equal            SEL__SELECTOR::idList_Test         
 
     Relationship: 8   
-        TES_TPR__TestParameter::id_Test      Equal            TES__Test::id                      
+        tes_TPR__TestParameter::id_Test      Equal            TES__Test::id                      
 
     Relationship: 9   
         sel_TPA__TestParameter::id           Equal            SEL__SELECTOR::idList_TestParameter
@@ -52,6 +60,75 @@ Relationships
 RelationshipGraph:
   TableList:
     Table:
+    - id: '1065112'
+      color: '#787878'
+      baseTableId: '130'
+      baseTable: EasySync
+      name: Server_EasySync
+      FileReference:
+        id: '6'
+        name: EasySync_Server
+    - id: '1065111'
+      color: '#787878'
+      baseTableId: '132'
+      baseTable: Survey_Hobbies
+      name: Server_Survey_Hobbies
+      FileReference:
+        id: '6'
+        name: EasySync_Server
+    - id: '1065110'
+      color: '#787878'
+      baseTableId: '133'
+      baseTable: Survey_Documents
+      name: Server_Survey_Documents
+      FileReference:
+        id: '6'
+        name: EasySync_Server
+    - id: '1065109'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: Surveys
+      name: Server_Surveys
+      FileReference:
+        id: '6'
+        name: EasySync_Server
+    - id: '1065108'
+      color: '#777777'
+      baseTableId: '132'
+      baseTable: EasySync
+      name: Client_EasySync
+      FileReference:
+        id: '5'
+        name: EasySync_Client
+    - id: '1065105'
+      color: '#787878'
+      baseTableId: '129'
+      baseTable: Surveys
+      name: Client_Surveys
+      FileReference:
+        id: '5'
+        name: EasySync_Client
+    - id: '1065107'
+      color: '#777777'
+      baseTableId: '131'
+      baseTable: Survey_Hobbies
+      name: Client_Survey_Hobbies
+      FileReference:
+        id: '5'
+        name: EasySync_Client
+    - id: '1065106'
+      color: '#777777'
+      baseTableId: '133'
+      baseTable: Survey_Documents
+      name: Client_Survey_Documents
+      FileReference:
+        id: '5'
+        name: EasySync_Client
+    - id: '1065098'
+      color: '#777777'
+      baseTableId: '134'
+      baseTable: TestParameter
+      name: tes_TPR__TestParameter
     - id: '1065093'
       color: '#787878'
       baseTableId: '133'
@@ -77,11 +154,6 @@ RelationshipGraph:
       baseTableId: '136'
       baseTable: CONNECTOR
       name: CONNECTOR
-    - id: '1065098'
-      color: '#777777'
-      baseTableId: '134'
-      baseTable: TestParameter
-      name: TES_TPR__TestParameter
     - id: '1065095'
       color: '#787878'
       baseTableId: '132'
@@ -204,7 +276,7 @@ RelationshipGraph:
       LeftTable:
         cascadeCreate: 'True'
         cascadeDelete: 'True'
-        name: TES_TPR__TestParameter
+        name: tes_TPR__TestParameter
         SortList:
           Maintain: 'True'
           value: 'True'
@@ -212,7 +284,7 @@ RelationshipGraph:
             type: Ascending
             PrimaryField:
               Field:
-                table: TES_TPR__TestParameter
+                table: tes_TPR__TestParameter
                 id: '7'
                 name: sortOrder
       RightTable:
@@ -234,7 +306,7 @@ RelationshipGraph:
           type: Equal
           LeftField:
             Field:
-              table: TES_TPR__TestParameter
+              table: tes_TPR__TestParameter
               id: '2'
               name: id_Test
           RightField:

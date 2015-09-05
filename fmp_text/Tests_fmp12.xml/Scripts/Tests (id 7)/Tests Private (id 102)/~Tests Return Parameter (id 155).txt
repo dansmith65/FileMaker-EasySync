@@ -1,0 +1,42 @@
+#The parameter will be evaluated before it is sent to this script, so by simply returning the parameter, an expression will have evaluated and result returned.
+#
+Exit Script [ Result: Get ( ScriptParameter ) ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '155'
+  name: '~Tests: Return Parameter'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#The parameter will be evaluated before it is sent to this script,
+        so by simply returning the parameter, an expression will have evaluated and
+        result returned.'
+      Text: The parameter will be evaluated before it is sent to this script, so by
+        simply returning the parameter, an expression will have evaluated and result
+        returned.
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptParameter ) ]'
+      Calculation: Get ( ScriptParameter )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - ' )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

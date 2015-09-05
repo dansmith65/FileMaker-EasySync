@@ -3,6 +3,7 @@
         1  Log                        file:Log                 
         4  TestDataSets               file:TestDataSets.fmp12  
         5  EasySync_Client            file:EasySync_Client.fmp12
+        6  EasySync_Server            file:EasySync_Server     
 
        id  ODBC Source                DSN                        Link                     
        --  -----------                ---                        ----                     
@@ -22,3 +23,7 @@ ExternalDataSourcesCatalog:
     id: '5'
     pathList: file:EasySync_Client.fmp12
     name: EasySync_Client
+  - link: EasySync_Server_fmp12.xml
+    id: '6'
+    pathList: file:EasySync_Server
+    name: EasySync_Server

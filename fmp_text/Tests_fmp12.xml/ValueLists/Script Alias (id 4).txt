@@ -1,10 +1,14 @@
-Tests: Evaluate
+Tests: Return Parameter
 Tests: Manual Step: Ask Question
 Tests: Open URL
 Tests: Pause
 -
+Tests: Custom: Select all Client_Serveys
+Tests: Custom: Select all Server_Serveys
+-
 TestDataSets: Push to EasySync
 -
+EasySync Client: Sync
 EasySync Client: Pull
 -
 
@@ -16,13 +20,17 @@ ValueList:
     value: Custom
   CustomValues:
     Text: |-
-      Tests: Evaluate
+      Tests: Return Parameter
       Tests: Manual Step: Ask Question
       Tests: Open URL
       Tests: Pause
       -
+      Tests: Custom: Select all Client_Serveys
+      Tests: Custom: Select all Server_Serveys
+      -
       TestDataSets: Push to EasySync
       -
+      EasySync Client: Sync
       EasySync Client: Pull
       -
   PrimaryField:

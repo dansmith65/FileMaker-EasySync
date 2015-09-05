@@ -3,22 +3,23 @@
      1   id                          Text             Normal                                                              
      2   id_Test                     Text             Normal                                                              
      3   scriptAlias                 Text             Normal            alias of script to be called; this script must be called by "Tests: Config: Call Script ( alias ; { parameter } )"
-     4   parameterExpression         Text             Normal            FileMaker calculation stored as text that is evaluated to determine what tests should be run. See documentation in testing scripts for the expected format.
+     4   parameter                   Text             Normal            parameter to send to the script                   
      5   result                      Text             Normal            result of script call                             
      6   resultTestExpression        Text             Normal            FileMaker calculation stored as text that is evaluated after all tests are run. This expression should return True (1) if the test passed.
      7   sortOrder                   Number           Normal            order the tests should be run in                  
      8   resultPass                  Number           Normal            Boolean; True = test passed                       
      9   resultAsJson                Text             Normal            result converted to json                          
     10   description                 Text             Normal            purpose of this test                              
-    11   parameterEvaluated          Text             Normal            stored when the test is run; allows for viewing the exact data sent to the script
+    11   parameterEvaluated          Text             Normal            stored when the test is run, if evalute field is True; allows for viewing the exact data sent to the script
     12   z_xJoin                     Number           Normal                                                              
     13   runtime                     Number           Normal            in seconds                                        
+    14   evaluate                    Number           Normal            Boolean; if True, the parameter will be evaluated before passing it to the script.
 
 
 ---
 BaseTable:
   id: '134'
-  records: '2'
+  records: '5'
   name: TestParameter
   FieldCatalog:
     Field:
@@ -133,10 +134,8 @@ BaseTable:
     - id: '4'
       dataType: Text
       fieldType: Normal
-      name: parameterExpression
-      Comment: FileMaker calculation stored as text that is evaluated to determine
-        what tests should be run. See documentation in testing scripts for the expected
-        format.
+      name: parameter
+      Comment: parameter to send to the script
       AutoEnter:
         allowEditing: 'True'
         constant: 'False'
@@ -380,8 +379,8 @@ BaseTable:
       dataType: Text
       fieldType: Normal
       name: parameterEvaluated
-      Comment: stored when the test is run; allows for viewing the exact data sent
-        to the script
+      Comment: stored when the test is run, if evalute field is True; allows for viewing
+        the exact data sent to the script
       AutoEnter:
         allowEditing: 'True'
         constant: 'False'
@@ -471,6 +470,50 @@ BaseTable:
           value: 'False'
         StrictValidation:
           value: 'False'
+      Storage:
+        autoIndex: 'True'
+        index: None
+        indexLanguage: English
+        global: 'False'
+        maxRepetition: '1'
+    - id: '14'
+      dataType: Number
+      fieldType: Normal
+      name: evaluate
+      Comment: Boolean; if True, the parameter will be evaluated before passing it
+        to the script.
+      AutoEnter:
+        allowEditing: 'True'
+        overwriteExistingValue: 'False'
+        alwaysEvaluate: 'False'
+        constant: 'False'
+        furigana: 'False'
+        lookup: 'False'
+        calculation: 'True'
+        ConstantData: 
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Validation:
+        message: 'False'
+        maxLength: 'False'
+        valuelist: 'False'
+        calculation: 'False'
+        alwaysValidateCalculation: 'False'
+        type: Always
+        StrictDataType:
+          value: Numeric
+        NotEmpty:
+          value: 'False'
+        Unique:
+          value: 'False'
+        Existing:
+          value: 'False'
+        Range:
+          to: '1'
+          from: '0'
+        StrictValidation:
+          value: 'True'
       Storage:
         autoIndex: 'True'
         index: None

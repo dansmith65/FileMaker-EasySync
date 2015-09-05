@@ -123,9 +123,9 @@ Layout:
     flags: '0'
     rotation: '0'
     Bounds:
-      top: '160.0000000'
+      top: '168.0000000'
       left: '64.0000000'
-      bottom: '200.0000000'
+      bottom: '208.0000000'
       right: '192.0000000'
     TextObj:
       flags: '2'
@@ -206,9 +206,9 @@ Layout:
     flags: '0'
     rotation: '0'
     Bounds:
-      top: '216.0000000'
+      top: '224.0000000'
       left: '64.0000000'
-      bottom: '256.0000000'
+      bottom: '264.0000000'
       right: '192.0000000'
     TextObj:
       flags: '2'
