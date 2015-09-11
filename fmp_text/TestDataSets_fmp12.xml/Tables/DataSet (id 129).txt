@@ -11,7 +11,7 @@
 ---
 BaseTable:
   id: '129'
-  records: '1'
+  records: '4'
   name: DataSet
   FieldCatalog:
     Field:
@@ -150,7 +150,7 @@ BaseTable:
       Comment: 
       AutoEnter:
         allowEditing: 'False'
-        value: ModificationTimeStamp
+        value: CreationTimeStamp
         constant: 'False'
         furigana: 'False'
         lookup: 'False'

@@ -3,8 +3,8 @@ Tests: Manual Step: Ask Question
 Tests: Open URL
 Tests: Pause
 -
-Tests: Custom: Select all Client_Serveys
-Tests: Custom: Select all Server_Serveys
+Tests: Custom: Select all Client Data
+Tests: Custom: Select all Server Data
 -
 TestDataSets: Push to EasySync
 -
@@ -25,8 +25,8 @@ ValueList:
       Tests: Open URL
       Tests: Pause
       -
-      Tests: Custom: Select all Client_Serveys
-      Tests: Custom: Select all Server_Serveys
+      Tests: Custom: Select all Client Data
+      Tests: Custom: Select all Server Data
       -
       TestDataSets: Push to EasySync
       -

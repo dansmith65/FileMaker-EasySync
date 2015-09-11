@@ -1938,21 +1938,19 @@ Layout:
             enable: 'True'
             id: '76'
             name: Set Field
-            StepText: Set Field [ tes_TPR__TestParameter::evaluate; If ( tes_TPR__TestParameter::evaluate
-              ; "" ; True ) ]
-            Calculation: If ( tes_TPR__TestParameter::evaluate ; "" ; True )
+            StepText: Set Field [ tes_TPR__TestParameter::evaluate; not tes_TPR__TestParameter::evaluate
+              ]
+            Calculation: not tes_TPR__TestParameter::evaluate
             DisplayCalculation:
               Chunk:
-              - If
-              - ' ( '
+              - not
+              - type: NoRef
+                __content__: ' '
               - type: FieldRef
                 Field:
                   table: tes_TPR__TestParameter
                   id: '14'
                   name: evaluate
-              - ' ; "" ; '
-              - 'True'
-              - ' )'
             Field:
               table: tes_TPR__TestParameter
               id: '14'

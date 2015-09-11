@@ -134,6 +134,7 @@ Exit Loop If [ Let ( [	theErrorCode = 19 ;	theErrorDescription = "Invalid script
 Else If [ $errorCode ]
 Exit Loop If [ /* subscript error has been saved to local variable(s) */Let ( [	/* add the current script's name to a list of scripts that triggered this error */	~scriptStack = List (		Get ( ScriptName ) ;		If ( IsEmpty ( $scriptStack ) ;			/* start the stack off with the script's name that triggered the error */			$ScriptName ;			$scriptStack		)	) ;	/* append this data to the error */	$error =		$error		& "$scriptStack = " & Quote ( ~scriptStack ) & " ;¶"] ;	True) ]
 End If
+Set Variable [ $push_result; Value:Get ( ScriptResult ) ]
 #
 #
 #
@@ -151,6 +152,7 @@ Exit Loop If [ Let ( [	theErrorCode = 19 ;	theErrorDescription = "Invalid script
 Else If [ $errorCode ]
 Exit Loop If [ /* subscript error has been saved to local variable(s) */Let ( [	/* add the current script's name to a list of scripts that triggered this error */	~scriptStack = List (		Get ( ScriptName ) ;		If ( IsEmpty ( $scriptStack ) ;			/* start the stack off with the script's name that triggered the error */			$ScriptName ;			$scriptStack		)	) ;	/* append this data to the error */	$error =		$error		& "$scriptStack = " & Quote ( ~scriptStack ) & " ;¶"] ;	True) ]
 End If
+Set Variable [ $pull_result; Value:Get ( ScriptResult ) ]
 #
 #
 #
@@ -244,7 +246,7 @@ End If
 #
 #
 Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
-Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶" ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$push_result = " & Quote ( $push_result ) & " ;¶"& "$pull_result = " & Quote ( $pull_result ) & " ;¶" ]
 #
 
 
@@ -2269,6 +2271,23 @@ Script:
       name: End If
       StepText: End If
     - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $push_result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $push_result
+    - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
@@ -2647,6 +2666,23 @@ Script:
       id: '70'
       name: End If
       StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $pull_result; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $pull_result
     - enable: 'True'
       id: '89'
       name: Comment
@@ -3635,17 +3671,27 @@ Script:
       name: Exit Script
       StepText: |-
         Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
-        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶" ]
+        & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
+
+        & "$push_result = " & Quote ( $push_result ) & " ;¶"
+        & "$pull_result = " & Quote ( $pull_result ) & " ;¶" ]
       Calculation: |-
         "$error = " & Quote ( $error ) & " ;¶"
         & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
+
+        & "$push_result = " & Quote ( $push_result ) & " ;¶"
+        & "$pull_result = " & Quote ( $pull_result ) & " ;¶"
       DisplayCalculation:
         Chunk:
         - '"$error = " & '
         - Quote
         - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
         - GetAsNumber
-        - ' ( $~script.runtime ) & " ;¶"'
+        - " ( $~script.runtime ) & \" ;¶\"\n\n& \"$push_result = \" & "
+        - Quote
+        - " ( $push_result ) & \" ;¶\"\n& \"$pull_result = \" & "
+        - Quote
+        - ' ( $pull_result ) & " ;¶"'
     - enable: 'True'
       id: '89'
       name: Comment

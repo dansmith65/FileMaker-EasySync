@@ -19,7 +19,7 @@
 ---
 BaseTable:
   id: '134'
-  records: '5'
+  records: '25'
   name: TestParameter
   FieldCatalog:
     Field:
@@ -138,11 +138,20 @@ BaseTable:
       Comment: parameter to send to the script
       AutoEnter:
         allowEditing: 'True'
+        overwriteExistingValue: 'True'
+        alwaysEvaluate: 'False'
         constant: 'False'
         furigana: 'False'
         lookup: 'False'
-        calculation: 'False'
+        calculation: 'True'
         ConstantData: 
+        Calculation: TextFormatRemove ( Self )
+        DisplayCalculation:
+          Chunk:
+          - TextFormatRemove
+          - ' ( '
+          - Self
+          - ' )'
       Validation:
         message: 'False'
         maxLength: 'False'

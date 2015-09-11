@@ -45,11 +45,11 @@ Else If [ $alias = "Tests: Pause" ]
 Perform Script [ “~Tests: Pause { seconds }”; Parameter: $parameter ]
 #
 # Custom:
-Else If [ $alias = "Tests: Custom: Select all Client_Serveys" ]
-Perform Script [ “Tests: Custom: Select all Client_Serveys”; Parameter: $parameter ]
+Else If [ $alias = "Tests: Custom: Select all Client Data" ]
+Perform Script [ “Tests: Custom: Select all Client Data”; Parameter: $parameter ]
 #
-Else If [ $alias = "Tests: Custom: Select all Server_Serveys" ]
-Perform Script [ “Tests: Custom: Select all Server_Serveys ”; Parameter: $parameter ]
+Else If [ $alias = "Tests: Custom: Select all Server Data" ]
+Perform Script [ “Tests: Custom: Select all Server Data”; Parameter: $parameter ]
 #
 #================================================================================
 #
@@ -450,21 +450,21 @@ Script:
     - enable: 'True'
       id: '125'
       name: Else If
-      StepText: 'Else If [ $alias = "Tests: Custom: Select all Client_Serveys" ]'
-      Calculation: '$alias = "Tests: Custom: Select all Client_Serveys"'
+      StepText: 'Else If [ $alias = "Tests: Custom: Select all Client Data" ]'
+      Calculation: '$alias = "Tests: Custom: Select all Client Data"'
       DisplayCalculation:
-        Chunk: '$alias = "Tests: Custom: Select all Client_Serveys"'
+        Chunk: '$alias = "Tests: Custom: Select all Client Data"'
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Tests: Custom: Select all Client_Serveys”; Parameter:
+      StepText: 'Perform Script [ “Tests: Custom: Select all Client Data”; Parameter:
         $parameter ]'
       Calculation: $parameter
       DisplayCalculation:
         Chunk: $parameter
       Script:
         id: '236'
-        name: 'Tests: Custom: Select all Client_Serveys'
+        name: 'Tests: Custom: Select all Client Data'
     - enable: 'True'
       id: '89'
       name: Comment
@@ -472,21 +472,21 @@ Script:
     - enable: 'True'
       id: '125'
       name: Else If
-      StepText: 'Else If [ $alias = "Tests: Custom: Select all Server_Serveys" ]'
-      Calculation: '$alias = "Tests: Custom: Select all Server_Serveys"'
+      StepText: 'Else If [ $alias = "Tests: Custom: Select all Server Data" ]'
+      Calculation: '$alias = "Tests: Custom: Select all Server Data"'
       DisplayCalculation:
-        Chunk: '$alias = "Tests: Custom: Select all Server_Serveys"'
+        Chunk: '$alias = "Tests: Custom: Select all Server Data"'
     - enable: 'True'
       id: '1'
       name: Perform Script
-      StepText: 'Perform Script [ “Tests: Custom: Select all Server_Serveys ”; Parameter:
+      StepText: 'Perform Script [ “Tests: Custom: Select all Server Data”; Parameter:
         $parameter ]'
       Calculation: $parameter
       DisplayCalculation:
         Chunk: $parameter
       Script:
         id: '239'
-        name: 'Tests: Custom: Select all Server_Serveys '
+        name: 'Tests: Custom: Select all Server Data'
     - enable: 'True'
       id: '89'
       name: Comment

@@ -334,7 +334,7 @@ End If
 #
 #
 Set Variable [ $!; Value:""/** * This is a step that will not return an error. * * It's used to clear any errors reported by Get ( LastError ), so a calling script can use * Get ( LastError ) to test if an error occurred with the Perform Script step. * */ ]
-Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$nothingToPush = " & GetAsBoolean( $nothingToPush ) & " ;¶" ]
+Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"& "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"& "$nothingToPush = " & Quote ( $nothingToPush ) & " ;¶" ]
 #
 
 
@@ -4765,11 +4765,11 @@ Script:
       StepText: |-
         Exit Script [ Result: "$error = " & Quote ( $error ) & " ;¶"
         & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
-        & "$nothingToPush = " & GetAsBoolean( $nothingToPush ) & " ;¶" ]
+        & "$nothingToPush = " & Quote ( $nothingToPush ) & " ;¶" ]
       Calculation: |-
         "$error = " & Quote ( $error ) & " ;¶"
         & "$runtime = " & GetAsNumber ( $~script.runtime ) & " ;¶"
-        & "$nothingToPush = " & GetAsBoolean( $nothingToPush ) & " ;¶"
+        & "$nothingToPush = " & Quote ( $nothingToPush ) & " ;¶"
       DisplayCalculation:
         Chunk:
         - '"$error = " & '
@@ -4777,8 +4777,8 @@ Script:
         - " ( $error ) & \" ;¶\"\n& \"$runtime = \" & "
         - GetAsNumber
         - " ( $~script.runtime ) & \" ;¶\"\n& \"$nothingToPush = \" & "
-        - GetAsBoolean
-        - ( $nothingToPush ) & " ;¶"
+        - Quote
+        - ' ( $nothingToPush ) & " ;¶"'
     - enable: 'True'
       id: '89'
       name: Comment

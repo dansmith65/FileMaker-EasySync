@@ -1,0 +1,97 @@
+#
+# Store a query so it can be managed in one place and be called from many tests.
+#
+#
+Set Variable [ $sqlQuery; Value:"SELECT Certifications, City, Comments, /* DateTime_Created, */DevCon_Attendee, Email_Address, ES_Account, /* ES_Device_ID, */ES_Exclude, ES_Record_UUID, ES_UTC_Time, Favorite_New_Feature, First_Name, /* Global, */ Interests, Last_Name, Organization, Phone_Number, Repeater, State, Street_Address_1, Street_Address_2, Survey_ID, ZipFROM Server_SurveysORDER BY ES_Record_UUID" ]
+Set Variable [ $sqlResult; Value:ExecuteSQL (	$sqlQuery ;	"|" ;	"¶¶¶") ]
+#
+Exit Script [ Result: $sqlResult ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '243'
+  name: 'Tests: Custom: Select all Server_Serveys'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Store a query so it can be managed in one place and be called from
+        many tests.'
+      Text: ' Store a query so it can be managed in one place and be called from many
+        tests.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $sqlQuery; Value:\"SELECT \n\nCertifications, \nCity,
+        \nComments, \n/* DateTime_Created, */\nDevCon_Attendee, \nEmail_Address, \nES_Account,
+        \n/* ES_Device_ID, */\nES_Exclude, \nES_Record_UUID, \nES_UTC_Time, \nFavorite_New_Feature,
+        \nFirst_Name, \n/* Global, */ \nInterests, \nLast_Name, \nOrganization, \nPhone_Number,
+        \nRepeater, \nState, \nStreet_Address_1, \nStreet_Address_2, \nSurvey_ID,
+        \nZip\n\nFROM Server_Surveys\nORDER BY ES_Record_UUID\n\" ]"
+      Value:
+        Calculation: "\"SELECT \n\nCertifications, \nCity, \nComments, \n/* DateTime_Created,
+          */\nDevCon_Attendee, \nEmail_Address, \nES_Account, \n/* ES_Device_ID, */\nES_Exclude,
+          \nES_Record_UUID, \nES_UTC_Time, \nFavorite_New_Feature, \nFirst_Name, \n/*
+          Global, */ \nInterests, \nLast_Name, \nOrganization, \nPhone_Number, \nRepeater,
+          \nState, \nStreet_Address_1, \nStreet_Address_2, \nSurvey_ID, \nZip\n\nFROM
+          Server_Surveys\nORDER BY ES_Record_UUID\n\""
+        DisplayCalculation:
+          Chunk: "\"SELECT \n\nCertifications, \nCity, \nComments, \n/* DateTime_Created,
+            */\nDevCon_Attendee, \nEmail_Address, \nES_Account, \n/* ES_Device_ID,
+            */\nES_Exclude, \nES_Record_UUID, \nES_UTC_Time, \nFavorite_New_Feature,
+            \nFirst_Name, \n/* Global, */ \nInterests, \nLast_Name, \nOrganization,
+            \nPhone_Number, \nRepeater, \nState, \nStreet_Address_1, \nStreet_Address_2,
+            \nSurvey_ID, \nZip\n\nFROM Server_Surveys\nORDER BY ES_Record_UUID\n\""
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sqlQuery
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $sqlResult; Value:ExecuteSQL (\n\t$sqlQuery ;\n\t\"|\"
+        ;\n\t\"¶¶¶\"\n) ]"
+      Value:
+        Calculation: "ExecuteSQL (\n\t$sqlQuery ;\n\t\"|\" ;\n\t\"¶¶¶\"\n)"
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - " (\n\t$sqlQuery ;\n\t\"|\" ;\n\t\"¶¶¶\"\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sqlResult
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $sqlResult ]'
+      Calculation: $sqlResult
+      DisplayCalculation:
+        Chunk: $sqlResult
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

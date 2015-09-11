@@ -8,6 +8,7 @@
                     ----              ------                             
                     Field             ES_Survey_Documents::ES_Record_UUID
                     Field             ES_Survey_Documents::ES_UTC_Time   
+                    Field             ES_Survey_Documents::ES_Device_ID  
 
 
 ---
@@ -38,9 +39,9 @@ Layout:
     flags: '8320'
     rotation: '0'
     Bounds:
-      top: '20.0000000'
+      top: '21.0000000'
       left: '0.0000000'
-      bottom: '37.0000000'
+      bottom: '39.0000000'
       right: '353.0000000'
     FieldObj:
       numOfReps: '1'
@@ -116,9 +117,9 @@ Layout:
     flags: '8320'
     rotation: '0'
     Bounds:
-      top: '20.0000000'
+      top: '21.0000000'
       left: '353.0000000'
-      bottom: '37.0000000'
+      bottom: '39.0000000'
       right: '587.0000000'
     FieldObj:
       numOfReps: '1'
@@ -185,6 +186,84 @@ Layout:
         Field:
           name: ES_UTC_Time
           id: '29'
+          repetition: '1'
+          maxRepetition: '1'
+          table: ES_Survey_Documents
+  - type: Field
+    key: '20'
+    LabelKey: '0'
+    flags: '8320'
+    rotation: '0'
+    Bounds:
+      top: '21.0000000'
+      left: '587.0000000'
+      bottom: '39.0000000'
+      right: '707.0000000'
+    FieldObj:
+      numOfReps: '1'
+      flags: '32'
+      inputMode: '0'
+      keyboardType: '1'
+      displayType: '0'
+      tableViewVisibility: '2'
+      quickFind: '1'
+      pictFormat: '5'
+      Name: ES_Survey_Documents::ES_Device_ID
+      ExtendedAttributes:
+        fontHeight: '14'
+        graphicFormat: '5'
+        NumFormat:
+          flags: '2304'
+          charStyle: '0'
+          negativeStyle: '0'
+          currencySymbol: $
+          thousandsSep: '44'
+          decimalPoint: '46'
+          negativeColor: '#DD000000'
+          decimalDigits: '2'
+          trueString: 'Yes'
+          falseString: 'No'
+        DateFormat:
+          format: '0'
+          charStyle: '0'
+          monthStyle: '0'
+          dayStyle: '0'
+          separator: '47'
+          DateElement:
+          - '3'
+          - '6'
+          - '1'
+          - '8'
+          DateElementSep:
+          - index: '0'
+          - ', '
+          - index: '2'
+            __content__: ' '
+          - ', '
+          - index: '4'
+        TimeFormat:
+          flags: '143'
+          charStyle: '0'
+          hourStyle: '0'
+          minsecStyle: '1'
+          separator: '58'
+          amString: ' AM'
+          pmString: ' PM'
+          ampmString: ''
+      Styles:
+        LocalCSS: "\nself\n{\n\tborder-top-color: rgba(0%,0%,0%,1);\n\tborder-right-color:
+          rgba(50%,50%,50%,1);\n\tborder-bottom-color: rgba(50%,50%,50%,1);\n\tborder-left-color:
+          rgba(50%,50%,50%,1);\n\tborder-top-style: none;\n\tborder-left-style: none;\n\tborder-top-right-radius:
+          0pt 0pt;\n\tborder-bottom-right-radius: 0pt 0pt;\n\tborder-bottom-left-radius:
+          0pt 0pt;\n\tborder-top-left-radius: 0pt 0pt;\n\tdirection: ;\n\t-fm-borders-between-reps:
+          true;\n}\nself:focus\n{\n\tborder-right-color: rgba(50%,50%,50%,1);\n\tborder-bottom-color:
+          rgba(50%,50%,50%,1);\n}\nself .repeat_border\n{\n\tborder-bottom-color:
+          rgba(50%,50%,50%,1);\n\tborder-bottom-style: solid;\n\tborder-bottom-width:
+          1pt;\n}\n"
+      DDRInfo:
+        Field:
+          name: ES_Device_ID
+          id: '34'
           repetition: '1'
           maxRepetition: '1'
           table: ES_Survey_Documents

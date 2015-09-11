@@ -1,0 +1,124 @@
+#
+# Store a query so it can be managed in one place and be called from many tests.
+#
+#
+Set Variable [ $sqlQuery; Value:"SELECTES_Account,/* ES_Device_ID, */ES_Exclude,ES_Record_UUID,ES_UTC_Time,Hobby,Survey_Hobby_ID,Survey_IDFROM Client_Survey_HobbiesORDER BY ES_Record_UUID" ]
+Set Variable [ $sqlResult; Value:ExecuteSQL (	$sqlQuery ;	"|" ;	"¶¶¶") ]
+#
+Exit Script [ Result: $sqlResult ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '246'
+  name: 'Tests: Custom: Select all Client_Servey_Hobbies'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Store a query so it can be managed in one place and be called from
+        many tests.'
+      Text: ' Store a query so it can be managed in one place and be called from many
+        tests.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $sqlQuery; Value:"SELECT
+
+        ES_Account,
+        /* ES_Device_ID, */
+        ES_Exclude,
+        ES_Record_UUID,
+        ES_UTC_Time,
+        Hobby,
+        Survey_Hobby_ID,
+        Survey_ID
+
+        FROM Client_Survey_Hobbies
+        ORDER BY ES_Record_UUID
+        " ]
+      Value:
+        Calculation: |-
+          "SELECT
+
+          ES_Account,
+          /* ES_Device_ID, */
+          ES_Exclude,
+          ES_Record_UUID,
+          ES_UTC_Time,
+          Hobby,
+          Survey_Hobby_ID,
+          Survey_ID
+
+          FROM Client_Survey_Hobbies
+          ORDER BY ES_Record_UUID
+          "
+        DisplayCalculation:
+          Chunk: |-
+            "SELECT
+
+            ES_Account,
+            /* ES_Device_ID, */
+            ES_Exclude,
+            ES_Record_UUID,
+            ES_UTC_Time,
+            Hobby,
+            Survey_Hobby_ID,
+            Survey_ID
+
+            FROM Client_Survey_Hobbies
+            ORDER BY ES_Record_UUID
+            "
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sqlQuery
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: "Set Variable [ $sqlResult; Value:ExecuteSQL (\n\t$sqlQuery ;\n\t\"|\"
+        ;\n\t\"¶¶¶\"\n) ]"
+      Value:
+        Calculation: "ExecuteSQL (\n\t$sqlQuery ;\n\t\"|\" ;\n\t\"¶¶¶\"\n)"
+        DisplayCalculation:
+          Chunk:
+          - ExecuteSQL
+          - " (\n\t$sqlQuery ;\n\t\"|\" ;\n\t\"¶¶¶\"\n)"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $sqlResult
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $sqlResult ]'
+      Calculation: $sqlResult
+      DisplayCalculation:
+        Chunk: $sqlResult
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'

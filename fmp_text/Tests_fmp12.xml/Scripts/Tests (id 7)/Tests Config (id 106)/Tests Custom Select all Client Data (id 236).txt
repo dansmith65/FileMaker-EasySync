@@ -1,0 +1,319 @@
+#
+# Store a query so it can be managed in one place and be called from many tests.
+#
+#
+Perform Script [ “Tests: Custom: Select all Client_Serveys” ]
+If [ Get ( ScriptResult ) = "?" ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+End If
+Set Variable [ $surveys; Value:Get ( ScriptResult ) ]
+#
+#
+Perform Script [ “Tests: Custom: Select all Client_Servey_Hobbies” ]
+If [ Get ( ScriptResult ) = "?" ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+End If
+Set Variable [ $survey_hobbies; Value:Get ( ScriptResult ) ]
+#
+#
+Perform Script [ “Tests: Custom: Select all Client_Servey_Documents” ]
+If [ Get ( ScriptResult ) = "?" ]
+Exit Script [ Result: Get ( ScriptResult ) ]
+End If
+Set Variable [ $survey_documents; Value:Get ( ScriptResult ) ]
+#
+#
+Set Variable [ $result; Value:"Surveys"& "¶========================================================================¶"& $surveys& "¶========================================================================¶"& "¶¶¶"& "Survey_Hobbies"& "¶========================================================================¶"& $survey_hobbies& "¶========================================================================¶"& "¶¶¶"& "Survey_Documents"& "¶========================================================================¶"& $survey_documents& "¶========================================================================¶"& "¶¶¶" ]
+#
+Exit Script [ Result: $result ]
+#
+
+
+---
+Script:
+  includeInMenu: 'False'
+  runFullAccess: 'False'
+  id: '236'
+  name: 'Tests: Custom: Select all Client Data'
+  StepList:
+    Step:
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# Store a query so it can be managed in one place and be called from
+        many tests.'
+      Text: ' Store a query so it can be managed in one place and be called from many
+        tests.'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Tests: Custom: Select all Client_Serveys” ]'
+      Script:
+        id: '242'
+        name: 'Tests: Custom: Select all Client_Serveys'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( ScriptResult ) = "?" ]
+      Calculation: Get ( ScriptResult ) = "?"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) = "?"'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $surveys; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $surveys
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Tests: Custom: Select all Client_Servey_Hobbies”
+        ]'
+      Script:
+        id: '246'
+        name: 'Tests: Custom: Select all Client_Servey_Hobbies'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( ScriptResult ) = "?" ]
+      Calculation: Get ( ScriptResult ) = "?"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) = "?"'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $survey_hobbies; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $survey_hobbies
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: 'Perform Script [ “Tests: Custom: Select all Client_Servey_Documents”
+        ]'
+      Script:
+        id: '248'
+        name: 'Tests: Custom: Select all Client_Servey_Documents'
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ Get ( ScriptResult ) = "?" ]
+      Calculation: Get ( ScriptResult ) = "?"
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' ) = "?"'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: Get ( ScriptResult ) ]'
+      Calculation: Get ( ScriptResult )
+      DisplayCalculation:
+        Chunk:
+        - Get
+        - ' ( '
+        - ScriptResult
+        - ' )'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $survey_documents; Value:Get ( ScriptResult ) ]
+      Value:
+        Calculation: Get ( ScriptResult )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - ScriptResult
+          - ' )'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $survey_documents
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $result; Value:"Surveys"
+        & "¶========================================================================¶"
+        & $surveys
+        & "¶========================================================================¶"
+        & "¶¶¶"
+
+
+        & "Survey_Hobbies"
+        & "¶========================================================================¶"
+        & $survey_hobbies
+        & "¶========================================================================¶"
+        & "¶¶¶"
+
+
+        & "Survey_Documents"
+        & "¶========================================================================¶"
+        & $survey_documents
+        & "¶========================================================================¶"
+        & "¶¶¶" ]
+      Value:
+        Calculation: |-
+          "Surveys"
+          & "¶========================================================================¶"
+          & $surveys
+          & "¶========================================================================¶"
+          & "¶¶¶"
+
+
+          & "Survey_Hobbies"
+          & "¶========================================================================¶"
+          & $survey_hobbies
+          & "¶========================================================================¶"
+          & "¶¶¶"
+
+
+          & "Survey_Documents"
+          & "¶========================================================================¶"
+          & $survey_documents
+          & "¶========================================================================¶"
+          & "¶¶¶"
+        DisplayCalculation:
+          Chunk: |-
+            "Surveys"
+            & "¶========================================================================¶"
+            & $surveys
+            & "¶========================================================================¶"
+            & "¶¶¶"
+
+
+            & "Survey_Hobbies"
+            & "¶========================================================================¶"
+            & $survey_hobbies
+            & "¶========================================================================¶"
+            & "¶¶¶"
+
+
+            & "Survey_Documents"
+            & "¶========================================================================¶"
+            & $survey_documents
+            & "¶========================================================================¶"
+            & "¶¶¶"
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '103'
+      name: Exit Script
+      StepText: 'Exit Script [ Result: $result ]'
+      Calculation: $result
+      DisplayCalculation:
+        Chunk: $result
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
