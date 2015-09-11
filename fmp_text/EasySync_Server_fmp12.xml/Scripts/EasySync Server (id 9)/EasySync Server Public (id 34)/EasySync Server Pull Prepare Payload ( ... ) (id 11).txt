@@ -155,7 +155,7 @@ End Loop
 #Add this table's fields to the SELECT statement.
 #Note: This is the SELECT statement that is used to select the data for the payload.
 #You can add your own custom business rules here to determine what data is sent to the user, by looking at things like the table name being worked on, the user / device that has requested the data, etc. Dynamically add your conditions to the WHERE clause.
-Set Variable [ $dyn_sql; Value:"SELECT " & $dyn_sql & ", '" & $$record_delimiter & "'" &" FROM \\\"" & $sync_table & "\\\"" & " WHERE " &// Exclude records flagged for sync exclusion."( COALESCE ( ES_Exclude, 0 ) = 0 ) " &// If the client is merging new/updated data with data already on the device...// Only include records that have been added/updated since the last pull...// And only include data that they did not just push (i.e. no "round tripping!")...If ( ( $$sync_method = "Merge" ) and ( $last_pull_utc > 0 );  "AND ( ES_UTC_Time > " & $last_pull_utc & " ) " &  "AND ( COALESCE ( ES_Device_ID, 'X' ) <> '" & $client_persistent_id & "') "; "" ) ]
+Set Variable [ $dyn_sql; Value:"SELECT " & $dyn_sql & ", '" & $$record_delimiter & "'" &" FROM \\\"" & $sync_table & "\\\"" & " WHERE " &// Exclude records flagged for sync exclusion."( COALESCE ( ES_Exclude, 0 ) = 0 ) " &// If the client is merging new/updated data with data already on the device...// Only include records that have been added/updated since the last pull...// And only include data that they did not just push (i.e. no "round tripping!")...If ( ( $$sync_method = "Merge" ) and ( $last_pull_utc > 0 ) ;	"AND ( ES_UTC_Time > " & $last_pull_utc & " ) "	& "AND ( COALESCE ( ES_Device_ID, 'X' ) <> '"		& $client_persistent_id	& "') "	;	"") ]
 If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
 Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "SELECT Statement for " & $sync_table & ": " & $dyn_sql] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
 End If
@@ -1823,9 +1823,9 @@ Script:
         with data already on the device...\n// Only include records that have been
         added/updated since the last pull...\n// And only include data that they did
         not just push (i.e. no \"round tripping!\")...\nIf ( ( $$sync_method = \"Merge\"
-        ) and ( $last_pull_utc > 0 );  \"AND ( ES_UTC_Time > \" & $last_pull_utc &
-        \" ) \" &  \"AND ( COALESCE ( ES_Device_ID, 'X' ) <> '\" & $client_persistent_id
-        & \"') \"; \"\" ) ]"
+        ) and ( $last_pull_utc > 0 ) ;\n\t\"AND ( ES_UTC_Time > \" & $last_pull_utc
+        & \" ) \"\n\t& \"AND ( COALESCE ( ES_Device_ID, 'X' ) <> '\"\n\t\t& $client_persistent_id\n\t&
+        \"') \"\n\t;\n\t\"\"\n) ]"
       Value:
         Calculation: "\"SELECT \" & \n$dyn_sql & \", '\" & $$record_delimiter & \"'\"
           &\n\" FROM \\\\\\\"\" & $sync_table & \"\\\\\\\"\" & \n\" WHERE \" &\n\n//
@@ -1834,9 +1834,9 @@ Script:
           already on the device...\n// Only include records that have been added/updated
           since the last pull...\n// And only include data that they did not just
           push (i.e. no \"round tripping!\")...\nIf ( ( $$sync_method = \"Merge\"
-          ) and ( $last_pull_utc > 0 );  \"AND ( ES_UTC_Time > \" & $last_pull_utc
-          & \" ) \" &  \"AND ( COALESCE ( ES_Device_ID, 'X' ) <> '\" & $client_persistent_id
-          & \"') \"; \"\" )"
+          ) and ( $last_pull_utc > 0 ) ;\n\t\"AND ( ES_UTC_Time > \" & $last_pull_utc
+          & \" ) \"\n\t& \"AND ( COALESCE ( ES_Device_ID, 'X' ) <> '\"\n\t\t& $client_persistent_id\n\t&
+          \"') \"\n\t;\n\t\"\"\n)"
         DisplayCalculation:
           Chunk:
           - "\"SELECT \" & \n$dyn_sql & \", '\" & $$record_delimiter & \"'\" &\n\"
@@ -1855,9 +1855,9 @@ Script:
           - If
           - ' ( ( $$sync_method = "Merge" ) '
           - and
-          - ' ( $last_pull_utc > 0 );  "AND ( ES_UTC_Time > " & $last_pull_utc & "
-            ) " &  "AND ( COALESCE ( ES_Device_ID, ''X'' ) <> ''" & $client_persistent_id
-            & "'') "; "" )'
+          - " ( $last_pull_utc > 0 ) ;\n\t\"AND ( ES_UTC_Time > \" & $last_pull_utc
+            & \" ) \"\n\t& \"AND ( COALESCE ( ES_Device_ID, 'X' ) <> '\"\n\t\t& $client_persistent_id\n\t&
+            \"') \"\n\t;\n\t\"\"\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
