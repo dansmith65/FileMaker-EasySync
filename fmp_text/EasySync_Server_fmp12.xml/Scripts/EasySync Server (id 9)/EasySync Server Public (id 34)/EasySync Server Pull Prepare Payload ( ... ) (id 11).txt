@@ -90,7 +90,9 @@ Set Variable [ $table_info; Value:"" ]
 #Initalize records portion of the payload.
 Set Variable [ $records; Value:"" ]
 #
-#Loop over the tables to be synced...
+#================================================================================
+Set Variable [ $~script.section; Value:"Loop over the tables to be synced" ]
+#================================================================================
 Set Variable [ $i; Value:1 ]
 Loop
 #
@@ -107,48 +109,39 @@ End If
 #
 #
 #
-#Reformat the field names so that repetitions are considered.
+#================================================================================
+Set Variable [ $~script.section[2]; Value:"PROCESS FIELDS" ]
+Set Variable [ $~script.section.start[2]; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+Set Variable [ $~script.section.subtract.runtime[2]; Value:/* clear this value so it can be appended to by sub-sections, then reported at the end of this section */"" ]
+#================================================================================
 Set Variable [ $fields; Value:$sync_table & "</field>" ]
-Set Variable [ $f; Value:1 ]
+Set Variable [ $dyn_sql; Value:"'" & $sync_table & "'" ]
+Set Variable [ $count[2]; Value:ValueCount ( $sync_fields ) ]
 Loop
-Set Variable [ $field_name; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 1 )) ]
-Set Variable [ $field_reps; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 2 )) ]
-Set Variable [ $r; Value:1 ]
-Loop
-Set Variable [ $fields; Value:$fields & $field_name & "[" & $r & "]</field>" ]
-Set Variable [ $r; Value:$r + 1 ]
-Exit Loop If [ $r > GetAsNumber ( $field_reps )// v1.2: $r > $field_reps ]
-End Loop
-Set Variable [ $f; Value:$f + 1 ]
-Exit Loop If [ $f > ValueCount ( $sync_fields ) ]
-End Loop
-If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
-Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Reformatted Fields in " & $sync_table & ": " & $fields] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
-End If
+Exit Loop If [ // For $i[2] from 1 to $count[2]Let (	$i[2] = $i[2] + 1 ;	If ( $i[2] > $count[2] ;		Let ( $i[2] = "" ; True )	)) ]
+Set Variable [ $!; Value:/* set $field_name and $field_reps */Let ( [	field_combo_raw = GetValue ( $sync_fields ; $i[2] ); // The value pulled from the query. Example: Some_Field|5	field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) ; // Convert the value to a value list.	$field_name = GetValue ( field_combo_list; 1 ) ;	$field_reps = GetValue ( field_combo_list; 2 )] ;	"") ]
 #
+Set Variable [ $count[3]; Value:GetAsNumber ( $field_reps ) ]
+Loop
+Exit Loop If [ // For $i[3] from 1 to $count[3]Let (	$i[3] = $i[3] + 1 ;	If ( $i[3] > $count[3] ;		Let ( $i[3] = "" ; True )	)) ]
+#
+Set Variable [ $fields; Value:$fields& $field_name& If ( $field_reps > 1 ; "[" & $i[3] & "]" )&"</field>" ]
+Set Variable [ $dyn_sql; Value:$dyn_sql& ", '' || \\\""& $field_name& "\\\""& If ( $field_reps > 1 ; "[" & $i[3] & "]" ) ]
+#
+End Loop
+#
+End Loop
 #Add this table's info to the running "table_info."
 Set Variable [ $table_info; Value:If ( not IsEmpty ( $table_info ); $table_info & ¶; "" ) & $fields & "</table>" ]
 #
-#
-#
-#Loop over the fields in the table to create the fields portion of what will be the SELECT statement...
-Set Variable [ $dyn_sql; Value:"'" & $sync_table & "'" ]
-Set Variable [ $j; Value:1 ]
-Loop
-Set Variable [ $field_name; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 1 )) ]
-Set Variable [ $field_reps; Value:Let ( [field_combo_raw = GetValue ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5field_combo_list = Substitute ( field_combo_raw; "|"; ¶ ) // Convert the value to a value list.];GetValue ( field_combo_list; 2 )) ]
-#
-#Loop over the reps...
-Set Variable [ $r; Value:1 ]
-Loop
-Set Variable [ $dyn_sql; Value:$dyn_sql & ", '' || \\\"" & $field_name & "\\\"" & "[" & $r & "]" ]
-Set Variable [ $r; Value:$r + 1 ]
-Exit Loop If [ $r > GetAsNumber ( $field_reps )// v1.2: $r > $field_reps ]
-End Loop
-#
-Set Variable [ $j; Value:$j + 1 ]
-Exit Loop If [ $j > ValueCount ( $sync_fields ) ]
-End Loop
+#========================================
+If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
+Set Variable [ $~script.section.subtract.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
+Set Variable [ $~script.section.runtime[2]; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start[2] ) / 1000-$~script.section.subtract.runtime[2] ]
+Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section[2] & " end, runtime: " & $~script.section.runtime[2] & ", " & $sync_table & "¶" & $fields] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section[2] = " & Quote ( $~script.section[2] ) & " ;¶"	& "$~script.section.runtime[2] = " & $~script.section.runtime[2] & " ;¶"	& "$~script.section.subtract.runtime[2] = " & Quote ( $~script.section.subtract.runtime[2] ) & " ;¶"		& "$i = " & $i & " ;¶"	& "$dyn_sql = " & Quote ( $dyn_sql ) & " ;¶"	& "$fields = " & Quote ( $fields ) & " ;¶") ]
+Set Variable [ $~script.section.subtract.runtime; Value:$~script.section.subtract.runtime[1]+$~script.section.subtract.runtime[2]+( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.subtract.start[1] ) / 1000 ]
+End If
+#========================================
 #
 #
 #
@@ -1085,8 +1078,27 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Loop over the tables to be synced...'
-      Text: Loop over the tables to be synced...
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"Loop over the tables to be
+        synced" ]
+      Value:
+        Calculation: '"Loop over the tables to be synced"'
+        DisplayCalculation:
+          Chunk: '"Loop over the tables to be synced"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -1259,8 +1271,66 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#Reformat the field names so that repetitions are considered.'
-      Text: Reformat the field names so that repetitions are considered.
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section[2]; Value:"PROCESS FIELDS" ]
+      Value:
+        Calculation: '"PROCESS FIELDS"'
+        DisplayCalculation:
+          Chunk: '"PROCESS FIELDS"'
+      Repetition:
+        Calculation: '2'
+        DisplayCalculation:
+          Chunk: '2'
+      Name: $~script.section
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section.start[2]; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
+      Value:
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
+        DisplayCalculation:
+          Chunk:
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
+      Repetition:
+        Calculation: '2'
+        DisplayCalculation:
+          Chunk: '2'
+      Name: $~script.section.start
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: |-
+        Set Variable [ $~script.section.subtract.runtime[2]; Value:/* clear this value so it can be appended to by sub-sections, then reported at the end of this section */
+
+        "" ]
+      Value:
+        Calculation: |-
+          /* clear this value so it can be appended to by sub-sections, then reported at the end of this section */
+
+          ""
+        DisplayCalculation:
+          Chunk: |-
+            /* clear this value so it can be appended to by sub-sections, then reported at the end of this section */
+
+            ""
+      Repetition:
+        Calculation: '2'
+        DisplayCalculation:
+          Chunk: '2'
+      Name: $~script.section.subtract.runtime
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -1277,118 +1347,165 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $f; Value:1 ]
+      StepText: Set Variable [ $dyn_sql; Value:"'" & $sync_table & "'" ]
       Value:
-        Calculation: '1'
+        Calculation: '"''" & $sync_table & "''"'
         DisplayCalculation:
-          Chunk: '1'
+          Chunk: '"''" & $sync_table & "''"'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $f
+      Name: $dyn_sql
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $count[2]; Value:ValueCount ( $sync_fields ) ]
+      Value:
+        Calculation: ValueCount ( $sync_fields )
+        DisplayCalculation:
+          Chunk:
+          - ValueCount
+          - ' ( $sync_fields )'
+      Repetition:
+        Calculation: '2'
+        DisplayCalculation:
+          Chunk: '2'
+      Name: $count
     - enable: 'True'
       id: '71'
       name: Loop
       StepText: Loop
     - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: "Set Variable [ $field_name; Value:Let ( \n[\nfield_combo_raw = GetValue
-        ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-        list.\n];\nGetValue ( field_combo_list; 1 )\n) ]"
-      Value:
-        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $f );
-          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-          list.\n];\nGetValue ( field_combo_list; 1 )\n)"
-        DisplayCalculation:
-          Chunk:
-          - Let
-          - " ( \n[\nfield_combo_raw = "
-          - GetValue
-          - ' ( $sync_fields ; $f ); '
-          - |
-            // The value pulled from the query. Example: Some_Field|5
-          - 'field_combo_list = '
-          - Substitute
-          - ' ( field_combo_raw; "|"; ¶ ) '
-          - |
-            // Convert the value to a value list.
-          - |
-            ];
-          - GetValue
-          - |2-
-             ( field_combo_list; 1 )
-            )
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $field_name
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ // For $i[2] from 1 to $count[2]\nLet (\n\t$i[2] =
+        $i[2] + 1 ;\n\tIf ( $i[2] > $count[2] ;\n\t\tLet ( $i[2] = \"\" ; True )\n\t)\n)
+        ]"
+      Calculation: "// For $i[2] from 1 to $count[2]\nLet (\n\t$i[2] = $i[2] + 1 ;\n\tIf
+        ( $i[2] > $count[2] ;\n\t\tLet ( $i[2] = \"\" ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i[2] from 1 to $count[2]
+        - Let
+        - " (\n\t$i[2] = $i[2] + 1 ;\n\t"
+        - If
+        - " ( $i[2] > $count[2] ;\n\t\t"
+        - Let
+        - ' ( $i[2] = "" ; '
+        - 'True'
+        - " )\n\t)\n)"
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $field_reps; Value:Let ( \n[\nfield_combo_raw = GetValue
-        ( $sync_fields ; $f ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-        list.\n];\nGetValue ( field_combo_list; 2 )\n) ]"
+      StepText: "Set Variable [ $!; Value:/* set $field_name and $field_reps */\n\nLet
+        ( [\n\tfield_combo_raw = GetValue ( $sync_fields ; $i[2] ); // The value pulled
+        from the query. Example: Some_Field|5\n\tfield_combo_list = Substitute ( field_combo_raw;
+        \"|\"; ¶ ) ; // Convert the value to a value list.\n\t$field_name = GetValue
+        ( field_combo_list; 1 ) ;\n\t$field_reps = GetValue ( field_combo_list; 2
+        )\n] ;\n\t\"\"\n) ]"
       Value:
-        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $f );
-          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-          list.\n];\nGetValue ( field_combo_list; 2 )\n)"
+        Calculation: "/* set $field_name and $field_reps */\n\nLet ( [\n\tfield_combo_raw
+          = GetValue ( $sync_fields ; $i[2] ); // The value pulled from the query.
+          Example: Some_Field|5\n\tfield_combo_list = Substitute ( field_combo_raw;
+          \"|\"; ¶ ) ; // Convert the value to a value list.\n\t$field_name = GetValue
+          ( field_combo_list; 1 ) ;\n\t$field_reps = GetValue ( field_combo_list;
+          2 )\n] ;\n\t\"\"\n)"
         DisplayCalculation:
           Chunk:
+          - |+
+            /* set $field_name and $field_reps */
+
           - Let
-          - " ( \n[\nfield_combo_raw = "
+          - " ( [\n\tfield_combo_raw = "
           - GetValue
-          - ' ( $sync_fields ; $f ); '
+          - ' ( $sync_fields ; $i[2] ); '
           - |
             // The value pulled from the query. Example: Some_Field|5
-          - 'field_combo_list = '
+          - "\tfield_combo_list = "
           - Substitute
-          - ' ( field_combo_raw; "|"; ¶ ) '
+          - ' ( field_combo_raw; "|"; ¶ ) ; '
           - |
             // Convert the value to a value list.
-          - |
-            ];
+          - "\t$field_name = "
           - GetValue
-          - |2-
-             ( field_combo_list; 2 )
-            )
+          - " ( field_combo_list; 1 ) ;\n\t$field_reps = "
+          - GetValue
+          - " ( field_combo_list; 2 )\n] ;\n\t\"\"\n)"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $field_reps
+      Name: $!
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $r; Value:1 ]
+      StepText: Set Variable [ $count[3]; Value:GetAsNumber ( $field_reps ) ]
       Value:
-        Calculation: '1'
+        Calculation: GetAsNumber ( $field_reps )
         DisplayCalculation:
-          Chunk: '1'
+          Chunk:
+          - GetAsNumber
+          - ' ( $field_reps )'
       Repetition:
-        Calculation: '1'
+        Calculation: '3'
         DisplayCalculation:
-          Chunk: '1'
-      Name: $r
+          Chunk: '3'
+      Name: $count
     - enable: 'True'
       id: '71'
       name: Loop
       StepText: Loop
     - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ // For $i[3] from 1 to $count[3]\nLet (\n\t$i[3] =
+        $i[3] + 1 ;\n\tIf ( $i[3] > $count[3] ;\n\t\tLet ( $i[3] = \"\" ; True )\n\t)\n)
+        ]"
+      Calculation: "// For $i[3] from 1 to $count[3]\nLet (\n\t$i[3] = $i[3] + 1 ;\n\tIf
+        ( $i[3] > $count[3] ;\n\t\tLet ( $i[3] = \"\" ; True )\n\t)\n)"
+      DisplayCalculation:
+        Chunk:
+        - |
+          // For $i[3] from 1 to $count[3]
+        - Let
+        - " (\n\t$i[3] = $i[3] + 1 ;\n\t"
+        - If
+        - " ( $i[3] > $count[3] ;\n\t\t"
+        - Let
+        - ' ( $i[3] = "" ; '
+        - 'True'
+        - " )\n\t)\n)"
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $fields; Value:$fields & $field_name & "[" & $r & "]</field>"
-        ]
+      StepText: |-
+        Set Variable [ $fields; Value:$fields
+        & $field_name
+        & If ( $field_reps > 1 ; "[" & $i[3] & "]" )
+        &"</field>" ]
       Value:
-        Calculation: $fields & $field_name & "[" & $r & "]</field>"
+        Calculation: |-
+          $fields
+          & $field_name
+          & If ( $field_reps > 1 ; "[" & $i[3] & "]" )
+          &"</field>"
         DisplayCalculation:
-          Chunk: $fields & $field_name & "[" & $r & "]</field>"
+          Chunk:
+          - "$fields\n& $field_name\n& "
+          - If
+          - |2-
+             ( $field_reps > 1 ; "[" & $i[3] & "]" )
+            &"</field>"
       Repetition:
         Calculation: '1'
         DisplayCalculation:
@@ -1397,131 +1514,45 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $r; Value:$r + 1 ]
-      Value:
-        Calculation: $r + 1
-        DisplayCalculation:
-          Chunk: $r + 1
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $r
-    - enable: 'True'
-      id: '72'
-      name: Exit Loop If
       StepText: |-
-        Exit Loop If [ $r > GetAsNumber ( $field_reps )
-
-        // v1.2: $r > $field_reps ]
-      Calculation: |-
-        $r > GetAsNumber ( $field_reps )
-
-        // v1.2: $r > $field_reps
-      DisplayCalculation:
-        Chunk:
-        - '$r > '
-        - GetAsNumber
-        - |2+
-           ( $field_reps )
-
-        - '// v1.2: $r > $field_reps'
-    - enable: 'True'
-      id: '73'
-      name: End Loop
-      StepText: End Loop
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $f; Value:$f + 1 ]
+        Set Variable [ $dyn_sql; Value:$dyn_sql
+        & ", '' || \\\""
+        & $field_name
+        & "\\\""
+        & If ( $field_reps > 1 ; "[" & $i[3] & "]" ) ]
       Value:
-        Calculation: $f + 1
+        Calculation: |-
+          $dyn_sql
+          & ", '' || \\\""
+          & $field_name
+          & "\\\""
+          & If ( $field_reps > 1 ; "[" & $i[3] & "]" )
         DisplayCalculation:
-          Chunk: $f + 1
+          Chunk:
+          - "$dyn_sql\n& \", '' || \\\\\\\"\"\n& $field_name\n& \"\\\\\\\"\"\n& "
+          - If
+          - ' ( $field_reps > 1 ; "[" & $i[3] & "]" )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $f
-    - enable: 'True'
-      id: '72'
-      name: Exit Loop If
-      StepText: Exit Loop If [ $f > ValueCount ( $sync_fields ) ]
-      Calculation: $f > ValueCount ( $sync_fields )
-      DisplayCalculation:
-        Chunk:
-        - '$f > '
-        - ValueCount
-        - ' ( $sync_fields )'
-    - enable: 'True'
-      id: '73'
-      name: End Loop
-      StepText: End Loop
-    - enable: 'True'
-      id: '68'
-      name: If
-      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
-      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
-      DisplayCalculation:
-        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
-    - enable: 'True'
-      id: '1'
-      name: Perform Script
-      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
-        Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields in \" & $sync_table
-        & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
-        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
-        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
-        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
-        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n) ]"
-      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields
-        in \" & $sync_table & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel
-        & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
-        = \" & Quote ( Get ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \"
-        & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
-        ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
-        ) ) & \" ) ;¶\"\n)"
-      DisplayCalculation:
-        Chunk:
-        - Let
-        - " ( [\n\t~logLevel = 4 ;\n\t~message = \"Reformatted Fields in \" & $sync_table
-          & \": \" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
-          = \" & "
-        - Quote
-        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptName
-        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
-        - Quote
-        - ' ( '
-        - Get
-        - ' ( '
-        - ScriptParameter
-        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
-        - Quote
-        - ' ( '
-        - GetAsTimestamp
-        - ' ( '
-        - Get
-        - ' ( '
-        - CurrentTimeUTCMilliseconds
-        - |2-
-           ) / 1000 ) ) & " ) ;¶"
-          )
-      Script:
-        id: '36'
-        name: 'EasySync Server: Config: Create Log Entry'
-    - enable: 'True'
-      id: '70'
-      name: End If
-      StepText: End If
+      Name: $dyn_sql
     - enable: 'True'
       id: '89'
       name: Comment
       StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '73'
+      name: End Loop
+      StepText: End Loop
     - enable: 'True'
       id: '89'
       name: Comment
@@ -1556,228 +1587,173 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#'
+      StepText: '#========================================'
+      Text: ========================================
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Loop over the fields in the table to create the fields portion of
-        what will be the SELECT statement...'
-      Text: Loop over the fields in the table to create the fields portion of what
-        will be the SELECT statement...
+      id: '68'
+      name: If
+      StepText: If [ $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4 ]
+      Calculation: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
+      DisplayCalculation:
+        Chunk: $$EASYSYNC.SERVER.LOGLEVELTOWRITE ≥ 4
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $dyn_sql; Value:"'" & $sync_table & "'" ]
+      StepText: Set Variable [ $~script.section.subtract.start; Value:Get ( CurrentTimeUTCMilliseconds
+        ) ]
       Value:
-        Calculation: '"''" & $sync_table & "''"'
-        DisplayCalculation:
-          Chunk: '"''" & $sync_table & "''"'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $dyn_sql
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $j; Value:1 ]
-      Value:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $j
-    - enable: 'True'
-      id: '71'
-      name: Loop
-      StepText: Loop
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: "Set Variable [ $field_name; Value:Let ( \n[\nfield_combo_raw = GetValue
-        ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-        list.\n];\nGetValue ( field_combo_list; 1 )\n) ]"
-      Value:
-        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $j );
-          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-          list.\n];\nGetValue ( field_combo_list; 1 )\n)"
+        Calculation: Get ( CurrentTimeUTCMilliseconds )
         DisplayCalculation:
           Chunk:
-          - Let
-          - " ( \n[\nfield_combo_raw = "
-          - GetValue
-          - ' ( $sync_fields ; $j ); '
-          - |
-            // The value pulled from the query. Example: Some_Field|5
-          - 'field_combo_list = '
-          - Substitute
-          - ' ( field_combo_raw; "|"; ¶ ) '
-          - |
-            // Convert the value to a value list.
-          - |
-            ];
-          - GetValue
-          - |2-
-             ( field_combo_list; 1 )
-            )
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' )'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $field_name
+      Name: $~script.section.subtract.start
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: "Set Variable [ $field_reps; Value:Let ( \n[\nfield_combo_raw = GetValue
-        ( $sync_fields ; $j ); // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-        = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-        list.\n];\nGetValue ( field_combo_list; 2 )\n) ]"
-      Value:
-        Calculation: "Let ( \n[\nfield_combo_raw = GetValue ( $sync_fields ; $j );
-          // The value pulled from the query. Example: Some_Field|5\nfield_combo_list
-          = Substitute ( field_combo_raw; \"|\"; ¶ ) // Convert the value to a value
-          list.\n];\nGetValue ( field_combo_list; 2 )\n)"
-        DisplayCalculation:
-          Chunk:
-          - Let
-          - " ( \n[\nfield_combo_raw = "
-          - GetValue
-          - ' ( $sync_fields ; $j ); '
-          - |
-            // The value pulled from the query. Example: Some_Field|5
-          - 'field_combo_list = '
-          - Substitute
-          - ' ( field_combo_raw; "|"; ¶ ) '
-          - |
-            // Convert the value to a value list.
-          - |
-            ];
-          - GetValue
-          - |2-
-             ( field_combo_list; 2 )
-            )
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $field_reps
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Loop over the reps...'
-      Text: Loop over the reps...
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $r; Value:1 ]
-      Value:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $r
-    - enable: 'True'
-      id: '71'
-      name: Loop
-      StepText: Loop
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $dyn_sql; Value:$dyn_sql & ", '' || \\\"" & $field_name
-        & "\\\"" & "[" & $r & "]" ]
-      Value:
-        Calculation: $dyn_sql & ", '' || \\\"" & $field_name & "\\\"" & "[" & $r &
-          "]"
-        DisplayCalculation:
-          Chunk: $dyn_sql & ", '' || \\\"" & $field_name & "\\\"" & "[" & $r & "]"
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $dyn_sql
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $r; Value:$r + 1 ]
-      Value:
-        Calculation: $r + 1
-        DisplayCalculation:
-          Chunk: $r + 1
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $r
-    - enable: 'True'
-      id: '72'
-      name: Exit Loop If
       StepText: |-
-        Exit Loop If [ $r > GetAsNumber ( $field_reps )
-
-        // v1.2: $r > $field_reps ]
-      Calculation: |-
-        $r > GetAsNumber ( $field_reps )
-
-        // v1.2: $r > $field_reps
+        Set Variable [ $~script.section.runtime[2]; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start[2] ) / 1000
+        -
+        $~script.section.subtract.runtime[2] ]
+      Value:
+        Calculation: |-
+          ( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start[2] ) / 1000
+          -
+          $~script.section.subtract.runtime[2]
+        DisplayCalculation:
+          Chunk:
+          - '( '
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - |2-
+             ) - $~script.section.start[2] ) / 1000
+            -
+            $~script.section.subtract.runtime[2]
+      Repetition:
+        Calculation: '2'
+        DisplayCalculation:
+          Chunk: '2'
+      Name: $~script.section.runtime
+    - enable: 'True'
+      id: '1'
+      name: Perform Script
+      StepText: "Perform Script [ “EasySync Server: Config: Create Log Entry”; Parameter:
+        Let ( [\n\t~logLevel = 4 ;\n\t~message = $~script.section[2] & \" end, runtime:
+        \" & $~script.section.runtime[2] & \", \" & $sync_table & \"¶\" & $fields\n]
+        ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote
+        ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName
+        ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\t\n\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t& \"$~script.section[2] = \"
+        & Quote ( $~script.section[2] ) & \" ;¶\"\n\t& \"$~script.section.runtime[2]
+        = \" & $~script.section.runtime[2] & \" ;¶\"\n\t& \"$~script.section.subtract.runtime[2]
+        = \" & Quote ( $~script.section.subtract.runtime[2] ) & \" ;¶\"\n\t\n\t& \"$i
+        = \" & $i & \" ;¶\"\n\t& \"$dyn_sql = \" & Quote ( $dyn_sql ) & \" ;¶\"\n\t&
+        \"$fields = \" & Quote ( $fields ) & \" ;¶\"\n) ]"
+      Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = $~script.section[2] &
+        \" end, runtime: \" & $~script.section.runtime[2] & \", \" & $sync_table &
+        \"¶\" & $fields\n] ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage
+        = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & Quote ( Get
+        ( ScriptName ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter
+        ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & Quote ( GetAsTimestamp
+        ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & \" ) ;¶\"\n\t\n\t& \"$~script.section
+        = \" & Quote ( $~script.section ) & \" ;¶\"\n\t& \"$~script.section[2] = \"
+        & Quote ( $~script.section[2] ) & \" ;¶\"\n\t& \"$~script.section.runtime[2]
+        = \" & $~script.section.runtime[2] & \" ;¶\"\n\t& \"$~script.section.subtract.runtime[2]
+        = \" & Quote ( $~script.section.subtract.runtime[2] ) & \" ;¶\"\n\t\n\t& \"$i
+        = \" & $i & \" ;¶\"\n\t& \"$dyn_sql = \" & Quote ( $dyn_sql ) & \" ;¶\"\n\t&
+        \"$fields = \" & Quote ( $fields ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
-        - '$r > '
-        - GetAsNumber
-        - |2+
-           ( $field_reps )
-
-        - '// v1.2: $r > $field_reps'
-    - enable: 'True'
-      id: '73'
-      name: End Loop
-      StepText: End Loop
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+        - Let
+        - " ( [\n\t~logLevel = 4 ;\n\t~message = $~script.section[2] & \" end, runtime:
+          \" & $~script.section.runtime[2] & \", \" & $sync_table & \"¶\" & $fields\n]
+          ;\n\t\"$LogLevel = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & "
+        - Quote
+        - " ( ~message ) & \" ;¶\"\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp ( \" & "
+        - Quote
+        - ' ( '
+        - GetAsTimestamp
+        - ' ( '
+        - Get
+        - ' ( '
+        - CurrentTimeUTCMilliseconds
+        - " ) / 1000 ) ) & \" ) ;¶\"\n\t\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n\t& \"$~script.section[2] = \" & "
+        - Quote
+        - " ( $~script.section[2] ) & \" ;¶\"\n\t& \"$~script.section.runtime[2] =
+          \" & $~script.section.runtime[2] & \" ;¶\"\n\t& \"$~script.section.subtract.runtime[2]
+          = \" & "
+        - Quote
+        - " ( $~script.section.subtract.runtime[2] ) & \" ;¶\"\n\t\n\t& \"$i = \"
+          & $i & \" ;¶\"\n\t& \"$dyn_sql = \" & "
+        - Quote
+        - " ( $dyn_sql ) & \" ;¶\"\n\t& \"$fields = \" & "
+        - Quote
+        - |2-
+           ( $fields ) & " ;¶"
+          )
+      Script:
+        id: '36'
+        name: 'EasySync Server: Config: Create Log Entry'
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: Set Variable [ $j; Value:$j + 1 ]
+      StepText: |-
+        Set Variable [ $~script.section.subtract.runtime; Value:$~script.section.subtract.runtime[1]
+        +
+        $~script.section.subtract.runtime[2]
+        +
+        ( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.subtract.start[1] ) / 1000 ]
       Value:
-        Calculation: $j + 1
+        Calculation: |-
+          $~script.section.subtract.runtime[1]
+          +
+          $~script.section.subtract.runtime[2]
+          +
+          ( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.subtract.start[1] ) / 1000
         DisplayCalculation:
-          Chunk: $j + 1
+          Chunk:
+          - "$~script.section.subtract.runtime[1]\n+\n$~script.section.subtract.runtime[2]\n+\n( "
+          - Get
+          - ' ( '
+          - CurrentTimeUTCMilliseconds
+          - ' ) - $~script.section.subtract.start[1] ) / 1000'
       Repetition:
         Calculation: '1'
         DisplayCalculation:
           Chunk: '1'
-      Name: $j
+      Name: $~script.section.subtract.runtime
     - enable: 'True'
-      id: '72'
-      name: Exit Loop If
-      StepText: Exit Loop If [ $j > ValueCount ( $sync_fields ) ]
-      Calculation: $j > ValueCount ( $sync_fields )
-      DisplayCalculation:
-        Chunk:
-        - '$j > '
-        - ValueCount
-        - ' ( $sync_fields )'
+      id: '70'
+      name: End If
+      StepText: End If
     - enable: 'True'
-      id: '73'
-      name: End Loop
-      StepText: End Loop
+      id: '89'
+      name: Comment
+      StepText: '#========================================'
+      Text: ========================================
     - enable: 'True'
       id: '89'
       name: Comment

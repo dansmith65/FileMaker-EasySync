@@ -119,7 +119,7 @@ Perform Script [ “EasySync Client: Private: Close Server File” ]
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE  ≥ 4 ]
 Set Variable [ $~script.subtract.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Set Variable [ $~script.section.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start ) / 1000-$~script.section.subtract.runtime ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section & " end, runtime: " & $~script.section.runtime] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section.runtime = " & $~script.section.runtime & " ;¶"	& "$~script.section.subtract.runtime = " & GetAsNumber ( $~script.section.subtract.runtime ) & " ;¶"	& "$payload = " & Quote ( $payload ) & " ;¶") ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section & " end, runtime: " & $~script.section.runtime] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$payload = " & Quote ( $payload ) & " ;¶") ]
 Set Variable [ $~script.subtract.runtime; Value:$~script.subtract.runtime+$~script.section.subtract.runtime+( Get ( CurrentTimeUTCMilliseconds ) - $~script.subtract.start ) / 1000 ]
 End If
 #========================================
@@ -163,6 +163,13 @@ Set Variable [ $~script.section.runtime; Value:( Get ( CurrentTimeUTCMillisecond
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section & " end, runtime: " & $~script.section.runtime] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section.runtime = " & $~script.section.runtime & " ;¶"	& "$settings = " & Quote ( $settings ) & " ;¶") ]
 End If
 #========================================
+#
+#
+#
+#================================================================================
+Set Variable [ $~script.section; Value:"GET RECORD COUNT" ]
+#================================================================================
+Set Variable [ $record_count; Value:PatternCount ( $payload; $record_delimiter ) - 1 ]
 #
 #
 #
@@ -229,12 +236,17 @@ Set Variable [ $~script.section; Value:"EXTRACT TABLE AND FIELD INFO FROM PAYLOA
 Set Variable [ $~script.section.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Set Variable [ $~script.section.subtract.runtime; Value:/* clear this value so it can be appended to by sub-sections, then reported at the end of this section */"" ]
 #================================================================================
+If [ $record_count > 0 ]
 Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Processing payload..." ]
 #
 #Get the table info.
 Set Variable [ $tables; Value:Let ( [beginning = Position ( $payload ; "<tables>¶" ; 1 ; 1 ) + 9;end = Position ( $payload ; "¶</tables>" ; 1 ; 1 );tables = Middle ( $payload ; beginning ; end - beginning );tables = Trim ( tables );tables = Substitute ( tables ; "<table>" ; "" );tables = Substitute ( tables ; "</table>" ; "" )];tables) ]
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE  ≥ 4 ]
 Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = "Payload Tables: " & $tables] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶") ]
+End If
+If [ IsEmpty ( $tables ) ]
+# TODO: determine what error code to use here
+Exit Loop If [ Let ( [	theErrorCode = -1 ;	theErrorDescription = "Missing table information" ;	theErrorInfo = "" ;	theErrorType = $~script.errorType ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
 End If
 #
 #Create field name value lists for each table.
@@ -253,14 +265,12 @@ Set Variable [ $i; Value:$i + 1 ]
 Exit Loop If [ $i > ValueCount ( $tables ) ]
 End Loop
 #
-#Get the # of records in the payload.
-Set Variable [ $record_count; Value:PatternCount ( $payload; $record_delimiter ) - 1 ]
-#
+End If
 #========================================
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE  ≥ 4 ]
 Set Variable [ $~script.subtract.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Set Variable [ $~script.section.runtime; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start ) / 1000-$~script.section.subtract.runtime ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section & " end, runtime: " & $~script.section.runtime] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section.runtime = " & $~script.section.runtime & " ;¶"	& "$~script.section.subtract.runtime = " & GetAsNumber ( $~script.section.subtract.runtime ) & " ;¶"	& "$record_count = " & GetAsNumber ( $record_count ) & " ;¶"	& "$tables = " & Quote ( $tables ) & " ;¶") ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section & " end, runtime: " & $~script.section.runtime] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section.runtime = " & $~script.section.runtime & " ;¶"	& "$record_count = " & GetAsNumber ( $record_count ) & " ;¶"	& "$tables = " & Quote ( $tables ) & " ;¶") ]
 Set Variable [ $~script.subtract.runtime; Value:$~script.subtract.runtime+$~script.section.subtract.runtime+( Get ( CurrentTimeUTCMilliseconds ) - $~script.subtract.start ) / 1000 ]
 End If
 #========================================
@@ -275,7 +285,6 @@ Set Variable [ $~script.section; Value:"PROCESS PAYLOAD" ]
 Set Variable [ $~script.section.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Set Variable [ $~script.section.subtract.runtime; Value:/* clear this value so it can be appended to by sub-sections, then reported at the end of this section */"" ]
 #================================================================================
-#If there are no records to sync...
 If [ $record_count > 0 ]
 Perform Script [ “EasySync Client: Config: Show Message”; Parameter: "Processing " & $record_count & " records received from server..." ]
 #
@@ -301,16 +310,16 @@ End If
 Set Variable [ $~script.section[3]; Value:"EXTRACT RECORD DATA" ]
 Set Variable [ $~script.section.start[3]; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 #================================================================================
-Set Variable [ $record; Value:/* record, formatted as a return-delimited value list. */Let ( [	// Note: The "+1" in the "beginning calc" is to account for the default carriage return imposed by ExectueSQL.	beginning = If ( $previous_start > 0 ;		Position ( $payload ; $record_delimiter ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1 ;		Position ( $payload; "<records>¶"; 1; 1 ) + 10	) ;	end = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 ) ;	$previous_start = end ;	record = Middle ( $payload ; beginning ; end - beginning ) ;	// Encode CRLFs that might be found in Base64-encoded container data.	// This makes it easier to treat the fields as a return-delimited value list.	record = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ; "[[CRLF]]" ) ;	// Encode any remaining newline characters.	record = Substitute ( record ; ¶ ; "[[BR]]" ) ;	record = Substitute ( record ; $field_delimiter ; ¶ )] ;	record) ]
+Set Variable [ $record; Value:/* record, formatted as a return-delimited value list. */Let ( [	// Note: The "+1" in the "beginning calc" is to account for the default carriage return imposed by ExectueSQL.	beginning = If ( $previous_start > 0 ;		Position ( $payload ; $record_delimiter ; $previous_start ; 1 )			+ Length ( $record_delimiter ) + 1		;		Position ( $payload; "<records>¶"; 1; 1 ) + 10	) ;	end = Position ( $payload ; $record_delimiter ; 1 ; $i + 1 ) ;	$previous_start = end ;	record = Middle ( $payload ; beginning ; end - beginning ) ;	// Encode CRLFs that might be found in Base64-encoded container data.	// This makes it easier to treat the fields as a return-delimited value list.	record = Substitute ( record ; Char ( 13 ) & Char ( 10 ) ; "[[CRLF]]" ) ;	// Encode any remaining newline characters.	record = Substitute ( record ; ¶ ; "[[BR]]" ) ;	record = Substitute ( record ; $field_delimiter ; ¶ )] ;	record) ]
 Set Variable [ $table_name; Value:/* name of the table that is associated with this record. */GetValue ( $record ; 1 ) ]
 Set Variable [ $field_names; Value:/* names of the fields that are associated with this record. */Evaluate ( "$" & $table_name ) ]
-Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" function.// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/// Thanks Kevin!Let( [theList = $field_names;theValue = "ES_Record_UUID[1]";pLp = ¶ & theList & ¶ ;pVp = ¶ & theValue & ¶ ;thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;theSegment = Left ( pLp ; thePos ) ;theValPos = PatternCount ( theSegment ; ¶ )] ;GetValue ( $record ; theValPos )) ]
+Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" function.// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/// Thanks Kevin!Let( [	theList = $field_names;	theValue = "ES_Record_UUID";	pLp = ¶ & theList & ¶ ;	pVp = ¶ & theValue & ¶ ;	thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;	theSegment = Left ( pLp ; thePos ) ;	theValPos = PatternCount ( theSegment ; ¶ )] ;	GetValue ( $record ; theValPos )) ]
 #
 #========================================
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE  ≥ 5 ]
 Set Variable [ $~script.section.subtract.start[2]; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Set Variable [ $~script.section.runtime[3]; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start[3] ) / 1000 ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = $~script.section[3] & " end, runtime: " & $~script.section.runtime[3]] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section[2] = " & Quote ( $~script.section[2] ) & " ;¶"	& "$~script.section[3] = " & Quote ( $~script.section[3] ) & " ;¶"	& "$~script.section.runtime[3] = " & $~script.section.runtime[3] & " ;¶"		& "$i = " & $i & " ;¶"	& "$record = " & Quote ( $record ) & " ;¶"	& "$table_name = " & Quote ( $table_name ) & " ;¶"	& "$field_names = " & Quote ( $field_names ) & " ;¶"	& "$ES_Record_UUID = " & Quote ( $ES_Record_UUID ) & " ;¶") ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 5 ;	~message = $~script.section[3] & " end, runtime: " & $~script.section.runtime[3]] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section[2] = " & Quote ( $~script.section[2] ) & " ;¶"	& "$~script.section[3] = " & Quote ( $~script.section[3] ) & " ;¶"	& "$~script.section.runtime[3] = " & $~script.section.runtime[3] & " ;¶"		& "$i = " & $i & " ;¶"	& "$ES_Record_UUID = " & Quote ( $ES_Record_UUID ) & " ;¶"	& "$table_name = " & Quote ( $table_name ) & " ;¶"	& "$field_names = " & Quote ( $field_names ) & " ;¶"	& "$record = " & Quote ( $record ) & " ;¶") ]
 Set Variable [ $~script.section.subtract.runtime[2]; Value:$~script.section.subtract.runtime[2]+( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.subtract.start[2] ) / 1000 ]
 End If
 #========================================
@@ -338,7 +347,7 @@ Set Variable [ $~script.section[3]; Value:"PROCESS PAYLOAD: EXTRACT FIELD VALUE"
 Set Variable [ $~script.section.start[3]; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 #================================================================================
 If [ Left ( $field_name ; 4 ) ≠ "B64_" ]
-#If this is not a container...
+#not a container field
 Set Variable [ $field_value; Value:Let ([value = GetValue ( $record ; $f );value = Substitute ( value ; "[[BR]]" ; ¶ )];value) ]
 Else
 Set Variable [ $field_name; Value:Right ( $field_name; Length ( $field_name ) - 4 ) ]
@@ -367,13 +376,9 @@ Set Variable [ $field_changed; Value:not Exact ( $field_value ; Evaluate ( $tabl
 If [ $field_changed ]
 #Update the field.
 Set Field By Name [ $table_name & "::" & $field_name; $field_value ]
-#
-#If an error has occurred...
-#And if it is not a 102 ("Field is missing") error...
-#Note: We ignore 102s because they are indicative of a field in the hosted DB that is simply not mirrored in the remote DB.
-Set Variable [ $LastError; Value:Get ( LastError ) ]
-If [ $LastError ≠ 0 and $LastError ≠ 102 ]
-Exit Loop If [ Let ( [	theErrorCode = $LastError ;	theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;	theErrorInfo = "Pull Error: an error occurred when attempting to process the pulled payload, on " & $table_name & "::" & $field_name ;	theErrorType = "Fmp" ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
+If [ Get ( LastError )andGet ( LastError ) ≠ 102 /* Field is missing */ ]
+#Note: ignore 102s because they are indicative of a field in the hosted DB that is simply not mirrored in the remote DB.
+Exit Loop If [ Let ( [	theErrorCode = Get ( LastError ) ;	theErrorDescription = "(see FileMaker documentation for the description of this error code)" ;	theErrorInfo = "Pull Error: an error occurred when attempting to process the pulled payload, on " & $table_name & "::" & $field_name ;	theErrorType = "Fmp" ;		$error = "$errorType = " & Quote ( theErrorType ) & " ;¶"	& "$errorCode = " & theErrorCode & " ;¶"	& "$errorDescription = " & Quote ( theErrorDescription ) & " ;¶"	& If ( not IsEmpty ( theErrorInfo ) and GetAsBoolean ( theErrorCode ) ;		"$errorInfo = " & Quote ( theErrorInfo ) & " ;¶"	)	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$~script.section = " & Quote ( $~script.section ) & " ;¶"] ;	True) ]
 End If
 End If
 #
@@ -401,7 +406,7 @@ Exit Loop If [ /** * An error occurred in the above loop * * assign error info t
 If [ $$EASYSYNC.CLIENT.LOGLEVELTOWRITE  ≥ 4 ]
 Set Variable [ $~script.section.subtract.start; Value:Get ( CurrentTimeUTCMilliseconds ) ]
 Set Variable [ $~script.section.runtime[2]; Value:( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.start[2] ) / 1000-$~script.section.subtract.runtime[2] ]
-Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section[2] & " end, runtime: " & $~script.section.runtime[2] & ", i: " & $i] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section[2] = " & Quote ( $~script.section[2] ) & " ;¶"	& "$~script.section.runtime[2] = " & $~script.section.runtime[2] & " ;¶"	& "$~script.section.subtract.runtime[2] = " & Quote ( $~script.section.subtract.runtime[2] ) & " ;¶"		& "$i = " & $i & " ;¶"	& "$record = " & Quote ( $record ) & " ;¶"	& "$table_name = " & Quote ( $table_name ) & " ;¶"	& "$field_names = " & Quote ( $field_names ) & " ;¶"	& "$ES_Record_UUID = " & Quote ( $ES_Record_UUID ) & " ;¶") ]
+Perform Script [ “EasySync Client: Config: Create Log Entry”; Parameter: Let ( [	~logLevel = 4 ;	~message = $~script.section[2] & " end, runtime: " & $~script.section.runtime[2] & ", i: " & $i] ;	"$LogLevel = " & ~logLevel & " ;¶"	& "$logMessage = " & Quote ( ~message ) & " ;¶"	& "$ScriptName = " & Quote ( Get ( ScriptName ) ) & " ;¶"	& "$ScriptParameter = " & Quote ( Get ( ScriptParameter ) ) & " ;¶"	& "$TimeStamp = GetAsTimeStamp ( " & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 ) ) & " ) ;¶"		& "$~script.section = " & Quote ( $~script.section ) & " ;¶"	& "$~script.section[2] = " & Quote ( $~script.section[2] ) & " ;¶"	& "$~script.section.runtime[2] = " & $~script.section.runtime[2] & " ;¶"	& "$~script.section.subtract.runtime[2] = " & Quote ( $~script.section.subtract.runtime[2] ) & " ;¶"		& "$i = " & $i & " ;¶"	& "$table_name = " & Quote ( $table_name ) & " ;¶"	& "$field_names = " & Quote ( $field_names ) & " ;¶"	& "$ES_Record_UUID = " & Quote ( $ES_Record_UUID ) & " ;¶"	& "$record = " & Quote ( $record ) & " ;¶") ]
 Set Variable [ $~script.section.subtract.runtime; Value:$~script.section.subtract.runtime[1]+$~script.section.subtract.runtime[2]+( Get ( CurrentTimeUTCMilliseconds ) - $~script.section.subtract.start[1] ) / 1000 ]
 End If
 #========================================
@@ -2189,8 +2194,6 @@ Script:
         ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp (
         \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
         ) & \" ) ;¶\"\n\t\n\t& \"$~script.section = \" & Quote ( $~script.section
-        ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" & $~script.section.runtime
-        & \" ;¶\"\n\t& \"$~script.section.subtract.runtime = \" & GetAsNumber ( $~script.section.subtract.runtime
         ) & \" ;¶\"\n\n\t& \"$payload = \" & Quote ( $payload ) & \" ;¶\"\n) ]"
       Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = $~script.section & \"
         end, runtime: \" & $~script.section.runtime\n] ;\n\t\"$LogLevel = \" & ~logLevel
@@ -2199,8 +2202,6 @@ Script:
         & Quote ( Get ( ScriptParameter ) ) & \" ;¶\"\n\t& \"$TimeStamp = GetAsTimeStamp
         ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
         ) ) & \" ) ;¶\"\n\t\n\t& \"$~script.section = \" & Quote ( $~script.section
-        ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" & $~script.section.runtime
-        & \" ;¶\"\n\t& \"$~script.section.subtract.runtime = \" & GetAsNumber ( $~script.section.subtract.runtime
         ) & \" ;¶\"\n\n\t& \"$payload = \" & Quote ( $payload ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
@@ -2231,12 +2232,7 @@ Script:
         - CurrentTimeUTCMilliseconds
         - " ) / 1000 ) ) & \" ) ;¶\"\n\t\n\t& \"$~script.section = \" & "
         - Quote
-        - " ( $~script.section ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" &
-          $~script.section.runtime & \" ;¶\"\n\t& \"$~script.section.subtract.runtime
-          = \" & "
-        - GetAsNumber
-        - " ( $~script.section.subtract.runtime ) & \" ;¶\"\n\n\t& \"$payload = \"
-          & "
+        - " ( $~script.section ) & \" ;¶\"\n\n\t& \"$payload = \" & "
         - Quote
         - |2-
            ( $payload ) & " ;¶"
@@ -2872,6 +2868,57 @@ Script:
       name: Comment
       StepText: '#========================================'
       Text: ========================================
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $~script.section; Value:"GET RECORD COUNT" ]
+      Value:
+        Calculation: '"GET RECORD COUNT"'
+        DisplayCalculation:
+          Chunk: '"GET RECORD COUNT"'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $~script.section
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#================================================================================'
+      Text: ================================================================================
+    - enable: 'True'
+      id: '141'
+      name: Set Variable
+      StepText: Set Variable [ $record_count; Value:PatternCount ( $payload; $record_delimiter
+        ) - 1 ]
+      Value:
+        Calculation: PatternCount ( $payload; $record_delimiter ) - 1
+        DisplayCalculation:
+          Chunk:
+          - PatternCount
+          - ' ( $payload; $record_delimiter ) - 1'
+      Repetition:
+        Calculation: '1'
+        DisplayCalculation:
+          Chunk: '1'
+      Name: $record_count
     - enable: 'True'
       id: '89'
       name: Comment
@@ -3945,6 +3992,13 @@ Script:
       StepText: '#================================================================================'
       Text: ================================================================================
     - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ $record_count > 0 ]
+      Calculation: $record_count > 0
+      DisplayCalculation:
+        Chunk: $record_count > 0
+    - enable: 'True'
       id: '1'
       name: Perform Script
       StepText: 'Perform Script [ “EasySync Client: Config: Show Message”; Parameter:
@@ -4058,6 +4112,90 @@ Script:
       Script:
         id: '66'
         name: 'EasySync Client: Config: Create Log Entry'
+    - enable: 'True'
+      id: '70'
+      name: End If
+      StepText: End If
+    - enable: 'True'
+      id: '68'
+      name: If
+      StepText: If [ IsEmpty ( $tables ) ]
+      Calculation: IsEmpty ( $tables )
+      DisplayCalculation:
+        Chunk:
+        - IsEmpty
+        - ' ( $tables )'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '# TODO: determine what error code to use here'
+      Text: ' TODO: determine what error code to use here'
+    - enable: 'True'
+      id: '72'
+      name: Exit Loop If
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription
+        = \"Missing table information\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType
+        = $~script.errorType ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType
+        ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription
+        = \" & Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n) ]"
+      Calculation: "Let ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Missing
+        table information\" ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType
+        ;\n\t\n\t$error = \"$errorType = \" & Quote ( theErrorType ) & \" ;¶\"\n\t&
+        \"$errorCode = \" & theErrorCode & \" ;¶\"\n\t& \"$errorDescription = \" &
+        Quote ( theErrorDescription ) & \" ;¶\"\n\t& If ( not IsEmpty ( theErrorInfo
+        ) and GetAsBoolean ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & Quote ( theErrorInfo
+        ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & Quote ( Get ( ScriptName ) ) &
+        \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
+        \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
+        ;\n\tTrue\n)"
+      DisplayCalculation:
+        Chunk:
+        - Let
+        - " ( [\n\ttheErrorCode = -1 ;\n\ttheErrorDescription = \"Missing table information\"
+          ;\n\ttheErrorInfo = \"\" ;\n\ttheErrorType = $~script.errorType ;\n\t\n\t$error
+          = \"$errorType = \" & "
+        - Quote
+        - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
+          ;¶\"\n\t& \"$errorDescription = \" & "
+        - Quote
+        - " ( theErrorDescription ) & \" ;¶\"\n\t& "
+        - If
+        - ' ( '
+        - not
+        - type: NoRef
+          __content__: ' '
+        - IsEmpty
+        - ' ( theErrorInfo ) '
+        - and
+        - type: NoRef
+          __content__: ' '
+        - GetAsBoolean
+        - " ( theErrorCode ) ;\n\t\t\"$errorInfo = \" & "
+        - Quote
+        - " ( theErrorInfo ) & \" ;¶\"\n\t)\n\t& \"$ScriptName = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptName
+        - " ) ) & \" ;¶\"\n\t& \"$ScriptParameter = \" & "
+        - Quote
+        - ' ( '
+        - Get
+        - ' ( '
+        - ScriptParameter
+        - " ) ) & \" ;¶\"\n\t& \"$~script.section = \" & "
+        - Quote
+        - " ( $~script.section ) & \" ;¶\"\n] ;\n\t"
+        - 'True'
+        - |2-
+
+          )
     - enable: 'True'
       id: '70'
       name: End If
@@ -4288,30 +4426,9 @@ Script:
       name: Comment
       StepText: '#'
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Get the # of records in the payload.'
-      Text: 'Get the # of records in the payload.'
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $record_count; Value:PatternCount ( $payload; $record_delimiter
-        ) - 1 ]
-      Value:
-        Calculation: PatternCount ( $payload; $record_delimiter ) - 1
-        DisplayCalculation:
-          Chunk:
-          - PatternCount
-          - ' ( $payload; $record_delimiter ) - 1'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $record_count
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
+      id: '70'
+      name: End If
+      StepText: End If
     - enable: 'True'
       id: '89'
       name: Comment
@@ -4381,9 +4498,8 @@ Script:
         \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000 )
         ) & \" ) ;¶\"\n\t\n\t& \"$~script.section = \" & Quote ( $~script.section
         ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" & $~script.section.runtime
-        & \" ;¶\"\n\t& \"$~script.section.subtract.runtime = \" & GetAsNumber ( $~script.section.subtract.runtime
-        ) & \" ;¶\"\n\n\t& \"$record_count = \" & GetAsNumber ( $record_count ) &
-        \" ;¶\"\n\t& \"$tables = \" & Quote ( $tables ) & \" ;¶\"\n) ]"
+        & \" ;¶\"\n\n\t& \"$record_count = \" & GetAsNumber ( $record_count ) & \"
+        ;¶\"\n\t& \"$tables = \" & Quote ( $tables ) & \" ;¶\"\n) ]"
       Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = $~script.section & \"
         end, runtime: \" & $~script.section.runtime\n] ;\n\t\"$LogLevel = \" & ~logLevel
         & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t& \"$ScriptName
@@ -4392,9 +4508,8 @@ Script:
         ( \" & Quote ( GetAsTimestamp ( Get ( CurrentTimeUTCMilliseconds ) / 1000
         ) ) & \" ) ;¶\"\n\t\n\t& \"$~script.section = \" & Quote ( $~script.section
         ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" & $~script.section.runtime
-        & \" ;¶\"\n\t& \"$~script.section.subtract.runtime = \" & GetAsNumber ( $~script.section.subtract.runtime
-        ) & \" ;¶\"\n\n\t& \"$record_count = \" & GetAsNumber ( $record_count ) &
-        \" ;¶\"\n\t& \"$tables = \" & Quote ( $tables ) & \" ;¶\"\n)"
+        & \" ;¶\"\n\n\t& \"$record_count = \" & GetAsNumber ( $record_count ) & \"
+        ;¶\"\n\t& \"$tables = \" & Quote ( $tables ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
         - Let
@@ -4425,11 +4540,7 @@ Script:
         - " ) / 1000 ) ) & \" ) ;¶\"\n\t\n\t& \"$~script.section = \" & "
         - Quote
         - " ( $~script.section ) & \" ;¶\"\n\t& \"$~script.section.runtime = \" &
-          $~script.section.runtime & \" ;¶\"\n\t& \"$~script.section.subtract.runtime
-          = \" & "
-        - GetAsNumber
-        - " ( $~script.section.subtract.runtime ) & \" ;¶\"\n\n\t& \"$record_count
-          = \" & "
+          $~script.section.runtime & \" ;¶\"\n\n\t& \"$record_count = \" & "
         - GetAsNumber
         - " ( $record_count ) & \" ;¶\"\n\t& \"$tables = \" & "
         - Quote
@@ -4563,11 +4674,6 @@ Script:
       name: Comment
       StepText: '#================================================================================'
       Text: ================================================================================
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If there are no records to sync...'
-      Text: If there are no records to sync...
     - enable: 'True'
       id: '68'
       name: If
@@ -4787,7 +4893,7 @@ Script:
         value list. */\n\nLet ( [\n\t// Note: The \"+1\" in the \"beginning calc\"
         is to account for the default carriage return imposed by ExectueSQL.\n\tbeginning
         = If ( $previous_start > 0 ;\n\t\tPosition ( $payload ; $record_delimiter
-        ; $previous_start ; 1 ) + Length ( $record_delimiter ) + 1 ;\n\t\tPosition
+        ; $previous_start ; 1 )\n\t\t\t+ Length ( $record_delimiter ) + 1\n\t\t;\n\t\tPosition
         ( $payload; \"<records>¶\"; 1; 1 ) + 10\n\t) ;\n\tend = Position ( $payload
         ; $record_delimiter ; 1 ; $i + 1 ) ;\n\t$previous_start = end ;\n\trecord
         = Middle ( $payload ; beginning ; end - beginning ) ;\n\t// Encode CRLFs that
@@ -4801,14 +4907,14 @@ Script:
           ( [\n\t// Note: The \"+1\" in the \"beginning calc\" is to account for the
           default carriage return imposed by ExectueSQL.\n\tbeginning = If ( $previous_start
           > 0 ;\n\t\tPosition ( $payload ; $record_delimiter ; $previous_start ; 1
-          ) + Length ( $record_delimiter ) + 1 ;\n\t\tPosition ( $payload; \"<records>¶\";
-          1; 1 ) + 10\n\t) ;\n\tend = Position ( $payload ; $record_delimiter ; 1
-          ; $i + 1 ) ;\n\t$previous_start = end ;\n\trecord = Middle ( $payload ;
-          beginning ; end - beginning ) ;\n\t// Encode CRLFs that might be found in
-          Base64-encoded container data.\n\t// This makes it easier to treat the fields
-          as a return-delimited value list.\n\trecord = Substitute ( record ; Char
-          ( 13 ) & Char ( 10 ) ; \"[[CRLF]]\" ) ;\n\t// Encode any remaining newline
-          characters.\n\trecord = Substitute ( record ; ¶ ; \"[[BR]]\" ) ;\n\trecord
+          )\n\t\t\t+ Length ( $record_delimiter ) + 1\n\t\t;\n\t\tPosition ( $payload;
+          \"<records>¶\"; 1; 1 ) + 10\n\t) ;\n\tend = Position ( $payload ; $record_delimiter
+          ; 1 ; $i + 1 ) ;\n\t$previous_start = end ;\n\trecord = Middle ( $payload
+          ; beginning ; end - beginning ) ;\n\t// Encode CRLFs that might be found
+          in Base64-encoded container data.\n\t// This makes it easier to treat the
+          fields as a return-delimited value list.\n\trecord = Substitute ( record
+          ; Char ( 13 ) & Char ( 10 ) ; \"[[CRLF]]\" ) ;\n\t// Encode any remaining
+          newline characters.\n\trecord = Substitute ( record ; ¶ ; \"[[BR]]\" ) ;\n\trecord
           = Substitute ( record ; $field_delimiter ; ¶ )\n] ;\n\trecord\n)"
         DisplayCalculation:
           Chunk:
@@ -4823,9 +4929,9 @@ Script:
           - If
           - " ( $previous_start > 0 ;\n\t\t"
           - Position
-          - ' ( $payload ; $record_delimiter ; $previous_start ; 1 ) + '
+          - " ( $payload ; $record_delimiter ; $previous_start ; 1 )\n\t\t\t+ "
           - Length
-          - " ( $record_delimiter ) + 1 ;\n\t\t"
+          - " ( $record_delimiter ) + 1\n\t\t;\n\t\t"
           - Position
           - " ( $payload; \"<records>¶\"; 1; 1 ) + 10\n\t) ;\n\tend = "
           - Position
@@ -4909,43 +5015,20 @@ Script:
     - enable: 'True'
       id: '141'
       name: Set Variable
-      StepText: |-
-        Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" function.
-        // See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/
-        // Thanks Kevin!
-
-        Let( [
-        theList = $field_names;
-        theValue = "ES_Record_UUID[1]";
-        pLp = ¶ & theList & ¶ ;
-        pVp = ¶ & theValue & ¶ ;
-        thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
-        theSegment = Left ( pLp ; thePos ) ;
-        theValPos = PatternCount ( theSegment ; ¶ )
-        ] ;
-
-        GetValue ( $record ; theValPos )
-
-        ) ]
+      StepText: "Set Variable [ $ES_Record_UUID; Value:// Note: This is based in VERY
+        large part on Kevin Frank's \"ValuePosition ( theList ; theValue )\" function.\n//
+        See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/\n//
+        Thanks Kevin!\n\nLet( [\n\ttheList = $field_names;\n\ttheValue = \"ES_Record_UUID\";\n\tpLp
+        = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = Position ( pLp
+        ; pVp ; 1 ; 1 ) ;\n\ttheSegment = Left ( pLp ; thePos ) ;\n\ttheValPos = PatternCount
+        ( theSegment ; ¶ )\n] ;\n\tGetValue ( $record ; theValPos )\n) ]"
       Value:
-        Calculation: |-
-          // Note: This is based in VERY large part on Kevin Frank's "ValuePosition ( theList ; theValue )" function.
-          // See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/
-          // Thanks Kevin!
-
-          Let( [
-          theList = $field_names;
-          theValue = "ES_Record_UUID[1]";
-          pLp = ¶ & theList & ¶ ;
-          pVp = ¶ & theValue & ¶ ;
-          thePos = Position ( pLp ; pVp ; 1 ; 1 ) ;
-          theSegment = Left ( pLp ; thePos ) ;
-          theValPos = PatternCount ( theSegment ; ¶ )
-          ] ;
-
-          GetValue ( $record ; theValPos )
-
-          )
+        Calculation: "// Note: This is based in VERY large part on Kevin Frank's \"ValuePosition
+          ( theList ; theValue )\" function.\n// See: http://filemakerhacks.com/2011/06/12/valueposition-the-function-filemaker-forgot/\n//
+          Thanks Kevin!\n\nLet( [\n\ttheList = $field_names;\n\ttheValue = \"ES_Record_UUID\";\n\tpLp
+          = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = Position ( pLp
+          ; pVp ; 1 ; 1 ) ;\n\ttheSegment = Left ( pLp ; thePos ) ;\n\ttheValPos =
+          PatternCount ( theSegment ; ¶ )\n] ;\n\tGetValue ( $record ; theValPos )\n)"
         DisplayCalculation:
           Chunk:
           - |
@@ -4958,21 +5041,17 @@ Script:
             __content__: |2+
 
           - Let
-          - "( [\ntheList = $field_names;\ntheValue = \"ES_Record_UUID[1]\";\npLp
-            = ¶ & theList & ¶ ;\npVp = ¶ & theValue & ¶ ;\nthePos = "
+          - "( [\n\ttheList = $field_names;\n\ttheValue = \"ES_Record_UUID\";\n\tpLp
+            = ¶ & theList & ¶ ;\n\tpVp = ¶ & theValue & ¶ ;\n\tthePos = "
           - Position
-          - " ( pLp ; pVp ; 1 ; 1 ) ;\ntheSegment = "
+          - " ( pLp ; pVp ; 1 ; 1 ) ;\n\ttheSegment = "
           - Left
-          - " ( pLp ; thePos ) ;\ntheValPos = "
+          - " ( pLp ; thePos ) ;\n\ttheValPos = "
           - PatternCount
-          - |2+
-             ( theSegment ; ¶ )
-            ] ;
-
+          - " ( theSegment ; ¶ )\n] ;\n\t"
           - GetValue
           - |2-
              ( $record ; theValPos )
-
             )
       Repetition:
         Calculation: '1'
@@ -5047,10 +5126,10 @@ Script:
         ) & \" ;¶\"\n\t& \"$~script.section[2] = \" & Quote ( $~script.section[2]
         ) & \" ;¶\"\n\t& \"$~script.section[3] = \" & Quote ( $~script.section[3]
         ) & \" ;¶\"\n\t& \"$~script.section.runtime[3] = \" & $~script.section.runtime[3]
-        & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$record = \" & Quote (
-        $record ) & \" ;¶\"\n\t& \"$table_name = \" & Quote ( $table_name ) & \" ;¶\"\n\t&
-        \"$field_names = \" & Quote ( $field_names ) & \" ;¶\"\n\t& \"$ES_Record_UUID
-        = \" & Quote ( $ES_Record_UUID ) & \" ;¶\"\n) ]"
+        & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$ES_Record_UUID = \" &
+        Quote ( $ES_Record_UUID ) & \" ;¶\"\n\t& \"$table_name = \" & Quote ( $table_name
+        ) & \" ;¶\"\n\t& \"$field_names = \" & Quote ( $field_names ) & \" ;¶\"\n\t&
+        \"$record = \" & Quote ( $record ) & \" ;¶\"\n) ]"
       Calculation: "Let ( [\n\t~logLevel = 5 ;\n\t~message = $~script.section[3] &
         \" end, runtime: \" & $~script.section.runtime[3]\n] ;\n\t\"$LogLevel = \"
         & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) & \" ;¶\"\n\t&
@@ -5061,10 +5140,10 @@ Script:
         ) & \" ;¶\"\n\t& \"$~script.section[2] = \" & Quote ( $~script.section[2]
         ) & \" ;¶\"\n\t& \"$~script.section[3] = \" & Quote ( $~script.section[3]
         ) & \" ;¶\"\n\t& \"$~script.section.runtime[3] = \" & $~script.section.runtime[3]
-        & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$record = \" & Quote (
-        $record ) & \" ;¶\"\n\t& \"$table_name = \" & Quote ( $table_name ) & \" ;¶\"\n\t&
-        \"$field_names = \" & Quote ( $field_names ) & \" ;¶\"\n\t& \"$ES_Record_UUID
-        = \" & Quote ( $ES_Record_UUID ) & \" ;¶\"\n)"
+        & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$ES_Record_UUID = \" &
+        Quote ( $ES_Record_UUID ) & \" ;¶\"\n\t& \"$table_name = \" & Quote ( $table_name
+        ) & \" ;¶\"\n\t& \"$field_names = \" & Quote ( $field_names ) & \" ;¶\"\n\t&
+        \"$record = \" & Quote ( $record ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
         - Let
@@ -5100,16 +5179,16 @@ Script:
         - Quote
         - " ( $~script.section[3] ) & \" ;¶\"\n\t& \"$~script.section.runtime[3] =
           \" & $~script.section.runtime[3] & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \"
-          ;¶\"\n\t& \"$record = \" & "
+          ;¶\"\n\t& \"$ES_Record_UUID = \" & "
         - Quote
-        - " ( $record ) & \" ;¶\"\n\t& \"$table_name = \" & "
+        - " ( $ES_Record_UUID ) & \" ;¶\"\n\t& \"$table_name = \" & "
         - Quote
         - " ( $table_name ) & \" ;¶\"\n\t& \"$field_names = \" & "
         - Quote
-        - " ( $field_names ) & \" ;¶\"\n\t& \"$ES_Record_UUID = \" & "
+        - " ( $field_names ) & \" ;¶\"\n\t& \"$record = \" & "
         - Quote
         - |2-
-           ( $ES_Record_UUID ) & " ;¶"
+           ( $record ) & " ;¶"
           )
       Script:
         id: '66'
@@ -5333,8 +5412,8 @@ Script:
     - enable: 'True'
       id: '89'
       name: Comment
-      StepText: '#If this is not a container...'
-      Text: If this is not a container...
+      StepText: '#not a container field'
+      Text: not a container field
     - enable: 'True'
       id: '141'
       name: Set Variable
@@ -5754,57 +5833,42 @@ Script:
         DisplayCalculation:
           Chunk: $table_name & "::" & $field_name
     - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#'
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#If an error has occurred...'
-      Text: If an error has occurred...
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#And if it is not a 102 ("Field is missing") error...'
-      Text: And if it is not a 102 ("Field is missing") error...
-    - enable: 'True'
-      id: '89'
-      name: Comment
-      StepText: '#Note: We ignore 102s because they are indicative of a field in the
-        hosted DB that is simply not mirrored in the remote DB.'
-      Text: 'Note: We ignore 102s because they are indicative of a field in the hosted
-        DB that is simply not mirrored in the remote DB.'
-    - enable: 'True'
-      id: '141'
-      name: Set Variable
-      StepText: Set Variable [ $LastError; Value:Get ( LastError ) ]
-      Value:
-        Calculation: Get ( LastError )
-        DisplayCalculation:
-          Chunk:
-          - Get
-          - ' ( '
-          - LastError
-          - ' )'
-      Repetition:
-        Calculation: '1'
-        DisplayCalculation:
-          Chunk: '1'
-      Name: $LastError
-    - enable: 'True'
       id: '68'
       name: If
-      StepText: If [ $LastError ≠ 0 and $LastError ≠ 102 ]
-      Calculation: $LastError ≠ 0 and $LastError ≠ 102
+      StepText: |-
+        If [ Get ( LastError )
+        and
+        Get ( LastError ) ≠ 102 /* Field is missing */ ]
+      Calculation: |-
+        Get ( LastError )
+        and
+        Get ( LastError ) ≠ 102 /* Field is missing */
       DisplayCalculation:
         Chunk:
-        - '$LastError ≠ 0 '
+        - Get
+        - ' ( '
+        - LastError
+        - |2
+           )
         - and
-        - ' $LastError ≠ 102'
+        - type: NoRef
+          __content__: |2+
+
+        - Get
+        - ' ( '
+        - LastError
+        - ' ) ≠ 102 /* Field is missing */'
+    - enable: 'True'
+      id: '89'
+      name: Comment
+      StepText: '#Note: ignore 102s because they are indicative of a field in the
+        hosted DB that is simply not mirrored in the remote DB.'
+      Text: 'Note: ignore 102s because they are indicative of a field in the hosted
+        DB that is simply not mirrored in the remote DB.'
     - enable: 'True'
       id: '72'
       name: Exit Loop If
-      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = $LastError ;\n\ttheErrorDescription
+      StepText: "Exit Loop If [ Let ( [\n\ttheErrorCode = Get ( LastError ) ;\n\ttheErrorDescription
         = \"(see FileMaker documentation for the description of this error code)\"
         ;\n\ttheErrorInfo = \"Pull Error: an error occurred when attempting to process
         the pulled payload, on \" & $table_name & \"::\" & $field_name ;\n\ttheErrorType
@@ -5816,7 +5880,7 @@ Script:
         \" ;¶\"\n\t& \"$ScriptParameter = \" & Quote ( Get ( ScriptParameter ) ) &
         \" ;¶\"\n\t& \"$~script.section = \" & Quote ( $~script.section ) & \" ;¶\"\n]
         ;\n\tTrue\n) ]"
-      Calculation: "Let ( [\n\ttheErrorCode = $LastError ;\n\ttheErrorDescription
+      Calculation: "Let ( [\n\ttheErrorCode = Get ( LastError ) ;\n\ttheErrorDescription
         = \"(see FileMaker documentation for the description of this error code)\"
         ;\n\ttheErrorInfo = \"Pull Error: an error occurred when attempting to process
         the pulled payload, on \" & $table_name & \"::\" & $field_name ;\n\ttheErrorType
@@ -5831,11 +5895,15 @@ Script:
       DisplayCalculation:
         Chunk:
         - Let
-        - " ( [\n\ttheErrorCode = $LastError ;\n\ttheErrorDescription = \"(see FileMaker
-          documentation for the description of this error code)\" ;\n\ttheErrorInfo
-          = \"Pull Error: an error occurred when attempting to process the pulled
-          payload, on \" & $table_name & \"::\" & $field_name ;\n\ttheErrorType =
-          \"Fmp\" ;\n\t\n\t$error = \"$errorType = \" & "
+        - " ( [\n\ttheErrorCode = "
+        - Get
+        - ' ( '
+        - LastError
+        - " ) ;\n\ttheErrorDescription = \"(see FileMaker documentation for the description
+          of this error code)\" ;\n\ttheErrorInfo = \"Pull Error: an error occurred
+          when attempting to process the pulled payload, on \" & $table_name & \"::\"
+          & $field_name ;\n\ttheErrorType = \"Fmp\" ;\n\t\n\t$error = \"$errorType
+          = \" & "
         - Quote
         - " ( theErrorType ) & \" ;¶\"\n\t& \"$errorCode = \" & theErrorCode & \"
           ;¶\"\n\t& \"$errorDescription = \" & "
@@ -6202,10 +6270,10 @@ Script:
         ) & \" ;¶\"\n\t& \"$~script.section[2] = \" & Quote ( $~script.section[2]
         ) & \" ;¶\"\n\t& \"$~script.section.runtime[2] = \" & $~script.section.runtime[2]
         & \" ;¶\"\n\t& \"$~script.section.subtract.runtime[2] = \" & Quote ( $~script.section.subtract.runtime[2]
-        ) & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$record = \" & Quote
-        ( $record ) & \" ;¶\"\n\t& \"$table_name = \" & Quote ( $table_name ) & \"
-        ;¶\"\n\t& \"$field_names = \" & Quote ( $field_names ) & \" ;¶\"\n\t& \"$ES_Record_UUID
-        = \" & Quote ( $ES_Record_UUID ) & \" ;¶\"\n) ]"
+        ) & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$table_name = \" & Quote
+        ( $table_name ) & \" ;¶\"\n\t& \"$field_names = \" & Quote ( $field_names
+        ) & \" ;¶\"\n\t& \"$ES_Record_UUID = \" & Quote ( $ES_Record_UUID ) & \" ;¶\"\n\t&
+        \"$record = \" & Quote ( $record ) & \" ;¶\"\n) ]"
       Calculation: "Let ( [\n\t~logLevel = 4 ;\n\t~message = $~script.section[2] &
         \" end, runtime: \" & $~script.section.runtime[2] & \", i: \" & $i\n] ;\n\t\"$LogLevel
         = \" & ~logLevel & \" ;¶\"\n\t& \"$logMessage = \" & Quote ( ~message ) &
@@ -6216,10 +6284,10 @@ Script:
         ) & \" ;¶\"\n\t& \"$~script.section[2] = \" & Quote ( $~script.section[2]
         ) & \" ;¶\"\n\t& \"$~script.section.runtime[2] = \" & $~script.section.runtime[2]
         & \" ;¶\"\n\t& \"$~script.section.subtract.runtime[2] = \" & Quote ( $~script.section.subtract.runtime[2]
-        ) & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$record = \" & Quote
-        ( $record ) & \" ;¶\"\n\t& \"$table_name = \" & Quote ( $table_name ) & \"
-        ;¶\"\n\t& \"$field_names = \" & Quote ( $field_names ) & \" ;¶\"\n\t& \"$ES_Record_UUID
-        = \" & Quote ( $ES_Record_UUID ) & \" ;¶\"\n)"
+        ) & \" ;¶\"\n\t\n\t& \"$i = \" & $i & \" ;¶\"\n\t& \"$table_name = \" & Quote
+        ( $table_name ) & \" ;¶\"\n\t& \"$field_names = \" & Quote ( $field_names
+        ) & \" ;¶\"\n\t& \"$ES_Record_UUID = \" & Quote ( $ES_Record_UUID ) & \" ;¶\"\n\t&
+        \"$record = \" & Quote ( $record ) & \" ;¶\"\n)"
       DisplayCalculation:
         Chunk:
         - Let
@@ -6256,16 +6324,16 @@ Script:
           = \" & "
         - Quote
         - " ( $~script.section.subtract.runtime[2] ) & \" ;¶\"\n\t\n\t& \"$i = \"
-          & $i & \" ;¶\"\n\t& \"$record = \" & "
-        - Quote
-        - " ( $record ) & \" ;¶\"\n\t& \"$table_name = \" & "
+          & $i & \" ;¶\"\n\t& \"$table_name = \" & "
         - Quote
         - " ( $table_name ) & \" ;¶\"\n\t& \"$field_names = \" & "
         - Quote
         - " ( $field_names ) & \" ;¶\"\n\t& \"$ES_Record_UUID = \" & "
         - Quote
+        - " ( $ES_Record_UUID ) & \" ;¶\"\n\t& \"$record = \" & "
+        - Quote
         - |2-
-           ( $ES_Record_UUID ) & " ;¶"
+           ( $record ) & " ;¶"
           )
       Script:
         id: '66'

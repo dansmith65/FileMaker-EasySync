@@ -46,18 +46,18 @@ BaseTable:
         valuelist: 'False'
         calculation: 'False'
         alwaysValidateCalculation: 'False'
-        type: OnlyDuringDataEntry
+        type: Always
         NotEmpty:
           value: 'False'
         Unique:
-          value: 'False'
+          value: 'True'
         Existing:
           value: 'False'
         StrictValidation:
-          value: 'False'
+          value: 'True'
       Storage:
         autoIndex: 'True'
-        index: None
+        index: Minimal
         indexLanguage: English
         global: 'False'
         maxRepetition: '1'

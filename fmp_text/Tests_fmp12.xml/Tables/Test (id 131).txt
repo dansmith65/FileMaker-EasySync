@@ -20,7 +20,7 @@
 ---
 BaseTable:
   id: '131'
-  records: '7'
+  records: '8'
   name: Test
   FieldCatalog:
     Field:

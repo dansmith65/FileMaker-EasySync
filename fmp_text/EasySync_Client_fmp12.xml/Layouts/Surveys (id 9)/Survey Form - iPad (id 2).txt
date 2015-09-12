@@ -3683,7 +3683,7 @@ Layout:
               right: '569.0000000'
             FieldObj:
               numOfReps: '1'
-              flags: '36'
+              flags: '32'
               inputMode: '0'
               keyboardType: '1'
               displayType: '0'
@@ -3823,7 +3823,7 @@ Layout:
               right: '286.0000000'
             FieldObj:
               numOfReps: '1'
-              flags: '36'
+              flags: '32'
               inputMode: '0'
               keyboardType: '1'
               displayType: '0'
@@ -3963,7 +3963,7 @@ Layout:
               right: '569.0000000'
             FieldObj:
               numOfReps: '1'
-              flags: '36'
+              flags: '32'
               inputMode: '0'
               keyboardType: '1'
               displayType: '0'
