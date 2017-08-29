@@ -1,3 +1,11 @@
+## Status
+
+The [master](https://github.com/dansmith65/FileMaker-EasySync/tree/master) branch is just an archive of the last official release by it's original author. The [dev](https://github.com/dansmith65/FileMaker-EasySync/tree/dev) branch of this project is a work-in-progress that is not ready for release. I currently have no plans to continue development on this project. Although, it is possible that I'll decide I want to use this code for myself, and pick it up again. If somone wanted to sponsor development on this project, I'd be open to that as well. Here are a couple of the main features I was in the process of adding for my first release:
+
+1. [modularfilemaker.org](http://modularfilemaker.org) format, which means easier configuration.
+2. Test driven development, which means stable/tested code.
+3. Improved handling of large payloads, which means faster syncing in some scenarios.
+
 ## EasySync / EasyDeploy Databases
 
 There are three demo databases included:
@@ -44,32 +52,6 @@ Account Name: Admin
 Password: [blank]  
 Privilege Set: Full Access  
 Note: Hold down the option (or alt) key when opening the file to bypass the default account.
-
-
-
-## Configuring the EasySync Demo Database
-
-In order to sync with your copy of the hosted demo database, you need to configure the mobile database so that the "Hosted_Database" external data source points to your FileMaker Server. ( File > Manage > External Data Sources )
-
-Then see the Documentation page on the EasySync Web site ( http://fmeasysync.com ) for information on how to wire up a few of the remote scripts that are called in the mobile database.
-
-
-
-## Wiring up EasySync to Your Own Solution
-
-Interested in using EasySync in your own FileMaker-based solution? You’ll find detailed instructions in the Documentation area of the EasySync Web site, located at: http://fmeasysync.com/docs/
-
-
-
-## EasyDeploy Information
-
-For details on how to demo and use EasyDeploy in your own solution, please see the Documentation area of the [EasySync Web site](http://fmeasysync.com).
-
-
-
-## Support
-
-For technical support, please visit our [forum on FMForums](http://fmforums.com/forum/forum/194-fm-easysync/) or [Consultants Directory](http://timdietrich.me/fmeasyconsultants/).
 
 
 
